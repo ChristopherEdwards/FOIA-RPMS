@@ -1,5 +1,5 @@
 APCHS9B4 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ; 
- ;;2.0;IHS PCC SUITE;**2,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 8/27/2007 code set versioning in HYSTER, EYE
  ;
@@ -27,7 +27,7 @@ PLDMDOO(P,F) ;EP get first dm dx from case management
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)'="D"
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
+ .I $$ICD^ATXAPI(I,T,9) D
  ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
  ..Q
  .Q
@@ -182,7 +182,7 @@ HYSTER(P,EDATE) ;EP
  I '$G(P) Q ""
  ;cmi/anch/maw 8/27/2007 mods for code set versioning
  N APCHSVDT
- S F=0,S="" F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S APCHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),"."),C=$P($$ICDOP^ICDCODE(+^AUPNVPRC(F,0),APCHSVDT),U,2) D
+ S F=0,S="" F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S APCHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),"."),C=$P($$ICDOP^ICDEX(+^AUPNVPRC(F,0),APCHSVDT,,"I"),U,2) D
  .;cmi/anch/maw 8/27/2007 end of mods
  .S G=0 S:(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) G=C
  .Q:G=0

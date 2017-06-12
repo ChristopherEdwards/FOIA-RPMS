@@ -1,5 +1,5 @@
 APCLAL31 ; IHS/CMI/LAB - list ALCOHOL screenings ; 
- ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,4,8,10,11**;MAY 14, 2009;Build 58
  ;
  ;
 PROC ;
@@ -110,7 +110,7 @@ BHHF ..;
  ..I R]"" Q
  ..I $D(APCRREST(5)) S X=0 F  S X=$O(^AMHRPROC("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VALI^XBDIQ1(9002011.04,X,.01)
- ...Q:'$$ICD^ATXCHK(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
+ ...Q:'$$ICD^ATXAPI(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
  ...S R=$$BHRT(V,"CPT: "_$$VAL^XBDIQ1(9002011.04,X,.01),"",P,"")
  ..I R]"" Q
  Q R
@@ -244,7 +244,7 @@ PCCSCR(V) ;is there a screening?  return in R
  ;get CPTs
  I $D(APCRREST(5)) S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
  .S M=$$VALI^XBDIQ1(9000010.18,X,.01)
- .Q:'$$ICD^ATXCHK(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
+ .Q:'$$ICD^ATXAPI(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
  .S T=D_U_M_U_U_V_U_9000010.18_U_X
  .S R=$$PCCV^APCLAL1(T,P)
  I R]"" Q R

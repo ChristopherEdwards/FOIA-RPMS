@@ -1,5 +1,5 @@
 BUD0RP7A ; IHS/CMI/LAB - UDS REPORT PROCESSOR 01 Dec 2010 5:11 PM ;
- ;;9.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 02, 2015;Build 42
+ ;;10.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 04, 2016;Build 50
  ;;
 PRGHLST ;EP - list of pregnant females
  ;is patient pregnant during the time period BUDBD and BUDED

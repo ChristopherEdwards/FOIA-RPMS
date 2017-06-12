@@ -1,15 +1,18 @@
 ACHSTXAR ; IHS/ITSC/PMF - REGENERATION OF EXPORT GLOBAL ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**13,14,21**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**13,14,21,26**;JUN 11, 2001;Build 37
  ;ACHS*3.1*13 6.26.2007 IHS/OIT/FCJ FIXED EXITING IF NO DOC SELECTED
  ;ACHS*3.1*14 11.5.2007 IHS/OIT/FCJ RE-EXPORT UFMS INSTEAD OF CORE RECORDS
+ ;ACHS*3.1*26 2.26.2016 IHS/OIT/FCJ ADDED RANGE SELECTION OPTION
  ;
  ;ACHS*3.1*14 11.5.2007 IHS/OIT/FCJ ADDED COMMENT AND TEST FOR EXPORT ALREADY RAN;ACHS*3.1*21 ADDED TEST FOR RE-EXPORT
  I 'ACHSREEX,$D(^ACHSTXST("C",DT,DUZ(2))) W !!,"EXPORT PROGRAM ALREADY RUN THIS DATE FOR THIS FACILITY",*7 H 2 G EXIT1
- S Y=$$DIR^XBDIR("S^1:Re-Export a Batch;2:Select (up to) 101 transactions","Which Re-export option","1","","Select one of the re-export options or ""^""","^D HELP^ACHSTXAR(""H"")","2")
+ ;S Y=$$DIR^XBDIR("S^1:Re-Export a Batch;2:Select (up to) 101 transactions","Which Re-export option","1","","Select one of the re-export options or ""^""","^D HELP^ACHSTXAR(""H"")","2")
+ S Y=$$DIR^XBDIR("S^1:Re-Export a Batch;2:Select (up to) 101 transactions;3:Select range for Intial transactions only","Which Re-export option","1","","Select one of the re-export options or ""^""","^D HELP^ACHSTXAR(""H"")","2")
  G EXIT1:$D(DUOUT)!$D(DTOUT)
  ;ACHS*3.1*13 IHS/OIT/FCJ ADDED TEST FOR ^TMP IN NXT LINE TO EXIT IF NO DOCS SELECTED ACHS*3.1*14 CHANGE RTN FR ACHSTXA1 TO ACHSTXF1
  ;I Y=2 D SELDOC G EXIT1:$D(DUOUT)!$D(DTOUT)!'$D(^TMP("ACHSTXAR",$J)),^ACHSTXA1
  I Y=2 D SELDOC G EXIT1:$D(DUOUT)!$D(DTOUT)!'$D(^TMP("ACHSTXAR",$J)) G ^ACHSTXF1:ACHSTXTY="U" G ^ACHSTXA1
+ I Y=3 D SELRANG G EXIT1:$D(DUOUT)!$D(DTOUT)!'$D(^TMP("ACHSTXAR",$J)) G ^ACHSTXF1:ACHSTXTY="U" G ^ACHSTXA1
  D LINES^ACHSFU,HDR
  S ACHSCHSS=""
  D ^ACHSUF
@@ -75,12 +78,9 @@ SELDOC ; Select transactions from particular documents for export.
  . I $D(DUOUT)!$D(DTOUT)!'T S %=102 Q
  . I $P(T,U,2)="-" S T=$P(T,U,1) K ^TMP("ACHSTXAR",$J,$P(^ACHSF(DUZ(2),"D",ACHSDIEN,"T",T,0),U),ACHSDIEN,T)
  . E  S ^TMP("ACHSTXAR",$J,$P(^ACHSF(DUZ(2),"D",ACHSDIEN,"T",T,0),U),ACHSDIEN,T)=""
- . ;var X is getting reset, so changing it to ACHSSDI for
- . ;Sel Doc Index    3/1/01   pmf
- . ;S (%,X)=0
+ . ;Sel Doc Index
  . S (%,ACHSSDI)=0
  . W !!,"The list now consists of the following transactions:"
- . ;F  S X=$O(^TMP("ACHSTXAR",$J,X)) Q:'X  S D=0 F  S D=$O(^TMP("ACHSTXAR",$J,X,D)) Q:'D  S T=0 F  S T=$O(^TMP("ACHSTXAR",$J,X,D,T)) Q:'T  D
  . F  S ACHSSDI=$O(^TMP("ACHSTXAR",$J,ACHSSDI)) Q:'ACHSSDI  S D=0 F  S D=$O(^TMP("ACHSTXAR",$J,ACHSSDI,D)) Q:'D  S T=0 F  S T=$O(^TMP("ACHSTXAR",$J,ACHSSDI,D,T)) Q:'T  D
  .. ;
  .. S %=%+1
@@ -91,6 +91,48 @@ SELDOC ; Select transactions from particular documents for export.
  .Q
  K ACHSDIEN
  I $$DIR^XBDIR("E")
+ Q
+ ;
+SELRANG ; Select Document range only Initial transactions.     
+ K ^TMP("ACHSTXAR",$J)
+ N D,T
+ S SEL=1
+BEGDOC ;
+ W !!!,"ENTER THE BEGINNING DOCUMENT NUMBER"
+ D ^ACHSUD Q:$D(DUOUT)!$D(DTOUT)!'$D(ACHSDIEN)
+ S ACHSEDOC(SEL,"B")=ACHSDIEN_"^"_$E(X,1,2)_"-"_ACHSFC_"-"_$E(X,3,7)_"^"_X_"^"_$P(Y(0),U,27)_$E(X,3,7)
+ENDDOC ;
+ W !!!,"ENTER THE ENDING DOCUMENT NUMBER"
+ D ^ACHSUD G:$D(DUOUT)!$D(DTOUT)!'$D(ACHSDIEN) BEGDOC
+ I $P(Y(0),U,27)_$E(X,3,7)<$P(ACHSEDOC(SEL,"B"),U,4) W !!,"*****Document selected is not after beginning Document.*****" G ENDDOC
+ S ACHSEDOC(SEL,"E")=ACHSDIEN_"^"_$E(X,1,2)_"-"_ACHSFC_"-"_$E(X,3,7)_"^"_X_"^"_$P(Y(0),U,27)_$E(X,3,7)
+ ;ANOTHER DOC RANGE?
+ S %=$$DIR^XBDIR("Y","Add additional Documents","N","","","",2)
+ I Y S SEL=SEL+1 G BEGDOC
+ Q:$D(DUOUT)
+SETRTR ;SET TRANS FOR DOCUMENT RANGE
+ F L=1:1:SEL D
+ .S BEGDOC=$P(ACHSEDOC(L,"B"),U,3)-1,ENDDOC=$P(ACHSEDOC(L,"E"),U,3)
+ .I $P(ACHSEDOC(L,"B"),U,3)>$P(ACHSEDOC(L,"E"),U,3) D
+ ..F  S BEGDOC=$O(^ACHSF(DUZ(2),"D","B",BEGDOC)) Q:BEGDOC'?1N.N  D SETRTR1
+ ..S BEGDOC=1000000 F  S BEGDOC=$O(^ACHSF(DUZ(2),"D","B",BEGDOC)) Q:(BEGDOC>ENDDOC)!(BEGDOC'?1N.N)  D SETRTR1
+ .E  F  S BEGDOC=$O(^ACHSF(DUZ(2),"D","B",BEGDOC)) Q:(BEGDOC>ENDDOC)!(BEGDOC'?1N.N)  D SETRTR1
+ ;DISPLAY Doc Index
+ N ACHSQ S (%,ACHSSDI,ACHSQ)=0
+ W !!,"The list now consists of the following transactions:"
+ F  S ACHSSDI=$O(^TMP("ACHSTXAR",$J,ACHSSDI)) Q:'ACHSSDI  D  Q:ACHSQ
+ .S D=0 F  S D=$O(^TMP("ACHSTXAR",$J,ACHSSDI,D)) Q:'D  S T=0 Q:ACHSQ  F  S T=$O(^TMP("ACHSTXAR",$J,ACHSSDI,D,T)) Q:'T  D  Q:ACHSQ
+ .. S %=%+1
+ .. W !,$J(%,2),".  ",$P(^ACHSF(DUZ(2),"D",D,0),U,14),"-",$$FC^ACHS(DUZ(2)),"-",$P(^ACHSF(DUZ(2),"D",D,0),U,1)
+ .. D DISTRANS(D,T)
+ .. I %#25=0 S:'$$DIR^XBDIR("E") ACHSQ=1
+ K ACHSDIEN,BEGDOC,ENDDOC,ACHSEDOC,L,SEL
+ W !!,"CONTINUE TO EXPORT RECORDS"
+ I $$DIR^XBDIR("E")
+ Q
+SETRTR1 ;SET DOC TRANS IN TEMP
+ S ACHSDIEN=0,ACHSDIEN=$O(^ACHSF(DUZ(2),"D","B",BEGDOC,ACHSDIEN))
+ S ^TMP("ACHSTXAR",$J,$P(^ACHSF(DUZ(2),"D",ACHSDIEN,"T",1,0),U),ACHSDIEN,1)=""
  Q
  ;
 SELTRANS(D) ; Display trans of doc D, and allow selection.
@@ -123,11 +165,12 @@ H ;
  ;;S.U. may want to selectively re-export the initial obligation
  ;;transaction of the document.
  ;;
- ;;Or, if the HAS is still showing an IHS document as open after a
- ;;reasonable amount of time has lapsed, the S.U. may want to
- ;;selectively re-export the pay.
+ ;;Re-export the pay transaction will not export
+ ;;"ZA" and "IP" transactions. 
  ;;
- ;;( "ZA" and "IP" transactions are not exported. )
+ ;;Option 3 is used to select export of only INITIAL transactions,
+ ;;using a document range.
+ ;;
  ;;###
  ;
 H1 ;

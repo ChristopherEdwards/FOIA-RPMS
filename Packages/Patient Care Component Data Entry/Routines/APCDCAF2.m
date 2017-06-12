@@ -1,5 +1,5 @@
 APCDCAF2 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,8,11**;MAY 14, 2009;Build 58
  ;; ;
  ;
 EN ; EP -- main entry point for CHART AUDIT LISTMANAGER DISPLAY
@@ -98,15 +98,15 @@ LBLK(V,L) ;left blank fill
  ;
 LASTCDR(V,F) ;EP - get last chart deficiency reason
  I $G(F)="" S F="I"  ;default to ien
- I '$D(^AUPNVCA(V)) Q ""
+ I '$D(^AUPNVCA("AD",V)) Q ""
  NEW X,A,D,L
  S X=0 F  S X=$O(^AUPNVCA("AD",V,X)) Q:X'=+X  D
  .Q:'$D(^AUPNVCA(X,0))
  .S D=$P(^AUPNVCA(X,0),U)
  .S A((9999999-$P(D,".")))=X
  S L=$O(A(0)) I L="" Q ""
- S L=A(0)
- Q $S(F="I":$P(^AUPNVCA(X,0),U,5),1:$$VAL^XBDIQ1(9000010.45,X,.05))
+ S X=A(L)
+ Q $S(F="I":$P(^AUPNVCA(X,0),U,6),1:$$VAL^XBDIQ1(9000010.45,X,.06))
  ;
 BACK ;EP - go back to listman
  D TERM^VALM0
@@ -161,22 +161,26 @@ CASHX ;EP
  I Y="" W !,"No VISIT selected." D EOP G CASHXX
  I $D(DIRUT) W !,"No VISIT selected." D EOP G CASHXX
  S APCDVSIT=^TMP("APCDCAF OP",$J,"IDX",Y,Y)
- W !!,"Chart Audit History for VISIT:"
- W !?1,"Visit Date:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.01),"   Patient Name:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.05)
- W !?1,"Hospital Location:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.22),"  Primary Provider: ",$$PRIMPROV^APCLV(APCDVSIT,"N")
- W !!?2,"DATE OF AUDIT",?22,"STATUS",?42,"USER WHO AUDITED",?62,"CHART DEFICIENCY"
- S APCDX=0 F  S APCDX=$O(^AUPNVCA("AD",APCDVSIT,APCDX)) Q:APCDX'=+APCDX  D
- .K APCDAR D ENP^XBDIQ1(9000010.45,APCDX,".01;.04;.05;.06","APCDAR(","E")
- .W ! S T=2
- .S F=0 F  S F=$O(APCDAR(F)) Q:F'=+F  D
- ..W ?T,$E(APCDAR(F),1,18) S T=T+20
- I $O(^AUPNCANT(APCDVSIT,11,0)) D
- .W !!,"NOTES:"
- .S X=0 F  S X=$O(^AUPNCANT(APCDVSIT,11,X)) Q:X'=+X  W !,^AUPNCANT(APCDVSIT,11,X,0)
+ D VIEWR^XBLM("DCAH^APCDCAF")
  D EOP
  ;
 CASHXX ;
  K DIR,DIRUT,DUOUT,Y,APCDVSIT
+ D BACK
+ Q
+CDE ;EP
+ K DIR
+ S DIR(0)="NO^1:"_APCDRCNT,DIR("A")="Which Visit"
+ D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No VISIT selected." D EOP^APCDCAF G CDEX
+ I $D(DIRUT) W !,"No VISIT selected." D EOP^APCDCAF G CDEX
+ S APCDVSIT=^TMP("APCDCAF OP",$J,"IDX",Y,Y)
+ K VALMBCK
+ S APCDCAFV=APCDVSIT,APCDPAT=$P(^AUPNVSIT(APCDVSIT,0),U,5) D EN^APCDCAF6(APCDVSIT)
+ ;
+CDEX ;
+ K DIR,DIRUT,DUOUT,Y,APCDVSIT,APCDCAF,APCDCAFV
+ ;
  D BACK
  Q
  ;
@@ -280,7 +284,7 @@ CP ;EP - change patient if in one patient
  ;change patient
  W !
  S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC
- I Y<0 D BACK Q
+ I Y<0 D BACK^APCDCAF Q
  I $D(APCDPARM),$P(APCDPARM,U,3)="Y" W !?25,"Ok" S %=1 D YN^DICN Q:%'=1
  S (DFN,APCDPATF)=+Y
 PROC1 ; call listmanager

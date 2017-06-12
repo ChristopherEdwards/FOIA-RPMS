@@ -1,5 +1,5 @@
-APSPES2 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;05-Aug-2013 10:36;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1011,1016**;Sep 23, 2004;Build 74
+APSPES2 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;23-Mar-2015 09:06;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1011,1016,1018**;Sep 23, 2004;Build 21
  ; Return array of message data
  ; Input: MIEN - IEN to HLO MESSAGES and HLO MESSAGE BODY files
  ; Output: DATA
@@ -15,7 +15,6 @@ PARSE(DATA,MIEN,HLMSTATE) ;EP
  Q
  ; Process incoming RDS message
 DISP ;EP
- ;todo- check APP ACK TYPE
  N DATA,ARY,SEGORC,SEGIEN,SEGRXD,ERR,RET
  N DRG,DCODE,DCODEQ,PVDIEN,DSPNUM,RXIEN
  Q:'$G(HLMSGIEN)
@@ -81,7 +80,6 @@ RXIEN(MSGIEN,TGL) ; EP
  S SEGIEN=$$FSEGIEN^APSPES1(.DATA,"ORC")
  Q:'SEGIEN ""
  M SEGORC=DATA(SEGIEN)
- ;Q:$$GET^HLOPRS(.SEGORC,1,1)'="OK"
  S RXN=$$GET^HLOPRS(.SEGORC,2,1)
  S RET=$S(TGL:RXN,$D(^PSRX(+RXN,0)):+RXN,1:0)
  Q RET
@@ -109,12 +107,6 @@ REFRES ; EP - Refill request callback
  I RR,RXIEN D   ;,'$$DEACLS(DEA,2) D
  .I '$D(^PSRX(RXIEN,0)) D  Q
  ..S MATCHK=MATCHK_"Z"
- ..;S FDA(FN,RR_",",.03)=9
- ..;D FILE^DIE("K","FDA")
- ..;S MSGTXT="AG-RX to refill not in system"
- ..;D UPTRRACT^APSPES3(RR,MSGTXT)
- ..;D DENYRPC^APSPES3(.DATA,RR,MSGTXT)
- ..;D ERR900^APSPES4(RR,"PON does not match our records"
  .;Only allow automap if patient and provider match and there is an order
  .I MATCHK["P"&(MATCHK["D") D
  ..S ORID=$$GENRENEW^APSPES4(HLMSGIEN,RXIEN,$$GET1^DIQ(52,RXIEN,16,"I"),$$GETVAL(HLMSGIEN,"RXO",13,1),RR)
@@ -138,9 +130,6 @@ REFRES ; EP - Refill request callback
  ...S FDA(FN,RR_",",.11)=MATCHK  ;PLS
  ...D FILE^DIE("K","FDA")
  ...D UPTRRACT^APSPES3(RR,$P(ORID,U,2))
- ...;S MSGTXT="AG-Refill not appropriate"
- ...;D DENYRPC^APSPES3(.DATA,RR,MSGTXT)
- ...;D ERR900^APSPES4(RR,"Refill not appropriate")
  .E  D
  ..;Store the data but send it to the queue
  ..S:ORITM FDA(FN,RR_",",1.1)=ORITM
@@ -150,9 +139,6 @@ REFRES ; EP - Refill request callback
  ..S FDA(FN,RR_",",.03)=0
  ..D FILE^DIE("K","FDA")
  E  D
- .;No order found store data and send to queue
- .;S ORITM=$$FNDORD^APSPES4(RR,HLMSGIEN)     ;Try and find the pharmacy orderable item for mapping in the queue
- .;I +ORITM D
  .N HL7PON,ERRFLG
  .S HL7PON=$$RXIEN(HLMSGIEN,1)  ;Get PON sent in HL7 request
  .I HL7PON?1.N,'(MATCHK["O") S ERRFLG=1
@@ -165,13 +151,6 @@ REFRES ; EP - Refill request callback
  .I $G(ERRFLG) D
  ..D UPTRRACT^APSPES3(RR,"PON does not match our records")
  ..D ERR900^APSPES4(RR,"PON does not match our records")
- .;S MSGTXT=$P(ORID,U,2)
- .;D DENY1^APSPES3
- ;E  D
- ;.S MSGTXT="Schedule II not allowed."
- ;.D DENY1^APSPES3
- ; todo - Set Scheduled purge dt field (.09) in 778 to 30 days until processed.
- ;
  Q
 SET(ARY,V,F,C,S,R) ;EP
  D SET^HLOAPI(.ARY,.V,.F,.C,.S,.R)
@@ -210,15 +189,10 @@ ADDRR(MSGIEN) ; EP -
  I +PRV S ACTSPI=$$EFF(PRV)
  I 'RXIEN&(+PRV)&(+ACTSPI) S MATCHK=MATCHK_"D"
  I +RXIEN&(+PRV)&(+ACTSPI)&(PRV=$$GET1^DIQ(52,RXIEN,4,"I")) S MATCHK=MATCHK_"D"
- ;S:PRV FDA(FN,I,1.3)=PRV  ; Provider IEN
  S SSNUM=$$GETVAL(MSGIEN,"ORC",3,1)
  S FILLS=$$GETVAL(MSGIEN,"RXO",13,1)  ;Number of fills requested
  I FILLS=""!(FILLS=0) S FILLS=1
- ;S RXIEN=$$RXIEN^APSPES2(MSGIEN)
  S:RXIEN FDA(FN,I,.06)=RXIEN  ; Original Prescription
- ;S PHARM=$$GET1^DIQ(52,RXIEN,9999999.24,"I")
- ;.S:PHARM FDA(FN,I,1.7)=PHARM  ; Requesting Pharmacy
- ;E  D
  S PHARM=$$GETVAL(MSGIEN,"RXE",40,1)
  S:PHARM PHARM=$$FIND1^DIC(9009033.9,,"O",PHARM,"C")
  S:PHARM FDA(FN,I,1.7)=PHARM
@@ -244,7 +218,6 @@ ADDRR(MSGIEN) ; EP -
  S FDA(FN,I,4.1)=NOTES
  S FIEN=$$CHKSSNUM^APSPES4(SSNUM)
  S FDA(FN,I,.03)=$S(FIEN:8,1:0)  ; Status
- ;S FDA(FN,I,.03)=0  ; Status
  D UPDATE^DIE(,"FDA","IENS","ERR")
  ;TODO - PROCESS ERR
  ;TODO - POPULATE OTHER FIELDS
@@ -260,7 +233,7 @@ ADDRR(MSGIEN) ; EP -
  .N S
  .S S=$$GET1^DIQ(9009033.91,FIEN,.03,"I")  ;Status
  .I S=2!(S=3)!(S=5) D
- ..D ERR900^APSPES4(+IENS(1),"Request has already been viewed.")
+ ..D NOTIF^APSPES4(,"Duplicate SS Request received","DUP:"_+IENS(1),$$GET1^DIQ(9009033.91,FIEN,1.2,"I"),$$GET1^DIQ(9009033.91,FIEN,1.3,"I"))
  Q +$G(IENS(1))
  ; Extract data from segment
  ; Input: MSG - Message ien
@@ -318,7 +291,6 @@ SIG(IEN) ;Store sig
  S X2=""
  S FN=9009033.913
  S AIEN="+1,"_IEN_","
- ;S FDA(FN,AIEN,.01)=$$GETVAL(MSGIEN,"RXO",7,2)  ; SIG
  S X=$$GETVAL(MSGIEN,"RXO",7,2)  ; SIG
  I $L(X)>200 S X1=$E(X,1,200),X2=$E(X,201,$L(X))
  E  S X1=X
@@ -350,9 +322,6 @@ PREPPTXT(RET,RRIEN) ; Return prepared text from Pharmacy
  S @RET@(8)="Substitution allowed: "_$$ESUBST($$GETVAL(M,"RXO",9))
  S @RET@(9)="Last fill date: "_$$FMTE^XLFDT($$FMDATE^HLFNC($$GETVAL(M,"ORC",27,1)),"5DZ0")
  S @RET@(10)=" "
- ;S @RET@(11)="Diagnosis: "
- ;S C=12
- ;D GETDIAG(M,RET,.C)
  S @RET@(11)="Diagnosis: "_$$GETVAL(M,"DG1",3,2)
  Q
  ; Return full HL7 message

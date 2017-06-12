@@ -1,7 +1,5 @@
-LRBEBAO ;DALOI/JAH/FHS - ORDERING AND RESULTING FOR OUTPATIENTS ;8/10/04
- ;;5.2;LAB SERVICE;**1031**;Nov 1, 1997
- ;
- ;;VA LR Patche(s): 291,359,352
+LRBEBAO ;DALOI/JAH/FHS - ORDERING AND RESULTING FOR OUTPATIENTS ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**291,359,352,1031,1033,1034**;Nov 1, 1997;Build 88
  ;
  ; This routine contains the subroutines that get the diagnosis pointers
  ; and indicators at order entry and result verification for outpatient.
@@ -49,6 +47,8 @@ OPORD ; Outpatient Order Entry
  ;   LRBEPOV        -  Pointer to V POV (#9000010.07) file
  ;   LRBEDGX        -  Pointer to Diagnosis (#80)
 EN ;
+ Q:$$MODEXIST^BLRUTIL4("PCE")<1   ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  D INIT
  S SUB1="ENCOUNTER",SUB2="DX/PL",SUB3="PROVIDER"
  S LRBEDFN="" F  S LRBEDFN=$O(LRBEAR(LRBEDFN)) Q:LRBEDFN=""  D
@@ -157,6 +157,8 @@ OPRES(LRBEAR,LRBEAR1,LRODT,LRSN,LRBEVST) ; Outpatient Final Resulting
  I $P($G(^LRO(68,$G(LRAA),0)),U,2)'="MI" D SEND
  Q
 SEND ; Send if procedure is defined
+ Q:$$MODEXIST^BLRUTIL4("PCE")<1   ; IHS/MSC/MKK - LR*5.2*1033 [00134902]
+ ;
  N LRLNOW,LRVX,PXALOOK,PXUCV
  I '$G(^TMP("LRPXAPI",$J,"PROCEDURE",1,"PROCEDURE")) G END
  I $G(^XTMP("LRPCELOG",0)) D

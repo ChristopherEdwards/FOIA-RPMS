@@ -1,6 +1,15 @@
-BDMUTL ; IHS/CMI/LAB - Area Database Utility Routine ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**5,8**;JUN 14, 2007;Build 53
+BDMUTL ; IHS/CMI/LAB - Area Database Utility Routine ; 14 Sep 2015  12:41 PM
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**5,8,9**;JUN 14, 2007;Build 78
  ;
+SNOMED(YR,LIST,SMC) ;EP - is snomed code smc on the list for the year
+ I 'YR S YR=2016
+ I LIST="" Q ""
+ I SMC="" Q ""
+ NEW YRI,LISTI
+ S YRI=$O(^BDMSNME("B",YR,0)) I 'YRI Q ""
+ S LISTI=$O(^BDMSNME(YRI,11,"B",LIST,0)) I 'LISTI Q ""
+ I $D(^BDMSNME(YRI,11,LISTI,11,"B",SMC)) Q 1
+ Q ""
 GETIMMS(P,EDATE,C,BDMX) ;EP
  K BDMX
  NEW X,Y,I,Z,V
@@ -69,7 +78,7 @@ LZERO(V,L) ;EP - left zero fill
  NEW %,I
  S %=$L(V),Z=L-% F I=1:1:Z S V="0"_V
  Q V
-LBLK(V,L) ;left blank fill
+LBLK(V,L) ;EP -left blank fill
  NEW %,I
  S %=$L(V),Z=L-% F I=1:1:Z S V=" "_V
  Q V
@@ -89,6 +98,9 @@ DEMOCHK(R) ;EP - check demo pat
  ;
 ICD(VAL,TAXNM,TYP) ;EP -- check to see if value is in taxonomy in ^TMP("BDMTMP",$J,Taxonomy Name
  ;add 3rd param with pass type
+ I $G(VAL)="" Q 0
+ I $G(TAXNM)="" Q 0
+ I $G(TYP)="" Q 0
  I $G(BDMJOB)=""!($G(BDMBTH)="") Q $$ICD^ATXCHK(VAL,$O(^ATXAX("B",TAXNM,0)),TYP)
  I '$D(^XTMP("BDMTAX",BDMJOB,BDMBTH,TAXNM)) Q $$ICD^ATXCHK(VAL,$O(^ATXAX("B",TAXNM,0)),TYP)
  I $D(^XTMP("BDMTAX",BDMJOB,BDMBTH,TAXNM,VAL)) Q 1

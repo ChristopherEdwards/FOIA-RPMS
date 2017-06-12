@@ -1,4 +1,4 @@
-RACTEX19 ; ;07/06/13
+RACTEX19 ; ;05/20/15
  ;;
 1 N X,X1,X2 S DIXR=84 D X1(U) K X2 M X2=X D X1("F") K X1 M X1=X
  I $G(X(1))]"" D

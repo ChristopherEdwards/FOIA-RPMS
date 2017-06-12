@@ -1,20 +1,24 @@
 BGP6DLT ; IHS/CMI/LAB - national patient list 20 Dec 2004 9:24 AM ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
  ;
- W:$D(IOF) @IOF
+START ;EP
+ I $G(BGPGUI) D  Q  ;cmi/maw added 10/30/2010
+ . S BGPPAGE=1
+ . S BGPSUBH="Lab Taxonomies for the: ",BGPSUBH1=BGPRPTN_" REPORT"
+ I '$G(BGPGUI) W:$D(IOF) @IOF  ;cmi/maw added 1/14/08
  W !,$$CTR("Lab Taxonomy Report",80)
- W !,$$CTR("CRS 2006, Version 6.1",80)
+ W !,$$CTR($$RPTVER^BGP6BAN,80)
 INTRO ;
- D XIT
- S BGPTEXT="INTROT" F BGPJ=1:1 S BGPX=$T(@BGPTEXT+BGPJ) Q:$P(BGPX,";;",2)="END"  S BGPT=$P(BGPX,";;",2) W !,BGPT
+ W !!,"Site populated Lab Taxonomy Report for the: ",!?5,BGPRPTN," Report",!
+ S BGPSUBH="Lab Taxonomies for the: ",BGPSUBH1=BGPRPTN_" REPORT"
+ S BGPCTRL=$O(^BGPCTRL("B",2016,0))
+ S X=0 F  S X=$O(^BGPCTRL(BGPCTRL,43,X)) Q:X'=+X  W !,^BGPCTRL(BGPCTRL,43,X,0)
  K DIR S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="Y" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
  I 'Y D XIT Q
 ZIS ;call to XBDBQUE
- ;S XBRC="",XBRP="PRINT^BGP6DLT",XBRX="XIT^BGP6DLT",XBNS="BGP"
- ;D ^XBDBQUE
  K ZTSK
  K IOP,%ZIS S %ZIS="PQM" D ^%ZIS I POP S IO=IO(0) Q
  G:$D(IO("Q")) QUE
@@ -26,13 +30,48 @@ NOQUE ;
  Q
 QUE ;
  K ZTSAVE S ZTSAVE("BGP*")=""
- S ZTRTN="PRINT^BGP6DLT",ZTDESC="BGP 06 LAB TAX REPORT",ZTIO=ION,ZTDTH=""
+ S ZTRTN="PRINT^BGP6DLT",ZTDESC="BGP 16 LAB TAX REPORT",ZTIO=ION,ZTDTH=""
  D ^%ZTLOAD
  D HOME^%ZIS
  D XIT
  Q
+CMS ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="CMS",BGPRT(5)=""
+ D START
+ Q
+ELDER ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="ELDER CARE",BGPRT(4)=""
+ D START
+ Q
+HEDIS ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="HEDIS",BGPRT(3)=""
+ D START
+ Q
+CRS ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="SELECTED MEASURES (LOCAL)",BGPRT(2)=""
+ D START
+ Q
+ONM ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="OTHER NATIONAL MEASURES",BGPRT(7)=""
+ D START
+ Q
+GPRA ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="NATIONAL GPRA/GPRAMA and GPRA/GPRAMA PERFORMANCE",BGPRT(1)=""
+ D START
+ Q
+EO ;EP
+ I '$G(BGPGUI) D XIT  ;cmi/maw 10/30/2009
+ S BGPRPTN="EO QUALITY TRANSPARENCY MEASURES",BGPRT(8)=""
+ D START
+ Q
 XIT ;
- D EN^XBVK("BGP")
+ D EN^XBVK("BGP") I $D(ZTQUEUED) S ZTREQ="@"
  D ^XBFMK
  Q
  ;
@@ -40,36 +79,22 @@ PRINT ;
  S (BGPPAGE,BGPQUIT)=0
  S BGPIOSL=$S($G(BGPGUI):55,1:$G(IOSL))
  D HEADER
- S BGPSUBH="NATIONAL GPRA/GPRA PERFORMANCE REPORT TAXONOMIES"
- K BGPRT,BGPNO S BGPRT(1)="" ;,BGPRT(2)=""
  D N
- Q:BGPQUIT
- S BGPSUBH="CRS TAXONOMIES EXCLUDING NATIONAL GPRA REPORT TAXONOMIES"
- K BGPRT,BGPNO S BGPRT(2)="",BGPRT(3)="",BGPRT(4)="",BGPRT(5)="",BGPNO(1)=""
- W !!
- D N
- Q:BGPQUIT
- S BGPSUBH="CMS REPORT TAXONOMIES"
- K BGPRT,BGPNO S BGPRT(5)=""
- W !!
- D N
- Q:BGPQUIT
  D EOP
  Q
 N ;GATHER UP AND DISPLAY ALL NATIONAL GPRA
  S BGPC=0
- I $Y>(BGPIOSL-4) D HEADER Q:BGPQUIT
- W !,BGPSUBH
- S BGPTNAME="" F  S BGPTNAME=$O(^BGPTAXS("B",BGPTNAME)) Q:BGPTNAME=""!(BGPQUIT)  D
- .S BGPTIEN=0,BGPTIEN=$O(^BGPTAXS("B",BGPTNAME,BGPTIEN))
+ I $Y>(BGPIOSL-5) D HEADER Q:BGPQUIT
+ S BGPTNAME="" F  S BGPTNAME=$O(^BGPTAXM("B",BGPTNAME)) Q:BGPTNAME=""!(BGPQUIT)  D
+ .S BGPTIEN=0,BGPTIEN=$O(^BGPTAXM("B",BGPTNAME,BGPTIEN))
  .Q:'BGPTIEN  ;oops, error in xref
- .Q:'$D(^BGPTAXS(BGPTIEN,0))  ;oops, error in xref
- .Q:$P(^BGPTAXS(BGPTIEN,0),U,2)'="L"  ;only lab taxonomies in this report
- .S (G,X)=0 F  S X=$O(^BGPTAXS(BGPTIEN,12,"B",X)) Q:X'=+X!(G)  D
+ .Q:'$D(^BGPTAXM(BGPTIEN,0))  ;oops, error in xref
+ .Q:$P(^BGPTAXM(BGPTIEN,0),U,2)'="L"  ;only lab taxonomies in this report
+ .S (G,X)=0 F  S X=$O(^BGPTAXM(BGPTIEN,12,"B",X)) Q:X'=+X!(G)  D
  ..I $D(BGPRT(X)) S G=1
  .Q:'G
  .;now eliminate those in BGPNO
- .S (G,X)=0 F  S X=$O(^BGPTAXS(BGPTIEN,12,"B",X)) Q:X'=+X!(G)  D
+ .S (G,X)=0 F  S X=$O(^BGPTAXM(BGPTIEN,12,"B",X)) Q:X'=+X!(G)  D
  ..I $D(BGPNO(X)) S G=1
  .Q:G
  .S BGPLTI=$O(^ATXLAB("B",BGPTNAME,0))
@@ -88,22 +113,25 @@ N ;GATHER UP AND DISPLAY ALL NATIONAL GPRA
  .W !!?3,BGPC,".",?8,BGPTNAME,!?8,"Members: "
  .I '$D(BGPLABS) W ?17,"NONE"
  .S BGPY=0 F  S BGPY=$O(BGPLABS(BGPY)) Q:BGPY'=+BGPY!(BGPQUIT)  D
- ..I $Y>(IOSL-5) D HEADER Q:BGPQUIT
- ..W:BGPY>1 ! W ?17,BGPLABS(BGPY)
+ ..I $Y>(BGPIOSL-5) D HEADER Q:BGPQUIT
+ ..W:BGPY>1 ! W ?17,BGPY,")  ",BGPLABS(BGPY)
  .Q
  Q
 HEADER ;EP
  G:'BGPPAGE HEADER1
  K DIR I $E(IOST)="C",IO=IO(0),'$D(ZTQUEUED),'$D(IO("S")) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT=1 Q
 HEADER1 ;
- W:$D(IOF) @IOF S BGPPAGE=BGPPAGE+1
- I $G(BGPGUI) W "ZZZZZZZ",!  ;maw
+ S BGPPAGE=BGPPAGE+1
+ I BGPPAGE'=1 W:$D(IOF) @IOF
+ I $G(BGPGUI),BGPPAGE>1 W "ZZZZZZZ",!  ;maw
  W $P(^VA(200,DUZ,0),U,2),?70,"Page ",BGPPAGE,!
  W $$CTR("*** Lab Taxonomy Report ***",80),!
+ W $$CTR($$RPTVER^BGP6BAN,80),!
  S X="Date Report Run: "_$$FMTE^XLFDT(DT) W $$CTR(X,80),!
  S X="Site where Run: "_$P(^DIC(4,DUZ(2),0),U) W $$CTR(X,80),!
  S X="Report Generated by: "_$P(^VA(200,DUZ,0),U) W $$CTR(X,80),!
- W $$CTR("CRS Version 6.1",80)
+ ;
+ W !!,$$CTR(BGPSUBH1_" TAXONOMIES",80),! ;,$$CTR(BGPSUBH1,80),!
  S X=$$REPEAT^XLFSTR("-",80) W !,X
  W !
  Q
@@ -125,19 +153,3 @@ LOC() ;EP - Return location name from file 4 based on DUZ(2).
  Q $S($G(DUZ(2)):$S($D(^DIC(4,DUZ(2),0)):$P(^(0),U),1:"UNKNOWN"),1:"DUZ(2) UNDEFINED OR 0")
  ;----------
  ;
-INTROT ;introductory text
- ;;
- ;;                   Site-Populated Lab Taxonomy Report
- ;;
- ;;This will produce a report of all site-populated lab taxonomies for CRS 2006.
- ;;The report is organized by (1) taxonomies included in the National GPRA/GPRA
- ;;Performance Reports, (2) taxonomies included in all other CRS reports except
- ;;those exclusive to the CMS report, and (3) taxonomies exclusive to the CMS
- ;;report.  
- ;;
- ;;Each lab taxonomy is listed with the lab tests that have been assigned by
- ;;your facility for inclusion in the taxonomy.
- ;;
- ;;You are only able to produce a printed version of this report.
- ;;
- ;;END

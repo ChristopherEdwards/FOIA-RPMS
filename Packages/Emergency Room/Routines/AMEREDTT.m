@@ -1,5 +1,5 @@
 AMEREDTT ; IHS/OIT/SCR - SUB-ROUTINE FOR ER VISIT EDIT of Triage Information
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6**;MAR 03, 2009;Build 30
  ; 
  ;VARIABLES: The following variables are passed to multiple editing routines
  ;  AMERDA  : the IEN of the ER VISIT that is selected for editing
@@ -17,9 +17,9 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  S (AMEROLD,AMERNEW,AMEREDTS,AMERSTRG,DR)=""
  Q:'$D(^XUSEC("AMERZ9999",DUZ)) $$ERSEDTT(AMERDA,AMERAIEN)  ; PROGRAMATICALLY locking fields that pass to PCC
  S AMERSKIP=0
- ; ADMITTING PROVIDER
+ ; ED PROVIDER
  N DIC,DIR
- S DIC("A")="*Admitting provider: "
+ S DIC("A")="*ED Provider: "
  S AMEROLD=$P($G(^AMERVSIT(AMERDA,0)),U,6)
  ;screening so that only valid PCC providers identified
  S DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P($G(^VA(200,+Y,0)),U),+Y))"
@@ -31,10 +31,10 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  E  S AMERNEW=""
  I AMEROLD=AMERNEW D
  .I AMERNEW="" S AMERSKIP=1 Q
- .; If discharge provider is same as admitting provider, don't let 'em delete it
+ .; If discharge provider is same as ED provider, don't let 'em delete it
  .I AMERNEW=$P($G(^AMERVSIT(AMERDA,6)),U,3) D  Q
- ..D EN^DDIOL("ADMITTING provider is same as DISCHARGE provider","","!!")
- ..D EN^DDIOL("cannot remove ADMITTING provider until DISCHARGE provider is updated","","!")
+ ..D EN^DDIOL("ED provider is same as DISCHARGE provider","","!!")
+ ..D EN^DDIOL("cannot remove ED provider until DISCHARGE provider is updated","","!")
  ..D EN^DDIOL("","","!!")
  .S DIR("A")="Do you want to REMOVE this provider from the ER VISIT"
  .S DIR(0)="Y",DIR("B")="NO"
@@ -42,7 +42,7 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  .I Y=1 D
  ..S DR=$S(DR'="":DR_";",1:""),DR=DR_".06////@;12.1////@"  ;delete any time as well
  ..S AMERNEW="",AMERSKIP=1
- ..S AMERSTRG=$$EDAUDIT^AMEREDAU(".06",AMEROLD,AMERNEW,"ADMITTING PROVIDER")
+ ..S AMERSTRG=$$EDAUDIT^AMEREDAU(".06",AMEROLD,AMERNEW,"INITIAL ED PROVIDER")
  ..I AMERSTRG="^" Q
  ..S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
  .Q
@@ -50,7 +50,7 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  .S DR=$S(DR'="":DR_";",1:""),DR=DR_".06////"_AMERNEW
  .S AMEROLD=$$EDDISPL^AMEREDAU(AMEROLD,"N") ;translates from new person ien to name
  .S AMERNEW=$$EDDISPL^AMEREDAU(AMERNEW,"N")
- .S AMERSTRG=$$EDAUDIT^AMEREDAU(".06",AMEROLD,AMERNEW,"ADMITTING PROVIDER")
+ .S AMERSTRG=$$EDAUDIT^AMEREDAU(".06",AMEROLD,AMERNEW,"INITIAL ED PROVIDER")
  .I AMERSTRG="^" S AMERQUIT=1,DR="" Q
  .S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
  .Q
@@ -59,7 +59,7 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  N DIR
  S AMEROLD=$P($G(^AMERVSIT(AMERDA,12)),U,1)
  I AMEROLD'="" S Y=AMEROLD  X ^DD("DD") S DIR("B")=Y
- S DIR(0)="DO^::ER",DIR("A")="*What time did the patient see the admitting provider"
+ S DIR(0)="DO^::ER",DIR("A")="*What was the ED Provider Medical Screening Exam Time"
  S DIR("?")="Enter an exact date and time in Fileman format (e.g. T@1PM)"
  F  Q:Y="^"!(Y="")  D
  .D ^DIR
@@ -70,7 +70,7 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  ..I AMEROLD=AMERNEW  S Y="^" Q
  ..S DR=$S(DR'="":DR_";",1:""),DR=DR_"12.1////@"
  ..S AMEROLD=$$EDDISPL^AMEREDAU(AMEROLD,"D")  ;tranforms fileman date into user friendly date
- ..S AMERSTRG=$$EDAUDIT^AMEREDAU("12.1",AMEROLD,AMERNEW,"ADMITTING PROVIDER TIME")
+ ..S AMERSTRG=$$EDAUDIT^AMEREDAU("12.1",AMEROLD,AMERNEW,"INITIAL ED PROVIDER TIME")
  ..I AMERSTRG="^" Q
  ..S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
  ..S Y="^"
@@ -82,7 +82,7 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  ...S DR=$S(DR'="":DR_";",1:""),DR=DR_"12.1////"_AMERNEW
  ...S AMERNEW=$$EDDISPL^AMEREDAU(AMERNEW,"D")  ;tranforms fileman date into user friendly date
  ...S AMEROLD=$$EDDISPL^AMEREDAU(AMEROLD,"D")
- ...S AMERSTRG=$$EDAUDIT^AMEREDAU("12.1",AMEROLD,AMERNEW,"ADMITTING PROVIDER TIME")
+ ...S AMERSTRG=$$EDAUDIT^AMEREDAU("12.1",AMEROLD,AMERNEW,"INITIAL ED PROVIDER TIME")
  ...I AMERSTRG="^" Q
  ...S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
  ...S Y="^"
@@ -169,6 +169,34 @@ ADMTRIAG(AMERDA,AMERAIEN)  ; EP from AMEREDIT
  ...Q
  ..Q
  .Q
+ ;
+ ;Edit the Decision to Admit Date
+ D
+ . NEW AMERRUN,AMERSTRT,AMERFIN,X,Y,AMERPCC,AUPNVSIT,AMEROLD,AMERNEW,AMERSTRG
+ . ;
+ . ;Get the visit
+ . S AMERPCC=$$GET1^DIQ(9009080,AMERDA_",",.03,"I") Q:AMERPCC=""
+ . ;
+ . ;Get the old value
+ . S AMEROLD=$$GET1^DIQ(9000010,AMERPCC_",",1116,"E")
+ . ;
+ . ;Call the edit
+ . D QD28^AMER2A(AMERPCC)
+ . ;
+ . ;Get the new value
+ . S AMERNEW=$$GET1^DIQ(9000010,AMERPCC_",",1116,"E")
+ . ;
+ . ;Perform Audit
+ . I AMEROLD'=AMERNEW D
+ .. S AMERSTRG=$$EDAUDIT^AMEREDAU("12.8",AMEROLD,AMERNEW,"DECISION TO ADMIT DT")
+ ..I AMERSTRG="^" Q
+ ..S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
+ . ;
+ . ;Update ^AMERVSIT
+ . S AUPNVSIT=AMERPCC
+ . D MOD^AUPNVSIT
+ ;
+ S DR=$G(DR),AMEREDTS=$G(AMEREDTS)
  I $D(DUOUT)!$D(DTOUT) K DUOUT,DTOUT  Q 0
  I DR'="" D DIE^AMEREDIT(AMERDA,DR)
  D:AMEREDTS'="" MULTAUDT^AMEREDAU(AMEREDTS,AMERAIEN)

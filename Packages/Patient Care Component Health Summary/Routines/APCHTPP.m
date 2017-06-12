@@ -1,5 +1,5 @@
 APCHTPP ; IHS/CMI/LAB - DISPLAY HEALTH MAINTENANCE Best Practice Prompt ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;; ;
 EP ;EP - called from option to select and display a TP
  W !!,"This option will display or print the description/logic of all Health",!,"Summary Best Practice Prompts.",!!
@@ -40,7 +40,7 @@ PROCESS1 ;
  S Y=0 F  S Y=$O(^APCHSURV(APCHTP,12,Y)) Q:Y'=+Y  S X="",$E(X,2)=^APCHSURV(APCHTP,12,Y,0) D S(X)
  S X="Currently Defined Criteria in Use at this Facility:" D S(X,1)
  S Y=0 F  S Y=$O(^APCHSURV(APCHTP,11,Y)) Q:Y'=+Y  D
- .S Z="",$E(Z,5)="Sex:  "_$S($P(^APCHSURV(APCHTP,11,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHTP,11,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHTP,11,Y,0),U)="B":"BOTH",1:"")
+ .S Z="",$E(Z,2)="Sex:  "_$S($P(^APCHSURV(APCHTP,11,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHTP,11,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHTP,11,Y,0),U)="B":"ALL GENDERS",$P(^APCHSURV(APCHTP,11,Y,0),U)="U":"UNKNOWN",1:"")
  .S J=0 F  S J=$O(^APCHSURV(APCHTP,11,Y,11,J)) Q:J'=+J  D
  ..S X=Z,$E(X,21)="Mininum Age: "_$P(^APCHSURV(APCHTP,11,Y,11,J,0),U),$E(X,40)="Maximum Age: "_$P(^APCHSURV(APCHTP,11,Y,11,J,0),U,2),$E(X,60)="Frequency: "_$P(^APCHSURV(APCHTP,11,Y,11,J,0),U,3) D S(X)
  ..Q

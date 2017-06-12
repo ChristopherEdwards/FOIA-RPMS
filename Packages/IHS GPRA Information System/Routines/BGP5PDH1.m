@@ -1,5 +1,5 @@
 BGP5PDH1 ; IHS/CMI/LAB - cover page for gpra del 0 ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  ;
@@ -30,11 +30,6 @@ PEDCP ;EP
  .S BGPC=BGPC+1,X=BGPC_".  "_$S($P(^BGPPEDCK(BGPX,0),U,17):"*",1:"")_X D SET(X,1,1)
  .S X="Communities: " D SET(X,1,1) S X=0,N=0,Y="",Z="" F  S X=$O(^BGPPEDCK(BGPX,9999,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPPEDCK(BGPX,9999,X,0),U)
  .S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D SET(Z,1,1)
- .I $O(^BGPPEDCK(BGPX,1111,0))  D
- ..S X=" " D SET(X,1,1)
- ..S X="MFI Site: Locations for visits: " D SET(X,1,1) S X=0,N=0,Y="",Z="" F  S X=$O(^BGPPEDCK(BGPX,1111,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPPEDCK(BGPX,1111,X,0),U)
- ..S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D SET(Z,1,1)
- ..Q
  .S X=" " D SET(X,1,1)
  .Q
  S X=" " D SET(X,1,1)

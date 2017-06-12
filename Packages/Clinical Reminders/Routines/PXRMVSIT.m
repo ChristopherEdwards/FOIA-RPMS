@@ -1,32 +1,102 @@
-PXRMVSIT ; SLC/PKR - Visit related info for reminders. ;22-May-2009 08:53;MGH
- ;;1.5;CLINICAL REMINDERS;**2,1006**;Jun 19, 2000
+PXRMVSIT ;SLC/PKR - Visit related info for reminders. ;23-Mar-2015 10:40;DU
+ ;;2.0;CLINICAL REMINDERS;**4,6,1001,18,24,1005**;Feb 04, 2005;Build 23
  ;
- ;1006 Fixed issue where the visit field in a V file was null
- ;=======================================================================
-HLCV(NLINES,TEXT,VIEN,INDEX) ;Display location and comment for historical
- ;encounters associated with the V files.
- N COMMENT,FACILITY,LOCATION
- S FACILITY=$P($G(^AUPNVSIT(VIEN,0)),U,6)
- I FACILITY'="" S LOCATION=$$GET1^DIQ(4,FACILITY,.01)_" "_$$GET1^DIQ(4,FACILITY,99)
- E  S LOCATION=$G(^AUPNVSIT(VIEN,22))
- I $L(LOCATION)>0 D
- . S NLINES=NLINES+1
- . S TEXT(NLINES)="   Historical Encounter Location: "_LOCATION
- I $D(^AUPNVSIT(VIEN,811)) D
- . S COMMENT=^AUPNVSIT(VIEN,811)
- . S NLINES=NLINES+1
- . S TEXT(NLINES)="   Comment:  "_COMMENT
- . I $D(PXRMDEV) D
- .. N UID
- .. S UID="HEINFO VISIT "_VIEN
- .. S ^TMP(PXRMPID,$J,PXRMITEM,UID,INDEX,"COMMENT")=$G(COMMENT)
- .. S ^TMP(PXRMPID,$J,PXRMITEM,UID,INDEX,"LOCATION")=$G(LOCATION)
+ ;IHS/MSC/MGH Patch 1001 Line added to quit if null VIEN
+ ;======================================================
+GETDATA(DA,DATA,SVALUE) ;Return data for a specific Visit file entry.
+ ;DBIA #2028 for Visit file.
+ N DONE,IEN,HLOCIEN,HTEMP,LOE,TEMP
+ Q:'DA
+ S TEMP=^AUPNVSIT(DA,0)
+ S DATA("VISIT")=DA
+ S DATA("DATE VISIT CREATED")=$P(TEMP,U,2)
+ S DATA("DFN")=$P(TEMP,U,5)
+ S (DATA("LOC. OF ENCOUNTER"),LOE)=$P(TEMP,U,6)
+ ;DBIA #10090
+ S DATA("STATION NUMBER")=$$GET1^DIQ(4,LOE,99)
+ S DATA("OFFICAL VA NAME")=$$GET1^DIQ(4,LOE,100)
+ S DATA("SERVICE CATEGORY")=$P(TEMP,U,7)
+ I $G(SVALUE) S DATA("VALUE")=$P(TEMP,U,7)
+ S (DATA("HOSPITAL LOCATION"),HLOCIEN)=$P(TEMP,U,22)
+ ;DBIA #10040, #2804
+ S HTEMP=$S(HLOCIEN="":"",1:^SC(HLOCIEN,0))
+ S DATA("HLOC")=$P(HTEMP,U,1)
+ S DATA("DSS ID")=$P(TEMP,U,8)
+ I DATA("DSS ID")="" S DATA("DSS ID")=$P(HTEMP,U,7)
+ S DATA("DIVISION IEN")=$P(HTEMP,U,15)
+ I HLOCIEN'="" S DATA("DIVISION")=$$GET1^DIQ(44,HLOCIEN,3.5)
+ ;DBIA #557
+ I DATA("DSS ID")'="" S DATA("STOP CODE")=$P(^DIC(40.7,DATA("DSS ID"),0),U,2)
+ S DATA("OUTSIDE LOCATION")=$G(^AUPNVSIT(DA,21))
+ S DATA("VISIT COMMENTS")=$G(^AUPNVSIT(DA,811))
+ ;DBIA #4850
+ S DATA("STATUS")=$$STATUS^SDPCE(DA)
+ ;Get the primary provider.
+ ;DBIA #3455 for V PROVIDER
+ S DATA("PRIMARY PROVIDER")="",IEN="",DONE=0
+ F  S IEN=$O(^AUPNVPRV("AD",DA,IEN)) Q:(DONE)!(IEN="")  D
+ . S TEMP=^AUPNVPRV(IEN,0)
+ . I $P(TEMP,U,4)="P" S DATA("PRIMARY PROVIDER")=$P(TEMP,U,1),DONE=1
  Q
  ;
- ;=======================================================================
+ ;======================================================
+GAPSTAT(VIEN) ;Return the status of the appointment associated with the
+ ;visit.
+ ;DBIA #4850
+ Q $$STATUS^SDPCE(VIEN)
+ ;
+ ;======================================================
+HENC(VIEN,INDENT,NLINES,TEXT) ;Display location and comment for historical
+ ;encounters associated with the V files.
+ N COMMENT,HLOC,LOCATION,OLOC,NIN,TEXTIN,VDATA
+ D GETDATA(VIEN,.VDATA) I VDATA("SERVICE CATEGORY")'="E" Q
+ S NIN=0
+ S LOCATION=VDATA("LOC. OF ENCOUNTER")
+ I LOCATION'="" D
+ . S LOCATION=$$GET1^DIQ(4,LOCATION,.01)_" "_$$GET1^DIQ(4,LOCATION,99)
+ . S NIN=NIN+1,TEXTIN(NIN)="Location of Encounter: "_LOCATION_"\\"
+ S HLOC=VDATA("HOSPITAL LOCATION")
+ I HLOC'="" D
+ . S HLOC=$$GET1^DIQ(44,HLOC,.01)
+ . S NIN=NIN+1,TEXTIN(NIN)="Hospital Location: "_HLOC_"\\"
+ S OLOC=VDATA("OUTSIDE LOCATION")
+ I OLOC'="" D
+ . S NIN=NIN+1,TEXTIN(NIN)="Outside Location: "_OLOC_"\\"
+ S COMMENT=VDATA("COMMENT")
+ I COMMENT'="" D
+ . S NIN=NIN+1,TEXTIN(NIN)="Comment: "_COMMENT
+ I NIN>0 D
+ . N JND,NOUT,TEXTOUT
+ . S NLINES=NLINES+1
+ . S TEXT(NLINES)=$$INSCHR^PXRMEXLC(INDENT," ")_"Historical Encounter Information:"
+ . D FORMAT^PXRMTEXT(INDENT+2,PXRMRM,NIN,.TEXTIN,.NOUT,.TEXTOUT)
+ . F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ Q
+ ;
+ ;======================================================
 ISHIST(VIEN) ;Return true if the encounter was historical.
- ;IHS/MSC/MGH Line added to quit if null VIEN
+ ;DBIA #2028
+ ;IHS/MSC/MGH Patch 1001 Line added to quit if null VIEN
  I +VIEN=0 Q 0
  I $P($G(^AUPNVSIT(VIEN,0)),U,7)="E" Q 1
- E  Q 0
+ Q 0
+ ;
+ ;======================================================
+VAPSTAT(VIEN) ;Return true if the appointment associated with
+ ;the visit has a valid appointment status.
+ ;Return false if the status is one of the following:
+ ;CANCELLED BY CLINIC
+ ;CANCELLED BY CLINIC & AUTO RE-BOOK
+ ;CANCELLED BY PATIENT
+ ;CANCELLED BY PATIENT & AUTO-REBOOK
+ ;DELETED
+ ;NO ACTION TAKEN
+ ;NO-SHOW
+ ;NO-SHOW & AUTO RE-BOOK
+ ;NULL
+ N STATUS,VALID
+ ;DBIA #4850
+ S STATUS=$P($$STATUS^SDPCE(VIEN),U,2)
+ S VALID=$S(STATUS["CANCELLED":0,STATUS["DELETED":0,STATUS["NO ACTION":0,STATUS["NO-SHOW":0,STATUS="":0,1:1)
+ Q VALID
  ;

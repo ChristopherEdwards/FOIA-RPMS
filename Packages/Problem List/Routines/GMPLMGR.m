@@ -1,6 +1,10 @@
-GMPLMGR ; SLC/MKB/AJB -- Problem List VALM Utilities ;3/1/00  12:28
- ;;2.0;Problem List;**21,28**;Aug 25, 1994
+GMPLMGR ; ISL/MKB,AJB,JER,TC - Problem List VALM Utilities ;06/08/12  15:56
+ ;;2.0;Problem List;**21,28,36**;Aug 25, 1994;Build 65
  ; 28 Feb 00 - MA added view comments accross Divisions
+ ;
+ ; External References
+ ;   DBIA  3990  $$ICDDX^ICDCODE
+ ;
 INIT ; -- init variables, list array
  S:'$G(GMPDFN) GMPDFN=$$PAT^GMPLX1 I +GMPDFN'>0 K GMPDFN S VALMQUIT=1 Q
  S GMPROV=$$REQPROV^GMPLX1 I +GMPROV'>0 K GMPDFN,GMPROV S VALMQUIT=1 Q
@@ -23,8 +27,9 @@ BUILD(PLIST) ; -- build list array
  I $G(GMPCOUNT)'>0 S ^TMP("GMPL",$J,1,0)="   ",^TMP("GMPL",$J,2,0)="    No data available meeting criteria."
  Q
 BLDPROB(IFN) ; Add problem line
- N GMPL0,GMPL1,DATE,TEXT,NAME,LINE,ACTIVE,I,NOTE,FAC,PROBLEM,NIFN,DELETED
- S GMPL0=$G(^AUPNPROB(IFN,0)),GMPL1=$G(^(1)) Q:'$L(GMPL0)
+ N GMPL0,GMPL1,GMPL800,DATE,TEXT,NAME,LINE,ACTIVE,I,NOTE,FAC,PROBLEM,NIFN,DELETED,ICD,SCTC
+ S GMPL0=$G(^AUPNPROB(IFN,0)),GMPL1=$G(^(1)),GMPL800=$G(^(800)) Q:'$L(GMPL0)
+ S ICD=$P($$ICDDX^ICDCODE(+GMPL0),U,2),SCTC=$P(GMPL800,U)
  S DELETED=$S($P(GMPL1,U,2)="H":1,1:0) ; flag if prob was deleted
  S ACTIVE=$P(GMPL0,U,12),DATE=$J($$EXTDT^GMPLX($P(GMPL0,U,3)),8)
  S PROBLEM=$S(DELETED:"< DELETED >",1:$$PROBTEXT^GMPLX(IFN))

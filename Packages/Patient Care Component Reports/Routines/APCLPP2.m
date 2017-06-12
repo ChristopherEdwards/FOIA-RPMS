@@ -1,5 +1,5 @@
-APCLPP2 ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+APCLPP2 ; IHS/CMI/LAB - ; 23 May 2014  10:44 AM
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;
  ;
 START ;
@@ -55,7 +55,7 @@ LS ;
  S APCLLSV=Y
 EXCL ;exclude any diagnoses codes?
  K APCLEXCL,APCLDXT
- W !!,"In the list of leading purpose of visits you have the option of excluding ",!,"certain ICD-9 diagnoses from the list of top ten diagnoses.",!
+ W !!,"In the list of leading purpose of visits you have the option of excluding ",!,"certain ICD diagnoses from the list of top ten diagnoses.",!
  S APCLEXCL=""
  W !,"Do you wish to exclude any diagnoses codes from the list of "
  S DIR(0)="Y",DIR("A")="top "_$S(APCLLSV="L":10,1:5)_" Purpose of Visits",DIR("B")="N" KILL DA D ^DIR KILL DIR
@@ -73,7 +73,7 @@ DX1 ;
 ZIS ;
 ST ;;template of patients?
  S APCLSEAT=""
- S DIR(0)="S^A:ALL PATIENTS;S:SEARCH TEMPLATE OF PATIENTS",DIR("A")="What set of patients should be included in this report",DIR("B")="A" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^A:ALL PATIENTS;S:SEARCH TEMPLATE OF PATIENTS",DIR("A")="Which set of patients should be included in this report",DIR("B")="A" KILL DA D ^DIR KILL DIR
  G:$D(DIRUT) EXCL
  I Y="A" G DEMO
  S APCLSEAT=""

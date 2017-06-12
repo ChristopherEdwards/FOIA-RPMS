@@ -1,25 +1,26 @@
-GMPLMGR2 ; SLC/MKB/KER/AJB -- Problem List VALM Utilities cont ; 04/15/2002
- ;;2.0;Problem List;**26,28**;Aug 25, 1994
+GMPLMGR2 ; ISL/MKB,KER,AJB - Problem List VALM Utilities cont ;08/17/12  16:55
+ ;;2.0;Problem List;**26,28,36**;Aug 25, 1994;Build 65
  ;
  ; External References
- ;   DBIA 10082  ^ICD9(
+ ;   DBIA  3990  $$ICDDX^ICDCODE
  ;   DBIA   872  ^ORD(101
  ;   DBIA 10026  ^DIR
  ;   DBIA 10116  $$SETFLD^VALM1
  ;   DBIA 10116  CLEAR^VALM1
  ;   DBIA 10140  EN^XQORM
- ;                      
+ ;
 BLDPROB(IFN) ; Build Line for Problem in List
  ;   Input INF   Pointer to Problem file 9000011
  ;   Expects GMPCOUNT
- N GMPL0,GMPL1,RESOLVED,TEXT,I,LINE,STR,SC,SP,ICD,ONSET,PROBLEM,STATUS
- Q:'$D(GMPCOUNT)  S GMPL0=$G(^AUPNPROB(IFN,0)),GMPL1=$G(^(1)) Q:'$L(GMPL0)
+ N GMPL0,GMPL1,GMPL800,RESOLVED,TEXT,I,LINE,STR,SC,SP,ICD,ONSET,PROBLEM,STATUS,SCTC
+ Q:'$D(GMPCOUNT)  S GMPL0=$G(^AUPNPROB(IFN,0)),GMPL1=$G(^(1)),GMPL800=$G(^(800)) Q:'$L(GMPL0)
+ S ICD=$P($$ICDDX^ICDCODE(+GMPL0),U,2),SCTC=$P(GMPL800,U)
  S SC=$P(GMPL1,U,10),SP=$P(GMPL1,U,11,13)_"^"_$P(GMPL1,U,15,16),STATUS=$P(GMPL0,U,12)
  S:$P(GMPL1,U,2)="H" PROBLEM="< DELETED >" I $P(GMPL1,U,2)'="H" D
  . S PROBLEM=$$PROBTEXT^GMPLX(IFN),ONSET=$P(GMPL0,U,13)
  . I ONSET S PROBLEM=PROBLEM_", Onset "_$$EXTDT^GMPLX(ONSET)
  S RESOLVED=$J($$EXTDT^GMPLX($P(GMPL1,U,7)),8)
- S ICD=$P($G(^ICD9(+GMPL0,0)),U),GMPCOUNT=GMPCOUNT+1
+ S GMPCOUNT=GMPCOUNT+1
  D WRAP^GMPLX(PROBLEM,40,.TEXT)
  S LINE=$$SETFLD^VALM1(GMPCOUNT,"","NUMBER")
  ; added for Code Set Versioning (CSV) - checks ICD code - # if inactive
@@ -65,7 +66,7 @@ EXIT ; Exit Code
  ;
 AUTO ; Print Problem List when Exiting Patient?
  ;   Called from EXIT,NEWPAT^GMPLMGR1
- N DIR,X,Y Q:'GMPARAM("PRT")  Q:'$D(GMPRINT)
+ N DIR,X,Y,DUOUT,DTOUT Q:'GMPARAM("PRT")  Q:'$D(GMPRINT)
  S DIR(0)="YA",DIR("A")="Print a new problem list? ",DIR("B")="YES"
  S DIR("?",1)="Press <return> to generate a new complete problem list for this patient;",DIR("?")="enter NO to continue without printing."
  W $C(7),!!,">>>  THIS PATIENT'S PROBLEM LIST HAS CHANGED!"

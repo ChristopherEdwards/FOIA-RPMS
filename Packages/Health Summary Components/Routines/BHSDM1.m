@@ -1,14 +1,17 @@
-BHSDM1 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;04-Aug-2011 14:30;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,6**;March 17, 2006;Build 5
+BHSDM1 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;12-Jul-2016 17:25;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,6,8,9,12,14**;March 17, 2006;Build 4
  ;===================================================================
  ;VA version of IHS components for supplemental summaries
  ;Taken from BDMS9B1
  ; IHS/TUCSON/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;08-Nov-2004 15:52;MGH
- ;;2.0;IHS RPMS/PCC Health Summary;**3,5,6,8,9,10**;JUN 24, 1997
  ;Update to patch 15 of IHS health summary
  ;Patch 2 code set versoning changes
  ;Patch 4 includes removing entered in error readings
  ;Patch 6 updated for tobacco
+ ;Patch 8 changed for the storage of BMI values and updated to BJPC patch 5
+ ;Patch 7 for ICD-10 data
+ ;Patch 12 changed to use new API for taxonomies
+ ;Patch 14 truncated BMI value
  ;==================================================================
  ;
  ;IHS/CMI/LAB patch 3 many changes
@@ -29,7 +32,8 @@ W ;write out array
  ;
 EOJ ;
  K APCHIEN,BHSX,BHSQUIT,BHSY,BHSDFN,BHSBEG,BDMSPAT,BHSTOB,BHSUPI,BHSED,BHSTOPN,BHSTOP,BHSTEX,BHS,BHSP,BHSLAST,APCHP,APCHV,BHSC,BHSRF,BHSEKG,BHSEX,BHDTOB
- K N,%,T,F,X,Y,B,C,E,F,H,L,N,P,T,W,BD,ED,APCHC,APCHD,APCHX,APCHDEPP,APCHDEPS
+ K BDMMAM,BDMMAMR,BDMSDAT,BDMX,BDMD,BDMP,BDMSBEG
+ K N,%,T,F,X,Y,B,C,E,F,H,L,N,P,T,W,Z,BD,ED,APCHC,APCHD,APCHX,APCHDEPP,APCHDEPS
  Q
 EP2(BHSDFN) ;PEP - PASS DFN get back array of patient care summary
  ;at this point you are stuck with ^TMP("BHS",$J,"DCS"
@@ -47,24 +51,31 @@ SETARRAY ;set up array containing dm care summary
  S X="Age:  "_$$AGE^AUPNPAT(BHSDFN),$E(X,15)="Sex:  "_$$SEX^AUPNPAT(BHSDFN),$E(X,31)="Date of DM Onset: "_$$DOO(BHSDFN) D S(X)
  S X="",X="Dob:  "_$$FMTE^XLFDT($$DOB^AUPNPAT(BHSDFN)) S Y=$$DMPN(BHSDFN),$E(X,31)="DM Problem #: "_$S(Y]"":Y,1:"*** NONE RECORDED ***") D S(X)
  S X="" I '$$NOTREG(BHSDFN) S X="**NOT ON DIABETES REGISTER**"
- S $E(X,31)="Designated PCP: "_$$VAL^XBDIQ1(9000001,BHSDFN,.14) D S(X)
- D GETHWB(BHSDFN) S X="Last Height:  "_BHSX("HT")_$S(BHSX("HT")]"":" inches",1:""),$E(X,31)=BHSX("HTD") D S(X)
- S X="Last Weight:  "_$S(BHSX("WT")]"":$J(BHSX("WT"),3,0),1:"")_$S(BHSX("WT")]"":" lbs",1:""),$E(X,31)=BHSX("WTD"),$E(X,45)="BMI: "_BHSX("BMI") D S(X)
+ S $E(X,31)="Designated PCP: "_$$DPCP(BHSDFN) D S(X)
+ D GETHWB(BHSDFN)
+ S X="Last Height:  "_BHSX("HT")_$S(BHSX("HT")]"":" inches",1:""),$E(X,31)=BHSX("HTD") D S(X)
+ S X="Last Weight:  "_$S(BHSX("WT")]"":$J(BHSX("WT"),3,0),1:"")_$S(BHSX("WT")]"":" lbs",1:""),$E(X,31)=BHSX("WTD"),$E(X,45)="BMI: "_$J(BHSX("BMI"),5,2) D S(X)
  I BHSX("WC")]"" S X="Last Waist Cir: "_BHSX("WC"),$E(X,31)=BHSX("WCD") D S(X)
+ I BHSX("WC")="" S X="Last Waist Circumference: <None Recorded>" D S(X)
  ;Patch 6
  N BDMSDFN,BDMTOBC,BDMTOBS
  S BDMSDFN=BHSDFN
- D TOBACCO^BDMS9B3
- S X="Tobacco Use:  "_$P($G(BDMTOBS),U,1) D S(X)
+ S BDMTOBS=$$TOBACCO^BDMDA1T(BHSDFN,$$DOB^AUPNPAT(BHSDFN),DT)
+ I BDMTOBS="" S X="Tobacco Use:  UNDOCUMENTED" D S(X)
+ I BDMTOBS]"" S X="Tobacco Use:  "_$P($P($G(BDMTOBS),U,2),"  ",2,99) D S(X)
  I $G(BDMTOBC)]"" S X="              "_$P(BDMTOBC,U,1) D S(X)
  S X="HTN Diagnosed:  "_$$HTN(BHSDFN) D S(X,1)
+ S X="CVD Diagnosed:  "_$P($$CVD^BDMDA12(BHSDFN,DT),"  ",2,999) D S(X)
  S BHSBEG=$$FMADD^XLFDT(DT,-(6*30.5))
- S %=$$ACE^BDMS9B5(BHSDFN,BHSBEG) ;get date of last ACE in last year
+ S %=$$ACE^BDMS9B4(BHSDFN,BHSBEG) ;get date of last ACE in last year
  S X="",X="ON ACE Inhibitor/ARB in past 6 months: "_% D S(X)
- K BHSX S BHSBEG=$$FMADD^XLFDT(DT,-365) S X="Aspirin Use (in past yr):  "_$E($$ASPIRIN(BHSDFN,BHSBEG),1,32) D S(X)
- S X="",X=$$ASPREF^BHSDM5(BHSDFN) I X]"" S X="     "_X D S(X)
+ K BHSSX
+ S BHSBEG=$$FMADD^XLFDT(DT,-365)
+ S BHSSX=$E($$ASPIRIN(BHSDFN,BHSBEG),1,32)
+ S X="Aspirin Use/Anti-platelet (in past yr):  "_BHSSX D S(X)
+ I BHSSX="No" S X="",X=$$ASPREF^BDMS9B4(BHSDFN) I X]"" S X="     "_X D S(X)
  S APCHDEPP=$$DEPPL(BHSDFN,$$FMADD^XLFDT(DT,-365),DT)
- S APCHDEPS=$$DEPSCR^BDMD012(BHSDFN,$$FMADD^XLFDT(DT,-365),DT)
+ S APCHDEPS=$$DEPSCR^BDMDA12(BHSDFN,$$FMADD^XLFDT(DT,-365),DT)
  S APCHDEPS=$P(APCHDEPS," ",2,99)
  S B=$$BP(BHSDFN)
  S X="Last 3 BP:  "_$P($G(BHSX(1)),U,2)_"     "_$$FMTE^XLFDT($P($G(BHSX(1)),U))
@@ -72,7 +83,7 @@ SETARRAY ;set up array containing dm care summary
  D S(X)
  S X="(non ER)" I $D(BHSX(2)) S $E(X,13)=$P(BHSX(2),U,2)_"   "_$$FMTE^XLFDT($P(BHSX(2),U))
  S $E(X,42)=APCHDEPP
- D S(X,1)
+ D S(X)
  S X="" I $D(BHSX(3)) S X="",$E(X,13)=$P(BHSX(3),U,2)_"     "_$$FMTE^XLFDT($P(BHSX(3),U))
  I $E(APCHDEPP,1)="N" S $E(X,40)="If no, Depression Screening in past year?"
  D S(X)
@@ -82,15 +93,29 @@ M12 ;
  ;determine date range
  S BHSBEG=$$FMADD^XLFDT(DT,-365)
  S X="In past 12 months:" D S(X,1)
- S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMD017(BHSDFN,BHSBEG)," ",2,99) D S(X)
- S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMD017(BHSDFN,BHSBEG)," ",2,99) D S(X)
- S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMD017(BHSDFN,BHSBEG)," ",2,99) D S(X)
- ;S X="Rectal Exam (age>40):",$E(X,27)=$$RECTAL^BHSDM4(BHSDFN,BHSBEG) D S(X)
+ S X="Diabetic Foot Exam:",$E(X,23)=$P($$DFE^BDMDA17(BHSDFN,BHSBEG)," ",2,99) D S(X)
+ S X="Diabetic Eye Exam:",$E(X,23)=$P($$EYE^BDMDA17(BHSDFN,BHSBEG)," ",2,99) D S(X)
+ S X="Dental Exam:",$E(X,23)=$P($$DENTAL^BDMDA17(BHSDFN,BHSBEG)," ",2,99) D S(X)
  K BHSTEX,BHSDAT,BHSX
+ I $P(^DPT(BHSDFN,0),U,2)="F",$$AGE^AUPNPAT(BHSDFN)>17 D
+ .S BDMMAM=$$LASTMAM^APCLAPI1(BHSDFN,,,"A"),BDMSDAT=$P(BDMMAM,U,1)
+ .S BDMMAMR=$$MAMREF^BDMS9B4(BHSDFN,BDMSDAT)
+ .S X="Last Mammogram:",$E(X,23)=$$DATE($P(BDMMAM,U,1))_"  "_$P(BDMMAM,U,2) D S(X)
+ .I BDMMAMR]"" S X="",$E(X,10)="Note: "_$P(BDMMAMR,U,2) D S(X)
+ .S BDMX=$$PAP^BDMS9B4(BHSDFN) ;get date of last pap in pcc/refusal
+ .S X="Last Pap Smear: ",$E(X,23)=$S($P(BDMX,U)]"":$$DATE($P(BDMX,U))_"  "_$P(BDMX,U,4),1:"<None on file>") D S(X)
+ .I $P(BDMX,U,2)]"" S X="",$E(X,10)="Note: "_$P(BDMX,U,3) D S(X)
  D MORE^BHSDM2
  S X=$P(^DPT(BHSDFN,0),U),$E(X,35)="DOB: "_$$DOB^AUPNPAT(BHSDFN,"S"),$E(X,55)="Chart #"_$$HRN^AUPNPAT(BHSDFN,DUZ(2),2) D S(X,1) ;IHS/CMI/LAB - X,3 to X,2
  ;S X="" D S(X,1)
  Q
+DPCP(P) ;EP
+ NEW R
+ D ALLDP^BDPAPI(P,"DESIGNATED PRIMARY PROVIDER",.R)
+ I $D(R("DESIGNATED PRIMARY PROVIDER")) Q $P(^VA(200,$P(R("DESIGNATED PRIMARY PROVIDER"),U,2),0),U,1)
+ S R=$P(^AUPNPAT(P,0),U,14) I R Q $P(^VA(200,R,0),U,1)
+ S R=""
+ Q R
 S(Y,F,C,T) ;set up array
  I '$G(F) S F=0
  I '$G(T) S T=0
@@ -108,9 +133,13 @@ S1 ;
  Q
 HTN(P) ;
  ;check problem list OR must have 3 diagnoses
- N T S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
+ N T,TAXARR
+ ;IHS/MSC/MGH Patch 10
+ S TAXARR=""
+ S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U)
+ I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW BHSX
  S BHSX=""
@@ -119,15 +148,18 @@ HTN(P) ;
 HTNX ;
  Q BHSX
 DMPN(P) ;return problem number of lowest DM code
+ N TAXARR
  I '$G(P) Q ""
- NEW T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ ;IHS/MSC/MGH Patch 10
+ NEW T,TAXARR
+ S TAXARR=""
+ S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
- ..;S D(+$P(^ICD9(I,0),U))=X
- ..S D(+$P($$ICDDX^ICDCODE(I),U,2))=X  ;cmi/anch/maw 8/27/2007 code set
- ..Q
+ .I $$ICD^ATXAPI(I,T,9) D
+ ..I $$AICD^BHSUTL S D(+$P($$ICDDX^ICDEX(I,"","","I"),U,2))=X
+ ..E  S D(+$P($$ICDDX^ICDCODE(I),U,2))=X  ;cmi/anch/maw 8/27/2007 code set
  .Q
  S D=$O(D(""))
  I D="" Q D
@@ -172,9 +204,11 @@ BMI ;
  I $$AGE^AUPNPAT(P)<19,(BHSX("WTD")'=BHSX("HTD")) Q
  I BHSX("WT")=""!('BHSX("HT")) Q
  S %=""
+ ;Patch 8 BMI is now stored
+ K BHSY S %=P_"^LAST MEAS BMI" NEW X S E=$$START1^APCLDF(%,"BHSY(") S BHSX("BMI")=$P($G(BHSY(1)),U,2),BHSX("BMD")=$$FMTE^XLFDT($P($G(BHSY(1)),U))
  ;S W=(BHSX("WT")/5)*2.3,H=(BHSX("HT")*2.5),H=(H*H)/10000,%=(W/H),%=$J(%,4,1)
- S W=BHSX("WT")*.45359,H=(BHSX("HT")*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
- S BHSX("BMI")=%
+ ;S W=BHSX("WT")*.45359,H=(BHSX("HT")*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
+ ;S BHSX("BMI")=%
  Q
 ASPIRIN(P,D) ;
  I '$G(P) Q ""
@@ -195,9 +229,9 @@ ASPIRIN(P,D) ;
  Q "No"
 DOO(P) ;get earliest date of onset
  NEW X,DOO
- S X=$$CMSFDX^BHSDM4(P,"I")
+ S X=$$CMSFDX^BDMS9B4(P,"I")
  I X]"",'$D(DOO(X)) S DOO(X)="Diabetes Register"
- S DOO="" S X=$$PLDMDOO^BHSDM4(P,"I")
+ S DOO="" S X=$$PLDMDOO^BDMS9B4(P,"I")
  I X]"" S DOO(X)="Problem List"
  I $O(DOO(0))="" Q ""
  S X=$O(DOO(0)) Q $$FMTE^XLFDT(X)_" ("_DOO(X)_")"
@@ -216,13 +250,15 @@ DEPPL(P,BDATE,EDATE) ;EP
  NEW BHS,X,Y,T
  K BHS
  S (G,X,I)=""
+ S TAXARR=""
  ;is depression on the problem list?
  S T=$O(^ATXAX("B","DM AUDIT DEPRESSIVE DISORDERS",0))
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G]"")  D
  .S I=$P($G(^AUPNPROB(X,0)),U)
- .Q:'$$ICD^ATXCHK(I,T,9)
+ .Q:'$$ICD^ATXAPI(I,T,9)
  .;S G="Yes - Problem List "_$P(^ICD9(I,0),U)
- .S G="Yes - Problem List "_$P($$ICDDX^ICDCODE(I),U,2)  ;code set versioning
+ .I $$AICD^BHSUTL S G="Yes - Problem List "_$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S G="Yes - Problem List "_$P($$ICDDX^ICDCODE(I),U,2)  ;code set versioning
  .Q
  I G]"" Q G
  S (G,X,I)=""
@@ -232,11 +268,13 @@ DEPPL(P,BDATE,EDATE) ;EP
  .S I=$P($G(^AMHPPROB(X,0)),U)
  .S I=$P($G(^AMHPROB(I,0)),U,5)
  .Q:I=""
- .S I=+$$CODEN^ICDCODE(I,80)
+ .I $$AICD^BHSUTL S I=+$$CODEN^ICDEX(I,80)
+ .E  S I=+$$CODEN^ICDCODE(I,80)
  .Q:I=""
  .Q:'$$ICD^ATXCHK(I,T,9)
  .;S G="Yes - BH Problem List "_$P(^ICD9(I,0),U)
- .S G="Yes - BH Problem List "_$P($$ICDDX^ICDCODE(I),U,2) ;code set versioning
+ .I $$AICD^BHSUTL  S G="Yes - BH Problem List "_$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S G="Yes - BH Problem List "_$P($$ICDDX^ICDCODE(I),U,2) ;code set versioning
  .Q
  I G]"" Q G
  ;now check for 2 dxs in past year
@@ -289,3 +327,6 @@ BHSCR ;
  I BHSC]"" S X=$P(BHSC,"DEPRESSION SCREENING ",1)_$P(BHSC,"DEPRESSION SCREENING ",2) Q X
  I BHSRF]"" Q BHSRF
  Q "No"
+DATE(D) ;EP
+ I D="" Q ""
+ Q $E(D,4,5)_"/"_$E(D,6,7)_"/"_(1700+$E(D,1,3))

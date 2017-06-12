@@ -1,5 +1,5 @@
 APCDBAN ; IHS/CMI/LAB - Banner routine for Data Entry ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
 V ; GET VERSION
  S APCD("VERSION")="2.0"
  I $G(APCDTEXT)="" S APCDTEXT="TEXT",APCDLINE=3 G PRINT
@@ -37,7 +37,7 @@ TEXTF ;forms tracking menu text
 TEXTI ;fix uncoded dx/proc menu text
  ;;*************************************************
  ;;**             PCC Data Entry Module           **
- ;;**  Fix UNCODED ICD9 Diagnoses/Operation Codes **
+ ;;**  Fix UNCODED ICD Diagnoses/Operation Codes  **
  ;;*************************************************
  ;;QUIT
 TEXTS ;supervisor menu text
@@ -82,7 +82,7 @@ TEXTL ;link in-hospital menu
 TEXTP ;fix uncoded operations menu
  ;;*************************************************
  ;;**             PCC Data Entry Module           **
- ;;**      Fix UNCODED ICD9 Operation Codes       **
+ ;;**       Fix UNCODED ICD Operation Codes       **
  ;;*************************************************
  ;;QUIT
 TEXTC ;LOG ENTRY

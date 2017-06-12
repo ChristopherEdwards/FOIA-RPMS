@@ -1,9 +1,11 @@
 BMCADDFY ; IHS/PHXAO/TMJ - ADD A NEW REFERRAL FOR A SPECIFIC FISCAL YEAR ;      [ 01/09/2006  3:51 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**8,9,10**;JAN 09, 2006;Build 51
  ;IHS/OIT/FCJ REMOVE AUTO SEND MSGS ;ADD TYP OF COM
  ;    ;CHNGD COM CALL, BO & MED HX, WILL NOT BE CALLED FR FORM,
  ;    ;CHNGD OPT 1 & 4 DSPLY NAMES
  ;    Rmvd asking for Case com;Tst for SR;add new form for call-ins
+ ;BMC*4.0*8 7.2.13 IHS.OIT.FCJ TST FOR REF NUMBER ALREADY USED
+ ;4.0*8 IHS/OIT/FCJ Added selecting a visit and adding a v ref entry
  ; See ^BMCVDOC for system wide variables set by main menu
  ; Subscripted BMCREC is EXTERNAL form.
  ;   BMCREC("PAT NAME")=patient name
@@ -22,7 +24,8 @@ START ;
  D EOJ
  Q
 MAIN ;
- S BMCQ=0,BMCMODE="A",BMCLOOK=""
+ S BMCQ=0,BMCMODE="A",(BMCLOOK,BMCVDFN,BMCSTRM,BMCSNO,BMCSCOD)="" ;BMC*4.0*10 ADDED BMCVDFN AND BMCSTRM
+ ;S BMCQ=0,BMCMODE="A",(BMCLOOK,BMCVDFN,BMCSTRM)="" ;BMC*4.0*8 ADDED BMCVDFN AND BMCSTRM
  S APCDOVRR=""
  D PATIENT ;      get pat being referred
  Q:BMCQ
@@ -38,7 +41,10 @@ GETDATE ;Do Get Date if no existing Refs
  Q:BMCQ
  D ADD ;          add new ref
  Q:BMCQ
+ I BMCPCC,'$G(BMCOUTR) D DSPV^BMCADDP I BMCQ D DELETE Q	 ;BMC*4.0*8 TEST FOR PCC LINK AND GO TO REQUIRE A VST
  D EDIT ;         edit ref record just added
+ Q:BMCQ                                        ;BMC*4.0*8
+ I BMCPCC,'$G(BMCOUTR) D ADDVREF^BMCADD        ;BMC*4.0*8 Add to V Ref file
  Q
  ;
 PATIENT ; GET PATIENT
@@ -67,17 +73,18 @@ REFDISP ;Display if Pat has existing Refs
  W !!,?25,"********************",!
  W ?25,"**LAST 5 REFERRALS**",!,?25,"********************",!
  I '$D(^BMCREF("AA",BMCDFN)) W !,?20,"**--NO EXISTING REFERRALS--**",! S BMCQ=1 Q
- S BMCQ=0,BMCDT=""
- F I=1:1:5 S BMCDT=$O(^BMCREF("AA",BMCDFN,BMCDT),-1) Q:BMCDT=""  D NEXT
- Q
+ S BMCQ=0,BMCDT="",CT=5  ;BMC*4.0*9 ADDED CT TO NXT 3 LINES
+ F I=1:1:5 S BMCDT=$O(^BMCREF("AA",BMCDFN,BMCDT),-1) Q:BMCDT=""  D NEXT Q:CT=0
+ K CT Q
 NEXT ;2ND $O
  S BMCRIEN=""
  F  S BMCRIEN=$O(^BMCREF("AA",BMCDFN,BMCDT,BMCRIEN),-1) Q:BMCRIEN'=+BMCRIEN  D
  .Q:BMCDT=""
  .Q:BMCRIEN=""
  .Q:$P($G(^BMCREF(BMCRIEN,1)),U)'=""  ;4.0 IHS/OIT/FCJ TST FOR SR
+ .Q:CT=0  ;BMC*4.0*9
  .D START^BMCLKID1
- .S I=I+1 ;limit display to 5 referrals
+ .S CT=CT-1  ;S I=I+1 ;limit display to 5 referrals ;BMC*4.0*9
  Q
  ;
 DATE ;GET DT OF REF
@@ -135,6 +142,7 @@ REFNUM ;Get Referral Number Choice
  ;
  S X=$$REFNFY^BMC
  Q:'X
+ I $D(^BMCREF("C",X)) W !,"Referral number already used, try another number.",! G REFNUM     ;BMC*4.0*8 IHS.OIT.FCJ PREVENT USING THE SAME NUMBER
  X $P(^DD(90001,.02,0),U,5,99)
  I '$D(X) W !,"Error generating new referral number.  Notify programmer.",! D EOP^BMC Q
  S BMCRNUMB=X,BMCQ=0 Q
@@ -145,7 +153,9 @@ ADD ; ADD NEW REFERRAL RECORD
  E  S BMCRR=""
  D PROV Q:BMCQ
  I BMCRR="" D  Q
- .S DIC="^BMCREF(",DIC(0)="L",DLAYGO=90001,DIC("DR")=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT,X=BMCRDATE
+ .;BMC*4.0*8 SPLIT NXT LINE AND ADDED TOC STATUS FIELD 1304
+ .S DIC="^BMCREF(",DIC(0)="L",DLAYGO=90001,X=BMCRDATE
+ .S DIC("DR")=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT_";1304////P"
  .D FILE^BMCFMC
  .I Y<0 W !,"Error creating REFERRAL.",!,"Notify programmer.",! D EOP^BMC Q
  .W !!,"REFERRAL number : ",BMCRNUMB,!
@@ -163,12 +173,16 @@ RR ;routine referral selected
  ;call %RCR to copy routine ref into the newly created
  ;RCIS Referral entry
  S %X="^BMCRTNRF("_BMCRR_",",%Y="^BMCREF("_BMCRIEN_"," D %XY^%RCR ;move 0 node
+ S BMCSCOD="",BMCSTRM=""   ;BMC*4.0*8
+ S BMCSCOD=$P($G(^BMCRTNRF(BMCRR,13)),U,3) S:BMCSCOD BMCSTRM=$P($$DESC^BSTSAPI(BMCSCOD),U,2)  ;BMC*4.0*8
+ S $P(^BMCREF(BMCRIEN,13),U,3)=""  ;BMC*4.0*8
  K ^BMCREF(BMCRIEN,61),^BMCREF(BMCRIEN,62) ;kill off nodes that don't belong
  I $D(^BMCREF(BMCRIEN,21,0)),$P(^BMCREF(BMCRIEN,21,0),U,2)[3221 S $P(^BMCREF(BMCRIEN,21,0),U,2)="90001.21PA"
  ;*******IMPORTANT - in line above, if nodes are added to the routine referral definition file, you must add the node to the line above
  S $P(^BMCREF(BMCRIEN,0),U)=BMCRDATE
  S DA=BMCRIEN,DIK="^BMCREF(" D IX1^DIK ;reindex entry
- S DIE="^BMCREF(",DR=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT
+ ;BMC*4.0*8 IHS.OIT.FCJ ADDING TOC STATUS
+ S DIE="^BMCREF(",DR=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT_";1304////P"
  D DIE^BMCFMC
  I $D(Y) W !!,"Error in editing referral entry.  NOTIFY PROGRAMMER." Q
  S Y=BMCRIEN D ^BMCREF

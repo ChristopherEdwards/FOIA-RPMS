@@ -1,7 +1,7 @@
-GMPLEDT4 ; SLC/MKB -- Problem List Edit actions cont ;3-7-96 2:00pm
- ;;2.0;Problem List;**5**;Aug 25, 1994
+GMPLEDT4 ; SLC/MKB/TC -- Problem List Edit actions cont ;09/21/12  08:27
+ ;;2.0;Problem List;**5,43**;Aug 25, 1994;Build 4
 TERM ; edit field 1.01
- N PROB,TERM,ICD,DUP,Y
+ N PROB,TERM,ICD,DUP,Y,DTOUT,GMPQUIT
 T1 W !,"PROBLEM: "_$P(GMPFLD(.05),U,2)_"//"
  R PROB:DTIME S:'$T DTOUT=1 I $D(DTOUT)!(PROB="^") S GMPQUIT=1 Q
  I PROB?1"^".E D JUMP^GMPLEDT3(PROB) Q:$D(GMPQUIT)!($G(GMPLJUMP))  K:$G(GMPIFN) GMPLJUMP G T1
@@ -21,12 +21,13 @@ T2 ; new text -- pass to look-up
  S DUP=$$DUPL^GMPLX(+GMPDFN,+TERM,PROB)
  I DUP,'$$DUPLOK^GMPLX(DUP) W ! G T1
  S GMPFLD(1.01)=$S(+TERM>1:TERM,1:""),GMPFLD(.05)=U_PROB
- S GMPFLD(.01)=$S($L(ICD):$O(^ICD9("AB",ICD_" ",0))_U_ICD,1:"")
- S:'GMPFLD(.01) GMPFLD(.01)=$$NOS^GMPLX
+ ;S GMPFLD(.01)=$S($L(ICD):$O(^ICD9("AB",ICD_" ",0))_U_ICD,1:"")
+ S GMPFLD(.01)=$S($L(ICD):$P($$CODEN^ICDCODE(ICD,80),"~")_U_ICD,1:"") ; Replacing direct global read to ^ICD9
+ S:'GMPFLD(.01)!($P(GMPFLD(.01),U)<0) GMPFLD(.01)=$$NOS^GMPLX
  Q
  ;
 TEXT(DFLT) ; Enter/edit provider narrative text (no lookup)
- N DIR,X,Y
+ N DIR,X,Y,DTOUT
  S DIR(0)="FAO^2:80",DIR("A")="PROBLEM: " S:$L(DFLT) DIR("B")=DFLT
  S DIR("?")="Enter a description of this problem, up to 80 characters."
  D ^DIR S:$D(DTOUT)!(X="^") Y="^" S:'$L(DFLT)&(X="") Y="^"
@@ -43,14 +44,14 @@ NTES ; Edit existing note, display # in XQORNOD(0)
  Q
  ;
 EDNOTE ; Edit note text given PROMPT,DEFAULT (returns X,Y)
- N DIR S DIR(0)="FAO^1:100",DIR("A")=PROMPT
+ N DIR,DTOUT,GMPQUIT S DIR(0)="FAO^1:100",DIR("A")=PROMPT
  S:$L(DEFAULT) DIR("B")=DEFAULT
  S DIR("?",1)="Enter any text you wish appended to this problem, up to 60 characters"
  S DIR("?")="in length.  You may append as many comments to a problem as you wish."
 ED1 D ^DIR I $D(DTOUT)!(Y="^") S GMPQUIT=1,Y="" Q
  I Y?1"^".E D JUMP^GMPLEDT3(Y) Q:$D(GMPQUIT)!($G(GMPLJUMP))  K:$G(GMPIFN) GMPLJUMP G ED1
  Q:Y=DEFAULT  I X="@" D  Q:$D(GMPQUIT)!(Y="")  G ED1
- . N DIR,X S DIR(0)="YAO",DIR("B")="NO"
+ . N DIR,X,DTOUT,DUOUT S DIR(0)="YAO",DIR("B")="NO"
  . S DIR("A")="   Are you sure you want to delete this comment? "
  . S DIR("?")="   Enter YES to completely remove this comment from this patient's problem."
  . W $C(7) D ^DIR I $D(DUOUT)!($D(DTOUT)) S GMPQUIT=1,Y="" Q
@@ -60,7 +61,7 @@ ED1 D ^DIR I $D(DTOUT)!(Y="^") S GMPQUIT=1,Y="" Q
  Q
  ;
 RESOLVED ; edit field 1.07
- N X,Y,PROMPT,HELPMSG,DEFAULT,ONSET S ONSET=+$G(GMPFLD(.13))
+ N X,Y,PROMPT,HELPMSG,DEFAULT,ONSET,GMPQUIT S ONSET=+$G(GMPFLD(.13))
  S DEFAULT=$G(GMPFLD(1.07)),PROMPT="DATE RESOLVED: "
  S HELPMSG="Enter the date this problem became resolved or inactive, as precisely as known."
 R1 D DATE^GMPLEDT2 Q:$D(GMPQUIT)!($G(GMPLJUMP))
@@ -69,7 +70,7 @@ R1 D DATE^GMPLEDT2 Q:$D(GMPQUIT)!($G(GMPLJUMP))
  Q
  ;
 PRIORITY ; edit field 1.14
- N DIR,X,Y
+ N DIR,X,Y,DTOUT,GMPQUIT
  S DIR(0)="SAO^A:ACUTE;C:CHRONIC;",DIR("A")="  (A)cute or (C)hronic? "
  S:$L($G(GMPFLD(1.14))) DIR("B")=$P(GMPFLD(1.14),U,2)
  S DIR("?",1)="  You may further refine the status of this problem by designating it",DIR("?",2)="  as ACUTE or CHRONIC; problems marked as ACUTE will be flagged on the",DIR("?")="  list display with a '*'."

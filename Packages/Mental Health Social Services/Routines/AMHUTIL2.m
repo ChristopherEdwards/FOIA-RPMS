@@ -1,7 +1,27 @@
 AMHUTIL2 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1,4**;JUN 18, 2010;Build 28
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,4,5**;JUN 02, 2010;Build 18
  ;
- ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
+PNPV(N,AMHDA) ;PEP - OUTPUT TX PROVIDER NARRATIVE
+ S AMHDA=$G(AMHDA)
+ S N=$G(N)
+ I N="" Q ""
+ NEW R,D
+ S (R,D)=""
+ I AMHDA S R=$P($G(^AMHRPRO(AMHDA,0)),U,3)
+ I AMHDA S D=$P($G(^AMHRPRO(AMHDA,0)),U,1)
+ I N="" Q "<No Provider Narrative>"
+ I R,$P($G(^AMHREC(R,11)),U,10) G EHR  ;if EHR created do EHR stuff
+ Q $P(^AUTNPOV(N,0),U)  ;IF NOT AN EHR CREATED VISIT JUST DISPLAY THE NARRATIVE LIKE WE ALWAYS DID
+EHR ;
+ S N=$P($G(^AUTNPOV(N,0)),U,1)
+ I N'["|" Q $$GET1^DIQ(9002012.2,D,.02)_" | "_N  ; no vertical equals no snomed desc id so use problem narrative
+ I N["| " Q $$GET1^DIQ(9002012.2,D,.02)_" | "_N  ;prenatal v1.0
+ I $T(DESC^BSTSAPI)="" Q $$GET1^DIQ(9002012.2,D,.02)_" | "_N  ;no snomed stuff installed
+ NEW SDI,SDIT
+ S SDI=$P(N,"|",2)  ;snomed descriptive id is in piece 2
+ S SDIT=$P($$DESC^BSTSAPI(SDI_"^^1"),U,2)
+ I SDIT="" Q $$GET1^DIQ(9002012.2,D,.02)_" | "_$P(N,"|",1)  ;not snomed text??  somebody stored a bad descriptive id return "* | " per Susan
+ Q SDIT_" | "_$P(N,"|",1)
 CS(I) ;EP - called to determine coding system of ien I
  ;are the icd10 routines in place?, if so, use them
  I $T(ICDDX^ICDEX)]"" Q $P($$ICDDX^ICDEX(I),U,20)  ;return 1 or 30
@@ -21,6 +41,7 @@ IMP(D) ;EP - which coding system should be used:
  ;now go through and get the last one before it imp date is greater than the visit date
  S X=0 F  S X=$O(Z(X)) Q:X=""  D
  .I D<X Q
+ .I D=X S Y=Z(X) Q
  .I D>X S Y=Z(X) Q
  I Y="" S Y=$O(Z(0)) Q Z(Y)
  Q Y

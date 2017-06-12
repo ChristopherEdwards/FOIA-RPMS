@@ -1,5 +1,5 @@
 AMHRDV3 ; IHS/CMI/LAB - list IPV/DV screenings ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 INFORM ;
@@ -65,9 +65,10 @@ RESULT ;result screenig
  W !?3,"4)  Present and Past"
  W !?3,"5)  Refused"
  W !?3,"6)  Unable to Screen"
- W !?3,"7)  Screenings done with no result entered"
+ w !?3,"7)  Referral Needed"
+ W !?3,"8)  Screenings done with no result entered"
  W !
- K DIR S DIR(0)="L^1:7",DIR("A")="Which result values do you want included on this list",DIR("B")="" KILL DA D ^DIR KILL DIR
+ K DIR S DIR(0)="L^1:8",DIR("A")="Which result values do you want included on this list",DIR("B")="" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G AGE
  I Y="" G AGE
  S AMHRREST=Y

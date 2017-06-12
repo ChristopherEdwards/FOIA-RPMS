@@ -1,7 +1,8 @@
 ACHSEOB3 ; IHS/ITSC/PMF - PROCESS EOBRS (4/6) - UPDATE DOCUMENT(1/2) ;   [ 09/17/2004  11:42 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**4,11**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**4,11**;JUN 11, 2001;Build 37
  ;ACHS*3.1*4 if error 32 happens, quit, don't keep going
  ;ACHS*3.1*11 Send vendor warning first 10 only no more suffix warnings
+ ;
  ;
  S ACHSDERR="",$P(ACHSDERR,"0",40)="",ACHSERRA=0
  ;
@@ -84,8 +85,9 @@ CKCK ; Look for previous check number and compare, if same, error 3*15
  I $E(ACHSEOBR("C",8),1,7)'=$P($G(^ACHS(2,$P(ACHSDOCR,U,6),0)),U) S ACHSERRE=11,ACHSEDAT=ACHSEOBR("C",8) D ^ACHSEOBG
  ;
  ;
- S DFN=$P(ACHSDOCR,U,22),ACHSIPA=+$E(ACHSEOBR("E",8),1,7)_"."_$E(ACHSEOBR("E",8),8,9),ACHSFULP=$S(+ACHSEOBR("D",11):"P",1:"F")
- S ACHS3RDP=$S(+ACHSEOBR("D",11):+$E(ACHSEOBR("D",11),1,7)_"."_$E(ACHSEOBR("D",11),8,9),1:""),ACHS3RDS="",ACHSOB=ACHSEOBR("E",9)
+ ;ACHS*3.1*23 CHG "E" TO VAR ACHSREJ FOR REC E OR J
+ S DFN=$P(ACHSDOCR,U,22),ACHSIPA=+$E(ACHSEOBR(ACHSREJ,8),1,7)_"."_$E(ACHSEOBR(ACHSREJ,8),8,9),ACHSFULP=$S(+ACHSEOBR("D",11):"P",1:"F")
+ S ACHS3RDP=$S(+ACHSEOBR("D",11):+$E(ACHSEOBR("D",11),1,7)_"."_$E(ACHSEOBR("D",11),8,9),1:""),ACHS3RDS="",ACHSOB=ACHSEOBR(ACHSREJ,9)
  ;
  ;
  ; Check for Interim Denial.
@@ -147,7 +149,7 @@ PROCESS ; Process the adjustment or payment.
  .D A4A^ACHSAJ        ;AUTOMATIC ADJUSTMENT
  .Q:ACHSERRA>0        ;
  .D AINFO             ;
- .S ACHSOB=ACHSEOBR("E",9)
+ .S ACHSOB=ACHSEOBR(ACHSREJ,9) ;ACHS*3.1*23 CHG "E" TO VAR ACHSREJ FOR REC E OR J 
  . ;
  . ; If any interest amount, treat as an adjustment.
  .;'INTEREST PAID' AND 'INTEREST ADDTNL PENALTY PAID' FROM TRANSACTION
@@ -157,7 +159,8 @@ PROCESS ; Process the adjustment or payment.
  . D A4A^ACHSAJ
  ;
  ;
- I +ACHSEOBR("E",8)=0,+ACHS3RDP=0,ACHSPIND="F" D  G INTEREST
+ ;ACHS*3.1*23 CHG "E" TO VAR ACHSREJ FOR REC E OR J
+ I +ACHSEOBR(ACHSREJ,8)=0,+ACHS3RDP=0,ACHSPIND="F" D  G INTEREST
  .S X=0
  .S X1=0
  .D TRAN                     ;
@@ -165,7 +168,8 @@ PROCESS ; Process the adjustment or payment.
  .                           ;AND PAID DATE NOT THE SAME ;THESE SEEM TO
  .                           ;BE GOTTEN FROM THE SAME FIELD?????
  .S ACHSERRE=32              ;WHY AUTO SET ERROR?????DOC CANCELLED BY FI
- .S ACHSEDAT=ACHSEOBR("E",8)_"  "_ACHSPIND  ;'IHS PAYMENT AMOUNT' 'TRANSACTION TYPE'
+ .;ACHS*3.1*23 CHG "E" TO VAR ACHSREJ FOR REC E OR J
+ .S ACHSEDAT=ACHSEOBR(ACHSREJ,8)_"  "_ACHSPIND  ;'IHS PAYMENT AMOUNT' 'TRANSACTION TYPE'
  .D ^ACHSEOBG                ;SET ERROR INTO ERROR GLOBAL ^ACHSEOBR("ER"
  .Q
  ;

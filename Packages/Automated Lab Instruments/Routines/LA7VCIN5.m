@@ -1,5 +1,5 @@
-LA7VCIN5 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VCIN5 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027,1033**;NOV 01, 1997
  ; This routine is a continuation of LA7VIN1 and is only called from there.
  ; It is called to process OBX segments for "CH" subscript tests.
  Q
@@ -57,6 +57,8 @@ OBX ;
  . I LA7TEST(2)'="",$D(^LAB(62.4,LA7624,3,"AC",LA7TEST(2))) D  Q
  . . S LA7TEST=LA7TEST(2),LA7TEST(0)=LA7TEST(2,0),LA7TEST(0,1)=LA7TEST(2,1)
  . D CREATE^LA7LOG(16) S LA7TEST=""
+ ;I '$G(LA7TEST) D
+ ;. D ADDTST^BLRRLTAR(LA76249,LA7TEST,LA7UID)  ;ihs/cmi/maw MU2 add test to accession here
  ;
  ; Units - trim leading/trailing spaces
  S LA7UNITS=$$P^LA7VHLU(.LA7SEG,7,LA7FS)
@@ -92,6 +94,8 @@ PROCESS ; Process results for a given test code
  S LA7VAL=$$P^LA7VHLU(.LA7SEG,6,LA7FS)
  Q:$G(LA7VAL)="DNR"  ;cmi/anch/maw 8/16/2007 don't process DNR's for IHS ref lab
  I LA7VTYP="CE",$P(LA7VAL,LA7CS,2)'="" S LA7VAL=$P(LA7VAL,LA7CS,2)
+ I LA7VTYP="SN",$P(LA7VAL,LA7CS,2)'="" S LA7VAL=$P(LA7VAL,LA7CS,2)  ;MU2
+ I LA7VTYP="CWE",LA7SS="CH",$P(LA7VAL,LA7CS,2)'="" S LA7VAL=$P(LA7VAL,LA7CS,2)  ;MU2
  E  S LA7VAL=$P(LA7VAL,LA7CS)
  ;
  F LA7I=0,1,2 S LA76241(LA7I)=$G(^LAB(62.4,LA7624,3,LA76241,LA7I))
@@ -193,10 +197,22 @@ PROCESS ; Process results for a given test code
  ;
  ; Store where test was performed.
  D PRDID^LA7VCN5A($$P^LA7VHLU(.LA7SEG,16,LA7FS),LA7SFAC,LA7CS)
+ S LA7RPTF=$$P^LA7VHLU(.LA7SEG,24,LA7FS)
+ S LA7RPTFC=$P(LA7RPTF,LA7CS,10)
+ D RPTFAC^LA7VCN5A(LA7RPTFC,LA7SFAC,LA7CS)
  ;
  ; Store equipment instance identifier
  I LA7EII'="" D EII^LA7VCN5A
  ;
+ ; Store result date/time MU2
+ S LA7RSDT=$$HL7TFM^XLFDT($$P^LA7VHLU(.LA7SEG,15,LA7FS),"L")
+ S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304,"IHSOBX"),U,5)=LA7RSDT
+ S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304,"IHSOBX"),U,4)=LA7ORS
+ ;
+ ; Get Performing Medical Director
+ N LA7PMD
+ S LA7PMD=$TR($$P^LA7VHLU(.LA7SEG,26,LA7FS),"^","~")
+ S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304,"IHSOBX"),U,8)=LA7PMD
  ; If results for LEDI interface (LA7INTYP=10) and site keeps file #60
  ; in sync with reference lab then compare message's units and normals
  ; with site's to detect changes(LA7FLAG=1) and notify site.
@@ -222,7 +238,3 @@ PROCESS ; Process results for a given test code
  ; If LEDI interface and order status change store which results
  ; associated with ordered test. Used to determine if order status
  ; changed bulletin needs to be generated.
- I LA7INTYP=10,LA7SAC?1(1"A",1"G") D
- . S LA7I=$G(LA7SAC(0)) Q:'LA7I
- . S ^TMP("LA7 ORDER STATUS",$J,LA7I,+LA76241(0))=""
- Q

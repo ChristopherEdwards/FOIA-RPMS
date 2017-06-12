@@ -1,5 +1,5 @@
-BTIULO8 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;05-May-2010 14:41;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1006**;NOV 04, 2004
+BTIULO8 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;08-Jul-2013 15:26;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1006,1012**;NOV 04, 2004;Build 45
  ;1006 Updated family history object
  ;
 TODAYRAD(PAT,PROV) ;EP; returns all radiology exams taken today;PATCH 1002 new code
@@ -41,7 +41,7 @@ TODAYIMM(PAT,PROV) ;EP; returns all immunizations given today;PATCH 1002 new cod
  ;
 FAMHX(PAT,DATE) ;EP; returns multi-line listing of patient's family history;PATCH 1002 new code
  ; If DATE=1, return date each item obtained
- NEW COUNT,TIUX,TIUY,TIUZ,TIUA,LINE,TIUA,REL,RELIEN,RELNAME
+ NEW COUNT,TIUX,TIUY,TIUZ,TIUA,LINE,TIUA,REL,RELIEN,RELNAME,CODE
  K ^TMP("BTIULO",$J)
  S COUNT=0
  ; for this patient, find all family history entries
@@ -55,8 +55,9 @@ FAMHX(PAT,DATE) ;EP; returns multi-line listing of patient's family history;PATC
  ..I TIUZ(.06)'="" S LINE=LINE_" Cause of death: "_TIUZ(.06)
  ..I LINE'="" S COUNT=$G(COUNT)+1 S ^TMP("BTIULO",$J,COUNT,0)=LINE
  ..S TIUY=0 F  S TIUY=$O(^AUPNFH("AE",TIUX,TIUY)) Q:'TIUY  D
- ...D ENP^XBDIQ1(9000014,TIUY,".01:.04","TIUA(")
- ...S LINE="     DX: "_TIUA(.04)_" ["_TIUA(.01)_"]"     ;prov narrative [ICD dx code]
+ ...D ENP^XBDIQ1(9000014,TIUY,".01:.14","TIUA(")
+ ...S CODE=TIUA(.14) I CODE="" S CODE=TIUA(.01)    ;SNOMED CODE patch 1012
+ ...S LINE="     DX: "_TIUA(.04)_" ["_CODE_"]"     ;prov narrative Patch 1012[SNOMED code]
  ...I $G(DATE) S LINE=LINE_" - "_TIUA(.03)   ;date noted
  ...S COUNT=$G(COUNT)+1 S ^TMP("BTIULO",$J,COUNT,0)=LINE
  ;

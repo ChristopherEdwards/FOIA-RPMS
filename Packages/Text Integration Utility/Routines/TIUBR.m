@@ -1,5 +1,5 @@
-TIUBR ; SLC/JER - Browse Action Subroutines ;04-Jun-2012 16:18;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**32,87,93,58,100,162,112,173,1007,1009,208,1010**;Jun 20, 1997;Build 24
+TIUBR ; SLC/JER - Browse Action Subroutines ;31-Dec-2012 14:33;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**32,87,93,58,100,162,112,173,1007,1009,208,1010,211,1011**;Jun 20, 1997;Build 13
  ; Move LOADSIG, XTRASIG, LOADFOR, LOADREC to TIUBR1.
  ;IHS/ITSC/LJF 05/01/2003 - calls to BTIUBR and BTIUPCC to display IHS data
  ;IHS/MSC/MGH 2/25/10 - updated after patches installed.
@@ -71,6 +71,10 @@ LOADTOP(TIUREC,TIUDA,TIUL,TIUGDATA) ; Load dictation, transcription data, etc.
  I SELCHLD!SELPRNT D
  . D IDTOP^TIUGBR(TIUDA,.TIUL,SHORT,CURPRNT)
  S TIUL=+$G(TIUL)+1,TIUY=""
+ I $L(TIUREC(8925,+TIUDA,89261)) D
+ . S TIUY=$$SETSTR^VALM1("STANDARD TITLE: "_TIUREC(8925,+TIUDA,89261),TIUY,1,64)
+ . S @VALMAR@(TIUL,0)=TIUY
+ . S TIUL=TIUL+1,TIUY=""
  I SHORT D
  . S TIUY=$$SETSTR^VALM1("DATE OF NOTE: "_TIUREC(8925,+TIUDA,1301),$G(TIUY),1,39)
  . S TIUY=$$SETSTR^VALM1("STATUS: "_TIUREC(8925,+TIUDA,.05),$G(TIUY),42,38)
@@ -98,7 +102,7 @@ LOADTOP(TIUREC,TIUDA,TIUL,TIUGDATA) ; Load dictation, transcription data, etc.
  . S TIUY=$$SETSTR^VALM1("URGENCY: "_TIUREC(8925,+TIUDA,.09),$G(TIUY),6,36)
  . S TIUY=$$SETSTR^VALM1("STATUS: "_TIUREC(8925,+TIUDA,.05),$G(TIUY),42,38)
  . S @VALMAR@(TIUL,0)=TIUY
- . D LT1^BTIUBR   ;IHS/ITSC/LJF  05/01/2003 display if unsigned, author' class
+ . D LT1^BTIUBR   ;IHS/ITSC/LJF  05/01/2003 display if unsigned, author's class
  S TIUL=TIUL+1,TIUY=""
  I '$L($G(^TIU(8925,+TIUDA,17))) S @VALMAR@(TIUL,0)=TIUY
  E  D
@@ -141,7 +145,7 @@ LOADADD(TIUDADD,TIUL) ; Load addenda
  . S @VALMAR@(TIUL,0)=$P(CANSEE,U,2)
  F  S TIUJ=$O(^TIU(8925,+TIUDADD,"TEXT",TIUJ)) Q:+TIUJ'>0  D
  . S TIUL=+$G(TIUL)+1
- . ;S @VALMAR@(TIUL,0)=$G(^TIU(8925,+TIUDADD,"TEXT",TIUJ,0))                 ;IHS/ITSC/LJF 05/01/2003
+ . ;S @VALMAR@(TIUL,0)=$G(^TIU(8925,+TIUDADD,"TEXT",TIUJ,0))            ;IHS/ITSC/LJF 05/01/2003
  . S @VALMAR@(TIUL,0)=$$BLANKS^BTIUBR($G(^TIU(8925,+TIUDADD,"TEXT",TIUJ,0))) ;IHS/ITSC/LJF 05/01/2003
  D LOADSIG^TIUBR1(TIUDADD,.TIUL)
  Q
@@ -150,8 +154,8 @@ SETREC(TIUGDATA) ; Sets docmt header line Patname, SSN, [Location, Visit]
  ; Requires TIUGDATA
  N Y
  S Y=$$SETSTR^VALM1($$NAME^TIULS($G(TIU("PNM")),"LAST,FI MI"),$G(Y),1,15)
- ;S Y=$$SETSTR^VALM1($G(TIU("SSN")),$G(Y),16,12)      ;IHS/ITSC/LJF 05/01/2003
- S Y=$$SETSTR^VALM1("#"_$G(TIU("HRCN")),$G(Y),16,12)  ;IHS/ITSC/LJF 05/01/2003
+ ;S Y=$$SETSTR^VALM1($G(TIU("SSN")),$G(Y),16,12)          ;IHS/ITSC/LJF 05/01/2003
+ S Y=$$SETSTR^VALM1("#"_$G(TIU("HRCN")),$G(Y),16,12)      ;IHS/ITSC/LJF 05/01/2003
  ; ---- If TIUDA is an ID entry, write ID, ADDENDED? in header
  ;      and leave out entry-specific info (Location, Visit)
  ;      since that goes with each individual entry: ----
@@ -159,7 +163,7 @@ SETREC(TIUGDATA) ; Sets docmt header line Patname, SSN, [Location, Visit]
  . S Y=$$SETSTR^VALM1("Interdisciplinary "_$S($P(TIUGDATA,U,2):"Note",1:"Entry"),$G(Y),29,23)
  . I $P(TIUGDATA,U,2) S Y=$$SETSTR^VALM1("ADDENDED?"_$S($$HASADDEN^TIULC1(+TIUDA,1):" Yes",1:" No"),$G(Y),66,13)
  ;
- S Y=$$SETSTR^VALM1($$DEMOG^BTIUPCC(+TIUDA),$G(Y),35,40) G SETRX   ;IHS/ITSC/LJF 05/01/2003 add sex,dob and age
+ S Y=$$SETSTR^VALM1($$DEMOG^BTIUPCC(+TIUDA),$G(Y),35,40) G SETRX       ;IHS/ITSC/LJF 05/01/2003 add sex.dob and age
  ;
  S Y=$$SETSTR^VALM1($P($G(TIU("LOC")),U,2),$G(Y),30,17)
  I $L($G(TIU("WARD"))) D

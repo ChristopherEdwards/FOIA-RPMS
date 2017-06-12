@@ -1,5 +1,5 @@
 ABSPOS6C ; IHS/FCS/DRS - continuation of ABSPOS6* ; 
- ;;1.0;PHARMACY POINT OF SALE;**32**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**32**;JUN 21, 2001;Build 15
  Q
 DEFTIME() Q .0015 ; fifteen minutes is the default default
 UPDFREQ() Q 15 ; every fifteen seconds is the usual case

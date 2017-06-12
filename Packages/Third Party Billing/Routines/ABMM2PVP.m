@@ -1,9 +1,12 @@
 ABMM2PVP ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12,15**;NOV 12, 2009;Build 251
  ;2.6*12-Updated FQHC/RHC/Tribal to include Urban
  ;2.6*12-Made changes for uncomp care; uncomp should be separate detail line
  ;  and should be included in pt vol total, not separate line.
  ;2.6*12-Added screen on options B,C dts so it won't cross yrs.
+ ;IHS/SD/SDR 2.6*15 - HEAT158173 - corrected check for PA led facility so it would let user select PA as a doc.
+ ;IHS/SD/SDR - 2.6*15 - HEAT168081 - Made change for error <SUBSCR>FAC+29^ABMM2PVP; occurs when user types '^' instead of selecting first facility.
+ ;IHS/SD/SDR - 2.6*15 - Added tag XIT and call to it in double queuer so global would get killed; it was hanging around and causing more data to print than should.
  ;
  I $P($G(^ABMMUPRM(1,0)),U,2)="" D  Q
  .W !!,"Setup has not been done.  Please do MUP option prior to running any reports",!
@@ -55,11 +58,18 @@ EN ;
  .S ABMFN=Y
  .D COMPUTE^ABMM2PV1
  W !!,"Note: This report will take a while to run based on the amount of data you have"
- S ABMQ("RX")="POUT^ABMDRUTL"
+ ;S ABMQ("RX")="POUT^ABMDRUTL"  ;abm*2.6*15
+ S ABMQ("RX")="XIT^ABMM2PVP"  ;made it so report has its own exit routine  ;abm*2.6*15
  S ABMQ("NS")="ABM"
  S ABMQ("RP")="COMPUTE^ABMM2PV1"
  D ^ABMDRDBQ
  Q
+ ;start new abm*2.6*15
+XIT ;EP - exit option for report
+ D ^XBFMK
+ K ^XTMP("ABM-PVP2",$J)
+ Q
+ ;end new abm*2.6*15
 RTYPE ;
  K ^XTMP("ABM-PVP2",$J)
  D ^XBFMK
@@ -89,6 +99,7 @@ PRVDR ;EP
  ..W !,"Please enter a different Eligible Professional's name.",!!
  .;
  .I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT" D
+ ..I ABMFQHC=0 D PAMSG Q
  ..S ABMPAFLG=0
  ..S ABMFQ=0
  ..F  S ABMFQ=$O(ABMF(ABMFQ)) Q:'ABMFQ  D
@@ -96,13 +107,17 @@ PRVDR ;EP
  ...S ABMFQIEN=+$O(^ABMMUPRM(1,1,"B",ABMFQ,0))
  ...Q:'ABMFQIEN
  ...I $P($G(^ABMMUPRM(1,1,ABMFQIEN,0)),U,2)=1 S ABMPAFLG=1
- ..Q:ABMPAFLG=1
- ..W !!,"Provider "_$$GET1^DIQ(200,ABMPRV,".01","E")_" ("_$$GET1^DIQ(200,ABMPRV,53.5,"E")_")"
- ..W !,"can't be included because the facility has to be led by a PA for a PA"
- ..W !,"to qualify"
- .Q:(+$G(ABMPAFLG)=1)
+ ..I ABMPAFLG=0 D PAMSG Q  ;abm*2.6*15 HEAT158173
+ .;I (+$G(ABMPAFLG)=0),ABMFQHC=1 Q  ;abm*2.6*15
+ .I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT",ABMFQHC=1,ABMPAFLG=0 Q
+ .I $$GET1^DIQ(200,ABMPRV,53.5,"E")="PHYSICIAN ASSISTANT",ABMFQHC=0 Q
  .S ABMPRVDR(ABMPRV)=""
  M ABMP=ABMPRVDR
+ Q
+PAMSG ;EP
+ W !!,"Provider "_$$GET1^DIQ(200,ABMPRV,".01","E")_" ("_$$GET1^DIQ(200,ABMPRV,53.5,"E")_")"
+ W !,"can't be included because the facility has to be led by a PA for a PA"
+ W !,"to qualify"
  Q
 FAC ;
  D GETFACS^ABMM2MUP  ;get fac list
@@ -133,7 +148,8 @@ FAC ;
  ..F  S ABMCNT=$O(ABMFLIST(ABMCNT)) Q:'ABMCNT  S ABMF($G(ABMFLIST(ABMCNT)))=""
  ;Q:+$G(Y)<0!(Y=ABMTOT)!$D(DTOUT)!$D(DUOUT)!$D(DIRUT)!$D(DIROUT)
  S ABMFQHC=0
- I $D(^ABMMUPRM(1,1,"B",$O(ABMF(0)))) S ABMFQHC=1
+ ;I $D(^ABMMUPRM(1,1,"B",$O(ABMF(0)))) S ABMFQHC=1  ;abm*2.6*15 HEAT168081
+ I +$G(ABMFANS)'=0,$D(^ABMMUPRM(1,1,"B",$O(ABMF(0)))) S ABMFQHC=1  ;abm*2.6*15 HEAT168081
  Q
 FACLST ;
  S ABMCNT=0,ABMDIR=""  ;abm*2.6*12

@@ -1,5 +1,5 @@
 BGP5DNGS ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  W:$D(IOF) @IOF
@@ -70,20 +70,7 @@ COM1 ;
  .I $D(DIRUT) S BGPQUIT=1
  .I Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+ K BGPQUIT
 BEN ;
  S BGPBEN=1
 HOME ;
@@ -104,9 +91,6 @@ SUM ;display summary of this report
  W !?5,"Previous Year Period: ",?31,$$FMTE^XLFDT(BGPPBD)," to ",?31,$$FMTE^XLFDT(BGPPED)
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
- I $G(BGPMFITI) W !!,"The MFI Location Taxonomy to be used is: ",$P(^ATXAX(BGPMFITI,0),U)
- ;I BGPHOME W !,"The HOME location is: ",$P(^DIC(4,BGPHOME,0),U)," ",$P(^AUTTLOC(BGPHOME,0),U,10)
- ;I 'BGPHOME W !,"No HOME Location selected."
  D PT^BGP5DSL
  I BGPROT="" G COMM
 ZIS ;call to XBDBQUE

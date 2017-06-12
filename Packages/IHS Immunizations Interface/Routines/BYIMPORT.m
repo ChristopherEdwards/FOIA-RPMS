@@ -1,5 +1,5 @@
 BYIMPORT ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6,7**;JUN 01, 2015;Build 242
  ;
  ;
  ;this routine will import a GIS package from the ^INXPORT global
@@ -147,7 +147,10 @@ STCK(NS,ST) ;-- check to see if the site already exists if not add it
  ;-----
 ADD(NMS,SIT)       ;-- add the site to the namespace file
  K DIE,DIC,DINUM,DR,DA,DD,DO,DIK,DLAYGO
+ ;PATCH 7 ENSURE DA(1) SET TO AVOID <UNDEF>
+ S DA(1)=NMS
  S DIC="^INRHNS("_NMS_",1,"
+ S:'$D(^INRHNS(NMS,1,0)) $P(^INRHNS(NMS,1,0),U,2)=4007.01
  S DIC(0)="L"
  S DIC("P")=$P(^DD(4007,1,0),U,2)
  S X=SIT

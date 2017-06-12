@@ -1,5 +1,5 @@
-BDPCHNG ; IHS/CMI/TMJ - CHANGE EXISTING PROVIDER TO NEW PROVIDER ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+BDPCHNG ;IHS/CMI/TMJ - CHANGE PROVIDER
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ; Subscripted BDPREC is EXTERNAL form.
  ;   BDPREC("PAT NAME")=patient name
@@ -72,6 +72,15 @@ TYPE ; GET CATEGORY TYPE FOR DESIGNATED PROVIDER
  S DIR(0)="90360.1,.01",DIR("B")="DPCP" K DA D ^DIR K DIR
  Q:$D(DIRUT)
  S BDPTYPE=+Y,BDPREC("PROV TYPE")=Y(0)
+ I $P(^BDPTCAT(BDPTYPE,0),U,1)="MESSAGE AGENT",'$D(^BDPMSGA("B",BDPPROV)) D  G TYPE
+ .W !!,"The provider you selected is not listed as a Message Agent, he/she must "
+ .W !,"be added to the Message Agent List using the option on the Manager's "
+ .W !,"Menu before they can be assigned as a message agent.",!
+ I $P(^BDPTCAT(BDPTYPE,0),U,1)="MESSAGE AGENT",$P($G(^BDPMSGA(BDPPROV,0)),U,3) D  G TYPE
+ .W !!,"The provider you selected has been inactivated as a message agent, he/she"
+ .W !," must be reactivated using the option on the Manager's Menu before they can "
+ .W !,"be assigned as a message agent.",!
+ ;
  S BDPQ=0
  Q
 PROV ; GET DESIGNATED PROVIDER
@@ -129,9 +138,11 @@ EOJ ; END OF JOB
  ;
 INFORM ;Data Entry Explanation
  ;
- W !,?3,"This Option allows the automatic changing of all Records......",!,?10,"from the existing CURRENT Designated Provider -",!,?10,"to a NEW assigned Designated Provider.",!!
- W ?3,"The User is prompted for the OLD Provider and the NEW Provider Name.",!
- W ?3,"Once the desired Provider Category Type is selected by the User,",!
- W ?3,"the Program will automatically LOOP through all Records and",!,?3,"change to the NEW Provider for this Category Type.",!!
- W ?3,"If the patient's existing Provider/Category Type are the same,",!,?3,"no update will occur.",!
+ W !,?3,"This option is used to assign a Message Agent to any patient who"
+ W !,"has a particular provider assigned to them.  For example, if you want"
+ W !,"to assign message agent Mary Smith, RN to all of Dr. Miller's patients"
+ W !,"you can do so with this option."
+ W !!!,"PLEASE NOTE:  If the patient already has a message agent assigned"
+ W !,"this option will replace that message agent with the new one you are"
+ W !,"assigning.",!
  Q

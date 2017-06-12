@@ -1,5 +1,5 @@
-RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ; 20 Apr 2011  6:57 PM
- ;;5.0;Radiology/Nuclear Medicine;**5,10,15,18,27,45,41,75,85,99,1003**;Nov 01, 2010;Build 3
+RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ; 06 Oct 2013  10:47 AM
+ ;;5.0;Radiology/Nuclear Medicine;**5,10,15,18,27,45,41,75,85,99,1003**;Nov 01, 2010;Build 13
  ; 3-p75 10/12/2006 GJC RA*5*75 print Reason for Study
  ; 4-p75 10/12/2006 KAM RA*5*75 display the request print date in the header
  ; 5-p75 10/12/2006 KAM RA*5*75 update header "Age" to "Age at req"
@@ -8,7 +8,11 @@ RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ; 20 Apr 2011  6:57 PM
  ;Supported IA #10104 reference to ^XLFSTR
  ;Supported IA #10060 reference to ^VA(200
  D HD Q:RAX["^"
- I $$PTSEX^RAUTL8(RADFN)="F" D  ;display pregnancy status for females ptch 45
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D  ;display pregnancy status for females ptch 45
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .W !,"Pregnant at time of order entry: ",?22,$S($P(RAORD0,"^",13)="y":"YES",$P(RAORD0,"^",13)="n":"NO",1:"UNKNOWN")
  .Q:'$D(RAOIFN)
  .Q:'$D(^RADPT("AO",$G(RAOIFN),RADFN))
@@ -25,6 +29,7 @@ RAORD6 ;HISC/CAH - AISC/RMO-Print A Request Cont. ; 20 Apr 2011  6:57 PM
  W:$P(RAORD0,"^",24)="y" !!?12,"*** Universal Isolation Precautions ***"
  W:$D(RA("VDT")) !!?8,"** Note Request Associated with Visit on ",RA("VDT")," **"
  W !!,"Requested:",?18,RA("PRC INFO")
+ ;
  I $D(^TMP($J,"RA DIFF PRC")),('$D(RAFOERR)),('$D(RAOPT("REG"))),('$D(RAOPT("ORDEREXAM"))),('$D(RAOPT("ADDEXAM"))) D  Q:RAX["^"
  . ; don't print registered procedure info (CPT, Proc Type, Imaging
  . ; Type) if entering through 'Request An Exam', 'Register Patient
@@ -152,7 +157,11 @@ HD S:'$D(RAPGE) RAPGE=0 D CRCHK Q:$G(RAX)["^"  S RATAB=$S($D(RA("ILC")):1,1:16)
  S Y=RA("DOB") D D^RAUTL W !,"Date of Birth: ",Y,?46,"Patient Loc: ",$E(RA("HLC"),1,20)
  ;10/12/2006 KAM Remedy Ticket 162508 changed next line
  W !,"Age at req   : ",RA("AGE"),?46,"Phone Ext  : ",RA("HPH") ;5-P75
- W !,"Sex          : ",$S(RA("SEX")="M":"MALE",1:"FEMALE") W:$D(RA("ROOM-BED")) ?46,"Room-Bed   : ",RA("ROOM-BED") W !,RALNE1
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;W !,"Sex          : ",$S(RA("SEX")="M":"MALE",1:"FEMALE") W:$D(RA("ROOM-BED")) ?46,"Room-Bed   : ",RA("ROOM-BED") W !,RALNE1
+ W !,"Sex          : ",$S(RA("SEX")="M":"MALE",RA("SEX")="F":"FEMALE",1:"UNKNOWN") W:$D(RA("ROOM-BED")) ?46,"Room-Bed   : ",RA("ROOM-BED") W !,RALNE1
+ ;
  W:$P(RAORD0,U,5)=1 !,"***C A N C E L L E D***",?56,"***C A N C E L L E D***"
  Q
  ;

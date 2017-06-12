@@ -1,5 +1,5 @@
 LEXQHA ;ISL/KER - Query History - Ask ;10/30/2008
- ;;2.0;LEXICON UTILITY;**62**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**62**;Sep 23, 1996;Build 10
  ;               
  ; Global Variables
  ;    ^DIC(81.3,          ICR   4492

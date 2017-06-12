@@ -1,5 +1,5 @@
 XMXUTIL3 ;ISC-SF/GMB-List addressees, recipients, message network header ;03/05/2001  15:23
- ;;8.0;MailMan;;Jun 28, 2002
+ ;;8.0;MailMan;**34**;Jun 28, 2002;Build 1
  ; All entry points covered by DBIA 2737.
  ; Common Parameters for Q, QD, QL, QN, QX:
  ; XMZ     message number in message file
@@ -30,7 +30,7 @@ Q(XMZ,XMFLAGS,XMAMT,XMSTART,XMFIND,XMTROOT) ; Addressee listing
  . S XMREC=$G(^XMB(3.9,XMZ,6,XMIEN,0))
  . S @(XMTROOT_XMCNT_",""TO NAME"")")=$P(XMREC,U,1)
  . I $P(XMREC,U,2)'="" S @(XMTROOT_XMCNT_",""TYPE"")")=$P(XMREC,U,2)
- S @(XMTROOT_"0)")=^TMP("DILIST",$J,0)
+ S @(XMTROOT_"0)")=$G(^TMP("DILIST",$J,0))
  K ^TMP("DILIST",$J)
  Q
 QD(XMZ,XMFLAGS,XMAMT,XMSTART,XMFIND,XMTROOT) ; Recipient listing
@@ -59,7 +59,7 @@ QL(XMZ,XMFLAGS,XMAMT,XMSTART,XMFIND,XMTROOT) ; Later'd Addressee listing
  . S @(XMTROOT_XMCNT_",""BY NAME"")")=$P(XMREC,U,4)
  . S @(XMTROOT_XMCNT_",""WHEN"")")=$P(XMREC,U,5)
  . S @(XMTROOT_XMCNT_",""WHEN MM"")")=$$MMDT^XMXUTIL1($P(XMREC,U,5))
- S @(XMTROOT_"0)")=^TMP("DILIST",$J,0)
+ S @(XMTROOT_"0)")=$G(^TMP("DILIST",$J,0))
  K ^TMP("DILIST",$J)
  Q
 QINIT(XMFLAGS,XMAMT,XMFIND,XMTROOT) ; For internal MailMan use only.

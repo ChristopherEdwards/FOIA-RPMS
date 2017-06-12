@@ -1,6 +1,7 @@
 BMCFLTR ; IHS/PHXAO/TMJ - FILTERING CRITERIA FOR REFERRAL SELECTION ;    
- ;;4.0;REFERRED CARE INFO SYSTEM;;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**8**;JAN 09, 2006;Build 51
  ;;4.0;IHS/ITSC/FCJ ADDED REFERRAL TYPE-PRIMARY OR SECONDARY
+ ;BMC*4.0*8;IHS/OIT/FCJ; 8-20-13;ADDED TEST FOR APPROVED (A1) REFERRAL
  ; This program provides the ability to use different filtering RTYP
  ; criteria when selecting referrals for close-out or modification
  ;
@@ -8,7 +9,7 @@ BMCFLTR ; IHS/PHXAO/TMJ - FILTERING CRITERIA FOR REFERRAL SELECTION ;
  ;
  ; Input:   RTY [=] 0 if closed referrals are not wanted (C1, C2)
  ;                  1 if only closed referrals are wanted (C1, C2)
- ;                  2 if only active referrals are wanted (A)
+ ;                  2 if only active OR approved referrals are wanted (A,A1)
  ;          CFY [=] 1 if only current fiscal year referrals are wanted
  ;                  0 if all fiscal years are eligible
  ;         RTYP [=] 0 Primary Referral
@@ -22,7 +23,8 @@ FILTER(RTY,CFY,RTYP) ; EP - used to select referrals for display on screen
  I '$D(^(0)) Q 0      ; no data exists at requested node
  I RTY=0,$P(^(0),U,15)["C" Q 0   ; do not want closed referrals
  I RTY=1,$P(^(0),U,15)'["C" Q 0   ; want only closed referrals
- I RTY=2,$P(^(0),U,15)'="A" Q 0   ; want only active referrals
+ ;I RTY=2,$P(^(0),U,15)'="A" Q 0   ; want only active referrals  BMC*4.0*8
+ I RTY=2,$P(^(0),U,15)'?1"A".E Q 0   ; want only active OR approved referrals ;BMC*4.0*8
  I CFY,$E($P(^(0),U,2),7,8)'=BMCFY Q 0  ;not from current fiscal year
  I RTYP=0,$P($G(^(1)),U)'="" Q 0  ; NOT PRIMARY REFERRAL.....FCJ
  I RTYP=1,$P($G(^(1)),U)="" Q 0  ; NOT A SECONDARY REFERRAL.....FCJ

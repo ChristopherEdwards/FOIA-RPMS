@@ -1,7 +1,5 @@
-LRVER3 ;DALOI/CJS/JAH - DATA VERIFICATION ;8/10/04
- ;;5.2;LAB SERVICE;**1027,1031**;NOV 1, 1997
- ;
- ;;VA LR Patch(s): 42,100,121,140,171,153,221,286,291
+LRVER3 ;DALOI/CJS/JAH - DATA VERIFICATION ; 17-Dec-2015 15:37 ; MKK
+ ;;5.2;LAB SERVICE;**42,100,121,140,171,1010,153,1018,286,1027,291,1031,406,1033,1038**;NOV 1, 1997;Build 6
  ;
  ; NOTE: LR*5.2*1031 restores LR*5.2*1027 modifications
  ;
@@ -56,6 +54,7 @@ L10 ;
  K LRSA,LRSB,LRORU3
  F LRSB=1:0 S LRSB=$O(^LR(LRDFN,LRSS,LRIDT,LRSB)) Q:LRSB<1  D
  . Q:LRSB=9009027                      ; IHS/OIT/MKK LR*5.2*1027 - Skip E-SIG ENTRY 
+ . Q:$G(^(LRSB))=""                    ; IHS/MSC/MKK - LR*5.2*1033 - Skip "empty" node
  . S LRSB(LRSB)=^(LRSB),LRSB(LRSB,"P")=$P(LRSB(LRSB),U,3)
  . I $D(LRNOVER) S LRNOVER(LRSB)=""
  S LREDIT=1
@@ -83,10 +82,15 @@ NOVER I $O(LRNOVER(0)) D  G EXIT
  I '$O(LRSB(0)) W !?5,"Nothing verified ",$C(7),! G EXIT
  N CNT S CNT=1
 AGAIN ;
- R !,"Approve for release by entering your initials: ",LRINI:DTIME
+ ; R !,"Approve for release by entering your initials: ",LRINI:DTIME
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+ S LRINI=$$GETINITS("Approve for release by entering your initials: ")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038
+ ;
  ; I $E(LRINI)="^" W !!?5,$C(7),"Nothing verified!" D READ G EXIT
  ; 
- ;----- BEGIN IHS/OIT/MKK LR*5.2*1027
+ ;----- BEGIN IHS/OIT/MKK LR*5.2*1027 -- Pause 2 seconds to allow user to see the message
  I $E(LRINI)="^" W !!?5,$C(7),"*** Nothing verified! ***" W *7,!  H 2  D READ G EXIT
  ;----- END IHS/OIT/MKK LR*5.2*1027
  ;
@@ -119,7 +123,7 @@ CHG ; Check for changes, save results and create audit trail
  S LRUP=""
  F  S LRCHG=$O(LRSB(LRCHG)) Q:LRCHG<1  D
  . I '$D(LRSA(LRCHG)) S LRUP=1 Q
- . I $P(LRSA(LRCHG),"^")=""!($P(LRSA(LRCHG),"^")="pending") S LRUP=1 Q
+ . I $P(LRSA(LRCHG),"^")=""!($P(LRSA(LRCHG),"^")="pending") S LRSA(LRCHG,3)=1,LRUP=1 Q
  . I $P(LRSA(LRCHG),"^")'=$P(LRSB(LRCHG),"^") S LRUP=1,$P(LRSA(LRCHG,2),"^")=1 ; results changed
  . I $P(LRSA(LRCHG),"^",2)'=$P(LRSB(LRCHG),"^",2) S LRUP=1,$P(LRSA(LRCHG,2),"^",2)=1 ; normalcy flag changed
  . I $P(LRSA(LRCHG),"^",5)'=$P(LRSB(LRCHG),"^",5) D  ; units/normals changed
@@ -130,8 +134,11 @@ CHG ; Check for changes, save results and create audit trail
  I 'LRUP S LREND=1 Q
  S LREND=0
  W !! W:IOST["C-" @LRVIDO W "Approve update of data by entering your initials: " W:IOST["C-" @LRVIDOF
- R LRINI:DTIME
- I '$T S LREND=1
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+ S LRINI=$$GETINITS("")
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+ ;
  I 'LREND,LRINI'=LRUSI,$$UP^XLFSTR(LRINI)=$$UP^XLFSTR(LRUSI) S LRINI=LRUSI
  I LRINI'=LRUSI S LREND=1
  I LREND W !,$C(7),"No updating occurred ",! Q
@@ -205,3 +212,14 @@ SET ;
  . M LR7V=LROTA(LRTPNN)
  . D SET^LA7VMSG($P(LRORU3,U,4),$P(LRORU3,U,2),$P(LRORU3,U,5),$P(LRORU3,U,3),LRTPN,LRTPNN,LRIDT,LRSS,LRDFN,LRODT,.LR7V)
  Q
+ ;
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+GETINITS(PROMPT) ; EP - Get Initials.  Mask User input.
+ NEW ANSWER,STEP,TEXT
+ ;
+ W:$L($G(PROMPT)) !,PROMPT
+ S ANSWER=""
+ F STEP=1:1:4  R TEXT#1  S:TEXT="^" ANSWER="^"  Q:TEXT="^"!(TEXT="")  S ANSWER=ANSWER_TEXT  W $C(8),"*"
+ Q ANSWER
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038

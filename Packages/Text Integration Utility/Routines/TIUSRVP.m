@@ -1,5 +1,5 @@
-TIUSRVP ; SLC/JER - RPCs for CREATE & UPDATE ;08-Aug-2012 11:27;mgh
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,19,28,47,89,104,100,115,109,167,1003,1007,113,112,175,157,1009,184,1010**;Jun 20, 1997;Build 24
+TIUSRVP ; SLC/JER - RPCs for CREATE & UPDATE ;02-Dec-2014 15:13;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,7,19,28,47,89,104,100,115,109,167,1003,1007,113,112,175,157,1009,184,1010,239,1013**;Jun 20, 1997;Build 33
  ;IHS/ITSC/LJF 02/27/2003 added call for V note entry
  ;IHS/CIA/MGH 08/31/2005 added fix for visit info
  ;IHS/CIA/MGH Patch 9 added parameters to make historical visit
@@ -25,23 +25,24 @@ MAKE(SUCCESS,DFN,TITLE,VDT,VLOC,VSIT,TIUX,VSTR,SUPPRESS,NOASF) ; New Document
  .S VSTR=$$VSTRBLD(+VSIT)
  .;IHS/CIA/MGH added set for visit connection on dictated notes
  .S TIUX("VISIT")=+VSIT   ;PATCH 1003
+ ;I +$G(VSIT) S VSTR=$$VSTRBLD(+VSIT)
+ ;End IHS mods
  I $L($G(VSTR)) D
  . S VDT=$S(+$G(VDT):+$G(VDT),1:$P(VSTR,";",2))
  . S LDT=$S(+$G(VDT):$$FMADD^XLFDT(VDT,"","",1),1:"")
- . S CAT=$P(VSTR,";",3)
  . S VLOC=$S(+$G(VLOC):+$G(VLOC),1:$P(VSTR,";"))
  . ; If note is for Ward Location, call MAIN^TIUMOVE
  . I $P($G(^SC(+VLOC,0)),U,3)="W" D MAIN^TIUMOVE(.TIU,DFN,"",VDT,LDT,1,"LAST",0,+VLOC) Q
  . ; Otherwise, call PATVADPT^TIULV
  . D PATVADPT^TIULV(.TIU,DFN,"",VSTR)
- ;This is for R&S notes without a visit string
+ ;IHS/MSC/MGH This is for R&S notes without a visit string
  I '+$G(VSIT),'$L($G(VSTR)),+$G(VDT),+$G(VLOC) D
  . S VDT=$G(VDT),LDT=$S(+$G(VDT):$$FMADD^XLFDT(VDT,"","",1),1:"")
  . ; If note is for Ward Location, call MAIN^TIUMOVE
  . I $P($G(^SC(+VLOC,0)),U,3)="W" D MAIN^TIUMOVE(.TIU,DFN,"",VDT,LDT,1,"LAST",0,+VLOC) Q
  . ; Otherwise, call MAIN^TIUVSIT
  . D MAIN^TIUVSIT(.TIU,DFN,"",VDT,LDT,"LAST",0,VLOC)
- ;Patch 10 This is for EHR Notes with a visit string but no visit
+ ;IHS/MSC/MGH Patch 10 This is for EHR Notes with a visit string but no visit
  I '+$G(VSIT),$L($G(VSTR)),+$G(VDT),+$G(VLOC),+$G(EHRVST) D
  . S VDT=$G(VDT),LDT=$S(+$G(VDT):$$FMADD^XLFDT(VDT,"","",1),1:"")
  . ; If note is for Ward Location, call MAIN^TIUMOVE
@@ -49,11 +50,13 @@ MAKE(SUCCESS,DFN,TITLE,VDT,VLOC,VSIT,TIUX,VSTR,SUPPRESS,NOASF) ; New Document
  . ; Otherwise, call MAIN^TIUVSIT
  . D MAIN^TIUVSIT(.TIU,DFN,"",VDT,LDT,"LAST",0,VLOC,"","",CAT)
  ;I '+$G(TIU("VSTR")) D
- ;IHS/MSC/MGH add date/time and location to call to make historical visit Patch 1009
+ ;IHS/MSC/MGH add date/time and location to call to make historical visit
  I '+$G(VSIT),+$G(VDT),+$G(VLOC),'+$G(EHRVST) D
  . D EVENT^TIUSRVP1(.TIU,DFN)
+ I (+TIU("LOC")=0)&($P($G(^SC(+VLOC,0)),U,3)="W") D PATVADPT^TIULV(.TIU,DFN,"",VSTR)
  S TIU("INST")=$$DIVISION^TIULC1(+TIU("LOC"))
  I $S($D(TIU)'>9:1,+$G(DFN)'>0:1,1:0) S SUCCESS="0^"_$$EZBLD^DIALOG(89250001) Q
+ ;
  S TIUDA=$$GETREC(DFN,.TIU,TITLE,.NEWREC)
  I +TIUDA'>0 S SUCCESS="0^"_$$EZBLD^DIALOG(89250002) Q
  S SUCCESS=+TIUDA
@@ -67,7 +70,7 @@ MAKE(SUCCESS,DFN,TITLE,VDT,VLOC,VSIT,TIUX,VSTR,SUPPRESS,NOASF) ; New Document
  I +$O(^TIU(8925,+TIUDA,"TEMP",0)) D MERGTEXT^TIUEDI1(+TIUDA,.TIU)
  I +$G(TIU("STOP")) D DEFER^TIUVSIT(TIUDA,TIU("STOP")) I 1
  E  D QUE^TIUPXAP1 D VNOTE^BTIUPCC(TIUDA,$P(^TIU(8925,+TIUDA,0),U,3),DFN,"ADD") ;IHS/ITSC/LJF 02/27/2003 update V node
- ;E  D QUE^TIUPXAP1                                                             ;IHS/ITSC/LJF 02/27/2003
+ ;E  D QUE^TIUPXAP1
  I '+$G(SUPPRESS) D
  . D RELEASE^TIUT(TIUDA,1)
  . D UPDTIRT^TIUDIRT(.TIU,TIUDA)
@@ -91,7 +94,7 @@ MAKEADD(TIUDADD,TIUDA,TIUX,SUPPRESS) ; Create addendum
  D MAKEADD^TIUSRVP2(.TIUDADD,TIUDA,.TIUX,+$G(SUPPRESS))
  Q
 UPDATE(SUCCESS,TIUDA,TIUX,SUPPRESS) ; Update existing Document
- N TIU,TIUI,TIUC,TIUD0,TIUD12,TIUD15,TIUCPF,TITLE,PRFUNLNK
+ N TIU,TIUI,TIUC,TIUD0,TIUD12,TIUD14,TIUD15,TIUCPF,TITLE,PRFUNLNK,TIUY,TIUCC,TIUFLAG S TIUFLAG=0
  I $S(+$G(TIUDA)'>0:1,'$D(^TIU(8925,+TIUDA,0)):1,1:0) D  Q
  . S SUCCESS="0^ Cannot update a non-existent document..."
  I +$P($G(^TIU(8925,+TIUDA,0)),U,5)>6 D  Q
@@ -105,14 +108,19 @@ UPDATE(SUCCESS,TIUDA,TIUX,SUPPRESS) ; Update existing Document
  . I +TIUC>0 S ^TIU(8925,+TIUDA,"TEMP",0)="^^"_TIUC_U_TIUC_U_DT_"^^"
  . K TIUX("TEXT")
  I +$O(TIUX(""))'>0 S:+$G(SUPPRESS) SUCCESS=+TIUDA Q
- S TIUD0=$G(^TIU(8925,TIUDA,0)),TIUD12=$G(^(12)),TITLE=+TIUD0
+ S TIUD0=$G(^TIU(8925,TIUDA,0)),TIUD12=$G(^(12)),TIUD14=$G(^(14)),TITLE=+TIUD0
  ;Set a flag to indicate whether or not a Title is a member of the
  ;Clinical Procedures Class (1=Yes and 0=No)
  S TIUCPF=+$$ISA^TIULX(TITLE,+$$CLASS^TIUCP)
  D SETCOS^TIUSRVP2(TIUDA,.TIUX,TIUD0,TIUD12)
+ ; Consult association changed?  If so, rollback to Active status.    VM/RJT - *239
+ S TIUCC=$P($G(TIUD14),"^",5)
+ I +$G(TIUX("1405"))>0,+$G(TIUCC)>0,(+$G(TIUX("1405"))'=+TIUCC) D ROLLBACK^TIUCNSLT(TIUDA) S TIUFLAG=1
  ; Title changed? Refile DC
  I +$G(TIUX(.01))>0,(+$G(TIUX(.01))'=+TIUD0) D
  . S TIUX(.04)=$$DOCCLASS^TIULC1(+$G(TIUX(.01)))
+ . S TIUY=0 D ISCNSLT^TIUCNSLT(.TIUY,TITLE)
+ . I $G(TIUY),TIUFLAG=0 D ROLLBACK^TIUCNSLT(TIUDA) ;  if changed to Non-Consult title - VMP/RJT - *239
  . ; If change title from PRF to nonPRF, set flg to unlink note:
  . I $$ISPFTTL^TIUPRFL(TITLE),'$$ISPFTTL^TIUPRFL(+$G(TIUX(.01))) S PRFUNLNK=1
  D FILE(.SUCCESS,+TIUDA,.TIUX,+$G(SUPPRESS),TIUCPF)

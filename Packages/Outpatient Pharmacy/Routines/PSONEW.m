@@ -1,5 +1,5 @@
-PSONEW ;BIR/SAB-new rx order main driver ;23-Jul-2012 11:38;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,94,130,1013,268,225,1015**;DEC 1997;Build 62
+PSONEW ;BIR/SAB-new rx order main driver ;05-Jun-2013 15:42;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,46,94,130,1013,268,225,1015,1017**;DEC 1997;Build 40
  ;External references L and UL^PSSLOCK supported by DBIA 2789
  ;External reference to ^VA(200 supported by DBIA 224
  ;External reference to ^XUSEC supported by DBIA 10076
@@ -10,6 +10,7 @@ PSONEW ;BIR/SAB-new rx order main driver ;23-Jul-2012 11:38;PLS
  ; Modified - IHS/CIA/PLS - 01/02/04 - Line AGAIN+10 and COUN+2
  ;            IHS/MSC/PLS - 09/21/11 - Line DIR+2
  ;                          10/28/11 - Line AGAIN+10
+ ;                          06/05/13 - Line DIR+4
 OERR ;backdoor new rx for v7
  K PSOREEDT,COPY,SPEED,PSOEDIT,DUR,DRET
  S PSOPLCK=$$L^PSSLOCK(PSODFN,0) I '$G(PSOPLCK) D LOCK^PSOORCPY S VALMSG=$S($P($G(PSOPLCK),"^",2)'="":$P($G(PSOPLCK),"^",2)_" is working on this patient.",1:"Another person is entering orders for this patient.") K PSOPLCK S VALMBCK="" Q
@@ -85,7 +86,8 @@ NOORX K X,Y,DIR,DUOUT,DTOUT,DIRUT
 DIR ;ask nature of order
  K DIR,DTOUT,DTOUT,DIRUT I $T(NA^ORX1)]""  D  Q
  .;S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:"W"),0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))   ;IHS/MSC/PLS - 09/21/11 Commented out line
- .S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:$$GET1^DIQ(100.02,$$GET1^DIQ(9009033,PSOSITE,407,"I"),.02)),0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))  ;IHS/MSC/PLS - 09/21/11
+ .;S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:$$GET1^DIQ(100.02,$$GET1^DIQ(9009033,PSOSITE,407,"I"),.02)),0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))  ;IHS/MSC/PLS - 09/21/11
+ .S PSONOOR=$$NA^ORX1($S($G(PSONOODF)!($G(PSONOBCK)):"S",1:$$GET1^DIQ(100.02,$$GET1^DIQ(9009033,PSOSITE,407,"I"),.02)),0,"B","Nature of Order",0,"WPSDIV"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))  ;IHS/MSC/PLS - 06/05/13
  .I +PSONOOR S (Y,PSONOOR)=$P(PSONOOR,"^",3) Q
  .S DIRUT=1 K PSONOOR
  I $D(PSONOOR) S DF=PSONOOR,PSONODF=$S(DF="E":"PROVIDER ENTERED",DF="V":"VERBAL",DF="P":"TELEPHONE",DF="D":"DUPLICATE",DF="S":"SERVICE CORRECTED",DF="I":"POLICY",DF="R":"SERVICE REJECTED",1:"WRITTEN")

@@ -1,9 +1,13 @@
 BIUTL7 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**12**;MAY 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SCREENMAN RELATED CODE TO LOAD & SAVE: VISIT, CASE DATA, CONTRAS.
  ;;  PATCH 9: Added Preload of Admin Date and VIS Presented Date. LOADVIS+70
  ;;           Added save of Admin Date and VIS Presented Date. SAVISIT+41
+ ;;  PATCH 10: Added Preload of Skin Test Lot Number. LOADVIS+92
+ ;;            Added save of Skin Test Lot Number.  SAVISIT+46
+ ;;  PATCH 12: Adjust test for External form of date,     LOADVIS+65
+ ;;            and Inj Site not req'd if Cat=Historical.
  ;
  ;
  ;----------
@@ -71,8 +75,15 @@ LOADVIS(BIVTYPE) ;EP
  ..;
  ..;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ..;---> Preload Admin Date and Date VIS Presented.
- ..I $G(BI("EE"))>1 D PUT^DDSVALF(1.5,,,BI("EE"),"E")
- ..I $G(BI("QQ"))>1 D PUT^DDSVALF(10.2,,,BI("QQ"),"E")
+ ..;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ ..;---> Adjust test for External form of date.
+ ..;I $G(BI("EE"))>1 D PUT^DDSVALF(1.5,,,BI("EE"),"E")
+ ..;I $G(BI("QQ"))>1 D PUT^DDSVALF(10.2,,,BI("QQ"),"E")
+ ..I $G(BI("EE"))]"" D PUT^DDSVALF(1.5,,,BI("EE"),"E")
+ ..I $G(BI("QQ"))]"" D PUT^DDSVALF(10.2,,,BI("QQ"),"E")
+ ..;
+ ..;---> If Category is Historical Event, set Inj Site AND Volume NOT Required.
+ ..I $G(BI("I"))="E" D REQ^DDSUTL(4,"","",0),REQ^DDSUTL(5,"","",0)
  ..;**********
  .;
  .;---> SKIN TESTS *
@@ -98,6 +109,11 @@ LOADVIS(BIVTYPE) ;EP
  ..;
  ..;---> Load the Volume.
  ..I $G(BI("W"))]"" D PUT^DDSVALF(2.8,,,BI("W"),"I")
+ ..;
+ ..;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ..;---> Preload Skin Test Lot Number.
+ ..I $G(BI("LL"))>1 D PUT^DDSVALF(2.9,,,BI("LL"),"I")
+ ..;**********
  .;
  .;
  .;---> If there is text for Other Location:
@@ -164,8 +180,8 @@ NOPROV(X) ;EP
  I X="E" I '$G(BI("K")) D PUT^DDSVALF(9,,,"") S BI("R")=""
  Q
  ;
- ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
- ;---> Next 4 calls moved to BIUTL9 for space (<15000k).
+ ;********** PATCH 9 & 12, v8.5, OCT 01,2014 & May 01,2016 IHS/CMI/MWR
+ ;---> Next 6 calls moved to BIUTL9 for space (<15000k).
  ;
  ;----------
 REASCHK ;EP
@@ -193,20 +209,21 @@ CREASCHK ;EP
  ;---> See BIUTL9.
  D CREASCHK^BIUTL9
  Q
- ;**********
  ;
  ;
  ;----------
 LOTDAT(X) ;EP
- ;---> Called by Post Action field of Field 3 on BI FORM-IMM VISIT ADD/EDIT.
- ;---> Display Lot Exp Date and Remaining Balance (if tracked).
- ;---> Parameters:
- ;     1 - X (req) IEN of Lot Number in ^AUTTIML.
- ;
- Q:'$G(X)
- D PUT^DDSVALF(3.4,,," Exp Date: "_$$LOTEXP^BIRPC3(X,1))
- D PUT^DDSVALF(3.5,,,"Remaining: "_$$LOTRBAL^BIRPC3(X))
+ ;---> See BIUTL9.
+ D LOTDAT^BIUTL9(X)
  Q
+ ;
+ ;
+ ;----------
+VSHORT(X) ;EP
+ ;---> See BIUTL9.
+ D VSHORT^BIUTL9(X)
+ Q
+ ;**********
  ;
  ;
  ;----------
@@ -240,19 +257,6 @@ LOTWARN(BILIEN,BIVDATE,BILOC) ;EP
  ;
  ;
  ;----------
-VSHORT(X) ;EP
- ;---> Called by LOADVIS above and by Post Action field of Field 2
- ;---> on BI FORM-IMM VISIT ADD/EDIT.
- ;---> Display Short Name below Vaccine Name if different.
- ;---> Parameters:
- ;     1 - X (req) IEN of Vaccine in ^AUTTIMM.
- ;
- Q:'$G(X)  Q:($$VNAME^BIUTL2(X)=$$VNAME^BIUTL2(X,1))
- D PUT^DDSVALF(2.5,,,"("_$$VNAME^BIUTL2(X)_")")
- Q
- ;
- ;
- ;----------
 SAVISIT(BIVTYPE,BI) ;EP
  ;---> Called by BIPATVW2 to save data after exiting Screenman Forms
  ;---> BI FORM-IMM VISIT ADD/EDIT and BI FORM-SKIN VISIT ADD/EDIT.
@@ -266,7 +270,7 @@ SAVISIT(BIVTYPE,BI) ;EP
  ;---> not="S" (Skin Test Visit), then set Error Code and quit.
  I ($G(BIVTYPE)'="I")&($G(BIVTYPE)'="S") D ERRCD^BIUTL2(410,,1) Q
  ;
- N A,B,BIDATA,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,V,W,X,Y,Z,EE,QQ S V="|"
+ N A,B,BIDATA,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,V,W,X,Y,Z,EE,QQ,LL S V="|"
  ;
  S A=$G(BI("A"))      ;Patient DFN.
  S B=$G(BI("B"))      ;Vaccine or Skin Test IEN.
@@ -299,6 +303,9 @@ SAVISIT(BIVTYPE,BI) ;EP
  S EE=$G(BI("EE"))     ;Admin Date (Date shot admin'd to patient.
  S QQ=$G(BI("QQ"))     ;Date VIS Presented to Patient.
  ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Add Skin Test Lot Number.
+ S LL=$G(BI("LL"))
  ;
  ;---> Check Site IEN for parameters.
  S:'$G(Z) Z=$G(DUZ(2))
@@ -307,8 +314,9 @@ SAVISIT(BIVTYPE,BI) ;EP
  S BIDATA=BIVTYPE_V_A_V_B_V_C_V_D_V_E_V_F_V_G_V_I_V_J_V_K
  ;---> NOTE: Y will be pc 25 (not 24) because BIRPC6 feeds CPT Import to pc 24.
  ;---> Add pieces 27-29.
- ;---> Piece:     12  13  14  15  16  17  18  19  20  21  22  23 24 25  26 27  28   29
- S BIDATA=BIDATA_V_L_V_M_V_N_V_O_V_P_V_Q_V_R_V_S_V_T_V_W_V_X_V_Z_V_V_Y_V_H_V_V_EE_V_QQ
+ ;---> Add piece 30.
+ ;---> Piece:     12  13  14  15  16  17  18  19  20  21  22  23 24 25  26 27  28   29   30
+ S BIDATA=BIDATA_V_L_V_M_V_N_V_O_V_P_V_Q_V_R_V_S_V_T_V_W_V_X_V_Z_V_V_Y_V_H_V_V_EE_V_QQ_V_LL
  ;
  ;**********
  ;

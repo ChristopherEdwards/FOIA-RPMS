@@ -1,5 +1,5 @@
 ABSPES00 ; IHS/FCS/DRS - JWS 03:02 PM 12 Jun 1995 ;  [ 09/12/2002  10:03 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Claims Submission File (9002313.02) - Billing Item Search

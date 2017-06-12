@@ -1,5 +1,5 @@
-BLRUTIL4 ;IHS/MSC/MKK - MISC IHS LAB UTILITIES (Cont)  [ 12/13/2007  8:25 AM ]
- ;;5.2;LR;**1031**;NOV 01, 1997
+BLRUTIL4 ;IHS/MSC/MKK - MISC IHS LAB UTILITIES (Cont) ; 17-Jul-2015 06:30 ; MKK
+ ;;5.2;LR;**1031,1033,1034,1035**;NOV 01, 1997;Build 5
  ;
  ; Determines if MODULE exists on server
 MODEXIST(MODULE) ; EP
@@ -25,6 +25,8 @@ MODEXIST(MODULE) ; EP
  . S MODULE="PX"
  . S VERSION="1.0"
  . S PATCH=168       ; Latest VA Patch as of 5/1/2009
+ . S PATCH=197       ; IHS/MSC/MKK - LR*5.2*1033 - Latest VA Patch as of 2011
+ . S PATCH=203       ; IHS/MSC/MKK - LR*5.2*1034 - Seq 152, June 2014
  . S SYSPATCH=$$PATCH^XPDUTL(MODULE_"*"_VERSION_"*"_PATCH)
  . S:SYSPATCH<1 SYSVER=0
  ;
@@ -38,9 +40,25 @@ MODEXIST(MODULE) ; EP
  ;
  ; Get Health Record Number -- see LA7UID2 routine
 GETHRCN(LRDFN,INHRCN) ; EP
- Q:+$G(INHRCN)>0 +$G(INHRCN)       ; If #, just return it
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ ; Check to make sure the HRCN is the correct one for the Ordering Location
+ I +$G(INHRCN) D
+ . NEW DFN,IENS,ORDHRCN,ORDLOC,OLINST
+ . S IENS=LA76802_","_LA76801_","_LA768_","
+ . S ORDLOC=+$$GET1^DIQ(68.02,IENS,94,"I")
+ . S OLINST=+$$GET1^DIQ(44,ORDLOC,3,"I")
+ . Q:OLINST<1
+ . ;
+ . S DFN=+$P($G(^LR(LRDFN,0)),"^",3)
+ . S ORDHRCN=+$$HRN^AUPNPAT(DFN,OLINST)
+ . Q:ORDHRCN<1
+ . ;
+ . S:ORDHRCN'=INHRCN INHRCN=ORDHRCN
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
  ;
- ; If LRDFN not from VA Patient file, return passed variable (if it exists)
+ Q:+$G(INHRCN) +$G(INHRCN)       ; If #, just return it
+ ;
+ ; If LRDFN not from VA Patient file, return passed variable.
  I $P($G(^LR(LRDFN,0)),"^",2)'=2 Q $G(INHRCN)
  ;
  ; New variables
@@ -63,7 +81,7 @@ GETHRCN(LRDFN,INHRCN) ; EP
  ; If LRSS still null, try LA7UID accession variable
  S:LRSS="" LRSS=$P($G(^LRO(68,+$G(LA768),0)),"^",2)
  ;
- ; Could not retrieve Subscript, so return passed variable (if it exists)
+ ; Could not retrieve Subscript, so return passed variable.
  Q:$L(LRSS)<1 $G(INHRCN)
  ;
  ; Try to get LRIDT using LRAA,LRAD,LRAN variables
@@ -72,7 +90,7 @@ GETHRCN(LRDFN,INHRCN) ; EP
  ; If LRIDT still null, try LA7UID accession variables
  S:LRIDT="" LRIDT=$P($G(^LRO(68,+$G(LA768),1,+$G(LA76801),1,+$G(LA76802),3)),"^",5)
  ;
- ; If LRIDT still null, return passed variable (if it exists)
+ ; If LRIDT still null, return passed variable.
  Q:$L(LRIDT)<1 $G(INHRCN)
  ;
  ; Get ACCessioning INSTitution
@@ -82,9 +100,9 @@ GETHRCN(LRDFN,INHRCN) ; EP
  ;
  Q:+HRCN HRCN
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("GETHRCN^BLRUTIL4 8.5")
+ D ENTRYAUD^BLRUTIL("GETHRCN^BLRUTIL4 8.5")
  ;
- ; Could not retrieve HRCN, so return passed variable (if it exists)
+ ; Could not retrieve HRCN, so return passed variable.
  Q $G(INHRCN)
  ;
  ; Generic "Find RPMS Module's Version and (perhaps) Patch number"
@@ -148,19 +166,40 @@ CURLABP() ; EP - Return current Lab Patch
  Q LABPATCH
  ;
  ; The following moved from LRRP1 because LRRP1 became > 15000 bytes
+ ; The following moved from LRRP1 because LRRP1 became > 15000 bytes
 GETCOMPD() ; EP -- Get Completion Date for test
  NEW COMPD,D3,DATALN,LRAA,LRAD,LRAN,LRAS,LRAT,LRSS,LOG,STR,TESTIEN,TMPDT,VLABIEN
  ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 0.0")     ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  S LRAS=$P(LR0,"^",6)
  Q:'$L(LRAS) " "
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 1.0")     ; IHS/MSC/MKK - LR*5.2*1034
  ;
  ; If no Pointer to file 60, return null
  S TESTIEN=+$P($G(LRDATA),"^",1)
  Q:TESTIEN<1 " "
  ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 2.0")     ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  ; If test PENDING, there is no complete date -- return null
  S DATALN=+$P($P($G(^LAB(60,+$G(LRTSTS),0)),"^",5),";",2)
  I $$UP^XLFSTR($P($G(^LR(LRDFN,"CH",LRIDT,DATALN)),"^",1))["PEND" Q " "
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ ; Try to get COMPLETE DATE from Lab Data File
+ ; S COMPD=+$G(^LR(LRDFN,"CH",LRIDT,+$P(LRDATA,U,10),"IHS"))
+ S COMPD=$G(^LR(LRDFN,"CH",LRIDT,+$P(LRDATA,U,10),"IHS"))  ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 3.0")     ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ I +COMPD,COMPD["," S COMPD=$$HTFM^XLFDT(COMPD)  ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 3.5")     ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ Q:+$G(COMPD)>2000000 $$FMTE^XLFDT(COMPD,"2MZ")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
  ;
  ; Break out Accession variables
  I $$GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)<1 Q " "
@@ -168,8 +207,10 @@ GETCOMPD() ; EP -- Get Completion Date for test
  ; If Accession Date (LRAD) year not the same as the collection date year, set LRAD = 0
  I $E(LRAD,1,3)'=$E($P($G(LRCDT),"."),1,3) S LRAD=0
  ;
- ; Get COMPLETE DATE for the test from Accession file
+ ; Try to get COMPLETE DATE for the test from Accession file
  S COMPD=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,4,TESTIEN,0)),"^",5)
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 4.0")     ; IHS/MSC/MKK - LR*5.2*1035
  ;
  Q:+$G(COMPD)>2000000 $$FMTE^XLFDT(COMPD,"2MZ")
  ;
@@ -182,6 +223,8 @@ GETCOMPD() ; EP -- Get Completion Date for test
  . I $E(LRAD,1,3)'=$E($P($P($G(^BLRTXLOG(LOG,12)),"^"),"."),1,3) Q   ; Wrong year
  . ;
  . S COMPD=+$P($G(^BLRTXLOG(LOG,13)),"^",9)
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 5.0")     ; IHS/MSC/MKK - LR*5.2*1034
  ;
  Q:+$G(COMPD)>2000000 $$FMTE^XLFDT(COMPD,"2MZ")
  ;
@@ -196,15 +239,32 @@ GETCOMPD() ; EP -- Get Completion Date for test
  . ;
  . S COMPD=+$P($G(^AUPNVLAB(VLABIEN,12)),"^",12)      ; V LAB Result Date
  ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 6.0")     ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  Q:+$G(COMPD)>2000000 $$FMTE^XLFDT(COMPD,"2MZ")
  ;
- ; If still null, use the Lab Data File's DATE REPORT COMPLETED Date
+ ; If still null, try the Lab Data File's DATE REPORT COMPLETED Date
  ; that's stored in the LR0 variable
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ ; Don't use DATE REPORT COMPLETED because it's NOT at the test level.
+ ; S COMPD=$P(LR0,"^",3)
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1035
+ ; The Lab Data File's DATE REPORT COMPLETED Date must be used
+ ; otherwise tests on a panel will never have a completed date.
  S COMPD=$P(LR0,"^",3)
+ ; ----- END IHS/MSC/MKK - LR*5.2*1035
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 7.0")     ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  Q:+$G(COMPD)>2000000 $$FMTE^XLFDT(COMPD,"2MZ")
+ ;
+ D ENTRYAUD^BLRUTIL("GETCOMPD^BLRUTIL4 8.0")     ; IHS/MSC/MKK - LR*5.2*1035
  ;
  ; All results dates checked and nothing found, so quit with null
  Q " "
+ ;
  ;
 ENTRYAUD(LABEL,TMPNODE) ; EP - Audit ^TMP global
  NEW ENTRYNUM,NOW,NOWTIM
@@ -215,82 +275,103 @@ ENTRYAUD(LABEL,TMPNODE) ; EP - Audit ^TMP global
  M ^BLRENTRY(DUZ,NOW,ENTRYNUM,LABEL_" ^TMP")=^TMP(TMPNODE)
  Q
  ;
-NOCOLLDT ; EP - "Quick & Dirty" Routine to determine if Accession file has no DRAW DATE but an Accession Number
- NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ ; Given an UID, return the LRAA,LRAD,LRAN,LRDFN,LRSS,LRIDT variables
+RETACCV(UID,LRAA,LRAD,LRAN,LRDFN,LRSS,LRIDT,LRAS) ; EP
+ S (LRAA,LRAD,LRAN,LRAS,LRDFN,LRSS,LRIDT)=""  ; Initialize all the variables
  ;
- S BLRVERN=$TR($P($T(+1),";")," ")
- K ^TMP("BLRUTIL4",$J,"NOCOLLDT")
+ S X=$Q(^LRO(68,"C",UID,0))
+ Q:$L(X)<1                               ; Skip if no accession data
  ;
- W !!,?4,"Compilation Begins"
- S LRAA=.9999999,(BADCNT,CNT)=0
- F  S LRAA=$O(^LRO(68,LRAA))  Q:LRAA<1  D
- . S LRAD=0
- . F  S LRAD=$O(^LRO(68,LRAA,1,LRAD))  Q:LRAD<1  D
- .. S LRAN=0
- .. F  S LRAN=$O(^LRO(68,LRAA,1,LRAD,1,LRAN))  Q:LRAN<1  D
- ... Q:+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))<1        ; No Zero Node Data, skip
- ... ;
- ... S UID=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3))
- ... Q:UID<1                                       ; No UID, skip
- ... ;
- ... S CNT=CNT+1
- ... W:(CNT#100)=0 "."  W:$X>74 !,?4
- ... ;
- ... Q:+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,3))          ; Draw Date Exists
- ... ;
- ... W:($L(UID)+$X)>74 !,?3
- ... W " >",UID,"< "
- ... W:$X>74 !,?4
- ... S ^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN)=UID
- ... S BADCNT=BADCNT+1
+ S LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))
+ S LRSS=$$GET1^DIQ(68,LRAA,.09,"I")
+ S LRIDT=$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,3)),"^",5)
  ;
- S WOTCOL=$X
- W:WOTCOL<(IOM-17) "Compilation Ends"
- W:WOTCOL>(IOM-18) !,?4,"Compilation Ends"
- ;
- W !!,?4,"Number of Accessions Analyzed = ",CNT,!
- W:BADCNT<1 !,?9,"All Accessions have Draw Dates",!
- W:BADCNT !,?9,"# of Accessions with No Draw Date = ",BADCNT,!
- ;
- D PRESSKEY^BLRGMENU(9)
- ;
- D:BADCNT NOCOLRPT
- ;
- K ^TMP("BLRUTIL4",$J,"NOCOLLDT")	
+ S LRAS=$$GET1^DIQ(68.02,LRAN_","_LRAD_","_LRAA,"ACCESSION")
  Q
  ;
-NOCOLRPT ; EP - Report on ^TMP("BLRUTIL4",$J,"NOCOLLDT"
- S HEADER(1)="Accessions With No Draw Date"
- S HEADER(2)=" "
- S HEADER(3)="LRAA"
- S $E(HEADER(3),6)="LRAD"
- S $E(HEADER(3),15)="LRAN"
- S $E(HEADER(3),25)="UID"
- S $E(HEADER(3),40)="ARRIVAL TIME"
- S $E(HEADER(3),55)="LRDFN"
- S $E(HEADER(3),65)="INVERSE DATE"
+SETUCUM ; EP - Set value into IHS UCUM dictionary
+ NEW FDA,IEN,UCUM,UDESC,UPRNITN
  ;
- D HEADERDT^BLRGMENU
+ W !!
  ;
- S LRAA=0
- F  S LRAA=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA))  Q:LRAA<1  D
- . S LRAD=0
- . F  S LRAD=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD))  Q:LRAD<1  D
- .. S LRAN=0
- .. F  S LRAN=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN))  Q:LRAN<1  D
- ... S UID=+$G(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN))
- ... S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),STR3=$G(^(3))
- ... S LABARRT=$P(STR3,"^",3)
- ... S LRIDT=$P(STR3,"^",5)
- ... ;
- ... W LRAA
- ... W ?5,LRAD
- ... W ?14,LRAN
- ... W ?24,UID
- ... W ?39,LABARRT
- ... W ?54,LRDFN
- ... W ?64,LRIDT
- ... W !
+ S UCUM=$$GETSTRNG("UCUM Definitiion")
+ Q:UCUM="Q"
  ;
+ S UDESC=$$GETSTRNG("UCUM Description")
+ Q:UDESC="Q"
+ ;
+ S UPRINTN=$$GETSTRNG("UCUM Print Name")
+ Q:UPRINTN="Q"
+ ;
+ S FDA(90475.3,"+1,",.01)=UCUM
+ S FDA(90475.3,"+1,",1)=UDESC
+ S FDA(90475.3,"+1,",3)=UPRINTN
+ ;
+ D UPDATE^DIE("S","FDA",,"ERRS")
+ ;
+ I $D(ERRS)  D  Q
+ . W !,?4,"Error adding UCUM.  Error Message Follows:"
+ . D ARRYDUMP("ERRS")
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S IEN=$$FIND1^DIC(90475.3,,,UCUM)
+ K FDA,ERRS
+ S FDA(90475.32,"+1,"_IEN_",",.01)=UPRINTN
+ D UPDATE^DIE("S","FDA",,"ERRS")
+ ;
+ I $D(ERRS)  D  Q
+ . W !,?4,"Error adding ",UPRINTN," as a SYNONYM.  Error Message Follows:"
+ . D ARRYDUMP("ERRS")
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ W !!,?4,"Succesfully added UCUM at IEN:",IEN,!
  D PRESSKEY^BLRGMENU(9)
+ ;
  Q
+ ;
+GETSTRNG(STR) ; EP
+ D ^XBFMK
+ S DIR(0)="FO"
+ S DIR("A")=STR
+ D ^DIR
+ I $G(X)=""!(+$G(DIRUT)) D  Q "Q"
+ . W !!,?4,"No/Invalid/Quit Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ Q $G(X)
+ ;
+ ; "Dump" an array
+ARRYDUMP(ARRY) ; EP
+ NEW COL,MESSAGE,STR1,TOOWIDE,WIDTH
+ ;
+ S STR1=$Q(@ARRY@(""))
+ S MESSAGE=@STR1
+ ;
+ W !,?5,ARRY,!
+ W ?10,STR1,"="
+ S COL=$X
+ D ARRYDMP2(COL,MESSAGE)
+ ;
+ F  S STR1=$Q(@STR1)  Q:STR1=""  D
+ . S MESSAGE=@STR1
+ . W ?10,STR1,"="
+ . S COL=$X
+ . D ARRYDMP2(COL,MESSAGE)
+ Q
+ ;
+ARRYDMP2(COL,MESSAGE) ; EP - Output string.  If too wide, wrap it.
+ S WIDTH=(IOM-COL-1)
+ S TOOWIDE=$S((COL+$L(MESSAGE))<IOM:0,1:1)
+ ;
+ I 'TOOWIDE W MESSAGE,!  Q
+ ;
+ I TOOWIDE D LINEWRAP^BLRGMENU(COL,MESSAGE,WIDTH)  W !
+ Q
+ ;
+NOPCEINS ; EP - NO PCE INStalled notice
+ W !,?4,"VA Patient Encounter module does NOT exist on this sytem."
+ D PRESSKEY^BLRGMENU
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033

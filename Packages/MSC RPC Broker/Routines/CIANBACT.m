@@ -1,5 +1,5 @@
-CIANBACT ;MSC/IND/DKM - MSC RPC Broker Actions;09-Jul-2008 10:39;PLS
- ;;1.1;CIA NETWORK COMPONENTS;**001007**;Sep 18, 2007
+CIANBACT ;MSC/IND/DKM/PLS - MSC RPC Broker Actions;16-Apr-2013 18:42;PLS
+ ;;1.1;CIA NETWORK COMPONENTS;**001007,001010**;Sep 18, 2007
  ;;Copyright 2000-2008, Medsphere Systems Corporation
  ;=================================================================
  ; Connect action
@@ -76,6 +76,8 @@ DORPC N I,P,XWBAPVER,XQY,CIAQUIT,ALOG,$ET
  D
  .N ALOG
  .D @RTN
+ I $$TEST^CIAUOS("BUSARPC") D
+ .D CIA^BUSARPC(XWBPTYPE,RTN,$G(CIA("RPC")))
  I ALOG(0) D
  .N VAL,ARY
  .S VAL=$C(13)_"Return Data:"_$C(13)

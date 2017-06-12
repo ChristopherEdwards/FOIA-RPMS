@@ -1,13 +1,13 @@
-PXRMRUTL ; SLC/PJH - Reminder utilities. ;02/06/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMRUTL ; SLC/PJH - Reminder utilities. ;03/24/2003
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;
  ;Store file details used by findings in array form
  ;-------------------------------------------------
-DEF(DEF,DEF1,DEF2) ;
+DEF(FILENUM,DEF,DEF1,DEF2) ;
  N DATA,DESC,FILE,GSUB,LIST,SEQ,TYPE
  ;Get variable pointer details from data dictionary
- D BLDRLIST^PXRMVPTR("811.902",".01",.LIST)
+ D BLDRLIST^PXRMVPTR(FILENUM,".01",.LIST)
  ;
  S GSUB="",DEF=0
  F  S GSUB=$O(LIST(GSUB)) Q:GSUB=""  D
@@ -29,6 +29,11 @@ DEF(DEF,DEF1,DEF2) ;
 DUMMY W !!,"This option is not yet available",!!,*7 H 1
  Q
  ;
+DUMMY1 D BMES^XPDUTL("Option is not yet available.") H 2
+ S VALMBCK="R"
+ Q
+ ;
+ ;
 TEST(ARRAY,DIEN) ;Dialog test
  D LOAD^PXRMDLL(DIEN) M ARRAY=ORY
  ;
@@ -43,9 +48,13 @@ TEST(ARRAY,DIEN) ;Dialog test
  .S DTTYP=$P(ORY(SUB),U,7),DCUR=$P(ORY(SUB),U,8)
  .;Ignore group headers
  .Q:DCUR="D"
- .K ARRAYN D TEST^PXRMDLLA(.ARRAYN,DIEN,DCUR,DTTYP)
+ .K ARRAYN D TESTL(.ARRAYN,DIEN,DCUR,DTTYP)
  .S DSUB=""
  .F  S DSUB=$O(ARRAYN(DSUB)) Q:'DSUB  D
  ..S OCNT=OCNT+1,ARRAY(OCNT)=ARRAYN(DSUB)
  .S OCNT=OCNT+1,ARRAY(OCNT)=$J("",79)
+ Q
+ ;
+TESTL(ORY,DITEM,DCUR,DTTYP) ;Dialog load
+ D LOAD^PXRMDLLA(DITEM,DCUR,DTTYP)
  Q

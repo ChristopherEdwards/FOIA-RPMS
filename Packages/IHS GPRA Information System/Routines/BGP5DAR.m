@@ -1,5 +1,5 @@
 BGP5DAR ; IHS/CMI/LAB - ihs area GPRA 02 Sep 2004 1:11 PM 09 Apr 2015 10:03 AM ; 17 Nov 2014  10:36 AM
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  W:$D(IOF) @IOF
@@ -63,13 +63,14 @@ EISSEX ;
  .S BGPFDEV3="CRSGPRADEVNT3"_$P(^AUTTLOC(DUZ(2),0),U,10)_2015063000000000_$$D^BGP5UTL(BGPNOW)_"_"_$$LZERO^BGP5UTL(BGPC,6)_".TXT"
  .S BGPFDEV4="CRSGPRADEVNT4"_$P(^AUTTLOC(DUZ(2),0),U,10)_2015063000000000_$$D^BGP5UTL(BGPNOW)_"_"_$$LZERO^BGP5UTL(BGPC,6)_".TXT"
  .S BGPFGNT3="CRSGPRANT3"_$P(^AUTTLOC(DUZ(2),0),U,10)_2015063000000000_$$D^BGP5UTL(BGPNOW)_"_"_$$LZERO^BGP5UTL(BGPC,6)_".TXT"
- .;S BGPFGNT4="CRSGPRANT4"_$P(^AUTTLOC(DUZ(2),0),U,10)_2015063000000000_$$D^BGP5UTL(BGPNOW)_"_"_$$LZERO^BGP5UTL(BGPC,6)_".TXT"
+ .S BGPFGNT4="CRSGPRANT4"_$P(^AUTTLOC(DUZ(2),0),U,10)_2015063000000000_$$D^BGP5UTL(BGPNOW)_"_"_$$LZERO^BGP5UTL(BGPC,6)_".TXT"
  .Q
  S BGPASUF=$P(^AUTTLOC(DUZ(2),0),U,10)
  I BGPEXCEL D
  .W !!,"A file will be created called ",BGPFGNT1,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFGNT2,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFGNT3,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
+ .W !!,"A file will be created called ",BGPFGNT4,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFDEV1,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFDEV2,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!
  .W !!,"A file will be created called ",BGPFDEV3,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!

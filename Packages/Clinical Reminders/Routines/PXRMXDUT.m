@@ -1,5 +1,5 @@
-PXRMXDUT ; SLC/PJH - Date utilities for reminder reports. ;01/12/2002
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
+PXRMXDUT ; SLC/PJH - Date utilities for reminder reports. ;05/05/2006
+ ;;2.0;CLINICAL REMINDERS;**4**;Feb 04, 2005;Build 21
  ;
 BDHELP(HTEXT,TYPE) ;Write the beginning date help.
  I $D(HTEXT) D HELP(.HTEXT)
@@ -23,7 +23,7 @@ SDHELP(HTEXT) ;Write the single date help.
  I $D(HTEXT) D HELP(.HTEXT)
  I '$D(HTEXT) D
  . N SDHTEXT
- . S SDHTEXT(1)="This is the date for the report"
+ . S SDHTEXT(1)="This is the date of reminder evaluation for the report"
  . D HELP^PXRMXDUT(.SDHTEXT)
  Q
  ;
@@ -32,8 +32,9 @@ FBDATE ;Select the beginning date.
  N X,Y,DIR
  K DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="DA^"_DT_"::EFTX"
- S DIR("A")="Enter "_TYPE_" BEGINNING DATE: "
+ S DIR("A")="Enter "_TYPE_" BEGINNING DATE AND TIME: "
  S DIR("B")=$$FMTE^XLFDT($$DT^XLFDT,"D")
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
  S DIR("?")="This must be a future date. For detailed help type ??"
  S DIR("??")=U_"D BDHELP^PXRMXDUT(.BHTEXT,TYPE)"
  W !
@@ -45,14 +46,17 @@ FBDATE ;Select the beginning date.
  ;
 FEDATE ;Select the ending date.
  S DIR(0)="DA^"_BDATE_"::ETFX"
- S DIR("A")="Enter "_TYPE_" ENDING DATE: "
- S DIR("?")="This must be a future date and not before "_$$FMTE^XLFDT(BDATE,"D")_". For detailed help type ??"
+ S DIR("A")="Enter "_TYPE_" ENDING DATE AND TIME: "
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
+ S DIR("?")="This must be a future date and not before "_$$FMTE^XLFDT(BDATE,"P")_". For detailed help type ??"
  S DIR("??")=U_"D EDHELP^PXRMXDUT(.EHTEXT,TYPE)"
  D ^DIR K DIR
  I $D(DIROUT) S DTOUT=1
  I $D(DTOUT) Q
  I $D(DUOUT) G FBDATE
  S EDATE=Y
+ I EDATE<DT W !,"This must be a past date. For detailed help type ??" G FEDATE
+ I EDATE<BDATE W !,"The ending date cannot be before the beginning date" G FEDATE
  I $E(Y,6,7)="00" W $C(7),"  ?? Enter exact date" G FEDATE
  K DIROUT,DIRUT,DTOUT,DUOUT
  Q
@@ -63,6 +67,7 @@ GBDATE ;Select the beginning date.
  K DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="DA^::ETX"
  S DIR("A")="Enter "_TYPE_" BEGINNING DATE: "
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
  S DIR("?")="This must be a date. For detailed help type ??"
  S DIR("??")=U_"D BDHELP^PXRMXDUT(.BHTEXT,TYPE)"
  W !
@@ -70,11 +75,12 @@ GBDATE ;Select the beginning date.
  I $D(DIROUT) S DTOUT=1
  I $D(DTOUT)!($D(DUOUT)) Q
  S BDATE=Y
- I $E(Y,6,7)="00" W $C(7),"  ?? Enter exact date" G GBDATE
+ I BDATE<DT W !,"This must be a past date. For detailed help type ??" G FBDATE
  ;
 GEDATE ;Select the ending date.
  S DIR(0)="DA^"_BDATE_"::ETX"
  S DIR("A")="Enter "_TYPE_" ENDING DATE: "
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
  S DIR("?")="This must be a date and not before "_$$FMTE^XLFDT(BDATE,"D")_". For detailed help type ??"
  S DIR("??")=U_"D EDHELP^PXRMXDUT(.EHTEXT,TYPE)"
  D ^DIR K DIR
@@ -113,6 +119,7 @@ PBDATE ;Select the beginning date.
  K DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="D^:"_DT_":EPTX"
  S DIR("A")="Enter "_TYPE_" BEGINNING DATE"
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
  S DIR("?")="This must be a past date. For detailed help type ??"
  S DIR("??")=U_"D BDHELP^PXRMXDUT(.BHTEXT,TYPE)"
  W !
@@ -120,11 +127,13 @@ PBDATE ;Select the beginning date.
  I $D(DIROUT) S DTOUT=1
  I $D(DTOUT)!($D(DUOUT)) Q
  S BDATE=Y
+ I $P(BDATE,".")>DT W !,"This must be a past date. For detailed help type ??" G PBDATE
  I $E(Y,6,7)="00" W $C(7),"  ?? Enter exact date" G PBDATE
  ;
 PEDATE ;Select the ending date.
  S DIR(0)="DA^"_BDATE_":"_DT_":EPTX"
  S DIR("A")="Enter "_TYPE_" ENDING DATE: "
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
  S DIR("?")="This must be a past date, but not before "_$$FMTE^XLFDT(BDATE,"D")_". For detailed help type ??"
  S DIR("??")=U_"D EDHELP^PXRMXDUT(.EHTEXT,TYPE)"
  D ^DIR K DIR
@@ -132,7 +141,9 @@ PEDATE ;Select the ending date.
  I $D(DTOUT) Q
  I $D(DUOUT) G PBDATE
  S EDATE=Y
+ I $P(EDATE,".")>DT W !,"This must be a past date. For detailed help type ??" G PEDATE
  I $E(Y,6,7)="00" W $C(7),"  ?? Enter exact date" G PEDATE
+ I EDATE<BDATE W !,"The ending date cannot be less then the beginning date." G PEDATE
  K DIROUT,DIRUT,DTOUT,DUOUT
  Q
  ;
@@ -140,10 +151,11 @@ SDR(SDATE,BHTEXT,EHTEXT) ;Get a date.
 SBDATE ;Select the date.
  N X,Y,DIR
  K DIROUT,DIRUT,DTOUT,DUOUT
- S DIR(0)="DA^"_DT_"::EFTX"
+ S DIR(0)="DA^::ETX"
  S DIR("A")="Enter EFFECTIVE DUE DATE: "
  S DIR("B")=$$FMTE^XLFDT($$DT^XLFDT,"D")
- S DIR("?")="This must be today or a future date. For detailed help type ??"
+ S DIR("PRE")="S X=$$DCHECK^PXRMDATE(X) K:X=-1 X"
+ S DIR("?")="Enter date for reminder evaluation. For detailed help type ??"
  S DIR("??")=U_"D SDHELP^PXRMXDUT(.BHTEXT)"
  W !
  D ^DIR K DIR
@@ -153,3 +165,4 @@ SBDATE ;Select the date.
  S SDATE=Y
  K DIROUT,DIRUT,DTOUT,DUOUT
  Q
+ ;

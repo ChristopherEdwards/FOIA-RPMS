@@ -1,5 +1,5 @@
 ABMERGRV ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;   
- ;;2.6;IHS Third Party Billing;**1,8,11,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**1,8,11,13,20**;NOV 12, 2009;Build 317
  ;Original;DMJ;01/26/96 4:02 PM
  ; IHS/SD/SDR - v2.5 p8 - task 6
  ;    Added code for new ambulance multiple 47
@@ -17,6 +17,7 @@ ABMERGRV ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 -
  ;IHS/SD/SDR - 2.6*13 - HEAT135507 - fix for <SUBSCR>P1+39^ABMERGRV
  ;IHS/SD/SDR - 2.6*13 - HEAT117086 - Removed code to put T1015 as top line; it doesn't work here.
+ ;IHS/SD/AML - 2.6*20 - HEAT262141 Made changes for AHCCCS RX billing
  ;
  ; *********************************************************************
  ;
@@ -83,7 +84,6 @@ P1 ;EP - SET UP ABMRV ARRAY
  ;....;S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
  ;....;S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
  ;....;end old start new HEAT147327
- ;....B "L+"
  ;....S ABMTMP("TMP")=$G(ABMRV(ABMIS,ABMJS,ABMKS))
  ;....S ABMRV(ABMIS,ABMJS,ABMKS)=$G(ABMRV(ABMI,ABMJ,ABMK))
  ;....S ABMRV(ABMI,ABMJ,ABMK)=$G(ABMTMP("TMP"))
@@ -132,6 +132,31 @@ P1 ;EP - SET UP ABMRV ARRAY
  .S ABM(4)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),6)),U,6)
  .I ABM(4),ABMP("VTYP")=111 S $P(ABMRV(+ABM(2),0,1),U,7)=(ABM(4)*ABM(1))
  .I ABM(4),(+$G(ABMP("CDAYS"))=0) S $P(ABMRV(+ABM(2),0,1),U,5)=0
+ .;start new abm*2.6*20 IHS/SD/AML HEAT262141 1/4/2016 - AHCCCS RX REQUIREMENT
+ .I $$RCID^ABMERUTL(ABMP("INS"))=99999 D
+ ..N I
+ ..F I=23 D
+ ...Q:(ABMP("VTYP")'=997)  ;pharmacy
+ ...K ABM
+ ...D @(I_"^ABMERGR2")  ; get ancillary services revenue code info
+ ...;
+ ...;For AZ Medicaid make all rev codes 519
+ ...S A=0
+ ...F  S A=$O(ABMRV(A)) Q:'A  D
+ ....S B=-1
+ ....F  S B=$O(ABMRV(A,B)) Q:B=""  D
+ .....S C=0
+ .....F  S C=$O(ABMRV(A,B,C)) Q:'C  D
+ ......Q:A=519
+ ......S ABMRV(519,B,C)=$G(ABMRV(A,B,C))
+ ......K ABMRV(A,B,C)
+ ...S A=$O(ABMRV(519,0))
+ ...Q:+A=0
+ ...S B=$O(ABMRV(519,A,0))
+ ...S $P(ABMRV(519,A,B),U,6)=$P(ABMRV(519,0,1),U,6)  ;put flat rate on first drug line
+ ...K ABMRV(519,0,1)  ;remove flat rate line
+ ...;end new abm*2.6*20 IHS/SD/AML HEAT262141 1/4/2016 - AHCCCS RX REQUIREMENT
+ .;
  .;start old code abm*2.6*11 HEAT105003
  .;I ABMP("VTYP")=831 D
  .;.K ABMRV(+ABM(2),0),ABM("831SET")

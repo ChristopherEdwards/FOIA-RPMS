@@ -1,5 +1,5 @@
-PSOORNE2 ;BIR/SAB-display finished orders from backdoor ;21-Mar-2013 14:46;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,21,23,27,32,37,46,84,103,117,131,146,1004,1008,156,210,148,222,238,264,281,289,1015,1016**;DEC 1997;Build 74
+PSOORNE2 ;BIR/SAB-display finished orders from backdoor ;19-May-2014 12:16;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,21,23,27,32,37,46,84,103,117,131,146,1004,1008,156,210,148,222,238,264,281,289,1015,1016,1017,1018**;DEC 1997;Build 21
  ;^PSDRUG( -  221
  ;^YSCL(603.01 - 2697
  ;^PS(50.606 - 2174
@@ -13,6 +13,8 @@ PSOORNE2 ;BIR/SAB-display finished orders from backdoor ;21-Mar-2013 14:46;PLS
  ;                          01/23/09 - Line PTST+50 Cash Due
  ;                          03/21/13 - Line PTST+54
  ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PST+2 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
+ ;            IHS/MSC/PLS   06/04/13 - Added Discharge Medication
+ ;                          05/19/14 - Added ACT+3
 SEL N ORN,ORD I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  D K1^PSOORNE6 S DIR("A")="Select Orders by number",DIR(0)="LO^1:"_PSOCNT D ^DIR I $D(DIRUT) D KV^PSOVER1 S VALMBCK="" Q
 NEWSEL N ORN,ORD D K2^PSOORNE6
@@ -25,6 +27,8 @@ NEWSEL N ORN,ORD D K2^PSOORNE6
 ACT N REF K ^TMP("PSOAO",$J),PCOMX,PDA,PHI,PRC,ACOM,ANS,PSOFDR,CLOZPAT,ANQREM,DUR,DRET
  S RXN=$P(PSOLST(ORN),"^",2),RX0=^PSRX(RXN,0),RX2=$G(^(2)),RX3=$G(^(3)),ST=+$G(^("STA")),RXOR=$G(^("OR1")),POE=$G(^("POE")),EXDT=$S($P($G(^(2)),"^",6)>DT:1,1:0)
  I 'RX3 S RX3=$P(RX2,"^",2),$P(^PSRX(RXN,3),"^")=$P(RX2,"^",2)
+ ;IHS/MSC/PLS - 05/19/2014
+ I $$GET1^DIQ(52,$G(RXN),9999999.23,"I") S VALMSG="AUTOFINISHED prescriptions are not editable.",VALMBCK="" Q
  S PSODRG=+$P(RX0,"^",6),PSODRUG0=^PSDRUG(PSODRG,0),INDT=$G(^("I"))
  ;PSO*7*238;SET PSODRUG ARRAY ; PSOY KILLED AT END OF SET^PSODRG
  K PSODRUG
@@ -126,6 +130,7 @@ PTST ;
  S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="         Manufacturer: "_$$GET1^DIQ(52,RXN,28)_"   Lot #: "_$$GET1^DIQ(52,RXN,24)_"  ExpDate: "_$$GET1^DIQ(52,RXN,29)
  S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="          Chronic Med: "_$$GET1^DIQ(52,RXN,9999999.02)
  S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="         Substitution: "_$$GET1^DIQ(52,RXN,9999999.25)  ;IHS/MSC/PLS - 03/13/08
+ S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)=" Discharge Medication: "_$$GET1^DIQ(52,RXN,9999999.28)  ;IHS/MSC/PLS - 06/04/13
  S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="             Cash Due: "_$$GET1^DIQ(52,RXN,9999999.26)  ;IHS/MSC/PLS - 01/23/09
  ;S IEN=IEN+1,^TMP("PSOAO",$J,IEN,0)="              Insurer: "_$$GET1^DIQ(52,RXN,9999999.12)
  ; End IHS Fields

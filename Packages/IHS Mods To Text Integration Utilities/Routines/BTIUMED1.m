@@ -1,5 +1,5 @@
-BTIUMED1 ; SLC/JM - Active/Recent Med Objects Routine ;28-Jul-2010 14:13;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006**;Jun 20, 1997
+BTIUMED1 ; SLC/JM - Active/Recent Med Objects Routine ;24-Sep-2013 14:41;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1011,1012**;Jun 20, 1997;Build 45
  ;
  ; All routines here are part of the LIST entry point of TIULMED
  ;
@@ -21,8 +21,9 @@ ADDL(TXT) ; Add with ADDLNUM on FIRST
  .S FIRST=0
  E  D ADD(TXT)
  Q
-ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
+ADDMED(XMODE,REC) ; if XMODE creates XSTR, if not add med to TARGET
  N DATA,FIRST,XSUM,XCOUNT,TOPLINE,WSTATUS
+ S REC=$G(REC)
  S FIRST=1
  I XMODE S (XSUM,XCOUNT)=0,XSTR=""
  E  D
@@ -39,6 +40,7 @@ ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
  .D ADDM("MDR"),ADDM("SCH")
  .I DETAILED D FLUSH
  .D ADDM("SIO")
+ .I +REC D RECON
  E  I TYPE="OP" D  I 1 ; Outpatient Meds
  .I 'XMODE,DETAILED D
  ..I $$PL(12) D
@@ -79,6 +81,27 @@ ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
  ....S DATA=$$STRIP(DATA_"  Past Fills:")
  ....D ADDM("FILLS")
  ....D FLUSH
+ ..I $$PL(31) D
+ ...N PHM,DATA,RXNO,ORD,RR,SSNUM
+ ...S PHM=$P($P(NODE,U,31),";",1)
+ ...S DATA="Pharm: "_$$GET1^DIQ(9009033.9,PHM,.01)_"  "_$$HLPHONE^HLFNC($$GET1^DIQ(9009033.9,PHM,2.1))
+ ...D FLUSH
+ ...S DATA=$$PADDR^APSPESG1(PHM)
+ ...D FLUSH
+ ...S RXNO=$P($P(NODE,U,31),";",2)
+ ...Q:'+RXNO
+ ...S DATA="Prov: "_$$GET1^DIQ(52,RXNO,4)
+ ...D FLUSH
+ ...S DATA="Trans: "_$$XMTDATE^BEHORXRT(RXNO)
+ ...D FLUSH
+ ...S ORD=$$GET1^DIQ(52,RXNO,39.3)
+ ...Q:'+ORD
+ ...S RR=$$VALUE^ORCSAVE2(+ORD,"SSRREQIEN")
+ ...Q:'+RR
+ ...S SSNUM=$$GET1^DIQ(9009033.91,RR,.1)
+ ...S DATA="Number: "_SSNUM
+ ...D FLUSH
+ .I +REC D RECON
  E  I TYPE="IV" D  ; IV meds
  .I DETAILED D FLUSH
  .D ADDM("A")
@@ -237,4 +260,21 @@ WARNING ;Inserts warning about CLASSORT if needed
  .I UNKNOWNS S MSG=MSG_"  In addition, the system is not able to"
  .D ADD(MSG)
  .I UNKNOWNS D ADD("determine the drug class of some medications.")
+ Q
+RECON ;Check for reconciliation
+ N MED,REC,IEN,AIEN,WHEN,BY,NVAMED,RX
+ S RX=+NODE
+ S TYP=$P($P(NODE,U),";",2)
+ S TYP=$S(TYP="O":"X",TYP="I":"U",1:"")
+ S NVAMED=$P($P(NODE,U),";")
+ S NVAMED=$E(NVAMED,$L(NVAMED))
+ I NVAMED="N" S TYP="N"
+ S REC=""
+ S REC=$O(^BEHOCIR("G",TYP,RX,REC),-1) Q:REC=""  D
+ .S IEN="" S IEN=$O(^BEHOCIR("G",TYP,RX,REC,IEN),-1) Q:IEN=""  D
+ ..S AIEN=IEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..S DATA="Reconciled on: "_WHEN_" by "_BY
+ ..D FLUSH
  Q

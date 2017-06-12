@@ -1,5 +1,5 @@
-BGP5DPE2 ; IHS/CMI/LAB - calc measures 29 Apr 2010 7:38 PM 14 Nov 2006 5:02 PM 09 Jun 2015 5:18 PM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+BGP5DPE2 ; IHS/CMI/LAB - calc measures 29 Apr 2010 7:38 PM 14 Nov 2006 5:02 PM 09 Jun 2015 5:18 PM ; 06 May 2015  1:25 PM
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 5 ;EP
  Q:'$D(^AUPNVPED("AC",DFN))  ;no education so don't bother
@@ -25,7 +25,6 @@ BGP5DPE2 ; IHS/CMI/LAB - calc measures 29 Apr 2010 7:38 PM 14 Nov 2006 5:02 PM 0
  .S BGPT=$P($G(^DIC(7,D,9999999)),U,1)
  .Q:BGPT=""  ;not standard
  .S BGPT1=$P(^DIC(7,D,0),U,1)
- .;I DUZ=5634,BGPTIME=1 S ^LORIPED0(Y)=""
  .D S(BGPRPT,BGPGBL,11,10,1)  ;add to total # of topics
  .I BGPTIME=1 D SET51
  .I BGPTIME=2 D SET52

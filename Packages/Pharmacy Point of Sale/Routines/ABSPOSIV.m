@@ -1,5 +1,5 @@
 ABSPOSIV ; IHS/FCS/DRS - Old-style input ;    [ 09/12/2002  10:11 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001;Build 15
  ; old-style kept for those who want it
  ;EP - Branched to here from ABSPOSI
  ;----------------------------------------------------------------------

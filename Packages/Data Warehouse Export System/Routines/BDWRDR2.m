@@ -1,5 +1,5 @@
 BDWRDR2 ; IHS/CMI/LAB - DW PROCESS VISIT ;
- ;;1.0;IHS DATA WAREHOUSE;**2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**2,4**;JAN 23, 2006;Build 24
  ;
  K BDWE
  D VISIT
@@ -31,6 +31,7 @@ PROCTX ; process and generate appropriate hl7 message
  S BDW("VISITS")=$G(BDW("VISITS"))+1
  I '$G(BDWDDR) S BDWV("TX GENERATED")=1,^XTMP("BDW"_$S(BDWO("RUN")="NEW":"DR",BDWO("RUN")="REDO":"REDO",1:"DR"),"MAIN TX",BDW("V DFN"))=BDW("MAIN TX DATE")
  I $G(BDWDDR) S BDWV("TX GENERATED")=1,^TMP($J,"BDW",BDW("V DFN"))=BDW("MAIN TX DATE")
+ S ^XTMP("BDWALPMR",$J,BDWV("PATIENT DFN"))=""  ;p5 add set so patient centric messages can run later
  S BDWVMSG=$$DW1A08^BHLEVENT(BDW("V DFN"))
  S ^BDWTMP(BDWIEDST,BDWVMSG)=""
  S X=$P(^AUPNVSIT(BDW("V DFN"),0),U,3)_"-"_$E($$EXTSET^XBFUNC(9000010,.03,$P(^AUPNVSIT(BDW("V DFN"),0),U,3)),1,9)_"/"_$P(^AUPNVSIT(BDW("V DFN"),0),U,7)_"-"_$E($$EXTSET^XBFUNC(9000010,.07,$P(^AUPNVSIT(BDW("V DFN"),0),U,7)),1,17)
@@ -43,4 +44,35 @@ PROCTX ; process and generate appropriate hl7 message
  I $P(^AUPNVSIT(BDW("V DFN"),11),U,6)]"" S BDW("MODS")=BDW("MODS")+1 Q
  S BDW("ADDS")=BDW("ADDS")+1
  Q
+ ;
+ALPMR ;-- process ALPMR patient centric messages
+ ;the following is for testing all patients
+ ;N BDA
+ ;S BDA=0 F  S BDA=$O(^DPT(BDA)) Q:'BDA  D
+ ;. S ^XTMP("BDWALPMR",$J,BDA)=""
+ N BDWADA,BDWAMSG
+ S BDW("ALPMR")=0,BDWCNTR=0
+ W:'$D(ZTQUEUED) !,"Generating transactions.  Counting patient centric records.  (0)"
+ S BDWADA=0 F  S BDWADA=$O(^XTMP("BDWALPMR",$J,BDWADA)) Q:'BDWADA  D
+ . I '$$CHKALPMR(BDWADA) K ^XTMP("BDWALPMR",$J,BDWADA) Q
+ . S BDW("ALPMR")=BDW("ALPMR")+1
+ . S BDWAMSG=$$DW1ALPMR^BDWBHL1(BDWADA)
+ . S ^BDWTMP(BDWIEDST,BDWAMSG)=""
+ . D SET61(BDW("RUN LOG"),BDWADA,BDWAMSG)
+ . X BDWCNT
+ K ^XTMP("BDWALPMR",$J)
+ Q
+ ;
+SET61(RL,ADA,AMSG)  ;--lets set the log here
+ S:'$D(^BDWXLOG(RL,61,0)) ^BDWXLOG(RL,61,0)="^90213.06101PA^^"
+ S ^BDWXLOG(RL,61,ADA,0)=ADA_U_$G(AMSG)
+ S $P(^BDWXLOG(RL,61,0),U,3)="",$P(^(0),U,4)=$P(^(0),U,4)+1
+ Q
+ ;
+CHKALPMR(ADA) ;-- check to see if the patient has any data for ALPMR
+ I $D(^AUPNPROB("AC",ADA)) Q 1
+ I $D(^AUPNPREF("AC",ADA)) Q 1
+ I $D(^BIPC("B",ADA)) Q 1
+ I $D(^BWPCD("C",ADA)) Q 1
+ Q 0
  ;

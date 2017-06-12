@@ -1,5 +1,5 @@
 ABSPOS57 ; IHS/FCS/DRS - 9002313.57 utils ;        [ 04/17/2002  11:36 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,12,35,36,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,12,35,36,44**;JUN 21, 2001;Build 15
  Q
  ; Numerous little $$'s are here ; each assumes IEN57 is defined
  ; Originally copied from ABSPOSQ where it was for IEN57

@@ -1,6 +1,0 @@
-BKMQOC ;VNGT/HS/ALA-HMS QOC report ; 20 Jun 2011  12:33 PM
- ;;2.1;HIV MANAGEMENT SYSTEM;**1**;FEB 7, 2011;Build 30
- ;
-EN ; Run report
- D EN^BKMVQCR(1)
- Q

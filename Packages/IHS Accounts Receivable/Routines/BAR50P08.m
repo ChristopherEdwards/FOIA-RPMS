@@ -1,8 +1,12 @@
 BAR50P08 ; IHS/SD/LSL - POST HIPAA CLAIMS ; 12/01/2008
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21,23,24**;OCT 26,2005;Build 69
- ;;
- ;IHS/SD/POT HEAT147572 ALLOW TRIBAL SITES ERA POSTING OF NEG BAL & CANCELLED BILLS 2/11/2014 - BAR*1.8*.24
- ;;
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,10,19,20,21,23,24,26**;OCT 26,2005;Build 17
+ ;
+ ;IHS/SD/POT 1.8*24 HEAT147572 ALLOW TRIBAL SITES ERA POSTING OF NEG BAL & CANCELLED BILLS 2/11/2014
+ ;IHS/SD/SDR 1.8*26 HEAT170856 - Tribal sites couldn't post bill into negative balance.  Also made change to not do matching checks again.  Doing it
+ ;  again here was causing reasons to get deleted and not put back on so bills were posting that shouldn't.  May need to revisit this but seems to
+ ;  work ok with the examples provided.
+ ;
+ ;
  Q
 POST(BARCKDA) ; EP  bar*1.8*20 REQ6 changed BARCKIEN to BARCKDA
  ;Post this ERA Check (called from POST^BAR50P00)
@@ -106,11 +110,12 @@ POSTEM ; LOOP Claims with this chk
  ..;below lines added 1 dot to line up w/new code
  ..S BARCKIEN=$O(^BAREDI("I",DUZ(2),IMPDA,5,"B",BARCHECK,0))  ;bar*1.8*20 REQ6
  ..S BARBL=$P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U)  ;bar*1.8*20 REQ6
- ..D CLMFLG^BAR50P04(CLMDA,.ERRORS)  ;bar*1.8*20 REQ6
+ ..;D CLMFLG^BAR50P04(CLMDA,.ERRORS)  ;bar*1.8*20 REQ6  ;bar*1.8*26 IHS/SD/SDR HEAT170856 - removed; it was deleting RNTP from claim, causing them to post when they shouldn't
  ..;;;old code I $$IHS^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;bar*1.8*20
- ..S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;new code HEAT147572 2/5/2014 - BAR*1.8*.24
+ ..;S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;new code HEAT147572 2/5/2014  ;bar*1.8*26 IHS/SD/SDR HEAT170856
+ ..I $$IHS^BARUFUT(DUZ(2)) S BARCHK=BARCHECK D NEGBAL^BAR50EB(IMPDA,"ERA")  ;put this line back because it seems to work better with the check than without  ;bar*1.8*26 IHS/SD/SDR HEAT170856
  ..;;;old code D:$$IHS^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA)  ;bar*1.8*20
- ..D:$$IHSNEGB^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA) ;new code HEAT147572 - BAR*1.8*.24
+ ..D:$$IHSNEGB^BARUFUT(DUZ(2)) NONPAYCH^BAR50EP1(IMPDA) ;new code HEAT147572
  ..I $P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)'="M" Q   ;NOT matched
  ..I (($P($G(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,0)),U,2)="M")&(+$O(^BAREDI("I",DUZ(2),IMPDA,30,CLMDA,4,0))'=0))  Q  ;matched but reason not to post bar*1.8*20 REQ5
  ..S CLMCNT=+$G(CLMCNT)+1  ;bar*1.8*20 REQ6
@@ -126,7 +131,7 @@ POSTEM ; LOOP Claims with this chk
  ..S BARCR=$$GET1^DIQ(90056.0205,IENS,".04")
  ..;------------------------------------------------------------------------
  ..I (ITEMAMT-BARCR)<0 D
- ... I '$$IHSNEGB^BARUFUT(DUZ(2)) QUIT    ;2/11/2014- BAR*1.8*.24
+ ... I '$$IHSNEGB^BARUFUT(DUZ(2)) QUIT    ;2/11/2014
  ...W !!?7,$$EN^BARVDF("HIN"),"<<PYMT EXCEEDS COLLECTION ITEM BALANCE. MARKED AS 'ITEM BALANCE EXCEEDED'",$$EN^BARVDF("HIF")
  ...S PSTQFLG=1
  ..;------------------------------------------------------------------------

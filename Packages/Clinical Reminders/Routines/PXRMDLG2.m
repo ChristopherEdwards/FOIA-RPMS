@@ -1,5 +1,5 @@
-PXRMDLG2 ; SLC/PJH - Reminder Dialog Edit/Inquiry ;10/30/2000
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMDLG2 ; SLC/PJH - Reminder Dialog Edit/Inquiry ;06/02/2009
+ ;;2.0;CLINICAL REMINDERS;**12**;Feb 04, 2005;Build 73
  ;
  ;Find description for dialog type
 LIT(INP) ;
@@ -53,6 +53,7 @@ DESC(FIEN) ;
  ;Dialog Details (DD)
 DETAIL(PIEN) ;
  ;Get prompt data
+ N DATA
  S DATA=$G(^PXRMD(801.41,PIEN,0))
  ;Extract name, type and disabled
  S PNAME=$P(DATA,U),PDIS=$P(DATA,U,3),PTYP=$P(DATA,U,4),PTYP=$$LIT(PTYP)
@@ -80,7 +81,7 @@ DETAIL(PIEN) ;
  S FNAME="Finding item: "_FNAME
  S VALMCNT=VALMCNT+1
  S PTXT=$J(SEQ,3)_$J("",12)_PTYP_PNAME
- S ^TMP("PXRMDLG",$J,VALMCNT,0)=PTXT_$J("",72-$L(PTXT))_PDIS
+ S ^TMP("PXRMDLG",$J,VALMCNT,0)=PTXT_$J("",72-$L(PTXT))_$S(+PDIS>0:" (Disabled)",1:"")
  S ^TMP("PXRMDLG",$J,"IDX",SEQ,PIEN)=""
  ;Save resolution
  I ('DGRP),(FTYP'["TAXONOMY"),(FTYP'["MENTAL HEALTH") D

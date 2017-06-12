@@ -1,115 +1,72 @@
-PXRMLAB ; SLC/PKR - Handle laboratory test findings. ;24-Mar-2006 13:14;MGH
- ;;1.5;CLINICAL REMINDERS;**2,5,8,1003,1004**;Jun 19, 2000
- ;IHS/CIA/MGH  1004 for backward compatibility
- ;=====================================================================
- ;Edited to allow V LAB entries to satisfy the reminder
- ;=======================================================================
-EVALFI(DFN,FIEVAL) ;Evaluate laboratory test findings.
- N FIND0,FIND3,FINDING,LABIEN
- S LABIEN=""
- F  S LABIEN=$O(^PXD(811.9,PXRMITEM,20,"E","LAB(60,",LABIEN)) Q:+LABIEN=0  D
- . S FINDING=""
- . F  S FINDING=$O(^PXD(811.9,PXRMITEM,20,"E","LAB(60,",LABIEN,FINDING)) Q:+FINDING=0  D
- .. S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
- .. S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
- .. D FIEVAL(DFN,LABIEN,FIND0,FIND3,"","",FINDING,.FIEVAL)
+PXRMLAB ; SLC/PKR - Handle laboratory test findings. ;03/02/2006
+ ;;2.0;CLINICAL REMINDERS;**4**;Feb 04, 2005;Build 21
+ ;
+ ;=============================================
+EVALFI(DFN,DEFARR,ENODE,FIEVAL) ;Evaluate lab findings.
+ D EVALFI^PXRMINDX(DFN,.DEFARR,ENODE,.FIEVAL)
  Q
  ;
- ;=======================================================================
-EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;Evaluate laboratory test terms.
- N FIND0,FIND3,LABIEN,LFIEVAL,TFIND0,TFIND3,TFINDING
- S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
- S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
- S LABIEN=""
- F  S LABIEN=$O(^PXRMD(811.5,TERMIEN,20,"E","LAB(60,",LABIEN)) Q:+LABIEN=0  D
- . S TFINDING=""
- . F  S TFINDING=$O(^PXRMD(811.5,TERMIEN,20,"E","LAB(60,",LABIEN,TFINDING)) Q:+TFINDING=0  D
- .. S TFIND0=^PXRMD(811.5,TERMIEN,20,TFINDING,0)
- .. S TFIND3=$G(^PXRMD(811.5,TERMIEN,20,TFINDING,3))
- .. D FIEVAL(DFN,LABIEN,FIND0,FIND3,TFIND0,TFIND3,TFINDING,.TFIEVAL)
+ ;=============================================
+EVALPL(FINDPA,ENODE,TERMARR,PLIST) ;Evaluate lab term findings
+ ;for patient lists.
+ D EVALPL^PXRMINDL(.FINDPA,ENODE,.TERMARR,PLIST)
  Q
  ;
- ;=======================================================================
-FIEVAL(DFN,LABIEN,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
- N CONVAL,DATA,DATE,IEN,IND,INVDATE,LRT
- N SEQ,RESULT,STATUS,VALID,VALUE
- K ^TMP("LRRR",$J)
- D RR^LR7OR1(DFN,"","","","CH",LABIEN,"",10)
- ;=======================================================================
- ;IHS/CIA/MGH -Edited to add in entries in the VLAB file that are not in the regular
- ;lab file
- D VLAB^BPXRMLAB(DFN,LABIEN,10)
- ;======================================================================
- S INVDATE=$O(^TMP("LRRR",$J,DFN,"CH",""))
- I INVDATE="" S FIEVAL(FINDING)=0 K ^TMP("LRRR",$J) Q
- ;Order the results putting cancelled or pending last.
- S INVDATE=""
- F  S INVDATE=$O(^TMP("LRRR",$J,DFN,"CH",INVDATE)) Q:+INVDATE=0  D
- . S SEQ=""
- . F  S SEQ=$O(^TMP("LRRR",$J,DFN,"CH",INVDATE,SEQ)) Q:+SEQ=0  D
- .. S DATA=^TMP("LRRR",$J,DFN,"CH",INVDATE,SEQ)
- .. S RESULT=$P(DATA,U,2)
- .. I (RESULT="canc")!(RESULT="pending") S STATUS=1
- .. E  S STATUS=0
- .. S LRT(STATUS,INVDATE)=DATA
- K ^TMP("LRRR",$J)
- ;Process the list.
- S STATUS=""
- S STATUS=$O(LRT(STATUS))
- I STATUS'=0 S FIEVAL(FINDING)=0 Q
- S INVDATE=$O(LRT(STATUS,INVDATE))
- S DATE=$$FMDFINVL^PXRMDATE(INVDATE,0)
- ;Save the rest of the finding information.
- S FIEVAL(FINDING)=1
- S FIEVAL(FINDING,"DATE")=DATE
- S FIEVAL(FINDING,"FINDING")=LABIEN_";LAB(60,"
- S DATA=LRT(STATUS,INVDATE)
- S FIEVAL(FINDING,"DATA")=DATA
- S VALUE=$P(DATA,U,2)
- S FIEVAL(FINDING,"RESULT")=$P(DATA,U,2)
- S FIEVAL(FINDING,"VALUE")=FIEVAL(FINDING,"RESULT")
- ;If this is being called as part of a term evaluation we are done.
- I TFIND0'="" Q
- ;Determine if the finding has expired.
- S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
- I 'VALID D  Q
- . S FIEVAL(FINDING)=0
- . S FIEVAL(FINDING,"EXPIRED")=""
- ;If there is a condition for this finding evaluate it.
- S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,FIEVAL(FINDING,"VALUE"))
- I CONVAL'="" D
- . I CONVAL D
- .. S FIEVAL(FINDING)=CONVAL
- .. S FIEVAL(FINDING,"CONDITION")=CONVAL
- . E  D
- .. K FIEVAL(FINDING)
- .. S FIEVAL(FINDING)=0
+ ;=============================================
+EVALTERM(DFN,FINDPA,ENODE,TERMARR,TFIEVAL) ;Evaluate lab terms.
+ D EVALTERM^PXRMINDX(DFN,.FINDPA,ENODE,.TERMARR,.TFIEVAL)
  Q
  ;
- ;=======================================================================
-OUTPUT(NLINES,TEXT,FINDING,FIEVAL) ;Produce the clinical
+ ;=============================================
+GETDATA(DASP,FIEVT) ;Return Lab data. The first piece of DASP is the item.
+ N DAS,DATA,ITEM
+ ;DBIA #4245
+ S ITEM=$P(DASP,"~",1)
+ S DAS=$P(DASP,"~",2)
+ D LRPXRM^LRPXAPI(.DATA,DAS,ITEM)
+ S FIEVT("DATA")=DATA
+ S FIEVT("TEST NAME")=$P(DATA,U,2)
+ I DAS["CH" S FIEVT("VALUE")=$P(DATA,U,3),FIEVT("FLAG")=$P(DATA,U,4)
+ E  S (FIEVT("VALUE"),FIEVT("FLAG"))=""
+ I $D(DATA("SPECIMEN")) S FIEVT("SPECIMEN")=$P(DATA("SPECIMEN"),U,2)
+ Q
+ ;
+ ;=============================================
+MHVOUT(INDENT,IFIEVAL,NLINES,TEXT) ;Produce the MHV output.
+ N DATE,FLAG,IND,JND,NAME,NOUT,TEXTOUT,TEST,VALUE
+ S TEST=IFIEVAL("TEST NAME")
+ S NAME="Laboratory test: "_TEST_" = "
+ S IND=0
+ F  S IND=+$O(IFIEVAL(IND)) Q:IND=0  D
+ . S VALUE=$G(IFIEVAL(IND,"VALUE"))
+ . S FLAG=$G(IFIEVAL(IND,"FLAG"))
+ . I FLAG'="" S VALUE=VALUE_FLAG
+ . S DATE=IFIEVAL(IND,"DATE")
+ . S TEMP=NAME_VALUE_" ("_$$EDATE^PXRMDATE(DATE)_")"
+ . D FORMATS^PXRMTEXT(INDENT+2,PXRMRM,TEMP,.NOUT,.TEXTOUT)
+ . F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ . S NLINES=NLINES+1,TEXT(NLINES)=""
+ Q
+ ;
+ ;=============================================
+OUTPUT(INDENT,IFIEVAL,NLINES,TEXT) ;Produce the clinical
  ;maintenance output.
- N DATA,DATE,LABIEN,PNAME,TEMP,VALUE
- S DATA=FIEVAL(FINDING,"DATA")
- S DATE=FIEVAL(FINDING,"DATE")
- S VALUE=$G(FIEVAL(FINDING,"VALUE"))
- S TEMP=$$EDATE^PXRMDATE(DATE)
- S TEMP=TEMP_" Laboratory test: "
- S PNAME=$P(DATA,U,10)
- I $L(PNAME)=0 S PNAME=$P(DATA,U,15)
- S TEMP=TEMP_PNAME
- I $L(VALUE)>0 D
- . S TEMP=TEMP_"; value - "
- . S TEMP=TEMP_VALUE
- ;If the finding has expired add "EXPIRED"
- I $D(FIEVAL(FINDING,"EXPIRED")) S TEMP=TEMP_" - EXPIRED"
- ;If the finding is false because of the value add the reason.
- I $G(FIEVAL(FINDING,"CONDITION"))=0 S TEMP=TEMP_$$ACTFT^PXRMOPT
+ N DATE,FLAG,IND,JND,NOUT,TEMP,TEXTOUT,TEST,VALUE
+ S TEST=IFIEVAL("TEST NAME")
+ S TEMP="Laboratory test: "_TEST
+ I $D(IFIEVAL("SPECIMEN")) S TEMP=TEMP_"; specimen: "_IFIEVAL("SPECIMEN")
  S NLINES=NLINES+1
- S TEXT(NLINES)=TEMP
- I $D(PXRMDEV) D
- . N UID
- . S UID="LAB "_PNAME
- . S ^TMP(PXRMPID,$J,PXRMITEM,UID)=TEMP
+ S TEXT(NLINES)=$$INSCHR^PXRMEXLC(INDENT," ")_TEMP
+ S IND=0
+ F  S IND=+$O(IFIEVAL(IND)) Q:IND=0  D
+ . S DATE=IFIEVAL(IND,"DATE")
+ . S TEMP=$$EDATE^PXRMDATE(DATE)
+ . S VALUE=$G(IFIEVAL(IND,"VALUE"))
+ . S FLAG=$G(IFIEVAL(IND,"FLAG"))
+ . I VALUE'="" S TEMP=TEMP_" value - "_VALUE
+ . I FLAG'="" S TEMP=TEMP_" "_FLAG
+ . D FORMATS^PXRMTEXT(INDENT+2,PXRMRM,TEMP,.NOUT,.TEXTOUT)
+ . F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ S NLINES=NLINES+1,TEXT(NLINES)=""
  Q
  ;

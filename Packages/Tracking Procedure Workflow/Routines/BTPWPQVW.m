@@ -1,5 +1,5 @@
 BTPWPQVW ;VNGT/HS/ALA-CMET Queue User View ; 16 Jun 2009  4:49 PM
- ;;1.0;CARE MANAGEMENT EVENT TRACKING;**2**;Feb 07, 2011;Build 52
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**2,3**;Feb 07, 2011;Build 63
  ;
  ;
 RET(DATA,FAKE) ; EP -- BTPW GET CMET PREFS
@@ -26,6 +26,8 @@ RET(DATA,FAKE) ; EP -- BTPW GET CMET PREFS
  ;
  S MIEN=0,PARMS=""
  ; if no defined user preference, set the default values
+ ;
+ ;Events
  F TYPE="Q" D
  . S MIEN=$O(^BQICARE(DUZ,9,"B",TYPE,""))
  . I MIEN="" D
@@ -34,6 +36,7 @@ RET(DATA,FAKE) ; EP -- BTPW GET CMET PREFS
  .. S II=II+1,@DATA@(II)=TYPE_"^"_PARMS_$C(30)
  . I MIEN'="" D GET(TYPE,MIEN)
  ;
+ ;Tracked
  S MIEN=0,PARMS=""
  F TYPE="T" D
  . S MIEN=$O(^BQICARE(DUZ,9,"B",TYPE,""))
@@ -43,6 +46,7 @@ RET(DATA,FAKE) ; EP -- BTPW GET CMET PREFS
  .. S II=II+1,@DATA@(II)=TYPE_"^"_PARMS_$C(30)
  . I MIEN'="" D GET(TYPE,MIEN)
  ;
+ ;Followup
  S MIEN=0,PARMS=""
  F TYPE="P" D
  . S MIEN=$O(^BQICARE(DUZ,9,"B",TYPE,""))
@@ -53,11 +57,20 @@ RET(DATA,FAKE) ; EP -- BTPW GET CMET PREFS
  .. S II=II+1,@DATA@(II)=TYPE_"^"_PARMS_$C(30)
  . I MIEN'="" D GET(TYPE,MIEN)
  ;
+ ;Panel Events
+ F TYPE="PQ" D
+ . S MIEN=$O(^BQICARE(DUZ,9,"B",TYPE,""))
+ . I MIEN="" D
+ .. S PARMS="STATUS=P"_$C(28)_"TMFRAME=T-3M"
+ .. S PARMS=$$DCAT(PARMS)  ;Add CAT values, if needed
+ .. S II=II+1,@DATA@(II)=TYPE_"^"_PARMS_$C(30)
+ . I MIEN'="" D GET(TYPE,MIEN)
+ ;
 DONE S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
 GET(TYPE,MIEN) ;EP
- S PIEN=0
+ S PIEN=0,PARMS=""
  F  S PIEN=$O(^BQICARE(DUZ,9,MIEN,1,PIEN)) Q:'PIEN  D
  . NEW DA,IENS
  . S DA(2)=DUZ,DA(1)=MIEN,DA=PIEN,IENS=$$IENS^DILF(.DA)
@@ -133,7 +146,7 @@ UPD(DATA,TYPE,PARMS) ;  EP - BTPW SET CMET PREFS
  I TYPN'="" D DEL
  I TYPN="" D
  . NEW DA,DIC
- . S DA(1)=DUZ,X=$S(TYPE="P":"Followup Events",TYPE="T":"Tracked Events",1:"Events"),DIC(0)="LNZ",DLAYGO=90505.16
+ . S DA(1)=DUZ,X=TYPE,DIC(0)="LNZ",DLAYGO=90505.16
  . I $G(^BQICARE(DUZ,9,0))="" S ^BQICARE(DUZ,9,0)="^90505.16S^^"
  . S DIC="^BQICARE("_DA(1)_",9,"
  . D ^DIC S TYPN=+Y I TYPN=-1 K DO,DD D FILE^DICN S TYPN=+Y

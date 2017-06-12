@@ -1,5 +1,5 @@
 ABSPECA7 ; IHS/FCS/DRS - Parse Claim Response ;   [ 09/12/2002  9:58 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Determine if the duplicate record has been paid or captured

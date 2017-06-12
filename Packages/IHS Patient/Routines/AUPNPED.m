@@ -1,5 +1,5 @@
 AUPNPED ; IHS/CMI/LAB - EDITS FOR PATIENT FILES ;
- ;;99.1;IHS DICTIONARIES (PATIENT);**18,19**;MAR 09, 1999
+ ;;99.1;IHS DICTIONARIES (PATIENT);**18,19**;MAR 09, 1999;Build 9
 NAME ;ENTRY POINT FOR NAME
  I X[""""!(X'?1U.AP)!(X'[",")!(X?.E1","." ")!(X?.E1","." "1",".E)!($L(X,",")>3)!($L(X,".")>3)!($L(X,"-")>6)!($L(X,"(")>2)!($L(X,")")>2)!($L(X)>30)!($L(X)<3)!(X?.E1", ".E) K X Q
  F L=1:0 S L=$F(X," ",L) Q:L=0  S:$E(X,L-2)?1P!($E(X,L)?1P)!(L>$L(X)) X=$E(X,1,L-2)_$E(X,L,99),L=L-1

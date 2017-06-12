@@ -1,5 +1,5 @@
 ABSPDB1 ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" and Reversal "B2" Claims for D.0
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
  ;
  ; This routine will replace the ABSPOSCF for D.0, so that we no
  ; longer need to use the formats file.

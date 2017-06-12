@@ -1,0 +1,84 @@
+AMH40P6 ; IHS/CMI/LAB - POST INIT BH 16 Apr 2009 7:37 AM 01 Aug 2009 5:37 AM ; 18 Sep 2014  11:23 AM
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
+ ;
+ENV ;EP 
+ F X="XPO1","XPZ1","XPZ2","XPI1" S XPDDIQ(X)=0
+ I +$$VERSION^XPDUTL("XU")<8 D MES^XPDUTL($$CJ^XLFSTR("Version 8.0 of KERNEL is required.  Not installed",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires Kernel Version 8.0....Present.",80))
+ I +$$VERSION^XPDUTL("DI")<22 D MES^XPDUTL($$CJ^XLFSTR("Version 22.0 of FILEMAN is required.  Not installed.",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires Fileman v22....Present.",80))
+ I $E($$VERSION^XPDUTL("AMH"),1,3)'="4.0" D MES^XPDUTL($$CJ^XLFSTR("Version 4.0 of AMH is required.  Not installed.",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires AMH v4.0....Present.",80))
+ I '$$INSTALLD("AMH*4.0*5") D SORRY(2)
+ Q
+ ;
+PRE ;
+ S AMHX=0 F  S AMHX=$O(^AMHSORT(AMHX)) Q:AMHX'=+AMHX  S DIK="^AMHSORT(",DA=AMHX D ^DIK
+ Q
+ ;
+POST ;EP
+ ;D BMXPO
+ S AMHX=0 F  S AMHX=$O(^AMHSITE(AMHX)) Q:AMHX'=+AMHX  I $P($G(^AMHSITE(AMHX,18)),U,11)="" S DA=AMHX,DR="1811////3151001",DIE="^AMHSITE(" D ^DIE K DA,DR,DIE
+ ;REFLAG SF
+ D SFRFLG
+ Q
+SFRFLG ;
+ S AMHD=$O(^AMHPSUIC("AEX",0))
+ I AMHD="" S AMHD=DT
+ S AMHAS=$P(^AUTTLOC($P(^AUTTSITE(1,0),U,1),0),U,10)
+ S AMHX=0 F  S AMHX=$O(^AMHPSUIC(AMHX)) Q:AMHX'=+AMHX  D
+ .S X=$P($G(^AMHPSUIC(AMHX,0)),U,1)
+ .Q:X=""
+ .;Q:$L(X)=24
+ .I $E(X,1,6)=AMHAS Q
+ .S P=$P($G(^AMHPSUIC(AMHX,0)),U,4)
+ .S D=$P($G(^AMHPSUIC(AMHX,0)),U,6)
+ .S Z=$$UPI^AMHLESF(P,D)
+ .;S DIE="^AMHPSUIC(",DR=".01///"_Z,DA=AMHX D ^DIE
+ .S $P(^AMHPSUIC(AMHX,0),U,1)=Z
+ .S ^AMHPSUIC("AEX",AMHD,AMHX)=""
+ K ^AMHPSUIC("B")
+ S DIK="^AMHPSUIC(",DIK(1)=".01^B" D ENALL^DIK
+ Q
+BMXPO ;-- update the RPC file
+ N AMHRPC
+ S AMHRPC=$O(^DIC(19,"B","AMHGRPC",0))
+ Q:'AMHRPC
+ D CLEAN(AMHRPC)
+ D GUIEP^BMXPO(.RETVAL,AMHRPC_"|AMH")
+ Q
+ ;
+CLEAN(APP) ;-- clean out the RPC multiple first
+ S DA(1)=APP
+ S DIK="^DIC(19,"_DA(1)_","_"""RPC"""_","
+ N AMHDA
+ S AMHDA=0 F  S AMHDA=$O(^DIC(19,APP,"RPC",AMHDA)) Q:'AMHDA  D
+ . S DA=AMHDA
+ . D ^DIK
+ K ^DIC(19,APP,"RPC","B")
+ Q
+INSTALLD(AMHSTAL) ;EP - Determine if patch AMHSTAL was installed, where
+ ; APCLSTAL is the name of the INSTALL.  E.g "AG*6.0*11".
+ ;
+ NEW AMHY,DIC,X,Y
+ S X=$P(AMHSTAL,"*",1)
+ S DIC="^DIC(9.4,",DIC(0)="FM",D="C"
+ D IX^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",22,",X=$P(AMHSTAL,"*",2)
+ D ^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",""PAH"",",X=$P(AMHSTAL,"*",3)
+ D ^DIC
+ S AMHY=Y
+ D IMES
+ Q $S(AMHY<1:0,1:1)
+IMES ;
+ D MES^XPDUTL($$CJ^XLFSTR("Patch """_AMHSTAL_""" is"_$S(Y<1:" *NOT*",1:"")_" Present.",IOM))
+ Q
+SORRY(X) ;
+ KILL DIFQ
+ I X=3 S XPDQUIT=2 Q
+ S XPDQUIT=X
+ W *7,!,$$CJ^XLFSTR("Sorry....FIX IT!",IOM)
+ Q

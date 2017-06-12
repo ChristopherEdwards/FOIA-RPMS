@@ -1,0 +1,17 @@
+OSEHRA ZGO Export: ICARE MU TABS
+12-JUN-2017 09:47:30 ZWR
+^BQI(90506.71,0)="ICARE MU TABS^90506.71^7^7"
+^BQI(90506.71,1,0)="E^By Provider^P"
+^BQI(90506.71,2,0)="H^By Hospital/CAH^P"
+^BQI(90506.71,3,0)="EAG^By Division^P"
+^BQI(90506.71,4,0)="ECQ^Providers^C"
+^BQI(90506.71,5,0)="HCQ^Hospitals/CAHs^C"
+^BQI(90506.71,6,0)="PCR^Providers Reports^C"
+^BQI(90506.71,7,0)="CAG^By Division^C"
+^BQI(90506.71,"B","CAG",7)=""
+^BQI(90506.71,"B","E",1)=""
+^BQI(90506.71,"B","EAG",3)=""
+^BQI(90506.71,"B","ECQ",4)=""
+^BQI(90506.71,"B","H",2)=""
+^BQI(90506.71,"B","HCQ",5)=""
+^BQI(90506.71,"B","PCR",6)=""

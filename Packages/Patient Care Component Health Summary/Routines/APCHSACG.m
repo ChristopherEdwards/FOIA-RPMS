@@ -1,5 +1,5 @@
 APCHSACG ; IHS/CMI/LAB - ; ANTI-COAG SUPPLEMENT 
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,10**;MAY 14, 2009;Build 88
  ;
  ;BJPC v2.0 patch 1
 S(Y,F,C,T) ;EP - set up array
@@ -158,47 +158,47 @@ COMBBYDT ;combine the inrs and meds inverse by date
  ..E  S $E(APCHSS,64)=$E($P(APCHVV,U,5),1,15) D S(APCHSS)
  ..K ^UTILITY($J,"W")
 LAB ;
- S X="MOST RECENT RELATED LAB TESTS:" D S(X,1)
- S X="Date",$E(X,15)="Test",$E(X,50)="Results" D S(X)
+ ;S X="MOST RECENT RELATED LAB TESTS:" D S(X,1)
+ ;S X="Date",$E(X,15)="Test",$E(X,50)="Results" D S(X)
 URIN ;last urinalysis on file and its children
- K APCHV,APCHMEDS
- S APCHV=$$LASTACUR(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
- I APCHV="" S X="No Urinalysis Tests on File" D S(X) G CBC
- I $P(APCHV,U,2)["CPT" D  G CBC  ;display date of cpt
- .S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
+ ;K APCHV,APCHMEDS
+ ;S APCHV=$$LASTACUR(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
+ ;I APCHV="" S X="No Urinalysis Tests on File" D S(X) G CBC
+ ;I $P(APCHV,U,2)["CPT" D  G CBC  ;display date of cpt
+ ;.S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
  ;NOW DISPLAY ALL TESTS ON THIS ACCESSION
- S L=$P(APCHV,U,6),A=$P($G(^AUPNVLAB(L,0)),U,6)
- I A]"" D  I 1
- .S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
- .S Y=0 F  S Y=$O(^AUPNVLAB("ALR0",A,Y)) Q:Y'=+Y  D
- ..Q:$P($G(^AUPNVLAB(Y,12)),U,8)'=L  ;not a child of the urinalysis
- ..S X="",$E(X,15)=$$VAL^XBDIQ1(9000010.09,Y,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,Y,.04) D S(X)
- E  S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
+ ;S L=$P(APCHV,U,6),A=$P($G(^AUPNVLAB(L,0)),U,6)
+ ;I A]"" D  I 1
+ ;.S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
+ ;.S Y=0 F  S Y=$O(^AUPNVLAB("ALR0",A,Y)) Q:Y'=+Y  D
+ ;..Q:$P($G(^AUPNVLAB(Y,12)),U,8)'=L  ;not a child of the urinalysis
+ ;..S X="",$E(X,15)=$$VAL^XBDIQ1(9000010.09,Y,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,Y,.04) D S(X)
+ ;E  S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
 CBC ;
- D S(" ")
- K APCHV
- S APCHV=$$LASTACCB(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
- I APCHV="" S X="No CBC Tests on File" D S(X) G FOBT
- I $P(APCHV,U,2)["CPT" D  G FOBT  ;display date of cpt
- .S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
+ ;D S(" ")
+ ;K APCHV
+ ;S APCHV=$$LASTACCB(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
+ ;I APCHV="" S X="No CBC Tests on File" D S(X) G FOBT
+ ;I $P(APCHV,U,2)["CPT" D  G FOBT  ;display date of cpt
+ ;.S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
  ;NOW DISPLAY ALL TESTS ON THIS ACCESSION
- S L=$P(APCHV,U,6),A=$P($G(^AUPNVLAB(L,0)),U,6)
- I A]"" D  I 1
- .S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
- .S Y=0 F  S Y=$O(^AUPNVLAB("ALR0",A,Y)) Q:Y'=+Y  D
- ..Q:$P($G(^AUPNVLAB(Y,12)),U,8)'=L  ;not a child of the urinalysis
- ..S X="",$E(X,15)=$$VAL^XBDIQ1(9000010.09,Y,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,Y,.04) D S(X)
- E  S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
+ ;S L=$P(APCHV,U,6),A=$P($G(^AUPNVLAB(L,0)),U,6)
+ ;I A]"" D  I 1
+ ;.S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
+ ;.S Y=0 F  S Y=$O(^AUPNVLAB("ALR0",A,Y)) Q:Y'=+Y  D
+ ;..Q:$P($G(^AUPNVLAB(Y,12)),U,8)'=L  ;not a child of the urinalysis
+ ;..S X="",$E(X,15)=$$VAL^XBDIQ1(9000010.09,Y,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,Y,.04) D S(X)
+ ;E  S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
 FOBT ;
- D S(" ")
- K APCHV
- S APCHV=$$LASTACFO(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
- I APCHV="" S X="No FOBT Tests on File" D S(X) G VITK
- I $P(APCHV,U,2)["CPT" D  G VITK  ;display date of cpt
- .S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
+ ;D S(" ")
+ ;K APCHV
+ ;S APCHV=$$LASTACFO(APCHSPAT,$$DOB^AUPNPAT(APCHSPAT),DT)
+ ;I APCHV="" S X="No FOBT Tests on File" D S(X) G VITK
+ ;I $P(APCHV,U,2)["CPT" D  G VITK  ;display date of cpt
+ ;.S X=$$D1^APCHSMU($P(APCHV,U)),$E(X,15)=$P(APCHV,U,2)_" "_$P(APCHV,U,3) D S(X)
  ;NOW DISPLAY ALL TESTS ON THIS ACCESSION
- S L=$P(APCHV,U,6)
- S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
+ ;S L=$P(APCHV,U,6)
+ ;S X=$$D1^APCHSMU($P(APCHV,U,1)),$E(X,15)=$$VAL^XBDIQ1(9000010.09,L,.01),$E(X,50)=$$VAL^XBDIQ1(9000010.09,L,.04) D S(X)
 VITK ;
  S X="VITAMIN K PRESCRIPTION IN THE PAST YEAR:" D S(X,1)
  S X="Date",$E(X,15)="Medication/Sig",$E(X,50)="Provider" D S(X)
@@ -240,6 +240,7 @@ MRGOAL(P) ;PEP - most recent INR goal and date
  S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...Q:$P($G(^AUPNVACG(I,0)),U,4)=""
  ...S Z=$P(^AUPNVACG(I,0),U,4)
  ...I Z=3 S S=$P(^AUPNVACG(I,0),U,5)_" - "_$P(^AUPNVACG(I,0),U,6)
@@ -254,6 +255,7 @@ MRCOM(P) ;PEP - most recent INR goal and date
  S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...Q:$P($G(^AUPNVACG(I,11)),U,1)=""
  ...S Z=$P(^AUPNVACG(I,11),U,1)
  ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z_"^"_I
@@ -266,6 +268,7 @@ MRDUR(P) ;PEP - most recent duration and date
  S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...Q:$P($G(^AUPNVACG(I,0)),U,7)=""
  ...S Z=$$VAL^XBDIQ1(9000010.51,I,.07)
  ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z_"^"_I
@@ -278,6 +281,7 @@ MRSTART(P) ;PEP - most recent duration and date
  S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...Q:$P($G(^AUPNVACG(I,0)),U,8)=""
  ...S Z=$$VAL^XBDIQ1(9000010.51,I,.08)
  ...S R=$P(^AUPNVACG(I,0),U,8)_"^"_Z
@@ -290,12 +294,12 @@ MREND(P) ;PEP - most recent duration and date
  S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...;Q:$P($G(^AUPNVACG(I,0)),U,9)=""
  ...S Z=$$VAL^XBDIQ1(9000010.51,I,.09)
  ...S R=$P(^AUPNVACG(I,0),U,9)_"^"_Z
  Q R
-EDUC(P,BDATE,EDATE,DATA) ;EP pass back array of all asthma educ topics
- ;any topic that begins with ASM or 493
+EDUC(P,BDATE,EDATE,DATA) ;EP pass back array of all anti coag educ topics
  K DATA
  I '$G(P) Q
  NEW APCHE,X,E,%,G,A,N,D,I,APCHX

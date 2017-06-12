@@ -1,11 +1,13 @@
-ORCDLG2 ;SLC/MKB-Order dialogs cont ;10/12/2007
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,60,79,94,243**;Dec 17, 1997;Build 242
+ORCDLG2 ;SLC/MKB-Order dialogs cont ;13-Oct-2014 15:27;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**4,60,79,94,243,1013**;Dec 17, 1997;Build 242
  ;;Per VHA Directive 2004-038, this routine should not be modified.
+ ; Modified - IHS/MSC/MGH - 10/13/2014 - Line DIR1+1
 DIR ; -- ^DIR read of X, returns Y
  N INPUTXFM,LKUP,REPL K DTOUT,DUOUT,DIRUT,DIROUT,DDER,Y
  S (X,Y)="",INPUTXFM=$P(DIR(0),U,3,99)
  S LKUP=$G(ORDIALOG(PROMPT,"LKP")) ; special lookup rtn
- S REPL=$S(DATATYPE'="F":0,$L($G(DIR("B")))>20:1,1:0) S:REPL DIR(0)=$E(DIR(0))_"AO^"_$P(DIR(0),U,2,99)
+ ;IHS/MSC/MGH changed the 20 in this call to 2
+ S REPL=$S(DATATYPE'="F":0,$L($G(DIR("B")))>2:1,1:0) S:REPL DIR(0)=$E(DIR(0))_"AO^"_$P(DIR(0),U,2,99)
 DIR1 I 'REPL W !,DIR("A")_$S($D(DIR("B")):DIR("B")_"// ",1:"") R X:DTIME I '$T S DTOUT=1 Q
  I REPL D ^DIR Q:$D(DTOUT)!$D(DUOUT)
  I X="" S:$D(DIR("B")) X=DIR("B"),Y=ORDIALOG(PROMPT,ORI) S:'$L(X)&(SEQ=1)&('MULT) X="^" Q:'REQD!$L(X)  W $C(7),!!,$$REQUIRED^ORCDLG1,! G DIR1
@@ -29,7 +31,7 @@ DIR1 I 'REPL W !,DIR("A")_$S($D(DIR("B")):DIR("B")_"// ",1:"") R X:DTIME I '$T S
  . ; S ORX=$$EXPLIST(X) F  S Y(Y+1)=$$FIND
  I DATATYPE="P" D DIC I Y'>0 D ERR G DIR1
  I (DATATYPE="R")!(DATATYPE="D") D DT I Y<0 D ERR G DIR1
- I "^F^N^S^Y^"[(U_DATATYPE_U) D  I $G(DDER) D ERR G DIR1 ;JEH 'REPL was  checked 
+ I "^F^N^S^Y^"[(U_DATATYPE_U) D  I $G(DDER) D ERR G DIR1 ;JEH 'REPL was  checked
  . N I F I=1:1:31 S X=$TR(X,$C(I)) ; strip out control char's
  . S DIR("V")="" D ^DIR ; silent
  Q

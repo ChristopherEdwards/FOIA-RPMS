@@ -1,0 +1,69 @@
+APCDSMA ;IHS/CMI/LAB - LIST MANAGER MAP ADVICE DISPLAY
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
+ ;; ;
+EP ;
+ D EN^XBNEW("EN^APCDSMA","APCDSMC,APCDLOOK,APCDSMA")
+ Q
+EN ;EP -- main entry point for
+ NEW APCDFHSN,APCDHIGH,APCDTCI,APCDTDI,I
+ D EN^VALM("APCD MAP ADVICE DISPLAY")
+ D CLEAR^VALM1
+ D FULL^VALM1
+ W:$D(IOF) @IOF
+ D EOJ
+ Q
+EOJ ;
+ K APCDSMA
+ Q
+ ;
+HDR ; -- header code
+ S VALMHDR(1)="Map Advice for Concept ID "_APCDSMC
+ S VALMHDR(2)="Provider Narrative: "_$$VAL^XBDIQ1(9000010.07,APCDLOOK,.04)
+ S VALMHDR(3)="FSN: "_$P($$CONC^AUPNVUTL(APCDSMC),U,2)
+ S VALMHDR(4)="Patient's Age at visit: "_$$AGE^AUPNPAT($$VALI^XBDIQ1(9000010.07,APCDLOOK,.02),$$VD^APCLV($$VALI^XBDIQ1(9000010.07,APCDLOOK,.03)),"E")_"   "_$$VAL^XBDIQ1(2,$$VALI^XBDIQ1(9000010.07,APCDLOOK,.02),.02)
+ Q
+ ;
+INIT ;EP --
+ NEW C,X
+ K APCDSMD
+ S X=0,C=0 F  S X=$O(APCDSMA(X)) Q:X'=+X  D
+ .S C=C+1
+ .S APCDSMD(C,0)=APCDSMA(X)
+ .S APCDSMD("IDX",C,C)=APCDSMA(X)
+ S VALMCNT=C
+ Q
+HELP ; -- help code
+ S X="?" D DISP^XQORM1 W !!
+ Q
+ ;
+EXIT ; -- exit code
+ Q
+ ;
+EXPND ; -- expand code
+ Q
+ ;
+BACK ;go back to listman
+ D TERM^VALM0
+ S VALMBCK="R"
+ D INIT
+ D HDR
+ K DIR
+ K X,Y,Z,I
+ Q
+ ;
+SELECT ;EP - add an item to the selected list - called from a protocol
+ W !
+ S DIR(0)="NO^1:"_APCDHIGH,DIR("A")="Which SNOMED Term"
+ D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ I Y="" W !,"No SNOMED selected." G DISPX
+ I $D(DIRUT) W !,"No SNOMED selected." G DISPX
+ S APCDCI=$P(APCDFHSN("IDX",Y,Y),U,2)
+ S APCDDI=$P(APCDFHSN("IDX",Y,Y),U,3)
+ ;W !!,$$CONC^AUPNSICD(APCDCI_"^^"_$S($G(APCDDATE):APCDDATE,1:DT)_"^1") H 10
+ S APCDICD=$P($P($$CONC^AUPNSICD(APCDCI_"^^"_$S($G(APCDDATE):APCDDATE,1:DT)_"^1"),U,5),";")
+ K ^TMP($J,"APCDFHSNOMED"),APCDFHSN
+ Q
+ ;
+DISPX ;
+ D BACK
+ Q

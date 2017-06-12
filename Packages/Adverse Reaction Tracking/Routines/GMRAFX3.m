@@ -1,5 +1,5 @@
-GMRAFX3 ;SLC/DAN Update existing entries to new reactant ;6/28/06  10:23
- ;;4.0;Adverse Reaction Tracking;**17,19,23,20**;Mar 29, 1996;Build 1
+GMRAFX3 ;SLC/DAN Update existing entries to new reactant ;09-May-2013 09:54;MGH
+ ;;4.0;Adverse Reaction Tracking;**17,19,23,20,1007**;Mar 29, 1996;Build 18
  ;DBIA SECTION
  ;10018 - DIE
  ;2056  - DIQ
@@ -58,7 +58,10 @@ DELMUL(FIELD) ;Delete multiple FIELD from GMR ALLERGY file
  N MIEN,DA,DIE,DR
  S MIEN=0 F  S MIEN=$O(^GMR(120.8,GMRAPA,FIELD,MIEN)) Q:'+MIEN  D
  .S DA(1)=GMRAPA,DA=MIEN
- .S DIE="^GMR(120.8,DA(1),FIELD,",DR=".01///@" D ^DIE ;Delete entry
+ .;IHS/MSC/MGH remove SNOMED and UNI patch 1007
+ .I FIELD=2 S DIE="^GMR(120.8,DA(1),FIELD,",DR=".01///@;9999999.01///@;9999999.02///@"
+ .I FIELD=3 S DIE="^GMR(120.8,DA(1),FIELD,",DR=".01///@"
+ .D ^DIE ;Delete entry
  Q
  ;
 DUP() ;Function returns true (1) if selected reactant is a duplicate

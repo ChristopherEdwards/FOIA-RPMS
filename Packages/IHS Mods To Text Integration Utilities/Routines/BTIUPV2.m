@@ -1,0 +1,117 @@
+BTIUPV2 ; IHS/MSC/MGH - Problem Objects ;16-Aug-2016 12:00;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1014,1016,1017**;MAR 20, 2013;Build 7
+ ;4/13/13
+ ;IHS/MSC/MGH Patch 1016 added normal/abnormal qualifier
+ ;
+ Q
+VPOV(TARGET) ; returns diagnoses for current vuecentric visit context
+ ;I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
+ NEW VST,I,X,CNT,RESULT
+ S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
+ I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1  S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ D GETPOV(.RESULT,VST)
+ ;
+ K @TARGET S CNT=0
+ S I=0 F  S I=$O(RESULT(I)) Q:'I  D
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)=RESULT(I)
+ I 'CNT S @TARGET@(1,0)="No Diagnoses Found"
+ Q "~@"_$NA(@TARGET)
+ ;
+GETPOV(RETURN,VIEN) ;return every diagnosis for current visit
+ ; VISIT=Visit IEN
+ ;
+ NEW IEN,AIEN,FNUM,STAT,STRING,CNT,BTIU,LINE,ASTHMA,PCNT,CODE,PAT,CON,NARR,IEN2,Q,ARRAY,ENTER,SNO
+ K RETURN
+ ;
+ S IEN=0 F  S IEN=$O(^AUPNVPOV("AD",VIEN,IEN)) Q:'IEN  D
+ . S ASTHMA=0
+ . S NARR=$$GET1^DIQ(9000010.07,IEN,.04)
+ . I $P(NARR,"|",1)["*" S NARR=$P(NARR,"|",2)
+ . I $P(NARR,"|",2)=" " S NARR=$P(NARR,"|",1)
+ . S STAT=$$GET1^DIQ(9000010.07,IEN,.12,"I")
+ . S ENTER=$$GET1^DIQ(9000010.07,IEN,1216,"I")
+ . S ARRAY(STAT,ENTER,NARR,IEN)=""
+ S STAT="",IEN=0
+ F  S STAT=$O(ARRAY(STAT)) Q:STAT=""  D
+ .S ENTER="" F  S ENTER=$O(ARRAY(STAT,ENTER)) Q:ENTER=""  D
+ ..S NARR="" F  S NARR=$O(ARRAY(STAT,ENTER,NARR)) Q:NARR=""  D
+ ...S IEN=0 S IEN=$O(ARRAY(STAT,ENTER,NARR,IEN)) Q:IEN=""  D    ;Only get the first one
+ .... S CNT=$G(CNT)+1,PCNT=$G(PCNT)+1
+ .... K BTIU D ENP^XBDIQ1(9000010.07,IEN,".01:.29;1102","BTIU(","IE")
+ .... S LINE=""
+ .... I (BTIU(.12)="PRIMARY") S LINE=" [P] "         ;mark if primary dx
+ .... S CODE=$G(BTIU(.01))
+ .... S SNO=$G(BTIU(1102))
+ .... S ASTHMA=$$CHECK^BGOASLK(CODE,SNO)
+ .... I +ASTHMA D
+ ..... S PAT=BTIU(.02,"I")
+ ..... S CON=$$ACONTROL^BTIULO5(PAT)
+ ..... I CON'="" S LINE=LINE_" Control: "_CON
+ .... F I=.06,.05,.09,.13,.11,.29 D                   ;check for other fields
+ ..... I (I=.09),BTIU(.09)]"" S LINE=LINE_"; "_$$ECODE^BTIULO5(IEN) Q
+ ..... I BTIU(I)]"" S LINE=LINE_"; "_BTIU(I)
+ .... S RETURN(CNT)=$J(PCNT,2)_") "_NARR_LINE
+ .... ;Return qualifiers
+ ....F X=13,17,18,14 D
+ .....S STRING=""
+ .....S IEN2=0 F  S IEN2=$O(^AUPNVPOV(IEN,X,IEN2)) Q:'+IEN2  D
+ ......S Q=""
+ ......S FNUM=$S(X=13:9000010.0713,X=17:9000010.0717,X=18:9000010.0718,X=14:9000010.0714)
+ ......S AIEN=IEN2_","_IEN_","
+ ......S Q=$$GET1^DIQ(FNUM,AIEN,.01)
+ ......S Q=$P($$CONC^BSTSAPI(Q_"^^^1"),U,4)
+ ......S STRING=$S(STRING="":Q,1:STRING_" "_Q)
+ .....I STRING'="" D
+ ......S CNT=CNT+1
+ ......S RETURN(CNT)="    "_STRING
+ Q
+ ;
+VOB(DFN,PRIEN,VIEN,CNT) ; V OB notes by date
+ N INVDT,IEN,EDATE,SIGN,STAT,FOUND,SDATE,EIE,SIGNDT,VSCNT
+ S FOUND=0,SDATE="",VSCNT=0
+ S VIEN=$G(VIEN)
+ S INVDT="" F  S INVDT=$O(^AUPNVOB("AE",DFN,PRIEN,INVDT)) Q:INVDT=""!(FOUND=1)  D
+ .I +SDATE,SDATE'=$P(INVDT,".",1) S FOUND=1
+ .S IEN="" F  S IEN=$O(^AUPNVOB("AE",DFN,PRIEN,INVDT,IEN)) Q:IEN=""  D
+ ..S EIE=$$GET1^DIQ(9000010.43,IEN,.06,"I")
+ ..Q:EIE=1
+ ..S STAT=$P($G(^AUPNPROB(PRIEN,0)),U,12)
+ ..Q:STAT="D"
+ ..Q:+VIEN&(VIEN'=$P($G(^AUPNVOB(IEN,0)),U,3))
+ ..I VSCNT=0 S VSCNT=VSCNT+1 D ADD("   -OB NOTE:")
+ ..S EDATE=9999999-INVDT
+ ..S EDATE=$$FMTE^XLFDT($P(EDATE,".",1),5)
+ ..S SIGNDT=$$GET1^DIQ(9000010.43,IEN,.05,"I")
+ ..S SIGNDT=$$FMTE^XLFDT($P(SIGNDT,".",1),5)
+ ..S SIGN=$$GET1^DIQ(9000010.43,IEN,.04,"E")
+ ..D TEXT2(IEN)
+ Q
+ADD(DATA) ;add to list
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)=DATA
+ Q
+TEXT2(IEN) ;do the text
+ N TXTIEN,WRAP,TXT,PRNT2,PRNT
+ S (PRNT,PRNT2,WRAP)=""
+ S TXTIEN=0 F  S TXTIEN=$O(^AUPNVOB(IEN,11,TXTIEN)) Q:'+TXTIEN  D
+ .S TXT=$G(^AUPNVOB(IEN,11,TXTIEN,0))
+ .S PRNT=PRNT2_TXT S PRNT2=""
+ .I $L(PRNT)>500 S PRNT2=$E(PRNT,501,$L(PRNT))
+ .D WRAP^BTIUPV1(.WRAP,PRNT,70)
+ ;Process each wrapped line
+ I $D(WRAP)>1 D PROC(.WRAP)
+ Q
+PROC(WRAP) ;Process the word wrap
+ N I,LINE
+ F I=1:1:WRAP D
+ .I I=WRAP D
+ ..I $L(WRAP(I))<45 D
+ ...S LINE="   "_$G(WRAP(I))_" ("_SIGNDT_" by "_SIGN_")"
+ ...D ADD(LINE)
+ ..E  D
+ ...D ADD("   "_$G(WRAP(I)))
+ ...D ADD("   ("_SIGNDT_" by "_SIGN_")")
+ .E  D ADD("   "_$G(WRAP(I)))
+ Q

@@ -1,5 +1,5 @@
 ACHSVAR ; IHS/ITSC/TPF/PMF - VARIABLES, OPTIONS ;     [ 06/15/2001  8:10 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18,22**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18,22,23,26**;JUN 11, 2001;Build 37
  ;ACHS*3.1*18 7/16/2010;IHS/OIT/ABK;Change every occurrance of Deferred to Unmet Need
  ;
  ;this routine sets up certain basic vars for use in chs
@@ -101,8 +101,8 @@ OPTIONS ;
  N DA,DIC,DIE,DR,DLAYGO
  W !!!,"Edit the CHS facility options for '",ACHSSITE,"'.",!!,"1 question mark (""?"") will get you help.",!!,"2 question marks (""??"") usually gets you more help.",!!
  W "For printed help, print out chapter 1 of the Tech Manual (D ^ACHSTM).",!
- ;ACHS*3.1*16 11.12.2009 IHS.OIT.FCJ ADDED DUNS TO NXT LINE
- S DIE="^ACHSF(",DR="11.03;11.05:14.08;14.11;14.12;14.13;14.14;14.14:14.18;14.2;14.22;14.24:14.27;14.31",DA=DUZ(2)
+ ;ACHS*3.1*16 11.12.2009 IHS.OIT.FCJ ADDED DUNS TO NXT LINE;ACHS*3.1*23 REM EOBR PRINT;3.1*26-ADD FILE DIRECTORY
+ S DIE="^ACHSF(",DR="11.03;11.05:14.08;14.11:14.13;14.15:14.18;14.2;14.22;14.24:14.27;14.31;.05",DA=DUZ(2)
  D ^DIE
  Q:$P($G(^ACHSF(DUZ(2),0)),U,8)'="Y"  ; Quit if not a 638 facility.
  S DR="11.04;14.09"

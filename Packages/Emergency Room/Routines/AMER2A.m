@@ -1,5 +1,5 @@
 AMER2A ; IHS/ANMC/GIS -ISC - OVERFLOW FROM AMER2 ;  
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6**;MAR 03, 2009;Build 30
  ;
 QD20 ; CLINIC TYPE
  N AMERLINE,%
@@ -55,10 +55,10 @@ QD21 ; PROVIDER
  .Q
  ;S DIC("A")="*Admitting physician: " K DIC("B")
  ;IHS/OIT/SCR 01/20/09 - removed asterik since this is no longer considered mandatory
- S DIC("A")="Admitting physician: " K DIC("B")
+ S DIC("A")="ED Provider: " K DIC("B")
  S DIC("?")="Only active providers can be selected"
  ;I $D(^TMP("AMER",$J,2,21)) S %=+^(21),DIC("B")=$P(^VA(200,%,0),U)
- I $D(^TMP("AMER",$J,2,21))&&($G(^TMP("AMER",$J,2,21))>1) S %=+^(21),DIC("B")=$P(^VA(200,%,0),U)
+ I $D(^TMP("AMER",$J,2,21))&($G(^TMP("AMER",$J,2,21))>1) S %=+^(21),DIC("B")=$P(^VA(200,%,0),U)
  S DIC="^VA(200,",DIC(0)="AEQM"
  ;screening so that only valid PCC providers identified
  S DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P($G(^VA(200,+Y,0)),U),+Y))"
@@ -99,7 +99,7 @@ QD24 ; TRIAGE TIME
  I Y,$$TVAL($G(^TMP("AMER",$J,1,2)),Y,2) K Y G QD24
  I Y="" S Y=-1
  D OUT^AMER I X?1."^" Q
- I '$D(^TMP("AMER",$J,2,21)),'$G(^TMP("AMER",$J,1,21)),'$D(AMEREFLG) S AMERFIN=27,AMERSTRT=1,AMERRUN=$S('$D(AMERTRG):1,$D(AMERTRG):30,1:1) Q
+ I '$D(^TMP("AMER",$J,2,21)),'$G(^TMP("AMER",$J,1,21)),'$D(AMEREFLG) S AMERFIN=28,AMERSTRT=1,AMERRUN=27 Q
  I '$D(^TMP("AMER",$J,2,21)) S AMERRUN=25 Q
  Q
  ;
@@ -111,16 +111,46 @@ QD25 ; DOC TIME
  .Q
  ;IHS/OIT/SCR 11/21/08 don't default the doc time in OUT
  ;I $D(^TMP("AMER",$J,2,25)) S Y=^(25) X ^DD("DD") S DIR("B")=Y
- S DIR(0)="D^::ER",DIR("A")="*What time did the patient see the admitting doctor",DIR("?")="Enter an exact date and time in Fileman format (e.g. T@1PM)" D ^DIR K DIR
+ S DIR(0)="D^::ER",DIR("A")="*What was the ED Provider Medical Screening Exam Time",DIR("?")="Enter an exact date and time in Fileman format (e.g. T@1PM)" D ^DIR K DIR
  I Y,$$TCK($G(^TMP("AMER",$J,1,2)),Y,1,"admission") K Y G QD25
  I Y,$$TCK($G(^TMP("AMER",$J,2,24)),Y,1,"triage") K Y G QD25
  I Y,$$TVAL($G(^TMP("AMER",$J,1,2)),Y,4) K Y G QD25
  I Y="" S Y=-1
  Q:Y=-1
  D OUT^AMER I X?1."^" Q
- I '$G(^TMP("AMER",$J,1,21)),'$D(AMEREFLG) S AMERFIN=27,AMERSTRT=1,AMERRUN=$S('$D(AMERTRG):1,$D(AMERTRG):30,1:1) Q
+ S AMERFIN=28,AMERRUN=27 Q
+ ;I '$D(AMERTRG) S AMERRUN=1
+ ;I $D(AMEREFLG) S AMERRUN=30
+ Q
+ ;
+QD28(AMERPCC) ; Decision to admit date/time - AMER*3.0*6
+ NEW DIR,DECDT,PCCUPD,ERROR,AMVDT
+ ;
+QD28E ;Pull current date/time from PCC
+ I $G(AMERPCC)="" S AMERPCC=$$GET1^DIQ(9009081,DFN_",",1.1,"I")
+ I AMERPCC="" S AMERRUN=1 Q
+ S DECDT=$$GET1^DIQ(9000010,AMERPCC,1116,"E")
+ S:$G(DECDT)]"" DIR("B")=DECDT
+ S AMVDT=$$GET1^DIQ(9000010,AMERPCC_",",.01,"I")  ;Get visit date
+ ;
+ ;Prompt for date
+ S DIR(0)="DO^::ER",DIR("A")="Enter the decision to admit date/time",DIR("?")="Enter an exact date and time in Fileman format (e.g. T@1PM)" D ^DIR K DIR
+ ;
+ ;Perform validation
+ I Y,$$TCK(AMVDT,Y,1,"admission") K Y G QD28E
+ ;
+ ;Save the new value
+ I +Y>0 S PCCUPD(9000010,AMERPCC_",",1116)=Y
+ ;
+ ;Handle deletes
+ I Y="" S PCCUPD(9000010,AMERPCC_",",1116)="@"
+ ;
+ ;File entry in PCC
+ I $D(PCCUPD) D FILE^DIE("","PCCUPD","ERROR")
+ ;
+ I '$G(^TMP("AMER",$J,1,21)),'$D(AMEREFLG) S AMERFIN=28,AMERSTRT=1,AMERRUN=$S('$D(AMERTRG):1,$D(AMERTRG):30,1:1) Q
  I '$D(AMERTRG) S AMERRUN=1
- I $D(AMEREFLG) S AMERRUN=30
+ S AMERRUN=1
  Q
  ;
 TCK(Z,T,X,A) ; ENTRY POINT FROM AMER2

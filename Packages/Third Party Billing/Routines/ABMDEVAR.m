@@ -1,19 +1,22 @@
 ABMDEVAR ; IHS/SD/SDR - SET UP CLAIM VARIABLES ;      
- ;;2.6;IHS Third Party Billing;**1,4,6,7,10,11,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**1,4,6,7,10,11,13,14,18**;NOV 12, 2009;Build 289
  ;
- ; IHS/ASDS/DMJ - v2.4 p7 - 9/7/01 NOIS HQW-0701-100066
+ ;IHS/ASDS/DMJ - v2.4 p7 - 9/7/01 NOIS HQW-0701-100066
  ;     Modifications done related to Medicare Part B.
  ;
- ; IHS/SD/SDR - v2.5 p8 - task 6
+ ;IHS/SD/SDR - v2.5 p8 - task 6
  ;   Added code for new pages 3A and 8K
- ; IHS/SD/SDR - v2.5 p10 - IM20337
- ;    Add page 9F to selection
- ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Allow page9 for any 837 (not just 837P)
- ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display page7 if visit type 731
- ; IHS/SD/SDR - abm*2.6*4 - HEAT15368 - <SUBSCR>PAGE+11^ABMDEVAR
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added page 3B
+ ;IHS/SD/SDR - v2.5 p10 - IM20337
+ ;   Add page 9F to selection
+ ;IHS/SD/SDR - v2.5 p11 - NPI
+ ;IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Allow page9 for any 837 (not just 837P)
+ ;IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display page7 if visit type 731
+ ;IHS/SD/SDR - abm*2.6*4 - HEAT15368 - <SUBSCR>PAGE+11^ABMDEVAR
+ ;IHS/SD/SDR - abm*2.6*6 - 5010 - added page 3B
  ;IHS/SD/SDR  2.6*13 - exp mode 35 - make page 9A show up
+ ;IHS/SD/SDR - 2.6*14 - ICD10 Updated go-live date to 10/1/2015; also added code to check ICD Indicator that acts as override for go-live date
+ ;IHS/SD/SDR - 2.6*14 - HEAT165301 - took out page 9A
+ ;IHS/SD/SDR - 2.6*18 - HEAT244054 - DOS same as ICD10 Effective Date was causing errors, page 5A to not work correctly.
  ;
  S ABMP("C0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),0)
  S ABMP("PDFN")=$P(ABMP("C0"),U)
@@ -23,8 +26,16 @@ ABMDEVAR ; IHS/SD/SDR - SET UP CLAIM VARIABLES ;
  S ABMP("LDFN")=$P(ABMP("C0"),U,3)
  S ABMP("INS")=$P(ABMP("C0"),U,8)
  ;S ABMP("ICD10")=$S((ABMP("INS")'=""&$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12)'=""):$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12),1:3131001)  ;abm*2.6*10 ICD10 023  ;abm*2.6*11 HEAT96776
- I +$G(ABMP("INS"))'=0 S ABMP("ICD10")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12)  ;abm*2.6*11 HEAT96776
- S:+$G(ABMP("ICD10"))=0 ABMP("ICD10")=3131001  ;abm*2.6*11 HEAT96776 
+ ;I +$G(ABMP("INS"))'=0 S ABMP("ICD10")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12)  ;abm*2.6*11 HEAT96776  ;abm*2.6*14 ICD10 ICD Indicator
+ ;start new code abm*2.6*14 ICD10 ICD Indicator
+ I +$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,21)=9 S ABMP("ICD10")=(ABMP("VDT")+1)
+ I +$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),0)),U,21)=10 S ABMP("ICD10")=(ABMP("VDT")-1)
+ ;S:(+$G(ABMP("ICD10"))=0&(+$G(ABMP("INS"))'=0)) ABMP("ICD10")=$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12)  ;abm*2.6*18 IHS/SD/SDR HEAT244054
+ S:(+$G(ABMP("ICD10"))=0&(+$G(ABMP("INS"))'=0)) ABMP("ICD10")=($P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),0)),U,12)-.00001)  ;abm*2.6*18 IHS/SD/SDR HEAT244054
+ ;end new code ICD10 ICD Indicator
+ ;S:+$G(ABMP("ICD10"))=0 ABMP("ICD10")=3131001  ;abm*2.6*11 HEAT96776  ;abm*2.6*14 ICD10
+ ;S:+$G(ABMP("ICD10"))=0 ABMP("ICD10")=3151001  ;abm*2.6*14 ICD10  ;abm*2.6*18 IHS/SD/SDR HEAT244054
+ S:+$G(ABMP("ICD10"))=0 ABMP("ICD10")=3150930.99999  ;abm*2.6*14 ICD10  ;abm*2.6*18 IHS/SD/SDR HEAT244054
  I ABMP("INS")]"",'$D(^AUTNINS(ABMP("INS"),0)),'$G(ABMP("DERP OPT")) D
  .S DIE="^ABMDCLM(DUZ(2),"
  .S DA=ABMP("CDFN")
@@ -101,9 +112,9 @@ PAGE ;EP - SET  SELECTABLE PAGES
  .S ABMI=0
  .F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMI)) Q:'ABMI  D
  ..Q:(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMI,0)),U)=0)  ;abm*2.6*7 HEAT40762
- ..;I "^T^W^"[("^"_$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMI,0)),U),2)),U)_"^")&(ABMP("PAGE")'["32") S ABMP("PAGE")=ABMP("PAGE")_",32"  ;abm82.6*10 HEAT73780
+ ..;I "^T^W^"[("^"_$P($G(^AUTNINS($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMI,0)),U),2)),U)_"^")&(ABMP("PAGE")'["32") S ABMP("PAGE")=ABMP("PAGE")_",32"  ;abm*2.6*10 HEAT73780
  ..S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),13,ABMI,0)),U),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
- ..I "^T^W^"[("^"_ABMITYP_"^")&(ABMP("PAGE")'["32") S ABMP("PAGE")=ABMP("PAGE")_",32"  ;abm82.6*10 HEAT73780
+ ..I "^T^W^"[("^"_ABMITYP_"^")&(ABMP("PAGE")'["32") S ABMP("PAGE")=ABMP("PAGE")_",32"  ;abm*2.6*10 HEAT73780
  ;end new code 5010
  S ABMP("PAGE")=ABMP("PAGE")_",4,5"
  S:ABMP("PX")="A" ABMP("PAGE")=ABMP("PAGE")_",6"
@@ -116,8 +127,10 @@ PAGE ;EP - SET  SELECTABLE PAGES
  ;end new code HEAT7884
  S:$G(ABMP("PX"))'="I"!(ABMP("VTYP")=831) ABMP("PAGE")=ABMP("PAGE")_",8"
  ;I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837 P") S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439
+ ;abm*2.6*14 IHS/SD/SDR HEAT165301 put below line back in
  ;I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837") S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*13 exp mode 35
- I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837")!(+$G(ABMP("EXP"))=35) S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*1 HEAT6439  ;abm*2.6*13 exp mode 35
+ ;abm*2.6*14 IHS/SD/SDR HEAT165301 put back in
+ I $P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["UB"!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["ADA")!($P($G(^ABMDEXP(+$G(ABMP("EXP")),0)),U)["837")!(+$G(ABMP("EXP"))=35) S ABMP("PAGE")=ABMP("PAGE")_",9"  ;abm*2.6*13 exp mode 35
  Q
  ;
 AFFL ;EP - for determining Affiliation

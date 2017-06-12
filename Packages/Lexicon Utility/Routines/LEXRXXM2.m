@@ -1,5 +1,5 @@
 LEXRXXM2 ;ISL/KER - Re-Index Miscellaneous (cont) ;08/17/2011
- ;;2.0;LEXICON UTILITY;**81**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**81**;Sep 23, 1996;Build 10
  ;               
  ; Global Variables
  ;    ^TMP("LEXRX")       SACC 2.3.2.5.1

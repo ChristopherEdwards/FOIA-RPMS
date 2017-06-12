@@ -1,5 +1,5 @@
 BGP5PDPA ; IHS/CMI/LAB - print ind 03 Jul 2010 8:56 AM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
 I1AGE ;EP
@@ -9,17 +9,17 @@ I1AGE ;EP
  ;S X="Age specific Dental Access" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
  S BGPHD1="TOTAL ACTIVE CLINICAL AGES 5 AND OLDER",BGPHD2="Total # AC Pts =>5"
  S X=" " D S(X,1,1) D H9 S X=" " D S(X,1,1)
- K BGPDAC,BGPDAP,BGPDAB S BGPPAD=7 S (C,D)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2
+ K BGPDAC,BGPDAP,BGPDAB S BGPPAD=7 S (C,D,E)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2,I1AGE3
  D I1AGEP
 MALE ;
  S BGPHD1="TOTAL MALE ACTIVE CLINICAL 5 AND OLDER",BGPHD2="Total # Male AC Pts =>5"
  S X=" " D S(X,1,1) D H9 S X=" " D S(X,1,1)
- K BGPDAC,BGPDAP,BGPDAB,BGPPAD S BGPPAD=8 S (C,D)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2
+ K BGPDAC,BGPDAP,BGPDAB,BGPPAD S BGPPAD=8 S (C,D,E)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2,I1AGE3
  D I1AGEP
 FEMALE ;
  S BGPHD1="TOTAL FEMALE ACTIVE CLINICAL 5 AND OLDER",BGPHD2="Total # Female AC Pts =>5"
  S X=" " D S(X,1,1) D H9 S X=" " D S(X,1,1)
- K BGPDAC,BGPDAP,BGPDAB,BGPPAD S BGPPAD=9 S (C,D)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2
+ K BGPDAC,BGPDAP,BGPDAB,BGPPAD S BGPPAD=9 S (C,D,E)=0 F BGPX="A","B","C","D","E","F","G","H" D I1AGE1,I1AGE2,I1AGE3
  D I1AGEP
  Q
 I1AGE1 ;
@@ -47,6 +47,16 @@ I1AGE2 ;
  S $P(BGPDAP(D),U,4)=$$V^BGP5DP1C(2,BGPRPT,N,P),$P(BGPDAP(D),U,5)=$S($P(BGPDAP(D),U,2):($P(BGPDAP(D),U,4)/$P(BGPDAP(D),U,2)*100),1:"")
  S $P(BGPDAB(D),U,4)=$$V^BGP5DP1C(3,BGPRPT,N,P),$P(BGPDAB(D),U,5)=$S($P(BGPDAB(D),U,2):($P(BGPDAB(D),U,4)/$P(BGPDAB(D),U,2)*100),1:"")
  Q
+I1AGE3 ;
+ S E=E+1
+ S BGPF=156_"."_BGPPAD_".3"_BGPX S BGPPC=$O(^BGPINDKC("OR",BGPF,0))
+ ;set 4th piece to numerator and 5th to %
+ S BGPNF=$P(^BGPINDKC(BGPPC,0),U,9)
+ S BGPNP=$P(^DD(90554.03,BGPNF,0),U,4),N=$P(BGPNP,";"),P=$P(BGPNP,";",2)
+ S $P(BGPDAC(E),U,6)=$$V^BGP5DP1C(1,BGPRPT,N,P),$P(BGPDAC(E),U,7)=$S($P(BGPDAC(E),U,2):($P(BGPDAC(E),U,6)/$P(BGPDAC(E),U,2)*100),1:"")
+ S $P(BGPDAP(E),U,6)=$$V^BGP5DP1C(2,BGPRPT,N,P),$P(BGPDAP(E),U,7)=$S($P(BGPDAP(E),U,2):($P(BGPDAP(E),U,6)/$P(BGPDAP(E),U,2)*100),1:"")
+ S $P(BGPDAB(E),U,6)=$$V^BGP5DP1C(3,BGPRPT,N,P),$P(BGPDAB(E),U,7)=$S($P(BGPDAB(E),U,2):($P(BGPDAB(E),U,6)/$P(BGPDAB(E),U,2)*100),1:"")
+ Q
 I1AGEP ;
  S X=" " D S(X,1,1)
  S X="CURRENT REPORT PERIOD" D S(X,1,1) S X=" " D S(X,1,1)
@@ -60,6 +70,10 @@ I1AGEP ;
  F X=1:1:8 S V=$P(BGPDAC(X),U,4) S Y=V D S(Y,,X+1)
  S X="% # w/ exercise educ w/ % of physical activity assessment" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAC(X),U,5) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
+ S X=" " D S(X,1,1) S X="# w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAC(X),U,6) S Y=V D S(Y,,X+1)
+ S X="% # w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAC(X),U,7) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
 PR ; 
  ;S X=^BGPINDK(BGPIC,53,1,0) D S(X,1,1) D H9
  S X=" " D S(X,1,1) S X="PREVIOUS YEAR PERIOD" D S(X,1,1)
@@ -73,12 +87,18 @@ PR ;
  F X=1:1:8 S V=$P(BGPDAP(X),U,4) S Y=V D S(Y,,X+1)
  S X="% # w/ exercise educ w/ % of physical activity assessment" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAP(X),U,5) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
+ S X=" " D S(X,1,1) S X="# w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAP(X),U,6) S Y=V D S(Y,,X+1)
+ S X="% # w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAP(X),U,7) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM PREV YR %" D S(X,1,1)
  S X="# w/ physical activity assessment" D S(X,1,1)
  F X=1:1:8 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAP(X),U,3) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  S X="# w/ exercise educ w/ % of physical activity assessment" D S(X,1,1)
  F X=1:1:8 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
+ S X="# w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAP(X),U,7) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
 BL ;
  ;S X=^BGPINDK(BGPIC,53,1,0) D S(X,1,1) D H9
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
@@ -92,12 +112,18 @@ BL ;
  F X=1:1:8 S V=$P(BGPDAB(X),U,4) S Y=V D S(Y,,X+1)
  S X="% # w/ exercise educ w/ % of physical activity assessment" D S(X,1,1)
  F X=1:1:8 S V=$P(BGPDAB(X),U,5) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
+ S X=" " D S(X,1,1) S X="# w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAB(X),U,6) S Y=V D S(Y,,X+1)
+ S X="% # w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S V=$P(BGPDAB(X),U,7) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM BASE YR %" D S(X,1,1)
  S X="# w/ physical activity assessment" D S(X,1,1)
  F X=1:1:8 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAB(X),U,3) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  S X="# w/ exercise educ w/ % of physical activity assessment" D S(X,1,1)
  F X=1:1:8 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
+ S X="# w/ exercise goal w/ % of physical activity assessment" D S(X,1,1)
+ F X=1:1:8 S N=$P(BGPDAC(X),U,7),O=$P(BGPDAB(X),U,7) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  Q
 SETN ;set numerator fields
  S BGPCYN=$$V^BGP5DP1C(1,BGPRPT,N,P)

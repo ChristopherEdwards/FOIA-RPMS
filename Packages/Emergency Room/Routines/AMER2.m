@@ -1,5 +1,5 @@
 AMER2 ; IHS/ANMC/GIS - ER DISCHARGE DATA COLLECTION ;   
- ;;3.0;ER VISIT SYSTEM;**1,2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,2,6**;MAR 03, 2009;Build 30
  ;
 QD1 ; NAME
  I $D(AMERDNA) W !,?5,"*****  PROCESS PATIENT WHO LEFT BEFORE VISIT WAS COMPLETED  *****",!!,*7
@@ -10,9 +10,40 @@ QD1 ; NAME
  Q
  ;
 QD2 ; INJURY
+ ;
+ ;Pull information from Dashboard if populated
+ NEW AMERPCC,INJ
+ S AMERPCC=$$GET1^DIQ(9009081,DFN_",",1.1,"I") I AMERPCC]"",$T(INJURY^BEDDINJ)]"" D
+ . NEW INJ,EXEC
+ . ;
+ . ;Make the dashboard retrieval call
+ . S EXEC="D INJURY^BEDDINJ(AMERPCC,.INJ)" X EXEC
+ . ;
+ . ;If injury not set quit
+ . I $G(INJ("ISINJ"))'="YES" Q
+ . ;
+ . ;Fill in information
+ . S ^TMP("AMER",$J,2,2)=1   ;Is Injury
+ . S ^TMP("AMER",$J,2,31)=$G(INJ("INLOC"))  ;Injury Town
+ . S ^TMP("AMER",$J,2,32)=$G(INJ("INDAT"))  ;Injury Date/Time
+ . S ^TMP("AMER",$J,2,33)=$G(INJ("ICIEN"))  ;Injury Cause
+ . S ^TMP("AMER",$J,2,34)=$G(INJ("INSET"))  ;Injury Setting
+ . S ^TMP("AMER",$J,2,35)=$G(INJ("INJEQ"))  ;Injury Safety
+ . S ^TMP("AMER",$J,2,42)=$G(INJ("INSCO"))  ;Driver Insurance Co
+ . S ^TMP("AMER",$J,2,43)=$G(INJ("INSPO"))  ;Driver Policy Number
+ . S ^TMP("AMER",$J,2,41)=$G(INJ("MVLOC"))  ;MVC Location
+ . S ^TMP("AMER",$J,2,5)=$G(INJ("WKREL"))   ;Work related
+ ;
  S DIR("B")="NO" I $G(^TMP("AMER",$J,2,2)) S DIR("B")="YES"
  S DIR(0)="YO",DIR("A")="*Was this ER visit caused by an injury" D ^DIR K DIR
- D OUT^AMER I Y=U,'$D(AMEREFLG) S AMERFIN=27
+ D OUT^AMER
+  ;
+ ;AMER*3.0*6;Added call to update BEDD
+ I Y'["^" S INJ=Y D
+ . NEW Y
+ . D INJ^AMERBEDD("INJ.Injury",INJ)
+ ;
+ I Y=U,'$D(AMEREFLG) S AMERFIN=28,AMERRUN=27 Q
  I 'Y,'$G(^TMP("AMER",$J,2,2)),$D(AMEREFLG) S AMERRUN=98 Q
  I Y S AMERRUN=29,AMERFIN=71 Q
  F I=32:1:35,41:1:46,51:1:57,61:1:64,70 K ^TMP("AMER",$J,2,I) ; KILL OFF ALL DESCENDENTS
@@ -22,7 +53,15 @@ QD2 ; INJURY
 QD5 ; WORK RELATED
  S DIR("B")="NO" I $G(^TMP("AMER",$J,2,5)) S DIR("B")="YES"
  S DIR(0)="YO",DIR("A")="*Was this ER visit WORK-RELATED" D ^DIR K DIR
- D OUT^AMER I X=U,'$D(AMEREFLG) S AMERFIN=27
+ D OUT^AMER I X=U,'$D(AMEREFLG) ;S AMERFIN=27
+ ;
+ ;AMER*3.0*6;Added call to update BEDD
+ NEW INJ
+ I Y'["^" S INJ=Y D
+ . NEW Y
+ . D INJ^AMERBEDD("INJ.PtInjury.WrkRel",INJ)
+ K INJ
+ ;
  Q
 QD6  ; ER CONSULTANT NOTIFIED
  N DIR

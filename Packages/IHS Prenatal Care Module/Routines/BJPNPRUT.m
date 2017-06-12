@@ -1,5 +1,5 @@
 BJPNPRUT ;GDIT/HS/BEE-Prenatal Care Module Problem Handling Calls ; 08 May 2012  12:00 PM
- ;;1.0;PRENATAL CARE MODULE;;Dec 06, 2012;Build 61
+ ;;2.0;PRENATAL CARE MODULE;;Feb 24, 2015;Build 63
  ;
  Q
  ;
@@ -282,7 +282,7 @@ DATE(DATE) ;EP - Convert standard date/time to a FileMan date/time
  ;Output
  ;  -1 is if it couldn't convert to a FileMan date
  ;  otherwise a standard FileMan date
- NEW %DT,X,Y
+ NEW %DT,X,Y,%
  I DATE[":" D
  . I DATE["/",$L(DATE," ")=3 S DATE=$P(DATE," ",1)_"@"_$P(DATE," ",2)_$P(DATE," ",3) Q
  . I $L(DATE," ")=3 S DATE=$P(DATE," ",1,2)_"@"_$P(DATE," ",3)

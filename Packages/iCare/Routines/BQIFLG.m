@@ -1,5 +1,5 @@
 BQIFLG ;PRXM/HC/ALA-Get flags for all patients in panels ; 13 Dec 2005  9:28 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;**2**;Apr 01, 2015;Build 10
  ;
  Q
  ;
@@ -32,24 +32,22 @@ FND ;EP - Find all flags for a patient
  . S PPIEN=0
  . F  S PPIEN=$O(^BQI(90506,"AC",PORD,PPIEN)) Q:'PPIEN  D
  .. ; if the definition is inactive, quit
- .. Q:$$GET1^DIQ(90506,PPIEN_",",.02,"I")=1
+ .. ;Q:$$GET1^DIQ(90506,PPIEN_",",.02,"I")=1
+ .. I $P($G(^BQI(90506,PPIEN,0)),"^",2)=1 Q
  .. ; if the definition is not a flag definition, quit
- .. Q:$$GET1^DIQ(90506,PPIEN_",",.04,"I")'="A"
+ .. ;Q:$$GET1^DIQ(90506,PPIEN_",",.04,"I")'="A"
+ .. I $P($G(^BQI(90506,PPIEN,0)),"^",4)'="A" Q
  .. S EXEC=$$GET1^DIQ(90506,PPIEN_",",2,"E")
- .. Q:EXEC=""
+ .. S EXEC=$G(^BQI(90506,PPIEN,2)) I EXEC="" Q
+ .. ;Q:EXEC=""
  .. ; define time frame for the largest valid range
- .. S PARMS("TMFRAME")="T-6M"
+ .. ;S PARMS("TMFRAME")="T-6M"
+ .. S PARMS("TMFRAME")="T-2M"
  .. X EXEC
  .. Q:'$D(@GLREF)
  .. NEW DFN,VIEN
  .. S DFN=""
  .. F  S DFN=$O(@GLREF@(DFN)) Q:DFN=""  D
- ... ; Exclude deceased patients
- ... I $P($G(^DPT(DFN,.35)),U,1)'="" Q
- ... ; If patient has no active HRNs, quit
- ... I '$$HRN^BQIUL1(DFN) Q
- ... ; If patient has no visit in 3 years, quit
- ... I '$$VTHR^BQIUL1(DFN) Q
  ... ;  if the patient is not in the ICARE PATIENT INDEX file, add them
  ... I $G(^BQIPAT(DFN,0))="" D
  .... NEW DIC,X,DINUM,DLAYGO
@@ -122,9 +120,11 @@ CNTP(OWNR,PLIEN) ;EP - Count patients' flags and file the result for panel
  S DA(1)=OWNR,DA=PLIEN,PIENS=$$IENS^DILF(.DA)
  S DFN=0,CNT=0
  F  S DFN=$O(^BQICARE(OWNR,1,PLIEN,40,DFN)) Q:'DFN  D  Q:CNT
- . S DA(2)=OWNR,DA(1)=PLIEN,DA=DFN,IENS=$$IENS^DILF(.DA)
- . I $$GET1^DIQ(90505.04,IENS,.02,"I")="R" Q
- . S CNT=CNT+$$GET1^DIQ(90505.04,IENS,.08,"I")
+ . ;S DA(2)=OWNR,DA(1)=PLIEN,DA=DFN,IENS=$$IENS^DILF(.DA)
+ . ;I $$GET1^DIQ(90505.04,IENS,.02,"I")="R" Q
+ . I $P($G(^BQICARE(OWNR,1,PLIEN,40,DFN,0)),"^",2)="R" Q
+ . ;S CNT=CNT+$$GET1^DIQ(90505.04,IENS,.08,"I")
+ . S CNT=CNT+$P($G(^BQICARE(OWNR,1,PLIEN,40,DFN,0)),"^",8)
  ;
  I CNT>0 S BQIUP(90505.01,PIENS,.12)="Y"
  I CNT=0 S BQIUP(90505.01,PIENS,.12)="N"

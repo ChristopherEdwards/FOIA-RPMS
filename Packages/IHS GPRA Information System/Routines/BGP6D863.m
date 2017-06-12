@@ -1,9 +1,10 @@
 BGP6D863 ; IHS/CMI/LAB - measure C ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
 MEDSPRE(P,BDATE,EDATE) ;EP
  I $G(P)="" Q ""
  K BGPZ
+ NEW T1,T4,T2,T5,X,V,Y
  ;A-RA OS NSAID
  ;B-GOLD IM
  ;C-AZS
@@ -14,189 +15,250 @@ MEDSPRE(P,BDATE,EDATE) ;EP
  ;H=MYCO
  ;I=PENI
  ;J=SULFA
- F X="A","B","C","D","E","F","G","H","I","J" S BGPZ(X)=""
- K ^TMP($J,"A")
- S S="^TMP($J,""A"",",R=P_"^ALL MEDS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),F=$$START1^APCLDF(R,S)
- I '$D(^TMP($J,"A")) Q ""
+ ;K=GLUCO
+ F X="A","B","C","D","E","F","G","H","I","J","K" S BGPZ(X)=""
+ K BGPMEDS1
+ D GETMEDS^BGP6UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) Q ""
  S T1=$O(^ATXAX("B","BGP RA OA NSAID MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA OA NSAID NDC",0))
+ S T4=$O(^ATXAX("B","BGP RA OA NSAID VAPI",0))
  S T2=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("A")=1 Q
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("A")=1 Q
  .I $D(^ATXAX(T2,21,"B",Z)) S BGPZ("A")=1
  ;now check for B
  S T1=$O(^ATXAX("B","BGP RA IM GOLD MEDS",0))
  S T4=$O(^ATXAX("B","BGP RA IM GOLD NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
  .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("B")=1
  ;now check for C
  S T1=$O(^ATXAX("B","BGP RA AZATHIOPRINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA AZATHIOPRINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA AZATHIOPRINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) D
  ..S BGPZ("C")=1
  ;now check for D
  S T1=$O(^ATXAX("B","BGP RA LEFLUNOMIDE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA LEFLUNOMIDE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA LEFLUNOMIDE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("D")=1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("D")=1
  ;now check for E
  S T1=$O(^ATXAX("B","BGP RA METHOTREXATE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA METHOTREXATE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA METHOTREXATE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U)
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) D
  ..S BGPZ("E")=1
  ;now check for F
  S T1=$O(^ATXAX("B","BGP RA CYCLOSPORINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA CYCLOSPORINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA CYCLOSPORINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U)
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("F")=1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("F")=1
  ;now check for G
  S T1=$O(^ATXAX("B","BGP RA ORAL GOLD MEDS",0))
- ;S T4=$O(^ATXAX("B","BGP RA ORAL GOLD NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA ORAL GOLD VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U)
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("G")=1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("G")=1
  ;now check for H
  S T1=$O(^ATXAX("B","BGP RA MYCOPHENOLATE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA MYCOPHENOLATE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA MYCOPHENOLATE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("H")=1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("H")=1
  ;now check for I
  S T1=$O(^ATXAX("B","BGP RA PENICILLAMINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA PENICILLAMINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA PENICILLAMINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("I")=1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("I")=1
  ;now check for J
  S T1=$O(^ATXAX("B","BGP RA SULFASALAZINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA SULFASALAZINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA SULFASALAZINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S BGPZ("J")=1
- S C=0 F X="A","B","C","D","E","F","G","H","I","J" I BGPZ(X) S C=C+1
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S BGPZ("J")=1
+ ;now check for K
+ S T1=$O(^ATXAX("B","BGP RA GLUCOCORTICOIDS MEDS",0))
+ S T4=$O(^ATXAX("B","BGP RA GLUCOCORTICOIDS CLASS",0))
+ S T5=$O(^ATXAX("B","BGP RA GLUCOCORTICOIDS VAPI",0))
+ S (X,G,M,E)=0,C="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
+ .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
+ .Q:Z=""  ;BAD POINTER
+ .I $D(^ATXAX(T1,21,"B",Z))!($$CLASS^BGP6D82(Z,T4))!($$VAPI^BGP6D81(Z,T5)) S BGPZ("K")=1
+ S C=0 F X="A","B","C","D","E","F","G","H","I","J","K" I BGPZ(X) S C=C+1
  I C=0 Q ""  ;none within time frame
  S BDATE=$$FMADD^XLFDT(EDATE,-465)
  K ^TMP($J,"A")
  S (A,B)=0
- S E="^TMP($J,""A"",",H=P_"^ALL MEDS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),F=$$START1^APCLDF(H,E)
- I '$D(^TMP($J,"A")) Q ""  ;no meds in time window so quit
+ K BGPMEDS1
+ D GETMEDS^BGP6UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) Q ""
 COUNTD ;count # days except for im gold and count hits
  S T1=$O(^ATXAX("B","BGP RA OA NSAID MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA OA NSAID NDC",0))
+ S T4=$O(^ATXAX("B","BGP RA OA NSAID VAPI",0))
  S T2=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D  Q
- ..S $P(BGPZ("A"),U,2)=$P(BGPZ("A"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) D  Q
+ ..S $P(BGPZ("A"),U,2)=$P(BGPZ("A"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  .I $D(^ATXAX(T2,21,"B",Z)) D
- ..S $P(BGPZ("A"),U,2)=$P(BGPZ("A"),U,2)+$$DAYS(Y,V)
+ ..S $P(BGPZ("A"),U,2)=$P(BGPZ("A"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for B
  S T1=$O(^ATXAX("B","BGP RA IM GOLD MEDS",0))
  S T4=$O(^ATXAX("B","BGP RA IM GOLD NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
  .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D
  ..S $P(BGPZ("B"),U,2)=$P(BGPZ("B"),U,2)+1
  ;now check for C
  S T1=$O(^ATXAX("B","BGP RA AZATHIOPRINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA AZATHIOPRINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA AZATHIOPRINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D
- ..S $P(BGPZ("C"),U,2)=$P(BGPZ("C"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) D
+ ..S $P(BGPZ("C"),U,2)=$P(BGPZ("C"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for D
  S T1=$O(^ATXAX("B","BGP RA LEFLUNOMIDE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA LEFLUNOMIDE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA LEFLUNOMIDE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("D"),U,2)=$P(BGPZ("D"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("D"),U,2)=$P(BGPZ("D"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for E
  S T1=$O(^ATXAX("B","BGP RA METHOTREXATE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA METHOTREXATE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA METHOTREXATE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) D
- ..S $P(BGPZ("E"),U,2)=$P(BGPZ("E"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) D
+ ..S $P(BGPZ("E"),U,2)=$P(BGPZ("E"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for F
  S T1=$O(^ATXAX("B","BGP RA CYCLOSPORINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA CYCLOSPORINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA CYCLOSPORINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("F"),U,2)=$P(BGPZ("F"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("F"),U,2)=$P(BGPZ("F"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for G
  S T1=$O(^ATXAX("B","BGP RA ORAL GOLD MEDS",0))
- ;S T4=$O(^ATXAX("B","BGP RA ORAL GOLD NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA ORAL GOLD VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("G"),U,2)=$P(BGPZ("G"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("G"),U,2)=$P(BGPZ("G"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for H
  S T1=$O(^ATXAX("B","BGP RA MYCOPHENOLATE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA MYCOPHENOLATE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA MYCOPHENOLATE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("H"),U,2)=$P(BGPZ("H"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("H"),U,2)=$P(BGPZ("H"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for I
  S T1=$O(^ATXAX("B","BGP RA PENICILLAMINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA PENICILLAMINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA PENICILLAMINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("I"),U,2)=$P(BGPZ("I"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("I"),U,2)=$P(BGPZ("I"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  ;now check for J
  S T1=$O(^ATXAX("B","BGP RA SULFASALAZINE MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA SULFASALAZINE NDC",0))
- S X=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X  S V=$P(^TMP($J,"A",X),U,5),Y=+$P(^TMP($J,"A",X),U,4) D
+ S T4=$O(^ATXAX("B","BGP RA SULFASALAZINE VAPI",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S $P(BGPZ("J"),U,2)=$P(BGPZ("J"),U,2)+$$DAYS(Y,V)
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP6D81(Z,T4)) S $P(BGPZ("J"),U,2)=$P(BGPZ("J"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
+ ;now check for K
+ S T1=$O(^ATXAX("B","BGP RA GLUCOCORTICOIDS MEDS",0))
+ S T4=$O(^ATXAX("B","BGP RA GLUCOCORTICOIDS CLASS",0))
+ S (X,G,M,E)=0,C="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
+ .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
+ .Q:Z=""  ;BAD POINTER
+ .I $D(^ATXAX(T1,21,"B",Z))!($$CLASS^BGP6D82(Z,T4)) S $P(BGPZ("K"),U,2)=$P(BGPZ("K"),U,2)+$$DAYS^BGP6D82(Y,V,EDATE)
  S D=.75*($$FMDIFF^XLFDT(EDATE,BDATE)),D=D\1
- S J=1,V="" F X="A","B","C","D","E","F","G","H","I","J" D
+ S J=1,V="" F X="A","B","C","D","E","F","G","H","I","J","K" D
  .S J=J+1
  .I X="B" D  Q
  ..I $P(BGPZ(X),U),$P(BGPZ(X),U,2)>11 S $P(V,U,1)=1,$P(V,U,J)=1,$P(V,U,15)=$P(V,U,15)_" "_BGPZ(X)_" IM Injections of "_$P($T(@X),";;",2) Q
@@ -228,3 +290,4 @@ G ;;ORAL GOLD
 H ;;MYCOPHENOLATE
 I ;;PENICILLAMINE
 J ;;SULFASALAZINE
+K ;;GLUCOCORTICOIDS

@@ -1,5 +1,6 @@
 AG2A ; IHS/ASDS/EFG - ENTER & EDIT MANDATORY DATA ;   
- ;;7.1;PATIENT REGISTRATION;**2,8**;AUG 25, 2005
+ ;;7.1;PATIENT REGISTRATION;**2,8,11**;AUG 25, 2005;Build 1
+ ;IHS/OIT/NKD AG*7.1*11 MU2 UNKNOWN SEX
  ;
  ;IF BENEFICIARY CONTAINS NON-INDIAN THEN
  ;GUARANTOR INFORMATION MUST BE ENTERED
@@ -34,11 +35,27 @@ SEX ;EP - Sex.
  D S2
  S DR=.02
  D END
+ ;IHS/OIT/NKD AG*7.1*11 MU2 - CONFIRM CHANGE OF SEX TO UNKNOWN - START NEW CODE
+ I AGOLD("SEX")'="U",$P(^DPT(DFN,0),U,2)="U" D
+ . K DIR S DIR(0)="Y",DIR("B")="N"
+ . S DIR("A",1)="You are attempting to change the Patient SEX to 'UNKNOWN'."
+ . S DIR("A")="Please confirm this is correct (Y/N)"
+ . D ^DIR K DIR
+ . I Y=0 D
+ . . W !,"Unconfirmed. Reverting Patient SEX to previous value."
+ . . S DIE="^DPT("
+ . . S DA=DFN
+ . . S DR=".02////"_AGOLD("SEX")
+ . . D ^DIE
+ . . H 2
+ ;IHS/OIT/NKD AG*7.1*11 END NEW CODE
  I $P(^DPT(DFN,0),U,2)'=AGOLD("SEX") D
  . S DIE="^AUPNPAT("
  . S DA=DFN
  . S DR=".23///@"
  . D ^DIE
+ . ;IHS/OIT/NKD AG*7.1*11 MU2 - MODIFY ASSOCIATED ELIGIBLE SEX/GENDER FIELDS
+ . D SEXELIG^AGUTL(DFN)
  K AGOLD("SEX")
  Q
 TRIBE ;EP - Tribe.

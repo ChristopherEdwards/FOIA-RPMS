@@ -1,28 +1,17 @@
 ABMDVST ; IHS/ASDST/DMJ - PCC Visit Stuff ;     
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,19**;NOV 12, 2009;Build 300
  ;Original;TMD;08/19/96 4:45 PM
  ;
- ; IHS/SD/SDR - V2.5 P8 - IM12246/IM17548
- ;    Added code to put defaults on claim for CLIAs
- ;
- ; IHS/SD/SDR - v2.5 p8 - task 8
- ;    Added tag for insurer replace and splitting routine
- ;
- ; IHS/SD/SDR - v2.5 p10 - IM19717/IM20374
- ;   Added to check for when to merge visits into one claim
- ;
- ; IHS/SD/SDR - v2.5 p10 - IM20610
- ;    Fix Medicare Part B check so only one claim will generate
- ;
- ; IHS/SD/SDR - v2.5 p10 - task order item 1
- ;    Calls for ChargeMaster added to national code.  Calls were
+ ; IHS/SD/SDR - V2.5 P8 - IM12246/IM17548 - Added code to put defaults on claim for CLIAs
+ ; IHS/SD/SDR - v2.5 p8 - task 8 - Added tag for insurer replace and splitting routine
+ ; IHS/SD/SDR - v2.5 p10 - IM19717/IM20374 - Added to check for when to merge visits into one claim
+ ; IHS/SD/SDR - v2.5 p10 - IM20610 - Fix Medicare Part B check so only one claim will generate
+ ; IHS/SD/SDR - v2.5 p10 - task order item 1 - Calls for ChargeMaster added to national code.  Calls were
  ;    supplied by Lori Butcher
+ ; IHS/SD/SDR - v2.5 p10 - IM21500 - Added code to check new V Med field POINT OF SALE BILLING STATUS
+ ;    and only generate claim if at least one med wasn't billed by POS or was billed and rejected
  ;
- ; IHS/SD/SDR - v2.5 p10 - IM21500
- ;    Added code to check new V Med field POINT OF SALE BILLING STATUS
- ;    and only generate claim if at least one med wasn't billed by POS
- ;    or was billed and rejected
- ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT251217 - Made change to populate SERVICE DATE FROM and SERVICE DATE TO all the time.
  ; *********************************************************************
 VAR ;
  N ABMSRC,DA,DIE,DIK
@@ -99,7 +88,8 @@ VAR ;
  .S DA=$O(^ABMDBILL(DUZ(2),"AV",ABMVDFN,0))
  .S ABM=$P($G(^ABMDBILL(DUZ(2),DA,0)),U,8)   ; Active Insurer
  .Q:'ABM
- .I $P($G(^AUTNINS(ABM,2)),U)="I" D          ;Type of ins = Indian Pat
+ .;I $P($G(^AUTNINS(ABM,2)),U)="I" D   ;Type of ins = Indian Pat  ;abm*2.6*10 HEAT73780
+ .I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM,".211","I"),1,"I")="I" D   ;Type of ins = Indian Pat  ;abm*2.6*10 HEAT73780
  ..S ABM("OUT")=0
  ..S DIE="^ABMDBILL(DUZ(2),"
  ..S DR=".04////X"                           ;Mark bill as cancelled
@@ -144,6 +134,7 @@ NEW ;CREATE NEW CLAIM
  ;No active insurer if one insurer billed elsewhere
  I '$D(ABML(97)) S DR=DR_";.08////"_ABMP("INS")
  S DR=DR_";.1////"_DT_";.17////"_DT
+ S DR=DR_";.71////"_$P($P(ABMP("V0"),U),".")_";.72////"_$P($P(ABMP("V0"),U),".")  ;abm*2.6*19 IHS/SD/SDR HEAT251217
  D ^DIE
  S DIE="^AUPNVSIT("
  S DA=ABMVDFN
@@ -157,7 +148,8 @@ NEW ;CREATE NEW CLAIM
  I $T(^BCMZINHO)]"",$O(^BCMTCA(0)) D:$D(^AUPNVSIT("AD",ABMVDFN)) ^BCMZINHO  ;IHS/CMI/LAB-chargemaster call
  K X,Y
  D MAIN^ABMASPLT(ABMP("CDFN"))
- I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="R" D
+ ;I $P($G(^AUTNINS(+ABMP("INS"),2)),U)="R" D  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,+ABMP("INS"),".211","I"),1,"I")="R" D  ;abm*2.6*10 HEAT73780
  .S ABMBONLY=$S($P($G(^ABMDPARM(ABMP("LDFN"),1,5)),U)'="":$P(^ABMDPARM(ABMP("LDFN"),1,5),U),1:2)
  .I (ABMBONLY'=2) Q
  .D MAIN^ABMDSPLB(ABMP("CDFN"))

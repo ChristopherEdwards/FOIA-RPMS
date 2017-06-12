@@ -1,5 +1,6 @@
-LA7VIN5 ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VIN5 ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,1018,64,1027,68,1033**;NOV 1, 1997
+ ;
  ; This routine is a continuation of LA7VIN1 and is only called from there.
  ; It is called to process OBX segments for "CH" subscript tests.
  Q
@@ -59,8 +60,13 @@ OBX ;
  . D CREATE^LA7LOG(16) S LA7TEST=""
  ;
  ; Units - trim leading/trailing spaces
- S LA7UNITS=$$P^LA7VHLU(.LA7SEG,7,LA7FS)
- I LA7UNITS]"" S LA7UNITS=$$TRIM^XLFSTR(LA7UNITS,"LR"," ")
+ S LA7X=$$P^LA7VHLU(.LA7SEG,7,LA7FS),LA7UNITS=""
+ I LA7X'="" D
+ . F I=1:1:6 S LA7UNITS(I)=$P(LA7X,LA7CS,I)
+ . S LA7UNITS=$$TRIM^XLFSTR(LA7UNITS(1),"LR"," ")
+ . I LA7UNITS["^" D
+ . . N LA7STR S LA7STR("^")="~U~"
+ . . S LA7UNITS=$$REPLACE^XLFSTR(LA7UNITS,.LA7STR)
  ;
  ; Observation result status - Table 0085
  S LA7ORS=$$P^LA7VHLU(.LA7SEG,12,LA7FS)
@@ -108,10 +114,10 @@ PROCESS ; Process results for a given test code
  . D CREATE^LA7LOG(18)
  ;
  ; Set flag for new results alert
- I "CDW"'[LA7ORS S ^TMP("LA7-ORU",$J,LA76248,LA76249)=""
+ I LA7ORS'="","CDW"'[LA7ORS S ^TMP("LA7-ORU",$J,LA76248,LA76249)=""
  ;
  ; Set flag to send amended results bulletin
- I "CDW"[LA7ORS D
+ I LA7INTYP=10,LA7ORS'="","CDW"[LA7ORS D
  . S LA7I=$O(^TMP("LA7 AMENDED RESULTS",$J,""),-1),LA7I=LA7I+1
  . S X=LA7LWL_"^"_LA7ISQN_"^"_LA76304_"^"_LA76248_"^"_LA76249_"^"_LA7ORS_"^"_LA7TEST_"^"_$S(LA7TEST(0)'="":LA7TEST(0),1:LA7TEST(2,0))_"^"_$$P^LA7VHLU(.LA7SEG,9,LA7FS)
  . S ^TMP("LA7 AMENDED RESULTS",$J,LA7I)=X
@@ -123,6 +129,7 @@ PROCESS ; Process results for a given test code
  I LA7INTYP'=10 X $P(LA76241(0),"^",2)
  I $P(LA76241(2),"^",3)=0 Q
  I $P(LA76241(2),"^",3)=2,"CFUX"'[LA7ORS Q
+ I LA7ORS="X",LA7VAL="" Q
  ;
  ; No value found
  I LA7VAL="" D  Q
@@ -149,8 +156,7 @@ PROCESS ; Process results for a given test code
  . K LA7LIMIT,^TMP("LA7TREE",$J)
  K ^TMP("LA7TREE",$J)
  ;
- ; Check point of care interface for matching specimen type
- ; for this test in #62.4
+ ; Check point of care interface for matching specimen type  for this test in #62.4
  I LA7INTYP>19,LA7INTYP<30 D  Q:'LA761
  . N LA70070
  . S LA761="",LA7X=$P(LA76241(2),"^",13) Q:'LA7X
@@ -160,22 +166,22 @@ PROCESS ; Process results for a given test code
  ; Set data node=test value
  S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^")=LA7VAL
  ;
- ; Store reference ranges
- D REFRNG^LA7VIN5A($$P^LA7VHLU(.LA7SEG,8,LA7FS))
+ ; Store reference ranges except for UI (LA7INTYP=1) interfaces
+ I LA7INTYP'=1 D REFRNG^LA7VIN5A($$P^LA7VHLU(.LA7SEG,8,LA7FS))
  ;
- ; Store order/result codes/observation method
+ ; Store order/result codes/observation method except for UI (LA7INTYP=1) interfaces
  S LA7X=$P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",3)
  I LA7ONLT S $P(LA7X,"!",1)=LA7ONLT
  I LA7RNLT S $P(LA7X,"!",2)=LA7RNLT
  I LA7RLNC S $P(LA7X,"!",3)=LA7RLNC
  I LA7OBM S $P(LA7X,"!",4)=LA7OBM
- S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",3)=LA7X
+ I LA7INTYP'=1 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",3)=LA7X
  ; 
- ; Store abnormal flags
- D ABFLAG^LA7VIN5A($$P^LA7VHLU(.LA7SEG,9,LA7FS))
+ ; Store abnormal flags except for UI (LA7INTYP=1) interfaces.
+ I LA7INTYP'=1 D ABFLAG^LA7VIN5A($$P^LA7VHLU(.LA7SEG,9,LA7FS))
  ;
- ; Store units
- I LA7UNITS'="" D
+ ; Store units except for UI (LA7INTYP=1) interfaces which pull values from file #60.
+ I LA7INTYP'=1,LA7UNITS'="" D
  . S LA7X=$P($G(^LAH(LA7LWL,1,LA7ISQN,LA76304)),"^",5)
  . S $P(LA7X,"!",7)=LA7UNITS
  . S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",5)=LA7X
@@ -184,14 +190,22 @@ PROCESS ; Process results for a given test code
  I LA7RO'="",LA7INTYP>19,LA7INTYP<30 D
  . I $P(LA7RO,"^",2) S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",4)=$P(LA7RO,"^",2)
  ;
- ; Store specimen type
- I $G(LA761) D
+ ; Store specimen type except for UI (LA7INTYP=1) interfaces which pull values from the accession.
+ I LA7INTYP'=1,$G(LA761) D
  . S X=$P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",5)
  . S $P(X,"!")=LA761
  . S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",5)=X
  ;
- ; Store where test was performed.
- D PRDID^LA7VIN5A($$P^LA7VHLU(.LA7SEG,16,LA7FS),LA7SFAC,LA7CS)
+ ; Store where test was performed except for UI (LA7INTYP=1) interfaces.
+ I LA7INTYP'=1 D
+ . N LA74,LA7I,LA7X
+ . S LA7X=$$P^LA7VHLU(.LA7SEG,24,LA7FS),LA74=""
+ . I $P(LA7X,LA7CS,6)="CLIA" S LA74=$$IDX^XUAF4("CLIA",$P(LA7X,LA7CS,10))
+ . I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74 Q
+ . S LA7X=$$P^LA7VHLU(.LA7SEG,16,LA7FS)
+ . F LA7I=1,4 I $P(LA7X,LA7CS,LA7I+2)?1(1"L-CL",1"CLIA",1"99VACLIA") S LA74=$$IDX^XUAF4("CLIA",$P(LA7X,LA7CS,LA7I))
+ . I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74 Q
+ . D PRDID^LA7VIN5A($$P^LA7VHLU(.LA7SEG,16,LA7FS),LA7SFAC,LA7CS)
  ;
  ; Store equipment instance identifier
  I LA7EII'="" D EII^LA7VIN5A

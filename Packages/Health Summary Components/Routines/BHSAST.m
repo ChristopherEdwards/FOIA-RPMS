@@ -1,5 +1,5 @@
-BHSAST ;IHS/MSC/MGH - Asthma supplement data ;04-Aug-2011 14:21;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**3,6**;March 17,2006;Build 5
+BHSAST ;IHS/MSC/MGH - Asthma supplement data ;21-Apr-2014 17:43;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**3,6,9**;March 17,2006;Build 16
  ;============================================================
  ; IHS/CMI/LAB - ;16-Jul-2009 09:38;MGH
  ;;2.0;IHS PCC SUITE;;MAY 14, 2009
@@ -215,7 +215,11 @@ PLAST(P,F) ;EP
  I '$G(F) S F=1
  NEW I,A,B,G,S
  S G="",A=0 F  S A=$O(^AUPNPROB("AC",P,A)) Q:A'=+A!(G]"")  D
- .S I=$P(^AUPNPROB(A,0),U) Q:'$D(^ICD9(I,0))  S S=$P(^ICD9(I,0),U)
+ .S I=$P(^AUPNPROB(A,0),U)
+ .;Patch 9 use new APIs for ICD codes
+ .I $$AICD^BHSUTL S S=$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S S=$P($$ICDDX^ICDCODE(I,""),U,2)
+ .Q:P=""
  .I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
  .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  .S G=A
@@ -232,7 +236,11 @@ PLASTA(P,R) ;EP
  NEW I,A,B,G,S
  K R
  S G="",A=0 F  S A=$O(^AUPNPROB("AC",P,A)) Q:A'=+A!(G]"")  D
- .S I=$P(^AUPNPROB(A,0),U) Q:'$D(^ICD9(I,0))  S S=$P(^ICD9(I,0),U)
+ .S I=$P(^AUPNPROB(A,0),U)
+ .;P8 changes for ICD-10
+ .I $$AICD^BHSUTL S S=$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S S=$P($$ICDDX^ICDCODE(I,""),U,2)
+ .Q:P=""
  .I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
  .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  .S BHPL(A)=$$PLN(A)
@@ -243,7 +251,10 @@ DXAST(P) ;EP
  NEW D,I,A,G,S
  S (D,G)=0 F  S D=$O(^AUPNVPOV("AA",P,D)) Q:D'=+D!(G)  D
  .S I=0 F  S I=$O(^AUPNVPOV("AA",P,D,I)) Q:I'=+I!(G)  D
- ..S A=$P(^AUPNVPOV(I,0),U),S=$P(^ICD9(A,0),U)
+ ..S A=$P(^AUPNVPOV(I,0),U)
+ ..;Patch 8 Use new APIS for codes
+ ..I $$AICD^BHSUTL S S=$P($$ICDDX^ICDEX(A,"","","I"),U,2)
+ ..E  S S=$P($$ICDDX^ICDCODE(A,""),U,2)
  ..I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
  ..I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(A,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  ..S G=1

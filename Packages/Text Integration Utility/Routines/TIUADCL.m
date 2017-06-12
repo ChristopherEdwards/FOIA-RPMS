@@ -1,5 +1,5 @@
 TIUADCL ; SLC/AJB - UNK Addenda Cleanup ; 10/01/04
- ;;1.0;TEXT INTEGRATION UTILITIES;**173**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**173,233**;Jun 20, 1997;Build 3
  ;
  ; Cleanup Utility for OPERATION REPORT addenda.
  ; Finds parentless/unknown addenda and attaches to user
@@ -90,7 +90,8 @@ BROWSE ; browse document
  D EN^VALM("TIU BROWSE FOR READ ONLY")
  Q
 CHKFILE(FILE,NAME,SCREEN) ; checks entry in file and returns IEN
- N DIC,X,Y S DIC=FILE,DIC(0)="X",DIC("S")=$G(SCREEN),X=NAME D ^DIC
+ ; VMP/RJT - *233 - added Forget Lookup Value flag to DIC call since its affecting the value in the ^DISV global (spacebar return function)
+ N DIC,X,Y S DIC=FILE,DIC(0)="FX",DIC("S")=$G(SCREEN),X=NAME D ^DIC
  Q +Y
 CHNGVIEW ; allows user to change search parameters
  D FULL^VALM1

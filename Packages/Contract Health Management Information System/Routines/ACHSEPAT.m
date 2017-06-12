@@ -1,5 +1,5 @@
 ACHSEPAT ; IHS/ITSC/PMF - PRINT EOBRS BY PATIENT ;  [ 10/16/2001   8:16 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11, 2001;Build 37
  ;ACHS*3.1*22 Modification to fix error if patient is not defined
  ;
  K ACHSPAT,DFN

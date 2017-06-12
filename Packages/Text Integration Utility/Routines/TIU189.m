@@ -1,16 +1,17 @@
-TIU189 ;BPFO/JML - UNCOSIGNED WITH NO COSIGNER ; 5/19/05 12:33pm
- ;;1.0;Text Integration Utilities;**189**;JUN 20, 1997
+TIU189 ;BPFO/JML - UNCOSIGNED WITH NO COSIGNER ;12-Feb-2013 14:03;DU
+ ;;1.0;Text Integration Utilities;**189,1011**;JUN 20, 1997;Build 13
+ ;IHS/MSC/MGH changed to use HRCN
  ;
- ; This report can be run from the menu option 
- ; TIUMEC - Missing Expected Cosignor Report found under the 
- ; TIU MAIN MENU MGR option. It can also be added to Taskman with 
- ; the entry point NITE^TIU189. This option will look for problems 
- ; in the previous 30 days and upon finding any will send an email to 
+ ; This report can be run from the menu option
+ ; TIUMEC - Missing Expected Cosignor Report found under the
+ ; TIU MAIN MENU MGR option. It can also be added to Taskman with
+ ; the entry point NITE^TIU189. This option will look for problems
+ ; in the previous 30 days and upon finding any will send an email to
  ; the mail group G.TIU MIS ALERTS.
  ;
 MENU ; ENTRY POINT FOR RUNNING FROM MENU WITH PROMPTS
  N TIUIEN,TIUDT,TIUDTS,TIUPDT,TIUJ,TIUPIEN,TIUPN,TIURES,TIU0,TIU12,TIUEDT,TIUCS,TIUAUTH,TIUTITLE
- N TIUPAR,DFN,TIUPCO,TIURTYP,TIUSIEN,TIUSERV,TIUJIEN,TIUJTITL,NOCOL,DIR,TIUAUTHI,TIUQUIT,TIUPAGE,TIUOFF
+ N TIUPAR,DFN,HRCN,TIUPCO,TIURTYP,TIUSIEN,TIUSERV,TIUJIEN,TIUJTITL,NOCOL,DIR,TIUAUTHI,TIUQUIT,TIUPAGE,TIUOFF
  N %ZIS,POP,NOW,Y,COSTAT,X1,X2
  S TIUJ=$J,TIUCS=$$COSTAT()
  D DTRANGE^TIUADCL(.TIUDTS)
@@ -54,6 +55,10 @@ REPORT ; ENTRIES WRITTEN TO REPORT
  ..S Y=$P(TIU12,"^") D DD^%DT S TIUEDT=Y
  ..S DFN=$P(TIU0,"^",2) D DEM^VADPT
  ..S TIUSSN=$E($P(VADM(2),"^"),6,9)
+ ..;IHS/MSC/MGH Patch 1011 changed to use SSN
+ ..S HRCN=$$HRCN^TIUR2(DFN,+$G(DUZ(2)))
+ ..S TIUSSN=HRCN
+ ..;IHS/MSC/MGH end of mod
  ..S TIULNAME=$P(VADM(1),","),TIUFNAME=$P(VADM(1),",",2),TIUMNAME=$P(TIUFNAME," ",2)
  ..S TIUPN=$E(TIUFNAME)_$E(TIUMNAME)_$E(TIULNAME)_TIUSSN
  ..S TIUAUTH=$E($$GET1^DIQ(8925,TIUIEN_",",1202),1,15)
@@ -170,7 +175,7 @@ HEAD ; HEADER FOR REPORT
  .W !,"-------",?9,"---------------",?32,"-----",?58,"------",?83,"---------------",?101,"---------",?119,"--------"
  .W !
  I TIURTYP="NOCOL" D
- .I +$G(NOCOL)=0 D 
+ .I +$G(NOCOL)=0 D
  ..S NOCOL=1
  ..W "Patient Name^Entry Date/Time^Title^Author^Service/Section^Job Title^Note IEN^Parent Document Type^"
  ..W "Parent Document Date^Parent Document Cosigner"
@@ -187,7 +192,7 @@ PAGE ; HANDLE PAGING FOR TERMINAL OR PRINTER
  .D HEAD
  Q
  ;
-COSTAT() ; GET UNCOSIGNED STATUS 
+COSTAT() ; GET UNCOSIGNED STATUS
  Q $O(^TIU(8925.6,"B","UNCOSIGNED",""))
  ;
 DEV ; PROMPT FOR OUTPUT DEVICE

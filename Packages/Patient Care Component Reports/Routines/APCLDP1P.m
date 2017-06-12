@@ -1,5 +1,5 @@
 APCLDP1P ; IHS/CMI/LAB - print active client list ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in VSTS
  ;
@@ -42,7 +42,7 @@ VSTS ; process visits
  ...S APCLPRV($S($P(^DD(9000010.06,.01,0),U,2)[200:$P(^VA(200,P,0),U),1:$P(^DIC(16,P,0),U)))=APCLPRV($S($P(^DD(9000010.06,.01,0),U,2)[200:$P(^VA(200,P,0),U),1:$P(^DIC(16,P,0),U)))+1
  ..;TABLE PROBLEMS
  ..;S APCLP=0 F  S APCLP=$O(^AUPNVPOV("AD",APCLR,APCLP)) Q:APCLP'=+APCLP  S P=$P(^AUPNVPOV(APCLP,0),U),APCLPROB($P(^ICD9(P,0),U)_" - "_$E($P(^ICD9(P,0),U,3),1,25))=""  ;cmi/anch/maw 9/10/2007 orig line
- ..S APCLP=0 F  S APCLP=$O(^AUPNVPOV("AD",APCLR,APCLP)) Q:APCLP'=+APCLP  S P=$P(^AUPNVPOV(APCLP,0),U),APCLPROB($P($$ICDDX^ICDCODE(P),U,2)_" - "_$E($P($$ICDDX^ICDCODE(P),U,4),1,25))=""  ;cmi/anch/maw 9/10/2007 csv
+ ..S APCLP=0 F  S APCLP=$O(^AUPNVPOV("AD",APCLR,APCLP)) Q:APCLP'=+APCLP  S P=$P(^AUPNVPOV(APCLP,0),U),APCLPROB($P($$ICDDX^ICDEX(P),U,2)_" - "_$E($P($$ICDDX^ICDEX(P),U,4),1,25))=""  ;cmi/anch/maw 9/10/2007 csv
  ..Q
  .Q
  K APCLLINE,APCLPRNT,APCLPCNT,APCLPRNM

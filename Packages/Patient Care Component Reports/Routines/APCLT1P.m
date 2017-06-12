@@ -1,5 +1,5 @@
 APCLT1P ; IHS/CMI/LAB - print apc report ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;IHS/TUCSON/LAB - added a header line to display appt/wi header 05/01/97
 START ;
  S APCLDT=$$FMTE^XLFDT(DT)

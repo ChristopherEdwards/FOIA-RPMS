@@ -1,0 +1,206 @@
+BLRLAHGU ; IHS/MSC/MKK - LOAD/WORK List in the ^LAH Global  ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 1, 1997
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+PEP ; EP
+ACCFILEL ; EP
+ ; NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S LRLL=0
+ ;
+ D SETLBRVS("ACCFILEL")
+ ;
+ D B^LRU
+ Q:+$G(LRSDT)<1!(+$G(LRLDT)<1)
+ ;
+ Q:$$GETAUTOI()="Q"
+ ;
+ Q
+ S NOGO=0
+ F  Q:NOGO  D
+ . D GETUID(LRSDT,LRLDT)
+ Q
+ ;
+GETUID(LRSDT,LRLDT) ; EP
+ ; The following code reads the ^LAH global for the LOAD/WORK LIST "tied" to
+ ; the selected AUTO INSTRUMENT and creates the necessary string to setup
+ ; the D ^DIR call to "select from a list"
+ ;
+ NEW BELOW,CNT,DIRZERO,DRAWDATE,ENTRY,IENSTR,LRUID,LUIDINDX,NUMCOL,STR
+ ;
+ S DIRZERO="SO^"
+ S (CNT,ENTRY)=0
+ F  S ENTRY=$O(^LAH(LRLL,1,ENTRY))  Q:ENTRY<1  D
+ . S LRUID=+$G(^LAH(LRLL,1,ENTRY,.3))
+ . Q:LRUID<1
+ . ;
+ . S X=$Q(^LRO(68,"C",LRUID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ . Q:LRAA<1!(LRAD<1)!(LRAN<1)  ; If no Accession, skip
+ . ;
+ . S IENSTR=LRAN_","_LRAD_","_LRAA_","
+ . S DRAWDATE=$P($$GET1^DIQ(68.02,IENSTR,"DRAW TIME","I"),".")
+ . Q:DRAWDATE<LRSDT!(DRAWDATE>LRLDT)     ; Skip if not in date range
+ . ;
+ . S LRAS=$$GET1^DIQ(68.02,IENSTR,"ACCESSION")
+ . S CNT=CNT+1
+ . S DIRZERO=DIRZERO_CNT_":"_LRUID_";"
+ . S DIRZERO(CNT)=$$LJ^XLFSTR($J(CNT,2)_") "_$$LJ^XLFSTR(LRUID,11)_LRAS,27)
+ . S LUIDINDX(CNT)=LRUID_U_ENTRY_U_LRAA_U_LRAD_U_LRAN
+ S CNT=CNT+1
+ S DIRZERO=DIRZERO_(CNT)_":AL"
+ ;
+ I $D(LUIDINDX)<1 D  Q
+ . W !!,?4,"No Entries for Date Range ",$$FMTE^XLFDT(LRSDT,"5DZ")," thru ",$$FMTE^XLFDT(LRLDT,"5DZ")
+ . D PRESSKEY^BLRGMENU(9)
+ . S LREND=1
+ ;
+ S NUMCOL=3
+ K LRUID
+ D ^XBFMK
+ S DIR(0)=DIRZERO
+ S DIR("L",1)="    UID        Accession       UID        Accession       UID        Accession"
+ S DIR("L",2)="    ---------- -----------     ---------- -----------     ---------- ----------"
+ S BELOW=3
+ S CNT=0
+ F  S CNT=$O(DIRZERO(CNT))  Q:CNT<1  D
+ . S:(CNT#NUMCOL)=1 DIR("L",BELOW)=""
+ . S DIR("L",BELOW)=$G(DIR("L",BELOW))_$S((CNT#NUMCOL)=0:$$TRIM^XLFSTR(DIRZERO(CNT),"R"," "),1:DIRZERO(CNT))
+ . S:(CNT#NUMCOL)=0 BELOW=BELOW+1
+ ;
+ S DIR("L")=""
+ S DIR("A")="Select number"    ; Change default prompt
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ D ^DIR
+ I +Y<1!(+$G(DIRUT)) D  Q
+ . W !,?4,"No/Invalid Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ . S LREND=1
+ ;
+ S STR=$G(LUIDINDX(+$G(Y)))
+ S LRUID=+STR
+ S LRIFN=+$P(STR,U,2),LRAA=$P(STR,U,3),LRAD=$P(STR,U,4),LRAN=$P(STR,U,5)
+ Q
+ ;
+ONGO(NOGO) ; EP - Continue?
+ D ^XBFMK
+ S DIR(0)="YO"
+ S DIR("A")="Continue"
+ S DIR("B")="NO"
+ D ^DIR
+ S:+Y<1 NOGO=1
+ Q
+ ;
+REPORT ; EP - Report on UIDs for a Specific LOAD/WORK LIST
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D SETLBRVS("REPORT")
+ Q:$$GETAUTOI()="Q"
+ Q:$$REPORTI()="Q"
+ ;
+ F  S ENTRY=$O(^LAH(LRLL,1,ENTRY),-1)  Q:ENTRY<1!(QFLG="Q")  D REPORTL
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+REPORTI() ; EP - Initialization of variables
+ K HEADER
+ S HEADER(1)=LRAUTON_" AUTO INSTRUMENT"
+ S HEADER(2)=$$CJ^XLFSTR(LRLLNAME_" ^LAH Entries",IOM)
+ S HEADER(3)=" "
+ S $E(HEADER(4),5)="Entry"
+ S $E(HEADER(4),15)="UID"
+ S $E(HEADER(4),28)="Accession"
+ S $E(HEADER(4),48)="Order #"
+ S $E(HEADER(4),58)="Order Date"
+ S $E(HEADER(4),70)="Draw Date"
+ ;
+ S (CNT,PG)=0,ENTRY="A"
+ S MAXLINES=20,LINES=MAXLINES+10
+ S QFLG="NO"
+ Q "OK"
+ ;
+REPORTL ; EP - Line of data
+ Q:$$REPORTB()="Q"
+ ;
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,"NO")  Q:QFLG="Q"
+ ; 
+ W ?5,ENTRY
+ W ?14,LRUID
+ W ?27,LRAS
+ W ?47,ORDERNUM
+ W ?57,DATEORD
+ W ?69,DRAWDATE
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ Q
+ ;
+REPORTB() ; EP - Breakout data
+ S LRUID=+$G(^LAH(LRLL,1,ENTRY,.3))
+ Q:LRUID<1 "Q"
+ ;
+ S X=$Q(^LRO(68,"C",LRUID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ ;
+ Q:LRAA<1!(LRAD<1)!(LRAN<1) "Q"
+ ;
+ S IENSTR=LRAN_","_LRAD_","_LRAA_","
+ ;
+ S ORDERNUM=$$GET1^DIQ(68.02,IENSTR,"ORDER #")
+ S LRAS=$$GET1^DIQ(68.02,IENSTR,"ACCESSION")
+ S DATEORD=$$FMTE^XLFDT($$GET1^DIQ(68.02,IENSTR,"DATE ORDERED","I"),"5DZ")
+ S DRAWDATE=$$FMTE^XLFDT($$GET1^DIQ(68.02,IENSTR,"DRAW TIME","I"),"5DZ")
+ Q "OK"
+ ;
+SETLBRVS(TWO) ; EP - Set the BLRVERN & BLRVERN2 variables
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S:$L($G(TWO)) BLRVERN2=TWO
+ Q
+ ;
+GETAUTOI() ; EP - Get the AUTO INSTRUMENT
+ S HEADER(1)="AUTO INSTRUMENT"
+ D HEADERDT^BLRGMENU
+ ;
+ D ^XBFMK
+ S DIR(0)="PO^62.4:E"
+ D ^DIR
+ I +Y<1!(+$G(DIRUT)) D  Q "Q"
+ . W !,?4,"No/Invalid Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S LRAUTO=+Y,LRAUTON=$P(Y,U,2)
+ I $$GETLWRKL()="Q" Q "Q"
+ Q "OK"
+ ;
+ S LRLL=+$$GET1^DIQ(62.4,LRAUTO,"LOAD/WORK LIST","I")
+ S LRLLNAME=$$GET1^DIQ(62.4,LRAUTO,"LOAD/WORK LIST")
+ I LRLL<1 D  Q "Q"
+ . W !,?4,"No LOAD/WORK LIST associated with ",LRAUTON,".  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ K HEADER(1)
+ S HEADER(1)=LRAUTON_" AUTO INSTRUMENT"
+ S HEADER(2)=$$CJ^XLFSTR(LRLLNAME_" ^LAH Entries",IOM)
+ ;
+ Q "OK"
+ ;
+GETLWRKL() ; EP - Get the LOAD/WORK list
+ S HEADER(1)="LOAD/WORK LIST"
+ D HEADERDT^BLRGMENU
+ ;
+ ; Get LOAD/WORK list IEN
+ D ^XBFMK
+ S DIR(0)="PO^68.2:E"
+ D ^DIR
+ I +Y<1!(+$G(DIRUT)) D  Q "Q"
+ . W !,?4,"No/Invalid Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S LRLL=+Y,LRLLNAME=$P(Y,U,2)
+ S HEADER(2)=LRLLNAME_" ^LAH Entries"
+ ;
+ Q "OK"

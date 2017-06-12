@@ -1,5 +1,5 @@
 ACHSRP ; IHS/ITSC/PMF - PRINT CHS FORMS ; 27 Jul 2010  11:56 AM
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,11,13,16,19**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,11,13,16,19,25**;JUN 11, 2001;Build 37
  ;;ACHS*3.1*2; check for POs for the user's facility
  ;3.1*11; 9.16.04 IHS/ITSC/FCJ TEST FOR E-SIG ADDED
  ;ACHS*3.1*13 12/11/07 IHS/OIT/FCJ FX NAKED REF
@@ -56,7 +56,8 @@ B1 ;EP.
  K DIR
  ;
  ;ACHS*3.1*11; 9.16.04 IHS/ITSC/FCJ DISPLAY MESG FOR UNSIGNED DOCS
- I $D(ACHSEFL),$P(ACHSEFL,U,3)>0 W !!!,"**** ",$P(ACHSEFL,U,3)," Documents were NOT printed, because missing E-Signature ****"
+ ;I $D(ACHSEFL),$P(ACHSEFL,U,3)>0 W !!!,"**** ",$P(ACHSEFL,U,3)," Documents were NOT printed, because missing E-Signature ****"
+ I ($D(^ACHSF("EQ",DUZ(2)))!$D(ACHSF("EAQ"),DUZ(2))) W !!!,"****  Some Documents were NOT printed, because missing E-Signature ****" ;ACHS*3.1*25
  I $G(ACHSREG) F  W !!!!,*7 S DIR(0)="E",DIR("A",1)="Put Regular Paper Back In The Printer ",DIR("A")="And Press RETURN",DIR("T")=10 D ^DIR Q:Y=1
  D END
  Q

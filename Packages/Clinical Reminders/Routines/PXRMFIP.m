@@ -1,10 +1,10 @@
 PXRMFIP ; SLC/PJH - Edit/Inquire Finding Item Parameters ;03/09/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;General selection
 START N DIC,PXRMGTYP,PXRMHD,Y
 SELECT ;Get lists of finding types for display
- N DEF,DEF1,DEF2 D DEF^PXRMRUTL(.DEF,.DEF1,.DEF2)
+ N DEF,DEF1,DEF2 D DEF^PXRMRUTL("811.902",.DEF,.DEF1,.DEF2)
  S PXRMHD="Finding Item Parameters",PXRMFIP="",PXRMGTYP="FIP"
  D START^PXRMSEL(PXRMHD,PXRMGTYP,"PXRMFIP")
  ;Should return a value

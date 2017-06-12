@@ -1,5 +1,5 @@
 PXRMCAT ; SLC/PJH - Edit/Inquire reminder categories ;01/05/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;Called by option PXRM REMINDER CATEGORIES
  ;
@@ -59,7 +59,7 @@ CAT(PXRMCAT) ;
  ;Category description
  ;--------------------
 DES ;array.
- N DIWF,DIWL,DIWR,SUB
+ N DIWF,DIWL,DIWR,SUB,X
  S DIWF="C70",DIWL=0,DIWR=70
  K ^UTILITY($J,"W")
  S SUB=0

@@ -1,5 +1,5 @@
 APCDACCR ; IHS/CMI/LAB - remove accept command from a record ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
  D INFORM
@@ -60,8 +60,7 @@ DSPLY ;display selected visit, calls APCDVDSP
  I APCDLOOK="" W !!,"No POV selected!",! Q
  S DA=APCDLOOK,DIE="^AUPNVPOV(",DR=".14///@" D ^DIE K DA,DIE,DR
  I $D(Y) W !!,"ACCEPT COMMAND FAILED!!  NOTIFY A PROGRAMMER!" Q
- ;W !,"Accept command has been removed for POV ",$P(^ICD9($P(^AUPNVPOV(APCDLOOK,0),U),0),U),!
- W !,"Accept command has been removed for POV ",$P($$ICDDX^ICDCODE($P(^AUPNVPOV(APCDLOOK,0),U)),U,2),!
+ W !,"Accept command has been removed for POV ",$P($$ICDDX^ICDEX($P(^AUPNVPOV(APCDLOOK,0),U)),U,2),!
  D MOD
  I $D(Y) W !!,"DIE FAILED... NOTIFY PROGRAMMER!"
  Q
@@ -75,7 +74,7 @@ DSPLY ;display selected visit, calls APCDVDSP
  S DA=APCDLOOK,DIE="^AUPNVPRC(",DR=".09///@" D ^DIE K DA,DIE,DR
  I $D(Y) W !!,"ACCEPT COMMAND FAILED!!  NOTIFY A PROGRAMMER!" Q
  ;W !,"Accept command has been removed from PROCEDURE ",$P(^ICD0($P(^AUPNVPRC(APCDLOOK,0),U),0),U),!
- W !,"Accept command has been removed from PROCEDURE ",$P($$ICDOP^ICDCODE($P(^AUPNVPRC(APCDLOOK,0),U)),U,2),!
+ W !,"Accept command has been removed from PROCEDURE ",$P($$ICDOP^ICDEX($P(^AUPNVPRC(APCDLOOK,0),U),$$VD^APCLV(APCDVSIT),,"I"),U,2),!
  D MOD
  I $D(Y) W !!,"DIE FAILED... NOTIFY PROGRAMMER",!,$C(7),$C(7)
  Q

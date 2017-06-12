@@ -1,5 +1,5 @@
 BDMLPM ; IHS/CMI/LAB - CALCULATE LAST PAP MAM ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**1,2,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**1,2,8,9**;JUN 14, 2007;Build 78
  ;
  ;
 LASTPAP(P) ;EP - return last pap date
@@ -212,6 +212,7 @@ DIETEDUC(P,BDATE,EDATE)  ;EP
  ...I $P(J,"-",2)="DT" S G=D Q
  ...I $P(J,"-",2)="MNT" S G=D Q
  ...I $P(J,"-",1)="MNT" S G=D Q
+ ...I $P(J,"-",1)="DMCN" S G=D Q
  .Q
  Q G
 PC(V) ;return provider discipline of educ provider
@@ -271,9 +272,16 @@ OTHEDUC(P,BDATE,EDATE) ;EP
  ...I $P(J,"-",2)="DT" Q
  ...I $P(J,"-",2)="MNT" Q
  ...I $P(J,"-",1)="MNT" Q
- ...I T,$D(^ATXAX(T,21,"AA",Y)) S G=D
- ...I $P(J,"-",1)="250" S G=D
- ...I $P(J,"-",1)="DM" S G=D
- ...I $P(J,"-",1)="DMC" S G=D
- .Q
+ ...I $P(J,"-",1)="DMCN" Q
+ ...I T,$D(^ATXAX(T,21,"AA",Y)) S G=D Q
+ ...I $P(J,"-",1)="250" S G=D Q
+ ...I $P(J,"-",1)="DM" S G=D Q
+ ...I $P(J,"-",1)="DMC" S G=D Q
+ ...I $P(J,"-",1)]"",$$SNOMED^BDMUTL(2016,"DIABETES DIAGNOSES",$P(J,"-",1)) S G=D Q
+ ...N CODE
+ ...S CODE=$P($$CODEN^BDMUTL($P(T,"-",1),80),"~")
+ ...I CODE>0 D  Q
+ ....N TAX
+ ....S TAX=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ ....I $$ICD^BDMUTL(CODE,$P(^ATXAX(TAX,0),U),9) S G=D
  Q G

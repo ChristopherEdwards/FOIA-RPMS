@@ -1,5 +1,5 @@
-LA7VCIN2 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VCIN2 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027,1033**;NOV 01, 1997
  ;This routine is a continuation of LA7VIN1 and is only called from there.
  Q
  ;
@@ -236,6 +236,9 @@ PID ; Process PID segment
  . S LRDFN=$P($G(^DPT(DFN,"LR")),"^")
  . S LRTDFN=$P($G(^DPT(DFN,"LRT")),"^")
  ;
+ ; Race for MU2
+ S LA7RACE=$P($$P^LA7VHLU(.LA7SEG,11,LA7FS),LA7CS)
+ I $G(LA7RACE)]"" S LA7RACE=$O(^DIC(10,"AHL7",LA7RACE,0))
  Q
  ;
  ;

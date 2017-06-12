@@ -1,5 +1,21 @@
 BEDDUTIU ;VNGT/HS/BEE-BEDD Utility Routine 3 ; 08 Nov 2011  12:00 PM
- ;;1.0;BEDD DASHBOARD;;Dec 17, 2012;Build 31
+ ;;2.0;BEDD DASHBOARD;;Jun 04, 2014;Build 13
+ ;
+ Q
+ ;
+LOG(DUZ,AMCAT,AMACT,AMCALL,AMDESC,AMERVDFN) ;EP - File entry into BUSA
+ ;
+ NEW X
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
+ ;Define DUZ variable
+ I $G(DUZ)="" Q
+ D DUZ^XUP(DUZ)
+ ;
+ ;Log the entry
+ D LOG^AMERBUSA($G(AMCAT),$G(AMACT),$G(AMCALL),$G(AMDESC),.AMERVDFN)
  ;
  Q
  ;

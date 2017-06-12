@@ -1,7 +1,7 @@
 BMCHS ; IHS/PHXAO/TMJ - RCIS HEALTH SUMMARY COMPONENT ;     
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3,9**;JAN 09, 2006;Build 51
  ;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES
- ;
+ ;4.0*9 04.14.2014 IHS.OIT.FCJ ICD-10 CHANGES
  ; This routine generates the RCIS component of the Health Summary.
  ;
 HS ;EP-called from health summary
@@ -60,9 +60,9 @@ WRTDXLP ; LOOP THRU DX ENTRIES
 WRTDX2 ; WRITE ONE DX
  S X=^BMCDX(BMCDIEN,0)
  Q:$P(X,U,4)'=BMCPFS
- ;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES
+ ;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES;4.0*9 ICD-10 CHANGES
  ;W ?10,$P(^ICD9($P(X,U),0),U,2),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
- W ?10,$P($$ICDDX^ICDCODE($P(X,U),0),U),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ W ?10,$P($$ICDDX^ICDCODE($P(X,U),,,"I"),U,2),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
  S X=$P(X,U,6)
  I X S:$D(^AUTNPOV(X,0)) X=$P(^AUTNPOV(X,0),U) I 1
  E  D ENP^XBDIQ1(90001.01,BMCDIEN,".019","BMCX(","E") S:BMCX(".019")]"" X=BMCX(".019")

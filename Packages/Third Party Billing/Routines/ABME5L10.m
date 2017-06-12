@@ -1,6 +1,7 @@
 ABME5L10 ; IHS/ASDST/DMJ - Header 
- ;;2.6;IHS Third Party Billing System;**6,8,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing System;**6,8,10,11,19**;NOV 12, 2009;Build 300
  ;Header Segments
+ ;IHS/SD/SDR - 2.6*19 - HEAT116949 - Include LIN segment in 837I if line item has an NDC.
  ;
 EP ;START HERE
  S ABMLXCNT=0
@@ -43,15 +44,24 @@ LOOP ;
  S ABMLOOP=2410
  ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,14)'="" D  ;abm*2.6*10 HEAT72307
  ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,13)'="" D  ;abm*2.6*10 HEAT72307  ;abm*2.6*10 HEAT78446
- I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,28)'="" D  ;abm*2.6*10 HEAT72307  ;abm*2.6*10 HEAT78446
+ ;I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,28)'="" D  ;abm*2.6*10 HEAT72307  ;abm*2.6*10 HEAT78446  ;abm*2.6*19 HEAT116949
+ S NDC=$P($P(ABMRV(ABMI,ABMJ,ABMK),U,9)," ")  ;abm*2.6*19 HEAT116949
+ S NDC=$TR(NDC,"-") I ($L(NDC)'=10&($L(NDC)'=11)) Q  ;abm*2.6*19 HEAT116949
+ I NDC D  ;abm*2.6*19 HEAT116949
  .I $P($P(ABMRV(ABMI,ABMJ,ABMK),U,9)," ")'="" D
  ..D EP^ABME5LIN
  ..D WR^ABMUTL8("LIN")
  .I +$P(ABMRV(ABMI,ABMJ,ABMK),U,5) D
  ..D EP^ABME5CTP
  ..D WR^ABMUTL8("CTP")
- .D EP^ABME5REF("XZ",$P(ABMRV(ABMI,ABMJ,ABMK),U,14))
- .D WR^ABMUTL8("REF")
+ .;start old abm*2.6*19 HEAT116949
+ .;D EP^ABME5REF("XZ",$P(ABMRV(ABMI,ABMJ,ABMK),U,14))
+ .;D WR^ABMUTL8("REF")
+ .;end old start new abm*2.6*19 HEAT116949
+ .I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,14)'="" D
+ ..D EP^ABME5REF("XZ",$P(ABMRV(ABMI,ABMJ,ABMK),U,14))
+ ..D WR^ABMUTL8("REF")
+ ;end new abm*2.6*19 HEAT116949
  ;
  ; Loop 2420A - Operating Physician Name
  S ABMLOOP="2420A"

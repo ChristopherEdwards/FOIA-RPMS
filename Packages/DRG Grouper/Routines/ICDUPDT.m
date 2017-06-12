@@ -1,5 +1,5 @@
 ICDUPDT ; DLS/DEK/KER - ICD Update Protocol for ICD Codes ; 02/22/2007
- ;;18.0;DRG Grouper;**6,11,28**;Oct 20, 2000;Build 9
+ ;;18.0;DRG Grouper;**6,11,28**;Oct 20, 2000;Build 7
  ;
  ; Quit Update if NOT ICD Diagnosis/Procedure Related 
  ;

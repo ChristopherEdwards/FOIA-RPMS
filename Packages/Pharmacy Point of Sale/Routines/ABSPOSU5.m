@@ -1,5 +1,5 @@
 ABSPOSU5 ; IHS/FCS/DRS - utilities ;     [ 09/12/2002  10:19 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ;----------------------------------------------------------------------
 TOSCREEN()         ;EP; True or False, is output to screen?

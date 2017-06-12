@@ -1,5 +1,5 @@
 ABSPOSN6 ; IHS/FCS/DRS - NCPDP Fms F ILC A/R ;    [ 09/12/2002  10:16 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT - 11/07/07 - Patch 23
  ; Updated ICD9 call for CSV.

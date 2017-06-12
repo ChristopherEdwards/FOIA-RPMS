@@ -1,5 +1,5 @@
 ABSPOSQA ; IHS/FCS/DRS - POS background, Part 1 ;   
- ;;1.0;PHARMACY POINT OF SALE;**10,42,43,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10,42,43,46,47**;JUN 1, 2001;Build 15
  ;------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve
@@ -199,8 +199,10 @@ PAPER() ; Return TRUE if this has to be sent as a paper claim.
  ; test some more (maybe electronic for presc. but paper for postage)
  G @("PAPER"_$$TYPE^ABSPOSQ)
 PAPER1 ; prescription
- N P S P=$P(^ABSPT(IEN59,5),U,5) ; price
- I P>0,P<10000 Q 0  ; make sure positive, and < $10000 (6 digits limit)
+ N P,L S P=$P(^ABSPT(IEN59,5),U,5) ; price
+ S L=$G(^ABSP(9002313.99,1,"DOLLMT")) I 'L S L=15000 ;OIT/CAS/RCS Patch 47, Add dollar limit check
+ ;I P>0,P<10000 Q 0  ; make sure positive, and < $10000 (6 digits limit)
+ I P>0,P<L Q 0  ;OIT/CAS/RCS Patch 47, Make sure price is less than dollar limit
  Q 1  ; otherwise, must go via paper
 PAPER2 ; postage - depends on insurer and amount
  N X S X=$G(^ABSPEI(INSURER,102))

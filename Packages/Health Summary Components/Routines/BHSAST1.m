@@ -1,7 +1,8 @@
-BHSAST1 ;IHS/MSC/MGH - Asthma supplement continued;27-Oct-2009 13:07;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**3**;March 17, 2006
+BHSAST1 ;IHS/MSC/MGH - Asthma supplement continued;30-Nov-2015 10:23;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**3,12**;March 17, 2006;Build 3
  ; IHS/CMI/LAB - ;
  ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ; Patch 12 changed to use new API for taxonomies
  ;
  ;BJPC v1.0 patch 1
 S2(N) ;
@@ -16,10 +17,12 @@ FMH(BHSPAT,BHTFP) ;EP - ASTHMA ******* FAMILY HISTORY * 9000014 *******
  NEW BHTFH
  K BHTFH,BHTFP
  NEW BHSDFN,C,R,S,Z,O,BHO,G
+ ;IHS/MSC/MGH changed to use new API P12
  S BHSDFN=0 F  S BHSDFN=$O(^AUPNFH("AC",BHSPAT,BHSDFN)) Q:'BHSDFN  D
  .Q:'$D(^AUPNFH(BHSDFN,0))  ;bad xref
  .S C=$P(^AUPNFH(BHSDFN,0),U)
- .S G=0 I $$ICD^ATXCHK(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) S G=1
+ .S G=0
+ .I $$ICD^ATXAPI(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) S G=1
  .I $$VAL^XBDIQ1(9000014,BHSDFN,.01)="V17.5" S G=1
  .Q:'G
  .S R=$P(^AUPNFH(BHSDFN,0),U,9)

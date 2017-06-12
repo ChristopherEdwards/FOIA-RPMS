@@ -1,4 +1,4 @@
-RACTEX3 ; ;07/06/13
+RACTEX3 ; ;05/20/15
  D DE G BEGIN
 DE S DIE="^RADPT(D0,""DT"",D1,""P"",",DIC=DIE,DP=70.03,DL=3,DIEL=2,DU="" K DG,DE,DB Q:$O(^RADPT(D0,"DT",D1,"P",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,4) S:%]"" DE(14)=% S %=$P(%Z,U,6) S:%]"" DE(24)=% S %=$P(%Z,U,8) S:%]"" DE(18)=% S %=$P(%Z,U,9) S:%]"" DE(21)=% S %=$P(%Z,U,10) S:%]"" DE(1)=%

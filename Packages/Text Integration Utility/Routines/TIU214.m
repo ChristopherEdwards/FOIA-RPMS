@@ -1,7 +1,8 @@
-TIU214 ; VMP/JML -  ID NOTES with Mismatched Patients ;3/31/06  ; Compiled March 13, 2006 15:21:26
- ;;1.0;TEXT INTEGRATION UTILITIES;**214**;Jun 20, 1997
+TIU214 ; VMP/JML -  ID NOTES with Mismatched Patients ;11-Feb-2013 08:57;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**214,1011**;Jun 20, 1997;Build 13
  ; Report/Fix ID Documents where the child note points to a parent note for a different patient.
- ; Report only  Documents where the child note points to a parent that may not be an id note. 
+ ; Report only  Documents where the child note points to a parent that may not be an id note.
+ ;IHS/MSC/MGH changed to use HRCN patch 1011
  Q
 EN ; Build array of mismatched ID documents
  N TIUPRNT,TIUCHILD,TIUPDFN,TIUCDFN,TIUPNAME,TIUCNAME,TIUP0,TIUC0,TIUCAUTH,TIUCTITL,TIUDATA,TIUBAD
@@ -180,12 +181,16 @@ MAIL ; EMAIL TOTALS TO B.PSI-06-030 TO TRACK COMPLIANCE
  D SENDMSG^XMXAPI(XMDUZ,XMSUBJ,"TIUMAIL",.XMTO)
  Q
 PNAME(PTDFN) ; Return Patient Name & last 4 of SSN
- N TIUSSN,TIUSSN4,TIUNAME,TIUPN,VADM
+ N TIUSSN,TIUSSN4,TIUNAME,TIUPN,VADM,HRCN
  I $G(PTDFN)="" Q "UNKNOWN^UNKNOWN"
  ;
  S DFN=PTDFN D DEM^VADPT
  S TIUSSN=$P(VADM(2),"^",2)
  S TIUSSN4=$P(TIUSSN,"-",3)
+ ;IHS/MSC/MGH changd to use HRN
+ S HRCN=$$HRCN^TIUR2(DFN,+$G(DUZ(2)))
+ S TIUSSN4=HRCN
+ ;END MOD
  S TIUPN=VADM(1)
  I TIUPN'="" S TIUPN=TIUPN_"^"_$E(TIUPN)_TIUSSN4
  I TIUPN="" S TIUPN="UNKNOWN^UNKNOWN"

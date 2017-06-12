@@ -1,5 +1,5 @@
 AMER4 ; IHS/ANMC/GIS - ER VISIT SUMMARY ; 
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6,7**;MAR 03, 2009;Build 5
  ;
 EDIT ; NEED TO REEDIT??
  I $D(IOF) W @IOF
@@ -63,7 +63,7 @@ OT(V,T) ;ENTRY POINT FROM AMER5
  ; 4 = Patient
  ; 5 = Person (doctor name)
  ; 6 = Yes/No
- ; 7 = ICD9
+ ; 7 = ICD9/ICD10
  ; 8 = ER CONSULTANT
  N Y
  S Y=""
@@ -75,11 +75,11 @@ OT(V,T) ;ENTRY POINT FROM AMER5
  I T=5 S Y=$P($G(^VA(200,+V,0)),U) Q Y
  I T=6 S Y=$S(V=1:"YES",1:"NO") Q Y
  I T=7 D
- .;IHS/OIT/SCR 11/18/08 allow 'local code' option instead of default which screens valid codes
- .;S Y=$P($$ICDDX^ICDCODE(+V),U,2)
- .S Y=$P($$ICDDX^ICDCODE(+V,,,1),U,2)
- .S Y=Y_"{"_$P($$ICDDX^ICDCODE(+V,,,1),U,4)_"}"
- .Q
+ . ;AMER*3.0*6;Change ICD lookup
+ . NEW VDT
+ . S VDT=$$GET1^DIQ(9009081,DFN_",",1,"I") S:VDT="" VDT=DT
+ . S Y=$$DX^AMERPOV(+V,"",1,VDT)
+ ;
  I T=8 S Y=$P($G(^AMER(2.9,+V,0)),U) Q Y
  Q Y
  ;
@@ -92,28 +92,32 @@ MULT(N) ; FORMATS MULTIPLES
  ; N = 7  - ER Consultants - want to return a list of 
  ;                    - Consultant Types, times, and Person
  ;
-  ;N A,X,I S A="" ;AMER*2.5*1 req 5 IHS/OIT/SCR 2/15/06 replaced with following two lines
-  N A,X,I,K1,K2,K3
-  S A=""
-  I $D(^TMP("AMER",$J,2,N))<10 Q ""
-  F I=0:0 S I=$O(^TMP("AMER",$J,2,N,I)) Q:'I  D
-  .I $D(^TMP("AMER",$J,2,N,I))<10 D
-  .. S X=^TMP("AMER",$J,2,N,I)
-  .. S X=$$OT(X,2) I X="" Q
-  .. I A]"" S A=A_"^ "
-  .. S A=A_X
-  ..Q
-  .E  D
-  ..S K1=$G(^TMP("AMER",$J,2,N,I,.01)) Q:'K1
-  ..S K2=$G(^TMP("AMER",$J,2,N,I,.02))
-  ..S K3=$G(^TMP("AMER",$J,2,N,I,.03))
-  ..S K1=$$OT(K1,8)
-  ..S K2=$$OT(K2,1)
-  ..S K3=$$OT(K3,5)
-  .. I A]"" S A=A_"^  "
-  .. S A=A_K1_" @ "_K2_"  "_K3
-  .. Q
-  Q A
+ ;N A,X,I S A="" ;AMER*2.5*1 req 5 IHS/OIT/SCR 2/15/06 replaced with following two lines
+ ;
+ ;AMER*3.0*7;Special code to get DX information
+ I N=11 Q $$DX($G(AMERDFN))
+ ;
+ N A,X,I,K1,K2,K3
+ S A=""
+ I $D(^TMP("AMER",$J,2,N))<10 Q ""
+ F I=0:0 S I=$O(^TMP("AMER",$J,2,N,I)) Q:'I  D
+ .I $D(^TMP("AMER",$J,2,N,I))<10 D
+ .. S X=^TMP("AMER",$J,2,N,I)
+ .. S X=$$OT(X,2) I X="" Q
+ .. I A]"" S A=A_"^ "
+ .. S A=A_X
+ ..Q
+ .E  D
+ ..S K1=$G(^TMP("AMER",$J,2,N,I,.01)) Q:'K1
+ ..S K2=$G(^TMP("AMER",$J,2,N,I,.02))
+ ..S K3=$G(^TMP("AMER",$J,2,N,I,.03))
+ ..S K1=$$OT(K1,8)
+ ..S K2=$$OT(K2,1)
+ ..S K3=$$OT(K3,5)
+ .. I A]"" S A=A_"^  "
+ .. S A=A_K1_" @ "_K2_"  "_K3
+ .. Q
+ Q A
  ;
 FORMAT ; SETS UTL ARRAY FOR VISIT SUMMARY
  N X,Y,Z,I,N,V,H,C,%,Q
@@ -142,3 +146,27 @@ ADM1 S AMERFIN=14 D EDIT^AMER
  S AMERQSEQ=$P(AMERQSEQ,";",1,$L(AMERQSEQ,";")-2)_";"
  G ADM1
  Q
+ ;
+DX(AMERDFN) ;Set up DX information for display
+ ;
+ I $G(AMERDFN)="" Q ""
+ ;
+ NEW AMERPCC,AMERPOV,PVCNT,VDT,VAL
+ ;
+ S VAL=""
+ ;
+ ;Get the visit
+ S AMERPCC=$$GET1^DIQ(9009081,AMERDFN_",","1.1","I") Q:AMERPCC="" VAL
+ S VDT=$P($$GET1^DIQ(9000010,AMERPCC,.01,"I"),".")
+ ;
+ ;Process each one
+ S AMERPOV="" F PVCNT=1:1 S AMERPOV=$O(^AUPNVPOV("AD",AMERPCC,AMERPOV)) Q:AMERPOV=""  D
+ . NEW ICDIEN,INFO,PS
+ . ;
+ . ;Pull each entry
+ . S ICDIEN=$$GET1^DIQ(9000010.07,AMERPOV,.01,"I")
+ . S PS=$$GET1^DIQ(9000010.07,AMERPOV,.12,"I")
+ . S INFO=$$ICDDX^AUPNVUTL(ICDIEN,VDT)
+ . S VAL=VAL_$S(VAL]"":"^ ",1:"")_"["_PS_"] "_$$VAL^XBDIQ1(9000010.07,AMERPOV,.04)_" ["_$P(INFO,U,2)_"]"
+ ;
+ Q VAL

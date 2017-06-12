@@ -1,6 +1,10 @@
 ABME5HI ; IHS/ASDST/DMJ - 837 HI Segment 
- ;;2.6;IHS Third Party Billing System;**6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing System;**6,8,9,10,11,14,16,18**;NOV 12, 2009;Build 289
  ;Transaction Set Header
+ ;IHS/SD/SDR - 2.6*14 - ICD10 002F - Added code to put A for ICD10 codes
+ ;IHS/SD/SDR - 2.6*16 - HEAT217211 - Fixed typo for HI02
+ ;IHS/SD/SDR - 2.6*16 - HEAT231506 - Added code so second DX will print for 837D
+ ;IHS/SD/SDR - 2.6*18 - HEAT242924 - Made 4 DXs print for 837D; was only printing 2
  ;
 EP(X) ;EP
  K ABMREC("HI"),ABMR("HI")
@@ -23,7 +27,8 @@ LOOP ;LOOP HERE
  S ABMR("HI",20)=""
  I ABMEIC="BK" S ABMR("HI",20)=$$DXP^ABMUTL8(ABMP("BDFN"))
  I ABMEIC="BF" S ABMR("HI",20)=$G(ABMDX(2))
- I ABMEIC="BJ"!(ABMEIC="PR") S ABMR("HI",20)=ABMEIC_":"_$G(ABMDX("ADM"))
+ ;I ABMEIC="BJ"!(ABMEIC="PR") S ABMR("HI",20)=ABMEIC_":"_$G(ABMDX("ADM"))  ;abm*2.6*14 ICD10 002F
+ I ABMEIC="BJ"!(ABMEIC="PR") S ABMR("HI",20)=$S((+$G(ABMDX("ADMTYP"))>1):"A"_ABMEIC,1:ABMEIC)_":"_$G(ABMDX("ADM"))  ;abm*2.6*14 ICD10 002F
  I ABMEIC="BN" S ABMR("HI",20)=$G(ABMDXE(1))
  I ABMEIC="BR" S ABMR("HI",20)=$G(ABMPX(1))
  I ABMEIC="BQ" S ABMR("HI",20)=$G(ABMPX(2))
@@ -35,17 +40,20 @@ LOOP ;LOOP HERE
  Q
 30 ;HI02 - Health Care Code Information
  S ABMR("HI",30)=""
- I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",30)=$G(ABMDX(2))
+ ;I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",30)=$G(ABMDX(2))  ;abm*2.6*16 IHS/SD/SDR HEAT231506
+ I ABMEIC="BK",(ABMP("EXP")=32!(ABMP("EXP")=33)) S ABMR("HI",30)=$G(ABMDX(2))  ;abm*2.6*16 IHS/SD/SDR HEAT231506
  I ABMEIC="BF",$D(ABMDX(2)) S ABMR("HI",30)=$G(ABMDX(3))
  I ABMEIC="BQ",$D(ABMPX(3)) S ABMR("HI",30)=$G(ABMPX(3))
  ;I ABMEIC="BN",$D(ABMDXE(2)) S ABMR("HI",30)=$G(ABMDXE(2))  ;abm*2.6*10 NOHEAT
- I ABMEIC="BN",$D(ABMDXE(2)),(ABMR("HI",20)'=ABMDXE(2)) S ABMR("HI",30)=$G(ABMDXE(2))  ;abm*2.6*10 NOHEAT don't print E-code if entry is same E-code
+ ;I ABMEIC="BN",$D(ABMDXE(2)),(ABMR("HI",20)'=ABMDXE(2)) S ABMR("HI",30)=$G(ABMDXE(2))  ;abm*2.6*10 NOHEAT don't print E-code if entry is same E-code  ;abm*2.6*16 IHS/SD/SDR HEAT217211
+ I ABMEIC="BN",$D(ABMDXE(2)),(ABMR("HI",30)'=ABMDXE(2)) S ABMR("HI",30)=$G(ABMDXE(2))  ;abm*2.6*10 NOHEAT don't print E-code if entry is same E-code  ;abm*2.6*16 IHS/SD/SDR HEAT217211
  I ABMEIC="BH" S ABMR("HI",30)=$G(ABMOC(2))  ;abm*2.6*9 IHS/SD/AML 2/15/2012 HEAT59363
  I ABMEIC="BE" S ABMR("HI",30)=$G(ABMVA(2))  ;abm*2.6*11 IHS/SD/AML HEAT89676
  Q
 40 ;HI03 - Health Care Code Information
  S ABMR("HI",40)=""
- I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",40)=$G(ABMDX(3))
+ ;I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",40)=$G(ABMDX(3))  ;abm*2.6*18 IHS/SD/SDR HEAT242924
+ I ABMEIC="BK",(ABMP("EXP")=32!(ABMP("EXP")=33)) S ABMR("HI",40)=$G(ABMDX(3))  ;abm*2.6*18 IHS/SD/SDR HEAT242924
  I ABMEIC="BF",$D(ABMDX(3)) S ABMR("HI",40)=$G(ABMDX(4))
  I ABMEIC="BQ",$D(ABMPX(4)) S ABMR("HI",40)=$G(ABMPX(4))
  I ABMEIC="BN",$D(ABMDXE(3)) S ABMR("HI",40)=$G(ABMDXE(3))
@@ -54,7 +62,8 @@ LOOP ;LOOP HERE
  Q
 50 ;HI04 - Health Care Code Information
  S ABMR("HI",50)=""
- I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",50)=$G(ABMDX(4))
+ ;I ABMEIC="BK",ABMP("EXP")=32 S ABMR("HI",50)=$G(ABMDX(4))  ;abm*2.6*18 IHS/SD/SDR HEAT242924
+ I ABMEIC="BK",(ABMP("EXP")=32!(ABMP("EXP")=33)) S ABMR("HI",50)=$G(ABMDX(4))  ;abm*2.6*18 IHS/SD/SDR HEAT242924
  I ABMEIC="BF",$D(ABMDX(4)) S ABMR("HI",50)=$G(ABMDX(5))
  I ABMEIC="BQ",$D(ABMPX(5)) S ABMR("HI",50)=$G(ABMPX(5))
  I ABMEIC="BN",$D(ABMDXE(4)) S ABMR("HI",50)=$G(ABMDXE(4))

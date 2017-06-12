@@ -1,6 +1,6 @@
-USER
-ZWR
-^DIC(3,0)="USER^3I^8^6"
+OSEHRA ZGO Export: USER
+12-JUN-2017 09:47:32 ZWR
+^DIC(3,0)="USER^3I^9^7"
 ^DIC(3,0,.1)="54473,40230"
 ^DIC(3,0,"DD")="#"
 ^DIC(3,0,"DEL")="#"
@@ -24,6 +24,8 @@ ZWR
 ^DIC(3,7,1)="^^^^^^3130606^1"
 ^DIC(3,8,0)="XOBVTESTER,APPLICATION PROXY^^^^^^^^^^^^^^APPLICATION PROXY.XOBVTESTER^7"
 ^DIC(3,8,1)="^^^^^^3130808^1"
+^DIC(3,9,0)="KAAJEE,PROXY^^^#^^^^^^^^^^^PROXY.KAAJEE^8"
+^DIC(3,9,1)="^^^^^^3160106^1"
 ^DIC(3,"%",0)="^1.005^1^1"
 ^DIC(3,"%",1,0)="XU"
 ^DIC(3,"%","B","XU",1)=""
@@ -39,6 +41,7 @@ ZWR
 ^DIC(3,"%D",9,0)="and verify codes, primary and secondary menu options and synonyms,"
 ^DIC(3,"%D",10,0)="accessible files, and Hinq employee number."
 ^DIC(3,"B","ADAM,ADAM",1)=""
+^DIC(3,"B","KAAJEE,PROXY",9)=""
 ^DIC(3,"B","LRLAB,HL",7)=""
 ^DIC(3,"B","LRLAB,POC",6)=""
 ^DIC(3,"B","MANAGER,SYSTEM",4)=""

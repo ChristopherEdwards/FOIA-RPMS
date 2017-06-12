@@ -1,5 +1,5 @@
-APCLCP8 ; IHS/CMI/LAB - GIS/TUCSON PCC REPORT WITH AGE BUCKETS ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+APCLCP8 ; IHS/CMI/LAB - GIS/TUCSON PCC REPORT WITH AGE BUCKETS ; 11 Apr 2013  10:33 AM
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;This routine will print the PCC Report that uses age buckets
  ;to tabulate sex,tribe or current community by age.
  ;
@@ -8,7 +8,7 @@ APCLCP8 ; IHS/CMI/LAB - GIS/TUCSON PCC REPORT WITH AGE BUCKETS ;
  ;
 START ;
  W:$D(IOF) @IOF
- W !,"This report will present, for all visits on whichstaff members of",!,"discipline group that you select was a provider, time and patient services",!,"by age and sex.",!
+ W !,"This report will present, for all visits on which staff members of",!,"discipline group that you select was a provider, time and patient services",!,"by age and sex.",!
  S Y=DT D DD^%DT S APCLDT=Y
 GETGROUP ;
  S DIC="^APCLACTG(",DIC("A")="Enter the Provider Discipline Group you wish to report on: ",DIC(0)="AEMQ" D ^DIC K DIC

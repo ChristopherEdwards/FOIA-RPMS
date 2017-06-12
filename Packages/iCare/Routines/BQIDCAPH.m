@@ -1,5 +1,5 @@
-BQIDCAPH ;PRXM/HC/ALA-Scheduled Visits by Hospital location ; 17 Nov 2005  6:04 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+BQIDCAPH ;GDIT/HS/ALA-Scheduled Visits by Hospital location ; 17 Nov 2005  6:04 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -25,7 +25,7 @@ APT(DATA,PARMS,MPARMS) ;EP
  ;
 FND ;  Find the patients with appts for one or more hospital locations
  NEW HLOC,FROM,THRU,NM,N,FRDT,ENDT,LABEL,APST,STOP,FDT,EDT,DFN,STR,LOC,STAT
- NEW APSTAT,APTYPE
+ NEW APSTAT,APTYPE,APRANGE,RFROM,RTHRU
  S NM=""
  F  S NM=$O(PARMS(NM)) Q:NM=""  S @NM=PARMS(NM)
  I $G(APTYPE)'="" D
@@ -59,7 +59,7 @@ FND ;  Find the patients with appts for one or more hospital locations
  ;
 FND1 ; Check one hospital location
  ; If timeframe is selected populate start and end dates
- I $G(RANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH(RANGE,PPIEN)
+ I $G(APRANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH1(APRANGE,PPIEN,"APRANGE")
  S FDT=$S($G(RFROM)'="":RFROM,1:$G(FROM))
  S EDT=$S($G(RTHRU)'="":RTHRU,1:$G(THRU))
  NEW APCHK
@@ -92,7 +92,7 @@ FND1 ; Check one hospital location
  ;
 FNDALL ; Loop through all patients since cancelled status selected
  ; If timeframe is selected populate start and end dates
- I $G(RANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH(RANGE,PPIEN)
+ I $G(APRANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH1(APRANGE,PPIEN,"APRANGE")
  S FRDT=$S($G(RFROM)'="":RFROM,1:$G(FROM))
  S ENDT=$S($G(RTHRU)'="":RTHRU,1:$G(THRU))
  NEW APCHK

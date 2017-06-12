@@ -1,66 +1,45 @@
-ATXAX ; IHS/OHPRD/TMJ -  TAXONOMY FOR ICD9 CODES INTO ICD DIAG FILE ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ATXAX ; IHS/OHPRD/TMJ -  TAXONOMY FOR ICD9 CODES INTO ICD DIAG FILE ; 23 Aug 2012  6:40 AM
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ;
  ;
  ; -- ADD A NEW TAXONOMY OR ADD CODES TO A TAXONOMY
- ;
- ;
- F ATXL=0:0 D START W ! Q:ATXSTP
- K ATXL,ATXSTP,ATXPRO
- D EOJ
- Q
- ;
-START ;
- D ASK Q:ATXSTP
- D TSKMN
- D EOJ
- Q
- ;
-ASK ;ALLOWS ENTRY OF NEW TAXONOMY ONLY
+DESC ;
+ ;;This option should ONLY be used if you want to set up a bulletin
+ ;;that will be sent to a Mail Group you define.  
+ ;;A bulletin for a taxonomy is an email message sent to a specified
+ ;;group of recipients when a patient's purpose of visit matches one
+ ;;of the entries within the taxonomy. The selection of a taxonomy
+ ;;within the 'Enter Bulletin for a Taxonomy' option will automatically
+ ;;create a bulletin to be sent to the recipients within the designated mail group.
+ ;;
+ ;;$$END
+ N I,X F I=1:1 S X=$P($T(DESC+I),";;",2) Q:X["$$END"  D EN^DDIOL(X)
+ ;GET TAXONOMY
+ W !!,"Please select the ICD Diagnosis Taxonomy that you wish to have"
+ W !,"a bulletin set up for.  You must first create the taxonomy using"
+ W !,"the taxonomy set up option. Please Note:  You can only set up"
+ W !,"a bulletin for a taxonomy that you created.",!
  S ATXFLG="",ATXSTP=0
- S DIC="^ATXAX(",DIC(0)="AEMQL",DIC("DR")="",DIC("S")="I $P(^(0),U,5)=DUZ,$P(^(0),U,8)",DLAYGO="9002226" D ^DIC K DIC,DLAYGO
- ;S DIC="^ATXAX(",DIC(0)="AEMQL",DIC("DR")="",DLAYGO="9002226" D ^DIC K DIC,DLAYGO ;FOR NOW IHS/OKCAO/POC
- I Y<1 S ATXSTP=1 Q
- I $D(^TMP("ATXTAX",+Y)) W !,$C(7),"This taxonomy currently",^(+Y)," Try later.",! G ASK
- I $O(^ATXAX(+Y,21,0)) W !,$C(7),"This option for creation of new taxonomies or entry of ranges of values into",!,"taxonomies with ranges not yet entered!",! G ASK ;FOR NOW IHS/OKCAO/POC
+ S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("DR")="",DIC("S")="I $P(^(0),U,5)=DUZ,$P(^(0),U,15)=80" D ^DIC K DIC,DLAYGO
+ I Y=-1 W !,"Taxonomy not selected." D XIT Q
  S ATXX=+Y
- S $P(^ATXAX(ATXX,0),U,5)=DUZ
- S %H=$H D YX^%DTC S ATXTIME=X_%
- S DIE="^ATXAX(",DR=".02;.05////"_DUZ_";1101;.08////1;.09////"_ATXTIME_";.12////31;.13////1;.14////BA;.15////80;.16////1",DA=ATXX D ^DIE K DIE,DR,ATXTIME
- I '$D(Y),$P(^ATXAX(ATXX,0),U,16) D ^ATXCODE
- I '$O(^ATXAX(ATXX,21,0)) S ATXSTP=1 Q
- Q
- ;
-TSKMN ;
- S ^TMP("ATXTAX",ATXX)=" being created."
- K ZTSAVE F %="ATXX" S ZTSAVE(%)=""
- W !!,$C(7),"Entry of this taxonomy's name will now be made for each ICD CODE that falls",!,"under this taxonomy in background under Taskman!"
- S ZTRTN="ZTM^ATXAX",ZTDESC="ENTRY OF MEMBERS OF TAXONOMY INTO ICD DIAGNSIS FILE",ZTIO="",ZTDTH=DT D ^%ZTLOAD K ZTSK
- Q
- ;
-ZTM ;ENTRY POINT FOR TASKMAN
+ ;set created by taxonomy system
+ S DIE="^ATXAX(",DR=".08///1",DA=ATXX D ^DIE
+ZTM ;
  D DFNS
- K ^TMP("ATXTAX",ATXX)
- I $D(ZTQUEUED) S ZTREQ="@"
- D EOJ
+ ;now do what atxbull did
+ D ENTER^ATXBULL2  ;create the bulletin
+ D XIT
  Q
  ;
-DFNS ;GET LO AND HIGH DFNS FOR THIS TAXONOMY
- S ATXPRO="" ;WILL NOT ADD PT TO PT TAXONOMY FILE
- S ATXSS=0 F ATXL=0:0 S ATXSS=$O(^ATXAX(ATXX,21,ATXSS)) Q:ATXSS'=+ATXSS  S ATXLOV=$P(^(ATXSS,0),U)_" ",ATXHIV=$P(^(0),U,2)_" " D GETVAL
+DFNS ;EP - GET LO AND HIGH DFNS FOR THIS TAXONOMY
+ K ATXARR
+ D BLDTAX^ATXAPI($P(^ATXAX(ATXX,0),U,1),"ATXARR",ATXX,"T")
+ S ATX1="",ATXQ=0 F  S ATX1=$O(ATXARR(ATX1)) Q:ATX1=""  D
+ .;set icd9 41 multiple
+ .S DIE="^ICD9(",DR="9999999.41///"_"`"_ATXX,DA=ATX1 I DA]"",'$D(^ICD9(DA,9999999.41,"B",ATXX)) D ^DIE,^XBFMK
  Q
  ;
-KILL ;
- K DD,DINUM,DA,DIADD,DLAYGO,DA,DR,DI,A,B,S,D,X,Y,Z,DIC,DIE,D1,DDC,DDH,DIG,DIH,DIU,DIV,DIW,DQ
- K D,D0,D1,DA,DC,DDF,DDT,DE,DG,DH,DI,DIC,DIE,DIF,DIEL,DIFL,DIFLD,DIP,DK,DL,DLAYGO,DM,DN,DP,DQ,DR,DSEC,I,N,NO,X,Y,%,%Y,%X
+XIT ;
+ D EN^XBVK("ATX")
  Q
-GETVAL ;GET RANGE OF DFNS
- S DIE="^ICD9(",DR="9999999.41///"_"`"_ATXX,DA=$O(^ICD9("BA",ATXLOV,"")) I DA]"",'$D(^ICD9(DA,9999999.41,"B",ATXX)) D ^DIE D KILL
- Q:ATXLOV=ATXHIV
- F  S ATXLOV=$O(^ICD9("BA",ATXLOV)) Q:ATXLOV]ATXHIV!(ATXLOV="")  S ATXDFN=$O(^ICD9("BA",ATXLOV,"")) I '$D(^ICD9(ATXDFN,9999999.41,"B",ATXX)) S DIE="^ICD9(",DR="9999999.41///"_"`"_ATXX,DA=ATXDFN D ^DIE D KILL
- Q
- ;
-EOJ ;
- K ATXLOV,ATXHIV,ATXHI,ATXDFN,ATXX,ATXFLG,ATXLO,ATXPD,ATXP,ATXTIM,ATXCHK,ATXSS,ATXFILE,ATXGL
- Q
- ;

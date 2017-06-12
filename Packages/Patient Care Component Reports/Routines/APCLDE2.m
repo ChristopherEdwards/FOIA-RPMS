@@ -1,5 +1,5 @@
 APCLDE2 ; IHS/CMI/LAB - list refusals ; 
- ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,4,8,11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -11,7 +11,7 @@ INFORM ;
  W !,"user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
  W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
- W !?5,"- Diagnoses V79.0, 14.1 (Behavioral Health Problem Code)"
+ W !?5,"- Diagnoses V79.0 (there are no ICD10 codes), 14.1 (Behavioral Hlth Code)"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
  W !,"This report will tally the visits by age, gender, screening result,"
@@ -198,8 +198,8 @@ PCCSCR(V) ;EP - is there a screening?  return in R
  ;get pov
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9000010.07,X,.01)
- .I M="V79.0" D
- ..S T=D_U_M_" - "_$P($$ICDDX^ICDCODE(M,D),U,4)_U_U_V_U_9000010.07_U_X
+ .I M="V79.0" D   ;no icd10 codes per Fran
+ ..S T=D_U_M_" - "_$P($$ICDDX^ICDEX(M,D),U,4)_U_U_V_U_9000010.07_U_X
  ..S R=$$PCCV^APCLDE1(T,P)
  I R]"" Q R
  ;get education

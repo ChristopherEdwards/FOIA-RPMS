@@ -1,12 +1,12 @@
 APCLSMU ;cmi/flag/maw - APCL MU2 MESSAGE GENERATOR 5/12/2010 9:26:17 AM
- ;;3.0;IHS PCC REPORTS;**29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**29,30**;FEB 05, 1997;Build 27
  ;
 OPT ;EP - option to export via date range or patient
  N TYPE
  S TYPE=$$EXPTYP()
  Q:TYPE=""
  I TYPE="P" D PATEXP Q
- I TYPE="D" D DATEXP Q
+ I TYPE="D" D DATEXP^APCLSMUN Q
  Q
  ;
 EXPTYP() ;-- get the export type
@@ -58,7 +58,7 @@ GETVISIT ;EP - this entry point called by the BVP package (View patient record)
  ;
 MSG(EVN,VST,PAT) ;EP - create the message based on the event type and visit
  N VDATE,UNITFLG
- S VDATE=$TR($$GET1^DIQ(9000010,VST,.01,"I"),".")
+ S VDATE=$P($$GET1^DIQ(9000010,VST,.01,"I"),".")
  S OBXCNT=0,DGCNT=0
  N LN,HL1,HRCN,FLD,LP,X,LN
  S LN=0
@@ -260,11 +260,15 @@ PV2(V,PT) ;-- setup the PV2 segment
  S DXI=$O(^ICD9("AB",$P($G(^DGPM(ADMT,0)),U,10)_" ",0))
  S DX=$$GET1^DIQ(405,ADMT,.1,"I")
  I $G(DXI) S DXE=$$GET1^DIQ(80,DXI,3)
+ N ICDT,ICDATA
+ S ICDATA=$$ICDDX^APCLSILU(DX,VDATE)
+ S ICDT=$P(ICDATA,U,20)  ;get the icd type based on the code
  I $P(DX,".",2)="" S DX=$TR(DX,".")
  D SET(.ARY,"PV2",0)
  D SET(.ARY,DX,3,1)
  D SET(.ARY,$G(DXE),3,2)
- D SET(.ARY,"I9CDX",3,3)
+ ;D SET(.ARY,"I9CDX",3,3)
+ D SET(.ARY,$S(ICDT="30":"I10",1:"I9CDX"),3,3)  ;p30
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
  ;
@@ -364,14 +368,20 @@ DG1P(EV,V,FL) ;-- set the repeating DG1
  I EV="A04" S DXT="W"
  ;S DX=$TR($$PRIMPOV^APCLV(V,"C"),".")
  S DX=$$PRIMPOV^APCLV(V,"C")
+ N ICDT,ICDATA
+ S ICDATA=$$ICDDX^APCLSILU(DX,VDATE)
+ S ICDT=$P(ICDATA,U,20)  ;get the icd type based on the code
+ I $P(DX,".",2)="" S DX=$TR(DX,".")
+ ;S LEN=$L(DX)
+ ;I $E(DX,LEN,LEN)="0" S DX=$E(DX,1,(LEN-1))
  Q:$G(DX)=""
  I $P(DX,".",2)="" S DX=$TR(DX,".")
- S DXE=$P($$PRIMPOV^APCLV(V,"E"),"|")
+ S DXE=$S(ICDT=30:$P(ICDATA,U,4),1:$P($$PRIMPOV^APCLV(V,"E"),"|"))
  D SET(.ARY,"DG1",0)
  D SET(.ARY,1,1)
  D SET(.ARY,DX,3,1)
  D SET(.ARY,DXE,3,2)
- D SET(.ARY,"I9CDX",3,3)
+ D SET(.ARY,$S(ICDT="30":"I10",1:"I9CDX"),3,3)  ;p30
  D SET(.ARY,DXT,6)
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
@@ -388,10 +398,13 @@ DG1S(EV,V) ;-- set the secondary DXs
  . S DXI=$P($G(^AUPNVPOV(DXDA,0)),U)
  . ;S DX=$TR($$GET1^DIQ(80,DXI,.01),".")
  . S DX=$$GET1^DIQ(80,DXI,.01)
+ . N ICDT,ICDATA
+ . S ICDATA=$$ICDDX^APCLSILU(DX,VDATE)
+ . S ICDT=$P(ICDATA,U,20)  ;get the icd type based on the code
  . I $P(DX,".",2)="" S DX=$TR(DX,".")
  . ;S LEN=$L(DX)
  . ;I $E(DX,LEN,LEN)="0" S DX=$E(DX,1,(LEN-1))
- . S DXE=$$GET1^DIQ(80,DXI,3)
+ . S DXE=$S(ICDT=30:$P(ICDATA,U,4),1:$$GET1^DIQ(80,DXI,3))
  . S DXT="F"  ;change this once i know the formula
  . I EV="A08" S DXT="W"
  . I EV="A04" S DXT="W"
@@ -400,7 +413,7 @@ DG1S(EV,V) ;-- set the secondary DXs
  . ;D SET(.ARY,(DXCNT-1),1)
  . D SET(.ARY,DX,3,1)
  . D SET(.ARY,DXE,3,2)
- . D SET(.ARY,"I9CDX",3,3)
+ . D SET(.ARY,$S(ICDT="30":"I10",1:"I9CDX"),3,3)
  . D SET(.ARY,DXT,6)
  . S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q

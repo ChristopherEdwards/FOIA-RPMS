@@ -1,5 +1,5 @@
 BGP5DGPU ; IHS/CMI/LAB - IHS AREA CLIN 05 REPORT DRIVER ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  W:$D(IOF) @IOF
@@ -87,7 +87,7 @@ BY ;get baseline year
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  I BGPPBD=BGPBBD,BGPPED=BGPBED K Y D CHKY I Y K BGPBBD,BGPBED,BGPPBD,BGPPED G BY
 COMM ;
- I $G(BGPSEAT) G MFIC
+ I $G(BGPSEAT) G C
  W !!,"Specify the community taxonomy to determine which patients will be",!,"included in the report.  You should have created this taxonomy using QMAN.",!
  K BGPTAX
  S BGPTAXI=""
@@ -113,20 +113,8 @@ COM1 S X=0
  .I $D(DIRUT) S BGPQUIT=1
  .I 'Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+C K BGPQUIT
+ ;
 BEN ;
  S X=0 F  S X=$O(^BGPINDK("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
  S BGPINDK="G"
@@ -179,7 +167,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG150",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG151",$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  I BGPEXCEL,BGPEXPT D
  .W !,"A file will be created called ",BGPFN,!,"and will reside in the ",BGPUF," directory. This file can be used in Excel.",!

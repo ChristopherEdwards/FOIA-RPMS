@@ -1,5 +1,5 @@
-BHSDM5 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;11-May-2010 09:13;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**4**;Mar 17, 2006;Build 13
+BHSDM5 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;30-Nov-2015 10:24;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**4,12**;Mar 17, 2006;Build 3
  ;===================================================================
  ;VA version of IHS components for supplemental summaries
  ;Taken from APCHS9B5
@@ -124,9 +124,14 @@ PPDS(P) ;EP
  N G S G=0,X=0 F  S X=$O(^AUPNHF("AA",P,X)) Q:X'=+X!(G)  I $D(^ATXAX(T,21,"B",X)) S G=1
  I G Q "Known Positive PPD or Hx of TB (Health Factor recorded)"
 PPDSPL ;CHECK PL
- N T S T=$O(^ATXAX("B","SURVEILLANCE TUBERCULOSIS",0))
+ N T,TAXARR
+ ;IHS/MSC/MGH Moved taxonomy lookup out of loop
+ S TAXARR=""
+ S T=$O(^ATXAX("B","SURVEILLANCE TUBERCULOSIS",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0
+ F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+ .I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Known Positive PPD or Hx of TB (Problem List DX)"
  ;check povs
  K BHS S X=P_"^FIRST DX [SURVEILLANCE TUBERCULOSIS" S E=$$START1^APCLDF(X,"BHS(")

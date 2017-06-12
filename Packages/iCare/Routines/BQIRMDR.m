@@ -1,5 +1,5 @@
 BQIRMDR ;PRXM/HC/ALA-Find all reminder values ; 15 Mar 2007  2:30 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
 PAT(DFN,REF) ;EP
  NEW APCHSPAT,APCHSAGE,APCHSEX,APCHSANY,APCHSITM,APCHNON,APCHSURX
@@ -29,11 +29,11 @@ PAT(DFN,REF) ;EP
  F  S DA=$O(^BQIPAT(DFN,40,DA)) Q:'DA  D ^DIK
  ;
  ; If deceased, don't include
- I $P($G(^DPT(DFN,.35)),U,1)'="" Q
+ ;I $P($G(^DPT(DFN,.35)),U,1)'="" Q
  ; If no active HRN, don't include
- I '$$HRN^BQIUL1(DFN) Q
+ ;I '$$HRN^BQIUL1(DFN) Q
  ; If no visit in last 3 years, quit
- I '$$VTHR^BQIUL1(DFN) Q
+ ;I '$$VTHR^BQIUL1(DFN) Q
  ;
  S REF=$G(REF,0)
  ;
@@ -88,6 +88,8 @@ PAT(DFN,REF) ;EP
  . I $E(CODE,1,4)="CMET" Q
  . S (REMDUE,REMLAST,REMNEXT)=""
  . D FIL
+ ;
+ D IZ^BQIRMDR2(DFN)
  Q
  ;
 RMR(DFN,HIEN) ;EP
@@ -196,6 +198,7 @@ FIL ;EP - File the reminder
  I REMDUE["." S REMDUE=REMDUE\1
  I REMLAST["." S REMLAST=REMLAST\1
  S IENS=$$IENS^DILF(.DA)
+ I $E(REMDUE,4,7)="0000" S REMDUE=$E(REMDUE,1,3)_"0101"
  S BQIUPD(90507.54,IENS,.02)=$$DATE^BQIUL1(REMLAST)
  S BQIUPD(90507.54,IENS,.03)=$G(REMNEXT)
  S BQIUPD(90507.54,IENS,.04)=$$DATE^BQIUL1(REMDUE)
@@ -205,6 +208,9 @@ FIL ;EP - File the reminder
  I $$VFIELD^DILFD(90507.54,.07) S BQIUPD(90507.54,IENS,.07)=$G(RCIEN)
  I $$VFIELD^DILFD(90507.54,.08) S BQIUPD(90507.54,IENS,.08)=$G(RCFILE)
  D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ;Check reminder notification is completed
+ D COMP^BQINOTR(DFN,CODE)
  Q
  ;
 CHK(TJOB) ;EP - Check for reminders and add new ones if found and inactivate
@@ -289,6 +295,8 @@ FND ; Find the reminders and either reactivate or create new entry
  . I RIEN'="" D REA^BQIRMDR1 Q
  . D FILE
  ;
+ D IFR^BQIRMDR2
+ ;
 RGR ; Register Reminders
  S RGIEN=0
  F  S RGIEN=$O(^BQI(90507,RGIEN)) Q:'RGIEN  D
@@ -308,6 +316,11 @@ RGR ; Register Reminders
  .. D REA^BQIRMDR1
  D EHR^BQIRMDR1
  D CMET^BQIRMDR1
+ ;
+ ; Make sure that the new style cross-references are set
+ NEW DIK
+ S DIK="^BQI(90506.1,",DIK(1)="3.01"
+ D ENALL^DIK
  ;
 NOT ; Check for any newly inactive reminders and send notifications
  S RIEN=""
@@ -333,6 +346,8 @@ NOT ; Check for any newly inactive reminders and send notifications
  ..... I '$$DUP^BQINOTF(SHR,SUBJECT,DT) S QFL=1 Q
  ..... D ADD^BQINOTF("",SHR,SUBJECT,,1)
  ..... S QFL=1
+ ;
+ D EN^BQIRMCHK
  Q
  ;
 FILE ;File record
@@ -365,11 +380,6 @@ FILE ;File record
  S BQIUPD(90506.1,DA_",",3.03)=RCAT
  S BQIUPD(90506.1,DA_",",3.04)=$S($G(DEF)=1:"Default",1:"Optional")
  D FILE^DIE("E","BQIUPD","ERROR")
- ;
- ; Make sure that the new style cross-references are set
- NEW DIK
- S DIK="^BQI(90506.1,",DIK(1)="3.01"
- D ENALL^DIK
  ;
  ;I $D(ERROR)
  ; Send a notification that a new reminder was added

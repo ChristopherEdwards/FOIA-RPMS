@@ -1,30 +1,35 @@
-BGP6DEL ; IHS/CMI/LAB - IHS GPRA 05 REPORT DRIVER ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP6DEL ; IHS/CMI/LAB - IHS GPRA 16 REPORT DRIVER 26 Jun 2010 3:41 PM ;
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
  W:$D(IOF) @IOF
- W !!,$$CTR("2006 Elder Care Clinical Performance Measure Report",80)
+ W !!,$$CTR("2016 Elder Care Clinical Performance Measure Report",80)
 INTRO ;
  D XIT
  W !!,"This will produce an Elder Care Performance Measure Report for all"
  W !,"ELDER performance measures for a year period you specify.  You will"
  W !,"be asked to provide: 1) the reporting period, 2) the baseline period"
- W !,"to compare data to, and 3) the Community taxonomy to determine which"
- W !,"patients will be included."
- W !!,"You will be given the opportunity to export this data to the Area office."
+ W !,"to compare data to, 3) the community taxonomy to determine which"
+ W !,"patients will be included, and 4) the patient population (i.e. AI/AN only,"
+ W !,"non AI/AN, or both) to determine which patients will be included."
+ W !!,"If you choose to run the report for all Elder Care measures, you "
+ W !,"will be given the opportunity to export this data to the Area office."
  W !,"If you answer yes, this option will produce a report in export format for the"
  W !,"Area Office to use in Area aggregated data.  Depending on site specific"
  W !,"configuration, the export file will either be automatically transmitted "
  W !,"directly to the Area or the site will have to send the file manually.",!
- W !!,"There are 24 measures in the Elder Care Performance Measure Report."
+ W !!,"There are "_$$CNT()_" measures in the Elder Care Performance Measure Report."
+ K DIR S DIR(0)="E",DIR("A")="Press enter to continue" D ^DIR K DIR
  D XIT
  K DIR
  S DIR(0)="S^S:Selected set of Measures;A:All Measures",DIR("A")="Run the report on",DIR("B")="S" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
  S BGPZZ=Y
  I BGPZZ="S" D EN^BGP6DESI I '$D(BGPIND) W !!,"No measures selected" G INTRO
- I BGPZZ="A" S X=0 F  S X=$O(^BGPELIS(X)) Q:X'=+X  S BGPIND(X)=""
+ I BGPZZ="A" S X=0 F  S X=$O(^BGPELIM(X)) Q:X'=+X  S BGPIND(X)=""
  D TAXCHK^BGP6XTEL
+ S X=$$DEMOCHK^BGP6UTL2()
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP6DU,XIT Q
 TP ;get time period
  S BGPRTYPE=5
  S (BGPBD,BGPED,BGPTP)=""
@@ -42,15 +47,15 @@ TP ;get time period
  I BGPED>DT D  G:BGPDO=1 TP
  .W !!,"You have selected Current Report period ",$$FMTE^XLFDT(BGPBD)," through ",$$FMTE^XLFDT(BGPED),"."
  .W !,"The end date of this report is in the future; your data will not be",!,"complete.",!
- .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates?",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates",DIR("B")="N" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) S BGPDO=1 Q
  .I Y S BGPDO=1 Q
  .Q
 BY ;get baseline year
  S BGPVDT=""
- W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 1999, 2000"
+ W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 2010"
  S DIR(0)="D^::EP"
- S DIR("A")="Enter Year (e.g. 2000)"
+ S DIR("A")="Enter Year (e.g. 2010)"
  D ^DIR KILL DIR
  I $D(DIRUT) G TP
  I $D(DUOUT) S DIRUT=1 G TP
@@ -98,20 +103,8 @@ COM1 ;
  .I $D(DIRUT) S BGPQUIT=1
  .I Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+ K BGPQUIT
+ ;
 HOME ;
  S BGPHOME=$P($G(^BGPSITE(DUZ(2),0)),U,2)
  I BGPHOME="" W !!,"Home Location not found in Site File!!",!,"PHN Visits counts to Home will be calculated using clinic 11 only!!" H 2 G BEN
@@ -129,17 +122,17 @@ EXPORT ;export to area or not?
  I $D(DIRUT) G BEN
  S BGPEXPT=Y
 SUM ;display summary of this report
- S BGPUF=""
- I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
- I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic"
+ S BGPUF=$$GETDIR^BGP6UTL2()
+ I BGPEXPT,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP6DU,XIT Q
  W:$D(IOF) @IOF
- W !,$$CTR("SUMMARY OF FY 06 ELDER REPORT TO BE GENERATED")
+ W !,$$CTR("SUMMARY OF IHS 2016 ELDER REPORT TO BE GENERATED")
  W !!,"The date ranges for this report are:"
  W !?5,"Report Period: ",?31,$$FMTE^XLFDT(BGPBD)," to ",?31,$$FMTE^XLFDT(BGPED)
  W !?5,"Previous Year Period: ",?31,$$FMTE^XLFDT(BGPPBD)," to ",?31,$$FMTE^XLFDT(BGPPED)
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
- I $G(BGPMFITI) W !!,"The MFI Location Taxonomy to be used is: ",$P(^ATXAX(BGPMFITI,0),U)
+ D TEXT^BGP6DSL
+ I $D(DIRUT) G BEN
  D PT^BGP6DESL
  I BGPROT="" G BEN
 ZIS ;call to XBDBQUE
@@ -147,13 +140,13 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG06",$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG161",$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDCS(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDPS(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDBS(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDCM(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDPM(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPELDBM(" D ^DIK K DIK D XIT Q
  I $D(IO("Q")) G TSKMN
 DRIVER ;
  D ^BGP6D1
@@ -164,6 +157,10 @@ DRIVER ;
  D XIT
  Q
  ;
+CNT() ;
+ NEW X,C
+ S X=0,C=0 F  S X=$O(^BGPELIM(X)) Q:X'=+X  S C=C+1
+ Q C
 NODEV ;
  S XBRP="",XBRC="NODEV1^BGP6DEL",XBRX="XIT^BGP6DEL",XBNS="BGP"
  D ^XBDBQUE
@@ -182,12 +179,12 @@ TSKMN ;EP ENTRY POINT FROM TASKMAN
  I $G(IO("DOC"))]"" S ZTIO=ZTIO_";"_$G(IO("DOC"))
  I $D(IOM)#2,IOM S ZTIO=ZTIO_";"_IOM I $D(IOSL)#2,IOSL S ZTIO=ZTIO_";"_IOSL
  K ZTSAVE S ZTSAVE("BGP*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="DRIVER^BGP6DEL",ZTDTH="",ZTDESC="ELDER 05 REPORT" D ^%ZTLOAD D XIT Q
+ S ZTCPU=$G(IOCPU),ZTRTN="DRIVER^BGP6DEL",ZTDTH="",ZTDESC="ELDER 13 REPORT" D ^%ZTLOAD D XIT Q
  Q
  ;
 XIT ;
  D ^%ZISC
- D EN^XBVK("BGP")
+ D EN^XBVK("BGP") I $D(ZTQUEUED) S ZTREQ="@"
  K DIRUT,DUOUT,DIR,DOD
  K DIADD,DLAYGO
  D KILL^AUPNPAT
@@ -237,7 +234,7 @@ CHKY ;
  Q
 F ;fiscal year
  S (BGPPER,BGPVDT)=""
- W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2005"
+ W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2016"
  S DIR(0)="D^::EP"
  S DIR("A")="Enter Year"
  S DIR("?")="This report is compiled for a period.  Enter a valid date."
@@ -249,11 +246,11 @@ F ;fiscal year
  S BGPPER=BGPVDT
  Q
 ENDDATE ;
- W !!,"When entering dates, if you do not enter a full 4 digit year (e.g. 2006)"
+ W !!,"When entering dates, if you do not enter a full 4 digit year (e.g. 2016)"
  W !,"will assume a year in the past, if you want to put in a future date,"
  W !,"remember to enter the full 4 digit year.  For example, if today is"
- W !,"January 4, 2006 and you type in 6/30/05 the system will assume the year"
- W !,"as 1905 since that is a date in the past.  You must type 6/30/2006 if you"
+ W !,"January 4, 2010 and you type in 6/30/05 the system will assume the year"
+ W !,"as 1905 since that is a date in the past.  You must type 6/30/2010 if you"
  W !,"want a date in the future."
  S (BGPPER,BGPVDT)=""
  W ! K DIR,X,Y S DIR(0)="D^::EP",DIR("A")="Enter End Date for the Report: (e.g. 11/30/2005)" D ^DIR K DIR S:$D(DUOUT) DIRUT=1

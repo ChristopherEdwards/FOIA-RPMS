@@ -1,5 +1,5 @@
-GMRAOR2 ;HIRMFO/RM-OERR UTILITIES ;29-Jan-2013 16:57;DU
- ;;4.0;Adverse Reaction Tracking;**21,1002,1006**;Mar 29, 1996;Build 29
+GMRAOR2 ;HIRMFO/RM-OERR UTILITIES ;08-Aug-2013 14:08;DU
+ ;;4.0;Adverse Reaction Tracking;**21,1002,1006,1007**;Mar 29, 1996;Build 18
 EN1(IEN,ARRAY) ; This entry point returns detailed information about a
  ; particular patient allergy/adverse reaction.
  ; Input Variables
@@ -56,11 +56,12 @@ EN1(IEN,ARRAY) ; This entry point returns detailed information about a
  ;Signs/Symptoms
  S GMRAOTH=$O(^GMRD(120.83,"B","OTHER REACTION",0))
  S GMRAI=0 F %=1:1 S GMRAI=$O(^GMR(120.8,GMRAPA,10,GMRAI)) Q:GMRAI<1  D
- .N GMRAZ,SSRC
+ .N GMRAZ,SSRC,SNO
  .S GMRAZ=$G(^GMR(120.8,GMRAPA,10,GMRAI,0)) Q:GMRAZ=""
  .S GMRAL("S",%)=$S(+GMRAZ'=GMRAOTH:$P($G(^GMRD(120.83,+GMRAZ,0)),U),1:$P(GMRAZ,U,2))_$S($P(GMRAZ,U,4)'="":" ("_$$FIXDT($$FMTE^XLFDT($P(GMRAZ,U,4),2))_")",1:"") ;21
- .S SSRC=$P($G(^GMR(120.8,GMRAPA,10,GMRAI,9999999.11)),U)
- .I +SSRC S GMRAL("S",%)=GMRAL("S",%)_" Src: "_$P($G(^BEHOAR(90460.05,SSRC,0)),U,1) ;MU patch add source MSC/IHS/MGH
+ .S SSRC=$P($G(^GMR(120.8,GMRAPA,10,GMRAI,9999999.11)),U),SNO=$P($G(^GMR(120.8,GMRAPA,10,GMRAI,9999999.11)),U,2)
+ .I +SSRC S GMRAL("S",%)=GMRAL("S",%)_" Src: "_$P($G(^BEHOAR(90460.05,SSRC,0)),U,1)
+ .I SNO S GMRAL("S",%)=$G(GMRAL("S",%))_"; Snomed: "_SNO ;MU patch add source MSC/IHS/MGH/Patch 1007 added SNOMED
  .Q
  ;VA Drug Class
  S GMRAI=0 F %=1:1 S GMRAI=$O(^GMR(120.8,GMRAPA,3,GMRAI)) Q:GMRAI<1  D
@@ -70,9 +71,16 @@ EN1(IEN,ARRAY) ; This entry point returns detailed information about a
  .Q
  ;Drug Ingredients
  S GMRAI=0 F %=1:1 S GMRAI=$O(^GMR(120.8,GMRAPA,2,GMRAI)) Q:GMRAI<1  D
- .N GMRACOM
+ .N GMRACOM,RXN,UNI,TXT,TXT1,TXT2
+ .S RXN="",UNI=""
+ .S (TXT,TXT1,TXT2)=""
  .S GMRACOM=$G(^GMR(120.8,GMRAPA,2,GMRAI,0)) Q:GMRACOM=""
- .S GMRAL("I",%)=$P($G(^PS(50.416,GMRACOM,0)),U)
+ .S RXN=$P($G(^GMR(120.8,GMRAPA,2,GMRAI,9999999)),U)
+ .S UNI=$P($G(^GMR(120.8,GMRAPA,2,GMRAI,9999999)),U,2)
+ .I $L(RXN) S TXT1="; RxNorm: "_RXN_" "
+ .I $L(UNI) S TXT2="; UNII: "_UNI
+ .S TXT=TXT1_TXT2
+ .S GMRAL("I",%)=$P($G(^PS(50.416,GMRACOM,0)),U)_TXT
  .Q
  M @ARRAY=GMRAL
  Q

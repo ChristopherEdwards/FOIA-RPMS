@@ -1,5 +1,5 @@
 BDMDA12 ; IHS/CMI/LAB - 2013 DIABETES AUDIT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8,9**;JUN 14, 2007;Build 78
  ;
  ;cmi/anch/maw 9/12/2013 code set versioning in DEPDX
  ;
@@ -197,7 +197,7 @@ DEPSCR(P,BDATE,EDATE,F,R) ;EP
  NEW X,BDMC
  I $G(P)="" Q ""
  I $G(F)="" S F="E"
- Q $$DEPSCR^BDMDC12(P,$G(BDATE),$G(EDATE),F,$G(R))
+ Q $$DEPSCR^BDMDD12(P,$G(BDATE),$G(EDATE),F,$G(R))
  S BDMC=$$LASTDEPS(P,BDATE,EDATE,"A")
  I $G(R) Q $S(F="D":$P(BDMC,U),1:"1  Yes - "_$P(BDMC,U,2)_" "_$$DATE^BDMS9B1($P(BDMC,U)))
  I BDMC]"" Q "1  Yes - "_$E($P(BDMC,U,2),1,20)_" "_$$DATE^BDMS9B1($P(BDMC,U))
@@ -296,7 +296,7 @@ VE(Y,F,T) ;EP
 CVD(P,EDATE) ;EP
  I '$G(P) Q ""
  I '$D(^DPT(P)) Q ""
- Q $$CVD^BDMDC12(P,EDATE)
+ Q $$CVD^BDMDD12(P,EDATE)
  NEW %,BDM,E,X,G,Z,Y,T
  ;is cvd on the problem list?
  S G=""

@@ -1,7 +1,8 @@
-GMPLMGR1 ; SLC/MKB -- Problem List VALM Utilities cont ;23-Jul-2012 09:43;DU
- ;;2.0;Problem List;**10,1001,1002**;Aug 25, 1994;Build 9
+GMPLMGR1 ; SLC/MKB -- Problem List VALM Utilities cont ;06-Dec-2013 10:52;DU
+ ;;2.0;Problem List;**10,1001,1002,1003**;Aug 25, 1994;Build 9
  ;Modified - IHS/CIA/DKM - 7/12/2001 - Line GETPLIST+6
- ;          -IHS/MSC/MGH - 07/23/2012 - Line GETPLIST+5
+ ;         - IHS/MSC/MGH - 07/23/2012 - Line GETPLIST+5
+ ;         - IHS/MSC/MGH - 12/06/2013 - Line GETPLIST+6 and GETPLIST+10
 NEWPAT ; select new patient
  N NEWPT S VALMBCK="R"
  I GMPARAM("PRT"),$D(GMPRINT) D AUTO^GMPLMGR2 I $D(DTOUT) S VALMBCK="Q" Q
@@ -103,9 +104,13 @@ GETPLIST(PLIST,TOTAL,VIEW) ; Build PLIST(#)=IFN for view
  N STBEG,STEND,ST,CNT,IFN,RECORD,DATE,LIST K PLIST
  W:'$G(GMPARAM("QUIET")) !,"Searching for the patient's problem list ..."
  S STBEG=$S(VIEW("ACT")="I":"A",1:""),STEND=$S(VIEW("ACT")="A":"I",1:""),ST=STBEG,TOTAL=0
- F  S ST=$O(^AUPNPROB("ACTIVE",+GMPDFN,ST)) Q:(ST="")!(ST=STEND)  D
+ ;IHS/MSC/MGH Patch 1003 Loop through all statuses
+ ;F  S ST=$O(^AUPNPROB("ACTIVE",+GMPDFN,ST)) Q:(ST="")!(ST=STEND)  D
+ F  S ST=$O(^AUPNPROB("ACTIVE",+GMPDFN,ST)) Q:ST=""  D
  . ;IHS/MSC/MGH Ignore deleted problems
  . Q:ST="D"
+ . ;IHS/MSC/MGH Patch 1003 to allow new status to appear
+ . Q:VIEW("ACT")="A"&(ST="I")
  . F IFN=0:0 S IFN=$O(^AUPNPROB("ACTIVE",+GMPDFN,ST,IFN)) Q:IFN'>0  D
  . . S RECORD=$G(^AUPNPROB(IFN,1)) ;IHS/CIA/DKM Q:'$L(RECORD)
  . . Q:$P(RECORD,U,2)="H"  S TOTAL=TOTAL+1

@@ -1,5 +1,5 @@
-APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;07-Jan-2013 09:35;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010,1013,1015**;Sep 23, 2004;Build 62
+APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;22-Sep-2014 14:55;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1006,1007,1008,1009,1010,1013,1015,1017,1018**;Sep 23, 2004;Build 21
  ; EP - Called by event protocol.
  ;   DATA  = Event message.  May either be a global reference or
  ;           a local array passed by reference.
@@ -11,6 +11,8 @@ APSPPCC ;IHS/CIA/DKM/PLS - PCC Hook for Pharmacy Package ;07-Jan-2013 09:35;PLS
  ;                          01/28/09 - Checks for SUSPENSE status
  ;                          08/25/10 - DOIT+40
  ;                          02/10/11 - Added support of POV for Suspense
+ ;                          01/28/14 - Line REFPRV+3
+ ;                          06/04/14 - Added support of adding POV to visits
 EN(DATA,REPROC) ;EP
  N MSG
  I $D(DATA)=1 M MSG=@DATA
@@ -114,14 +116,17 @@ DOIT ;EP
  ;.S DAT=$P(DAT,".")_".13"
  ;.;K ^XTMP("APSPPCC.VPOV",IEN,REF)
  ; Check for cached POV
+ ;IHS/MSC/PLS - 07/16/13 - POV no longer captured
+ ;IHS/MSC/PLS - 06/04/14 - POV is being used again as a hardcoded set in APSPPCC1
  S POV=$TR($$GET^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF),"~",U)
+ ;S POV=""
  ; Refills or suspended prescriptions will be set to 1300 unless the
  ; suspended prescription is an original dispensed on the day of release.
  ;I $L(POV),$$GET1^DIQ(9009033,PSOSITE,405,"I") D  ;IHS/MSC/PLS - 10/28/11 - Capture POV for all prescriptions
  I $L(POV),$$GET1^DIQ(9009033,$G(PSOSITE),405,"I") D  ;IHS/MSC/PLS - 01/07/13 - Wrap with $G
- .S DAT=$P(DAT,".")_".13"
- E  I $L(POV),$P(RX0,U,13)'=$P(DAT,".") D  ; if issue date<>fill date
- .S DAT=$P(DAT,".")_".13"
+ .S DAT=DAT  ;S DAT=$P(DAT,".")_".13"
+ ;E  I $L(POV),$P(RX0,U,13)'=$P(DAT,".") D  ; if issue date<>fill date
+ ;.S DAT=$P(DAT,".")_".13"
  E  D
  .D:$L(POV)&(ACT'="-") DEL^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF)
  .K POV
@@ -175,8 +180,9 @@ DOIT ;EP
  D:PHM ADD("PRV^"_PHM_"^^^^0")
 POV I $D(POV) D
  .;D:POV'="" ADD("POV^"_$P(POV,U)_"^^"_$P(POV,U,2)_"^0^2")  ;IHS/MSC/PLS - 02/04/2008 - Changed to secondary
- .D:POV'="" ADD("POV^"_$P(POV,U)_"^^"_$P(POV,U,2)_U_$S(REF:0,1:1)_U_$S(REF:2,1:1))  ;IHS/MSC/PLS - 04/21/2011
- .D:REF ADD("POV^"_"V68.1"_"^^"_$$PRVNARR("MEDICATION REFILL")_"^1^2")  ;IHS/MSC/PLS - 02/04/2008 - Changed to primary
+ .;D:POV'="" ADD("POV^"_$P(POV,U)_"^^"_$P(POV,U,2)_U_$S(REF:0,1:1)_U_$S(REF:2,1:1))  ;IHS/MSC/PLS - 04/21/2011
+ .;D:REF ADD("POV^"_"V68.1"_"^^"_$$PRVNARR("MEDICATION REFILL")_"^1^2")  ;IHS/MSC/PLS - 02/04/2008 - Changed to primary
+ .D:POV'="" ADD("POV^"_$P(POV,U)_"^^^1^"_$S(REF:2,1:1))  ;IHS/MSC/PLS - 09/22/2014
  .;IHS/MSC/PLS - 08/25/2010 - remove the cached data
  .Q:ACT="-"  ;Leave in cache
  .D DEL^XPAR("SYS","APSP POV CACHE",+IEN_","_+REF)
@@ -256,6 +262,6 @@ LOCADJ(LOC,RXIEN,RXN) ;EP
 REFPRV(RX,REF) ;EP
  N RES,PRV,RPRV
  S PRV=$P(^PSRX(RX,1,REF,0),U,17)
- S RPRV=$P(^PSRX(RX,1,REF,9999999),U)
+ S RPRV=$P($G(^PSRX(RX,1,REF,9999999)),U)  ;IHS/MSC/PLS - 01/28/14 added $G
  S RES=$S(RPRV:RPRV,1:PRV)
  Q RES

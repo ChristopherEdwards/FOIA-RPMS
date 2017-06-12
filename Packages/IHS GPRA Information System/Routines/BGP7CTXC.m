@@ -1,10 +1,10 @@
-BGP7CTXC ; IHS/CMI/LAB - TAXONOMY CHECK FOR FY04 CRS REPORT 18 Feb 2007 5:31 PM ;
- ;;7.0;IHS CLINICAL REPORTING;**1**;JAN 24, 2007
+BGP7CTXC ; IHS/CMI/LAB - TAXONOMY CHECK FOR  CRS REPORT 18 Feb 2010 5:31 PM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
  D HOME^%ZIS
  W:$D(IOF) @IOF
- W !!,"Checking for Taxonomies to support the 2007 CMS Report. ",!,"Please enter the device for printing.",!
+ W !!,"Checking for Taxonomies to support the 2017 CMS Report. ",!,"Please enter the device for printing.",!
 ZIS ;
  S XBRC="",XBRP="TAXCHK^BGP7CTXC",XBNS="",XBRX="XIT^BGP7CTXC"
  D ^XBDBQUE
@@ -15,15 +15,14 @@ TAXCHK ;EP
  K BGPQUIT
 GUICHK ;EP
  W !,"Checking for Taxonomies to support the CMS Report...",!
- NEW A,BGPX,I,Y,Z,J,BGPY,BGPT
+ NEW A,BGPX,I,Y,Z,J,BGPY,BGPT,BGPI,BGPM
  K A
- ;S T="TAXS" F J=1:1 S Z=$T(@T+J),BGPX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BGPX=""  D
- S BGPT="" F  S BGPT=$O(^BGPTAXA("B",BGPT)) Q:BGPT=""  D
- .S BGPY=$O(^BGPTAXA("B",BGPT,0))
- .Q:'$D(^BGPTAXA(BGPY,12,"B",5))
- .;I $P(^BGPTAXA(BGPY,0),U,2)'="L" S BGPX=$O(^ATXAX("B",BGPT,0))
- .;I $P(^BGPTAXA(BGPY,0),U,2)="L" S BGPX=$O(^ATXLAB("B",BGPT,0))
- .S BGPTYPE=$P(^BGPTAXA(BGPY,0),U,2),Y=$G(^BGPTAXA(BGPY,11,1,0))
+ ;version 8.0
+ I $D(BGPPLSTL) D THISRPT Q
+ S BGPT="" F  S BGPT=$O(^BGPTAXG("B",BGPT)) Q:BGPT=""  D
+ .S BGPY=$O(^BGPTAXG("B",BGPT,0))
+ .Q:'$D(^BGPTAXG(BGPY,12,"B",5))
+ .S BGPTYPE=$P(^BGPTAXG(BGPY,0),U,2),Y=$G(^BGPTAXG(BGPY,11,1,0))
  .I BGPTYPE'="L" D
  ..I '$D(^ATXAX("B",BGPT)) S A(BGPT)=Y_"^is Missing" Q
  ..S I=$O(^ATXAX("B",BGPT,0))
@@ -43,6 +42,25 @@ DONE ;
  Q:$D(ZTQUEUED)
  I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of taxonomy check.  PRESS ENTER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q
+THISRPT ;
+ S BGPI=0 F  S BGPI=$O(BGPPLSTL(BGPI)) Q:BGPI'=+BGPI  D
+ .S BGPM=0 F  S BGPM=$O(BGPPLSTL(BGPI,BGPM)) Q:BGPM'=+BGPM  D
+ ..S BGPY=0 F  S BGPY=$O(^BGPCMSMB(BGPI,11,"B",BGPY)) Q:BGPY'=+BGPY  D
+ ...S BGPTYPE=$P(^BGPTAXG(BGPY,0),U,2),Y=$G(^BGPTAXG(BGPY,11,1,0)),BGPT=$P(^BGPTAXG(BGPY,0),U)
+ ...I BGPTYPE'="L" D
+ ....I '$D(^ATXAX("B",BGPT)) S A(BGPT)=Y_"^is Missing" Q
+ ....S I=$O(^ATXAX("B",BGPT,0))
+ ....I '$D(^ATXAX(I,21,"B")) S A(BGPT)=Y_"^has no entries "
+ ...I BGPTYPE="L" D
+ ....I '$D(^ATXLAB("B",BGPT)) S A(BGPT)=Y_"^is Missing " Q
+ ....S I=$O(^ATXLAB("B",BGPT,0))
+ ....I '$D(^ATXLAB(I,21,"B")) S A(BGPT)=Y_"^has no entries "
+ I '$D(A) W !,"All taxonomies are present.",! K A,BGPX,Y,I,Z D DONE Q
+ W !!,"In order for the CMS Report to find all necessary data, several",!,"taxonomies must be established.  The following taxonomies are missing or have",!,"no entries:"
+ S BGPX="" F  S BGPX=$O(A(BGPX)) Q:BGPX=""!($D(BGPQUIT))  D
+ .I $Y>(IOSL-2) D PAGE Q:$D(BGPQUIT)
+ .W !,$P(A(BGPX),U)," [",BGPX,"] ",$P(A(BGPX),U,2)
+ .Q
 XIT ;EP
  K BGP,BGPX,BGPQUIT,BGPLINE,BGPJ,BGPX,BGPTEXT,BGP
  K X,Y,J

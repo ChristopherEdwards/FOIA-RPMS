@@ -1,23 +1,7 @@
 BQIPLDS1 ;PRXM/HC/ALA-Panel Description Utility (cont) ; 7 Apr 2008  4:28 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
- ;
- ;DXCAT ;EP - Diagnosis Category
- ; Only reformat description with designated operand
- ;I $G(FPARMS("DXOP"))="" Q
- ; If only a single Dx Category was identified operand is meaningless
- ;I '$D(FMPARMS("DXCAT")) Q
- ;S FPARMS("DXOP")=$S(FPARMS("DXOP")="&":", AND ",1:", OR ")
- ;N DX,APM
- ;S (DX,APM)="",FPARMS("DXCAT")=""
- ;F  S DX=$O(FMPARMS("DXCAT",DX)) Q:DX=""  D
- ;. I $D(AFMPARMS("DXCAT",DX)) D
- ;.. S APM=$$ADDAP("DXCAT",DX)
- ;. I $O(FMPARMS("DXCAT",DX))="" S FPARMS("DXCAT")=FPARMS("DXCAT")_DX_APM Q
- ;. S FPARMS("DXCAT")=FPARMS("DXCAT")_DX_APM_FPARMS("DXOP")
- ;K FMPARMS("DXCAT"),AFMPARMS("DXCAT")
- ;Q
  ;
 FILTER(OWNR,PLIEN) ;EP - Include filter description
  ;

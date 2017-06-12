@@ -1,5 +1,5 @@
 BMCRR1P ; IHS/PHXAO/TMJ - PRNT BILL VSTS ;    [ 09/27/2006  2:05 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**1**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**1**;JAN 09, 2006;Build 51
  ;4.0*1 3.24.06 IHS/OIT/FCJ ADDED RUN DATE TO REPORT
 START ;
  S BMC80E="==============================================================================="

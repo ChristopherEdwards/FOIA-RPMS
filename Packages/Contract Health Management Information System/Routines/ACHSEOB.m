@@ -1,5 +1,5 @@
-ACHSEOB ;IHS/ITSC/PMF - PROCESS EOBRS (1/6) - READ IN, PROCESS ; [ 10/31/2003  11:46 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,6,21,22**;JUNE 11, 2001;Build 13
+ACHSEOB ;IHS/ITSC/PMF - PROCESS EOBRS (1/6) - READ IN, PROCESS ; 22 Feb 2016  11:50 AM
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,6,21,22,23**;JUNE 11, 2001;Build 37
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Remove $ETRAP; direct ref to ^%ZIS(1.
  ;IHS/SET/JVK ACHS*3.1*6 4/9/2003 - CHECK FOR ACTIVE CHS JOBS
  ;Why do some of our errors record and others do not?  The
@@ -85,16 +85,24 @@ SUF ;
  ;
  ;LAST EOBR FILE SEQ. NUMBER MUST BE ONE LESS THAN THAT FOUND IN THE
  ;FILE TO BE PROCESSED. LOOK AT SECOND LINE OF unix file EB*.JJJ P^2
+ ;ACHS*3.1*23 MULT CHANGE IN NXT SECTION TO ALLOW REPROCESSING OF FILE
+ S ACHSREP=0
  I ACHSEOSQ+1=+$P(ACHSUFLS(ACHSK(Y))," ",3) G SEQOK
  U IO(0)
- W !!,*7,$G(IORVON),"Sequence numbers are out of sequence!",$G(IORVOFF)
+ ;W !!,*7,$G(IORVON),"Sequence numbers are out of sequence!",$G(IORVOFF)
+ W !!,*7,$G(IORVON),"FILE selected is out of sequence!",$G(IORVOFF)
  ;ACHS*3.1*21 REMOVED REF TO UNIX
- W !!,"Current 'LAST EOBR FILE SEQ. NUMBER' found"
- W !,$P(ACHSUFLS(ACHSK(Y))," ")," file is ",+$P(ACHSUFLS(ACHSK(Y))," ",3)
- W !!,"Last sequence number found in CHS FACILITY file is ",ACHSEOSQ
- W !,"If you wish to re-process this global"
- W !,"call the Help desk at 505-248-4371"
+ W !!,"Current EOBR file selected: "
+ W $P(ACHSUFLS(ACHSK(Y))," ")," file is ",+$P(ACHSUFLS(ACHSK(Y))," ",3)
+ ;W !!,"Last sequence number found in CHS FACILITY file is ",ACHSEOSQ
+ W !!,"Last sequence number processed in CHS FACILITY file is ",ACHSEOSQ
+ ;W !,"If you wish to re-process this global"
+ ;W !,"call the Help desk at 505-248-4371"
  W !!
+ I +$P(ACHSUFLS(ACHSK(Y))," ",3)<(ACHSEOSQ+1) D  G:+ACHSREP>0 CONT
+ .W !,"This file has already been processed."
+ .NEW Y S ACHSREP=$$DIR^XBDIR("Y","Do you wish to reprocess the file","N") NEW
+ ;ACHS*3.1*23 END CHANGES
  G ENDX:$$DIR^XBDIR("E"),SUF
 SEQOK ;
  S ACHSEOBD=$P(ACHSUFLS(ACHSK(Y))," ",2)
@@ -136,6 +144,8 @@ CONT1 ;
  . S DIR(0)="Y",DIR("A")="OR, if you're sure no CHS users are active, you can continue",DIR("B")="N",DIR("?")="You must enter 'Y' to continue."
  . D ^DIR
  . K DIR
+ ;ACHS*3.1*23 NEW LINE TO LOCK FILE
+ I 'ACHSISAO,'$$LOCK^ACHS("^ACHSF(DUZ(2),""D"")","+") W !!,"CHS file lock failed, make sure all CHS user's are logged off." G ENDX
  S ^ACHSUSE("EOBR")=""         ;SET THE EOBR IN USE GLOBAL FLAG
  ;12/27/00 pmf  change direct kill of work global
  S ^ACHSEOBR="" F  S ^ACHSEOBR=$O(^ACHSEOBR(^ACHSEOBR)) Q:^ACHSEOBR=""  K ^ACHSEOBR(^ACHSEOBR)
@@ -150,7 +160,8 @@ RDHDR ;EP
  D ^ACHSEOB1                             ;READ IN FILE TO PROCESS
  G:ACHSTERR ABEND
  I ACHSISAO D AREA^ACHSEOBB G XIT        ;IS AREA OFFICE
- I 'ACHSISAO D FAC^ACHSEOBB,SAVDCR("E")  ;NOT AREA OFFICE
+ ;I 'ACHSISAO D FAC^ACHSEOBB,SAVDCR("E")  ;NOT AREA OFFICE ;ACHS*23
+ I 'ACHSISAO D:$G(ACHSREP)<1 FAC^ACHSEOBB D SAVDCR("E")  ;NOT AREA OFFICE  ;ACHS*23
  ;
 XIT ;
  S ACHSRPT=2
@@ -174,8 +185,10 @@ XIT ;
 ENDX ;EP
  ;ACHS*3.1*21
  S IONOFF=""
+ ;ACHS*3.1*23 NEW LINE TO LOCK FILE
+ I 'ACHSISAO,'$$LOCK^ACHS("^ACHSF(DUZ(2),""D"")","-") W !,"Unlock of CHS Global failed, log out of CHS"
  D CLOSEALL^ACHS,KILL^ACHSEOBB
- K DIR
+ K DIR,CONT
  W !!
  D RTRN^ACHS
  I ACHSISAO,'$D(ACHSAEND),$G(ACHSISAC) D ^ACHSEOB8 ;ACHS*3.1*21

@@ -1,5 +1,5 @@
-RART1 ;HISC/GJC,SWM-Reporting Menu (Part 2) ;05/13/09  08:05
- ;;5.0;Radiology/Nuclear Medicine;**8,16,15,21,23,27,34,99,47**;Mar 16, 1998;Build 21
+RART1 ;HISC/GJC,SWM-Reporting Menu (Part 2) ; 06 Oct 2013  11:05 AM
+ ;;5.0;Radiology/Nuclear Medicine;**8,16,15,21,23,27,34,99,47,1005**;Mar 16, 1998;Build 13
  ;Print Report By Patient has been moved to 4^RART2!
  ;these sections are moved to ^RART3 : QRPT, PHYS, MODSET, OUT1
  ;RVD P99, add pregnancy screen and commment if populated for female pt.
@@ -60,7 +60,11 @@ DISP1 I $S('$D(ORACTION):1,ORACTION'=8:1,'$D(X):0,X="T":1,1:0) W @IOF
  S RAPREVER=+$P($G(^RARPT(RARPT,0)),"^",13) W ?39,"Pre-verified",?55,": ",$S($D(^VA(200,RAPREVER,0)):$E($P($G(^VA(200,RAPREVER,0)),"^"),1,24),1:"NO") K RAPREVER
  D PHYS^RART3
  ;Display Pregnancy Screen and Comments if respective field is filled and pt is female, patch #99
- I $$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .W:$P(R3,U,32)'="" !,"Pregnancy Screen: ",$S($P(R3,"^",32)="y":"Patient answered yes",$P(R3,"^",32)="n":"Patient answered no",$P(R3,"^",32)="u":"Patient is unable to answer or is unsure",1:"")
  .N RAPCOMM S RAPCOMM=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCOMM"))
  .W:$P(R3,U,32)'=""&$L(RAPCOMM) !,"Pregnancy Screen Comment: ",RAPCOMM

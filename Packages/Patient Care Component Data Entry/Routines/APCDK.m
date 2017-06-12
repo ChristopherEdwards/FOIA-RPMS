@@ -1,5 +1,5 @@
 APCDK ; IHS/CMI/LAB - NIGHTLY AMBULATORY VISIT V FILE RELINKER ; 15 Nov 2010  12:10 PM
- ;;2.0;IHS PCC SUITE;**1,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**1,5,10**;MAY 14, 2009;Build 88
  ;
  ;
 EN ;
@@ -26,6 +26,7 @@ PROCESS ;Get vars and process visit
  Q:$P(^AUPNVSIT(APCDKV,0),U,11)
  S DFN=$P(^AUPNVSIT(APCDKV,0),U,5) I DFN="",$P(^AUPNVSIT(APCDKV,0),U,2)]"",$P(^AUPNVSIT(APCDKV,0),U,2)'=DT,$$NOVFILES(APCDKV) S DA=APCDKV,DIK="^AUPNVSIT(" D ^DIK Q  ;delete visits with no patient
  Q:'$P(^AUPNVSIT(APCDKV,0),U,9)
+ I $$GET1^DIQ(9009080,DFN,"1.1","I")=APCDKV Q  ;Quit if current ER patient
  I "AORSX"'[$P(^AUPNVSIT(APCDKV,0),U,7) Q  ;only review ambulatory visits
  Q:$D(^AUPNVPOV("AD",APCDKV))  ;leave complete visit alone
  Q:$D(^AUPNVPRV("AD",APCDKV))  ;leave complete visit alone

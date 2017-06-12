@@ -1,5 +1,5 @@
 AMQQMUL3 ;IHS/CMI/THL - ICD MATCH FROM VISIT OR PROBLEM LIST ;
- ;;2.0;IHS PCC SUITE;**5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**5,11**;MAY 14, 2009;Build 58
  ;-----
  D MULT
  Q
@@ -122,33 +122,33 @@ SETAG S AMQQGLOR="^"_$P(AMQQX,";")
  Q
  ;
 NARR ; ENTRY POINT FROM METADICTIONARY
- N %,Y,Z
+ N %,Y,Z,ZZ
  I '$D(^AUPNPROB(X,0)) S X="??" Q
- S %=^AUPNPROB(X,0)
+ S %=^AUPNPROB(X,0),ZZ=X
  S X=""
  S Y=$P(%,U,6)
  S Y=$P($G(^AUTTLOC(Y,0)),U,7)
  S X=Y_$P(%,U,7)_"("_$P(%,U,12)_")  "
  S Y=$P(%,U,5)
- S Y=$P($G(^AUTNPOV(Y,0)),U)
+ S Y=$$VAL^XBDIQ1(9000011,ZZ,.05) ;$P($G(^AUTNPOV(Y,0)),U)
  S Y=$S($L(Y)>37:($E(Y,1,35)_"..."),1:$E(Y,1,37))
  S X=X_Y
  S Y=$P(%,U)
- S Y=$P($$ICDDX^ICDCODE(Y,"","",1),U,2)
+ S Y=$P($$ICDDX^ICDEX(Y,"","","I"),U,2)
  I Y'="" S Y=" ["_Y_"]"
  S X=X_Y
  Q
  ;
 FHNARR ; ENTRY POINT FROM METADICTIONARY
- N %,Y,Z
+ N %,Y,Z,ZZ
  I '$D(^AUPNFH(X,0)) S X="??" Q
- S %=^AUPNFH(X,0),X=""
+ S %=^AUPNFH(X,0),ZZ=X,X=""
  S Y=$P(%,U,4)
- S Y=$P($G(^AUTNPOV(+Y,0)),U)
+ S Y=$$VAL^XBDIQ1(9000014,ZZ,.04) ;$P($G(^AUTNPOV(+Y,0)),U)
  S Y=$S($L(Y)>37:($E(Y,1,35)_"..."),1:$E(Y,1,37))
  S X=X_Y
  S Y=$P(%,U)
- S Y=$P($$ICDDX^ICDCODE(Y,"","",1),U,2)
+ S Y=$P($$ICDDX^ICDEX(Y,"","","I"),U,2)
  I Y'="" S Y=" ["_Y_"]"
  S X=X_Y
  Q
@@ -161,7 +161,7 @@ PHNARR ; ENTRY POINT FROM METADICTIONARY
  S Y=$S($L(Y)>37:($E(Y,1,35)_"..."),1:$E(Y,1,37))
  S X=X_Y
  S Y=$P(%,U)
- S Y=$P($$ICDDX^ICDCODE(Y,"","",1),U,2)
+ S Y=$P($$ICDDX^ICDEX(Y,"","","I"),U,2)
  I Y'="" S Y=" ["_Y_"]"
  S X=X_Y
  Q

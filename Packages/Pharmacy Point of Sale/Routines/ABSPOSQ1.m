@@ -1,5 +1,5 @@
 ABSPOSQ1 ; IHS/FCS/DRS - POS background, Part 1 ; [ 11/04/2002  2:21 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 01, 2001;Build 15
  ;
  ; This is usually started by Taskman call in TASK^ABSPOSIZ
  ;

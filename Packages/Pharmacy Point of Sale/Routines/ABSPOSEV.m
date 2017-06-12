@@ -1,5 +1,5 @@
 ABSPOSEV ; IHS/SD/lwj  - Point of Sale environment checker  [ 05/28/2002  10:03 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42,43,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**20,23,28,31,32,33,34,36,37,38,39,40,42,43,44**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/RLT - 3/22/07 - Patch 20
  ;          New environment checker.  Replaced ABSPOSEC.

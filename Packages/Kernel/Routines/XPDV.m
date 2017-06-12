@@ -1,5 +1,5 @@
 XPDV ;SFISC/RSD - Verify Build ;10/15/2008
- ;;8.0;KERNEL;**30,44,58,108,511,525**;Jul 10, 1995;Build 16
+ ;;8.0;KERNEL;**30,44,58,108,511,525,539,547**;Jul 10, 1995;Build 16
  ;Per VHA Directive 2004-038, this routine should not be modified.
  ;checks that everything is ready to do a build
  ;XPDA=build ien, loop thru all nodes in ^XPD(9.6,XPDA and verify data
@@ -7,7 +7,7 @@ EN ;check a build
  N DA,ERR,FGR,TYPE,XPDFILE,XPDOLDA,Y0,Y2 K ^TMP($J)
  S Y0=$G(^XPD(9.6,XPDA,0)),TYPE=$P(Y0,U,3)
  I $P(Y0,U,2)="" W !,"No Package File Link"
- I '$P(Y0,U,2) W !,$P(Y0,U,2)," in Package File Link field is freetext, not a pointer"
+ I '$P(Y0,U,2) W !,$P(Y0,U,2)," in Package File Link field is free text, not a pointer"
  I $P(Y0,U,2),'$D(^DIC(9.4,$P(Y0,U,2),0)) W !,$P(Y0,U,2)," in PACKAGE File  ** NOT FOUND **",*7
  ;type is global package goto CONT
  G CONT:TYPE=2
@@ -121,10 +121,10 @@ RTN(X,MSG) ;verify tag^routine
  E  S T="",R=X
  I (R'?1A.E) S MSG=" Name violates the SAC!!" Q 0
  I $T(^@R)="" S MSG=" DOESN'T EXIST!!" Q 0
- ;2nd line must begin with "[label] ;;n[n.nn];"
+ ;2nd line must begin with "[label] ;;n[n.nn];A[APN];"
  S S=$T(+2^@R) D  I MSG]"" Q 0
  .I $L($P(S," ")) S L=$P(S," "),S=$P(S,L,2,99) I L'?1U.7UN S MSG=" 2nd line violates the SAC!!" Q
- .I S'?.1" ;;"1.2N.1".".2N1";".E S MSG=" 2nd line violates the SAC!!"
+ .I S'?.1" ;;"1.2N.1".".2N1";"1.APN1";".E S MSG=" 2nd line violates the SAC!!"
  ;if no tag or tag^routine exists, then return 1
  Q:T="" 1 Q:$T(@T^@R)]"" 1
  S MSG=" Tag DOESN'T EXIST!!" Q 0
@@ -145,8 +145,11 @@ MENU(F,X,Y) ;check for Parent or Children, F=file (19 or 101), X=ien,
  Q:'X 0
  N I,J,GR,Z
  S GR=$S(F=19:"^DIC(19)",1:"^ORD(101)"),(I,Z)=0
- ;link, check that at least 1 menu item was sent
- I Y=2 F  S I=$O(@GR@(X,10,"B",I)) Q:'I  S J=$P($G(@GR@(I,0)),U) I J]"",$D(^XPD(9.6,XPDA,"KRN",F,"NM","B",J)) S Z=1 Q
+ ;link, check that at least 1 menu item or subscribers was sent
+ I Y=2 D
+ . F  S I=$O(@GR@(X,10,"B",I)) Q:'I  S J=$P($G(@GR@(I,0)),U) I J]"",$D(^XPD(9.6,XPDA,"KRN",F,"NM","B",J)) S Z=1 Q
+ . ;if it didn't find menu item and this is a protocol, check the subscribers, 775
+ . I 'Z,F=101 F  S I=$O(@GR@(X,775,"B",I)) Q:'I  S J=$P($G(@GR@(I,0)),U) I J]"",$D(^XPD(9.6,XPDA,"KRN",F,"NM","B",J)) S Z=1 Q
  ;attach, check that the parent was sent
  I Y=4 F  S I=$O(@GR@("AD",X,I)) Q:'I  S J=$P($G(@GR@(I,0)),U) I J]"",$D(^XPD(9.6,XPDA,"KRN",F,"NM","B",J)) S Z=1 Q
  D:'Z

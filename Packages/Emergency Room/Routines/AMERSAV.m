@@ -1,5 +1,5 @@
 AMERSAV ; IHS/ANMC/GIS -ISC - FILE INFO IN ER VISIT FILE ;  
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6,7,8**;MAR 03, 2009;Build 23
  ;
  ;IHS/OIT/SCR 12/17/08
  ;This routine is called by AMERD upon discharge of ER
@@ -10,7 +10,9 @@ RUN ;
  S AMERDR(1)=$$DR1("QA")
  S AMERDR(1)=AMERDR(1)_";.03////"_$P($G(^AMERADM(AMERDFN,0)),U,3)
  S AMERDR(2)=$$DR1("QD")_";.19////"_$G(DUZ)_";10.1////1"
- S %=$G(^TMP("AMER",$J,2,11,.1)) I %]"" S AMERDR(2)=AMERDR(2)_";5.2////"_+%_";5.3////"_$P($P(%,U,2)," [") ; PRIMARY DIAGNOSIS
+ ;AMER*3.0*7;Stop updating DX information at this point - now getting pushed from PCC
+ ;S %=$G(^TMP("AMER",$J,2,11,.1)) I %]"" S AMERDR(2)=AMERDR(2)_";5.2////"_+%_";5.3////"_$P($P(%,U,2)," [") ; PRIMARY DIAGNOSIS
+ S %=$G(^TMP("AMER",$J,2,11,.1)) ;I %]"" S AMERDR(2)=AMERDR(2)_";5.2////"_+%_";5.3////"_$P($P(%,U,2)," [") ; PRIMARY DIAGNOSIS
  D INJ^AMERSAV1
  D CONSULT
  D STUFF(AMERDFN),DRM,KILLADM,TASK
@@ -26,8 +28,12 @@ DR1(T) ; MAKES DR STRING FROM TMP GLOBALS. DOES NOT DO SUBFILES
  .I $P(Z,U,7) Q
  .S N=$P(Z,U,5) I 'N Q
  .I X="QA3" S %=$G(^TMP("AMER",$J,1,3)) S:%]"" AMERDR(1.1)=N_"////"_% Q
- .I X="QD33" D  Q
- ..S %=$G(^TMP("AMER",$J,2,33)) S:% %=$G(^AMER(3,+%,"ICD")) S:% A=A_";"_N_"////"_% Q
+ .;
+ .;AMER*3.0*6;No longer convert
+ .;I X="QD33" D  Q
+ .;.S %=$G(^TMP("AMER",$J,2,33)) S:% %=$G(^AMER(3,+%,"ICD")) S:% A=A_";"_N_"////"_% Q
+ .I X="QD33" S %=$G(^TMP("AMER",$J,2,33)) S:% A=A_";"_N_"////"_% Q
+ .;
  .I X="QD16" S %=$G(^TMP("AMER",$J,2,16)) S:%]"" AMERDR(2.1)=N_"////"_+% Q
  .I X]"QD19",X']"QD23" S Y=$E(X,3,4),%=$G(^TMP("AMER",$J,2,Y)) S:%]"" AMERDR(1)=AMERDR(1)_";"_N_"////"_+% Q
  .I X="QD24"!(X="QD25")!(X="QD9") S AMERDR(12)=$G(AMERDR(12)),Y=$E(X,3,4),%=$G(^TMP("AMER",$J,2,Y)) S:((AMERDR(12)]"")&%) AMERDR(12)=AMERDR(12)_";" S:% AMERDR(12)=AMERDR(12)_N_"////"_% Q
@@ -49,12 +55,14 @@ DRM ; GIVEN THE 2ND DR STRING, ADD MULTIPLES
  ...I A]"" S AMERDR($S(X=10:4,X=26:5,X=11:6))=A
  ..Q
  .Q
- I $O(^TMP("AMER",$J,2,11,0)) S (Y,I)=0,Z="" F  S Y=$O(^TMP("AMER",$J,2,11,Y)) Q:'Y  S A=^(Y) D
- .S B=+A,%=$P(A,U,2),C=$P(%," [")
- .I Z]"" S Z=Z_U
- .S Z=Z_B,I=I+1
- .S AMERDR(6)=Z,AMERDR(6,I)=C
- .Q
+ ;
+ ;AMER*3.0*7;No longer save additional DX information
+ ;I $O(^TMP("AMER",$J,2,11,0)) S (Y,I)=0,Z="" F  S Y=$O(^TMP("AMER",$J,2,11,Y)) Q:'Y  S A=^(Y) D
+ ;.S B=+A,%=$P(A,U,2),C=$P(%," [")
+ ;.I Z]"" S Z=Z_U
+ ;.S Z=Z_B,I=I+1
+ ;.S AMERDR(6)=Z,AMERDR(6,I)=C
+ ;.Q
  ; ADDED FOR ER CONSULTANT MULTIPLE FIELD 
  I $O(^TMP("AMER",$J,2,7,0)) D
  .S (Y,I)=0,Z="" F  S Y=$O(^TMP("AMER",$J,2,7,Y)) Q:'Y  S A=^(Y) D
@@ -101,8 +109,8 @@ UPDATE ; EP - UPDATE THE VISIT FILE
  S AMERREGX=+Y
  ;S AMERREGX=144 
  S AMERSTOP=(AMERDISP=AMERREGX)
- I ((AMERPCC>0)&&(AMERSTOP=1))  S AMERPCC=0  ;IHS/OIT/SCR 10/14/08
- I ((AMERPCC<0)&&'AMERSTOP) D  ; IF WE HAVEN'T MADE A VISIT YET (AS IN BATCH ENTRY) MAKE IT NOW
+ I ((AMERPCC>0)&($G(AMERSTOP)=1))  S AMERPCC=0  ;IHS/OIT/SCR 10/14/08
+ I ((AMERPCC<0)&'$G(AMERSTOP)) D  ; IF WE HAVEN'T MADE A VISIT YET (AS IN BATCH ENTRY) MAKE IT NOW
  .S AMERTIME=$P($G(^AMERVSIT(AMERDA,0)),U,1)
  .S AMERDFN=$P($G(^AMERVSIT(AMERDA,0)),U,2)
  .; If the LOCATION is not set up for scheduling create a PCC VISIT through ERS PCC interface $$VISIT^AMPERPCC(AMERDFN,AMERTIME)
@@ -111,7 +119,11 @@ UPDATE ; EP - UPDATE THE VISIT FILE
  .I $G(^AMER(2.5,DUZ(2),"SD"))'="" S AMERPCC=$$ERCHCKIN^AMERBSDU(AMERDFN,AMERTIME)
  .D:+AMERPCC>0 SAVPCCO^AMERPCC(+AMERPCC,AMERDA)  ; SAVE PCC IEN TO ER VISIT FILE
  .Q
- D:(+AMERPCC>0&&'AMERSTOP) SYNCHPCC^AMERPCC(AMERDA)
+ D:(+AMERPCC>0&'$G(AMERSTOP)) SYNCHPCC^AMERPCC(AMERDA)
+ ;
+ ;AMER*3.0*8;Update V EMERGENCY VISIT MANAGEMENT
+ I +AMERPCC>0,'$G(AMERSTOP) D VER^AMERVER(DFN,AMERPCC)
+ ;
  D:+AMERPCC<0
  .D EN^DDIOL("There was a problem updating PCC VISIT files for ER VISIT IEN: "_AMERDA,"","!!")
  .H 2

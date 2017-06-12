@@ -1,5 +1,5 @@
 ABSPOS25 ; IHS/FCS/DRS - insurance auto-selection ;  [ 08/28/2002  2:43 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,11,13,21,37,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,11,13,21,37,46**;JUN 21, 2001;Build 15
  ; Changed: POS always used ^ABSPCOMB, regardless of ILC presence
  Q
  ; Called from:

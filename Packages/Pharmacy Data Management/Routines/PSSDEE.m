@@ -1,5 +1,5 @@
-PSSDEE ;BIR/WRT-MASTER DRUG ENTER/EDIT ROUTINE ;24-Oct-2012 15:56;DU
- ;;1.0;PHARMACY DATA MANAGEMENT;**3,5,15,16,20,22,28,32,34,33,38,57,47,68,61,1013,82,90,110,1015,1016**;9/30/97;Build 74
+PSSDEE ;BIR/WRT-MASTER DRUG ENTER/EDIT ROUTINE ;10-Apr-2014 17:16;DU
+ ;;1.0;PHARMACY DATA MANAGEMENT;**3,5,15,16,20,22,28,32,34,33,38,57,47,68,61,1013,82,90,110,1015,1016,1017**;9/30/97;Build 40
  ;
  ;Reference to ^PS(59 supported by DBIA #1976
  ;Reference to REACT1^PSNOUT supported by DBIA #2080
@@ -10,6 +10,8 @@ PSSDEE ;BIR/WRT-MASTER DRUG ENTER/EDIT ROUTINE ;24-Oct-2012 15:56;DU
  ;            IHS/MSC/WPB - 03/20/2012 - Line ASK+3, CHOOSE+7, CHECK+12,BRANCH+2,COMPD
  ;            IHS/MSC/PB  - 10/02/2012 - Line tag COMPND changed to also mark the drug as compounded
  ;            IHS/MSC/MGH - 10/24/2012 - Line tag VANDC added
+ ;            IHS/MSC/MGH - 08/05/2013 - Line tag RXNORM added
+ ;                                       Line ONE+2
 BEGIN S PSSFLAG=0 D ^PSSDEE2 S PSSZ=1 F PSSXX=1:1 K DA D ASK Q:PSSFLAG
 DONE D ^PSSDEE2 K PSSFLAG Q
  ;IHS/MSC/MGH changed for mixed case lookup, uses new cross-reference
@@ -45,6 +47,8 @@ ASKND S %=-1 I $D(^XUSEC("PSNMGR",DUZ)) D MESSAGE^PSSDEE1 W !!,"Do you wish to m
  Q
 ONE S PSNP=$G(^PSDRUG(DA,"I")) I PSNP,PSNP<DT Q
  W !,"You have just VERIFIED this match and MERGED the entry." D CKDF D EN2^PSSUTIL(DISPDRG,1) S:'$D(OLDDF) OLDDF="" I OLDDF'=NEWDF S FLGNDF=1 D WR
+ ;IHS/MSC/MGH Patch 1017
+ D SQUERY^APSPRCUI(DA)
  Q
 CKDF S NWND=^PSDRUG(DA,"ND"),NWPC1=$P(NWND,"^",1),NWPC3=$P(NWND,"^",3),DA=NWPC1,K=NWPC3 S X=$$PSJDF^PSNAPIS(DA,K) S NEWDF=$P(X,"^",2),DA=DISPDRG
  N PSSK D PKIND^PSSDDUT2
@@ -195,7 +199,10 @@ DSH W !!,"**********************************************************************
  W !,"This entry contains a ""1"" or a ""2"" in the ""DEA, SPECIAL HDLG""",!,"field, therefore this item has been UNMARKED for CMOP transmission."
  W !,"****************************************************************************",! S $P(^PSDRUG(DISPDRG,3),"^")=0 K ^PSDRUG("AQ",DISPDRG) S DA=DISPDRG N % D ^PSSREF
  Q
-VANDC(DA);Find product NDC code
+ ;IHS/MSC/MGH Patch 1017 Display the RxNorm code
+NORM(DA) Q $$GET1^DIQ(50,DA,9999999.27)
+ ;
+VANDC(DA) ;Find product NDC code
  N ND,NDC
  S NDC=""
  S ND=$G(^PSDRUG(DA,"ND"))

@@ -1,5 +1,5 @@
 DGPMV ;ALB/MRL/MIR - PATIENT MOVEMENT DRIVER; 10 MAR 89 [ 03/16/2004  7:49 AM ]
- ;;5.3;Registration;**60,200,268,1015**;Aug 13, 1993;Build 21
+ ;;5.3;Registration;**60,200,268,1015,1017**;Aug 13, 1993;Build 5
  ;IHS/ANMC/LJF  2/21/2001 Removed patient laygo; changed DHCP to IHS
  ;              3/08/2001 Added check for temporary chart #
  ;
@@ -64,6 +64,11 @@ Q K %,DFN,DGER,DGPM5X,DGODS,DGODSON,DGPMUC,DGPME,DGPMN,DGPMT,DGPMPC,DIC,X,Y,^UTI
 UC ; -- set type of mvt literal
  S DGPMUC=$P("ADMISSION^TRANSFER^DISCHARGE^LODGER CHECK-IN^CHECK-OUT LODGER^SPECIALTY TRANSFER^ROOM-BED CHANGE","^",DGPMT)
  I DGPMT=6,$D(DGPMPC) S DGPMUC="PROVIDER CHANGE"
+ ;ihs/cmi/maw 09/16/2013 patch 1017 add call to auditing sofware here
+ S X="BUSAAPI" X ^%ZOSF("TEST") Q:'$T
+ N BDGAUDIT,BDGREC
+ S BDGREC(1)=DFN
+ S BDGAUDIT=$$LOG^BUSAAPI("A","P","A",$P(XQY0,U)_"-"_$P(XQY0,U,2),"PATIENT "_$G(DGPMUC),"BDGREC")
  Q
  ;
 CA ; -- bypass interactive process and allows editing of past admission

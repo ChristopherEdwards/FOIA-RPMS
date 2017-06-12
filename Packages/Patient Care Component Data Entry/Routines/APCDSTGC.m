@@ -1,5 +1,5 @@
 APCDSTGC ; IHS/CMI/LAB - LIST MANAGER API'S FOR FAMILY HISTORY AND API FOR REP FACTORS ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;BJPC v1 patch 1
 INPUT ;EP - called from input transform on Stage field
@@ -9,7 +9,7 @@ INPUT ;EP - called from input transform on Stage field
  .S T=$P(^APCDSTGC(A,0),U,2)
  .Q:T=""
  .Q:'$D(^ATXAX(T))
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not in this taxonomy
+ .Q:'$$ICD^ATXAPI(C,T,9)  ;not in this taxonomy
  .S L=$P(^APCDSTGC(A,0),U,3)
  .S H=$P(^APCDSTGC(A,0),U,4)
  .I X<L!(X>H) K X
@@ -23,7 +23,7 @@ HELP ;EP - Executable help from stage field of V POV
  S A=0 F  S A=$O(^APCDSTGC(A)) Q:A'=+A!(G)  D
  .S T=$P(^APCDSTGC(A,0),U,2)
  .Q:'$D(^ATXAX(T))
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not in this taxonomy
+ .Q:'$$ICD^ATXAPI(C,T,9)  ;not in this taxonomy
  .S G=1
  .S H=0 F  S H=$O(^APCDSTGC(A,12,H)) Q:H'=+H  D
  ..D EN^DDIOL($G(^APCDSTGC(A,12,H,0)))
@@ -41,7 +41,7 @@ EP(APCDDFN,APCDV,APCDI,APCDX) ;EP - called from xref on stage field of V POV
  S APCDA=0 F  S APCDA=$O(^APCDSTGC(APCDA)) Q:APCDA'=+APCDA  D
  .S APCDT=$P(^APCDSTGC(APCDA,0),U,2)
  .Q:'$D(^ATXAX(APCDT))
- .Q:'$$ICD^ATXCHK(C,APCDT,9)
+ .Q:'$$ICD^ATXAPI(C,APCDT,9)
  .I $G(^APCDSTGC(APCDA,13))]"" X ^APCDSTGC(APCDA,13)
  .Q
  Q
@@ -95,7 +95,7 @@ ASKSTG(C) ;EP - called from data entry input templates to determine whether stag
  .S T=$P(^APCDSTGC(A,0),U,2)
  .Q:T=""
  .Q:'$D(^ATXAX(T))
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not in this taxonomy
+ .Q:'$$ICD^ATXAPI(C,T,9)  ;not in this taxonomy
  .S H=1
  .Q
  Q H

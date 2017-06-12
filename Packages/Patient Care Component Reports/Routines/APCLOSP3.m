@@ -1,14 +1,13 @@
 APCLOSP3 ; IHS/CMI/LAB - AMB PRINT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
- ;cmi/anch/maw 9/10/2007 code set versioning in POV
  ;
 POV ;
  I $Y>(IOSL-15) D HEAD^APCLOSP Q:$D(APCLQUIT)
  S APCL1="AMBPOV",APCL2="AMBPOVC",APCLMAX=10,APCLGLOB="^ICD9(",APCLPIEC=3
- W !!,"The ten leading purposes of ambulatory visits by individual ICD Code",!,"are listed below.  Both primary and secondary diagnoses are included in the counts.",!
+ W !!,"The ten leading purposes of ambulatory visits by individual ICD Code are listed",!,"below.  Both primary and secondary diagnoses are included in the counts.",!
  ;I APCLEXCL,$O(APCLDXT(0)) W "NOTE:  These ICD-9 diagnoses have been excluded from this list" S X=0 F  S X=$O(APCLDXT(X)) Q:X'=+X  W ":",$P(^ICD9(X,0),U)  ;cmi/anch/maw 9/10/2007 orig line
- I APCLEXCL,$O(APCLDXT(0)) W "NOTE:  These ICD-9 diagnoses have been excluded from this list" S X=0 F  S X=$O(APCLDXT(X)) Q:X'=+X  W ":",$P($$ICDDX^ICDCODE(X,,,1),U,2)  ;cmi/anch/maw 9/10/2007 csv
+ I APCLEXCL,$O(APCLDXT(0)) W "NOTE:  These ICD diagnoses have been excluded from this list" S X=0 F  S X=$O(APCLDXT(X)) Q:X'=+X  W ":",$P($$ICDDX^ICDEX(X),U,2)  ;cmi/anch/maw 9/10/2007 csv
  W !?11,"By ICD Diagnosis"
  D PROC
 APC ;
@@ -46,6 +45,7 @@ ER ;
  W X," had an alcohol-related",!,"diagnosis (",Z,")."
 DENTAL ;
  D DENTAL^APCLOSP4
+ I '$D(^XTMP("APCLOS",APCLJOB,APCLBTH,"DENTPATCOUNT")) Q
  D PROC
  Q
 PROC S (APCLC,APCLN)=0 F  S APCLN=$O(^XTMP("APCLOS",APCLJOB,APCLBTH,APCL2,APCLN)) Q:APCLN=""!(APCLC=APCLMAX)  D PROC1
@@ -59,5 +59,6 @@ PROC2 ;
  S APCLPD=0 F  S APCLPD=$O(^XTMP("APCLOSP",APCLJOB,APCLBTH,APCL1,APCLPD)) Q:APCLD=APCLPD!(APCLPD="")
  S Y=$S(APCLPD]"":^XTMP("APCLOSP",APCLJOB,APCLBTH,APCL1,APCLPD),1:0) D CALC^APCLOSUT
  S G=APCLGLOB_APCLD_")"
- W !?5,APCLC,").  ",?10,$E($P(@G@(0),U,APCLPIEC),1,35),?45,$J(X,7),?56,"(",Z,")"
+ I APCL2'="AMBPOVC",APCL2'="AMBINJCAUSEC" W !?5,APCLC,").  ",?10,$E($P(@G@(0),U,APCLPIEC),1,35),?45,$J(X,7),?56,"(",Z,")" Q
+ W !?5,APCLC,").  ",?10,$E($P($$ICDDX^ICDEX(APCLD),U,4),1,35),?45,$J(X,7),?56,"(",Z,")"
  Q

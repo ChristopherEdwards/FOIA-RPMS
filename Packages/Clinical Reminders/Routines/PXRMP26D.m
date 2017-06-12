@@ -1,0 +1,398 @@
+PXRMP26D ;SLC/AGP - Dialog Conversion for PXRM*2.0*26. ;05/07/2014
+ ;;2.0;CLINICAL REMINDERS;**26**;Feb 04, 2005;Build 404
+ Q
+ ;
+ ;this code is used to add prompts to a dialog from file 801.45. This
+ ;should only be called when an existing dialog contains a taxonomy
+ ;and prompts are not set in the dialog.
+PROMPTS(DIEN,SEL,DEFAULT,IENCNT,FDA) ;
+ N CNT,CODE,DIR,DNUM,ENC,FIELD,IEN,IENS,NAME,NODE,NUM,PROMPT,PROMPTS,START,VALUE,Y
+ ;
+ ;if prompts already defined then Quit keeps existing functionality
+ ;in sync prompts at element level override prompts for taxonomy
+ D MES^XPDUTL("Adding prompts to the dialog.")
+ S START=+$O(^PXRMD(801.41,DIEN,10,""),-1) I START>0 Q
+ ;
+ S CODE="" F  S CODE=$O(DEFAULT(CODE)) Q:CODE=""  D
+ .I SEL="P",CODE="POV" Q
+ .I SEL="D",CODE="CPT" Q
+ .S CNT=0 F  S CNT=$O(DEFAULT(CODE,"ADDFIND",CNT)) Q:CNT'>0  D
+ ..S NODE=DEFAULT(CODE,"ADDFIND",CNT)
+ ..S IEN=$P(NODE,U)
+ ..I $D(^PXRMD(801.41,DIEN,10,"D",IEN))>0 Q
+ ..I $D(PROMPTS(IEN))>0 I $L(PROMPTS(IEN),U)<$L(NODE,U) S PROMPTS(IEN)=NODE
+ ..S PROMPTS(IEN)=NODE
+ ;
+ I '$D(PROMPTS) Q
+ S START=+$O(^PXRMD(801.41,DIEN,10,""),-1)
+ S DNUM=0
+ S IEN=0,CNT=0 F  S IEN=$O(PROMPTS(IEN)) Q:IEN'>0  D
+ .S CNT=CNT+1,START=START+1,DNUM=DNUM+1
+ .S IENCNT=IENCNT+1,IENS="+"_IENCNT_","_DIEN_","
+ .;S IENCNT=IENCNT+1,IENS="+"_IENCNT_",1,"
+ .S NAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ .S NODE=PROMPTS(IEN),CNT=$L(NODE,U)
+ .I $P(NODE,U,3)>0 Q
+ .S FDA(801.412,IENS,.01)=START
+ .S FDA(801.412,IENS,2)=IEN
+ .I CNT=1 Q
+ .F NUM=2:1:CNT D
+ ..I NUM=3 Q
+ ..I NUM=4 Q
+ ..S VALUE=$P(NODE,U,NUM) I $G(VALUE)="" Q
+ ..S FIELD=$S(NUM=2:9,NUM=4:.01,NUM=5:6,NUM=6:7,NUM=7:8,1:"") I $G(FIELD)="" Q
+ ..S FDA(801.412,IENS,FIELD)=VALUE
+ Q
+ ;
+ ;this is used to add a taxonomy to a finding in a dialog. Set field
+ ;123 to N this should keep the functionality to the same as pre-ICD10
+ ;functionality.
+ADDFIND(DIEN,TAX,UPD,DEFAULT,IENCNT,FDA) ;
+ N TNAME
+ S TNAME=$P(^PXD(811.2,TAX,0),U)
+ D MES^XPDUTL("Adding Taxonomy "_TNAME_" as a Finding Item.")
+ N IENS
+ S IENS=DIEN_","
+ S FDA(801.41,IENS,15)=TAX_";PXD(811.2,"
+ I UPD=2 S FDA(801.41,IENS,123)="N" Q
+ ;S FDA(801.41,IENS,123)="A"
+ ;I UPD=0 D ADDPROMPT(DIEN,TAX,.DEFAULT,.IENCNT,.FDA)
+ Q
+ ;
+ADDFIND1(DIEN,TAX,DEFAULT,IENCNT,FDA) ;
+ ;additional finding addition does not add prompts to the dialog.
+ ;this should keep existing functionality in place
+ ;may need a decision on this
+ N TNAME
+ S TNAME=$P(^PXD(811.2,TAX,0),U)
+ D MES^XPDUTL("Adding Taxonomy "_TNAME_" as an Additional Finding Item.")
+ N IENS
+ S IENCNT=IENCNT+1,IENS="+"_IENCNT_","_DIEN_","
+ ;S IENCNT=IENCNT+1,IENS="?+"_IENCNT_",1,"
+ S FDA(801.4118,IENS,.01)=TAX_";PXD(811.2,"
+ Q
+ ;
+ ;This is used to pulled the default taxonomy field values from 801.45
+ ; into 801.41 when updating a dialog that contains a taxonomy.
+ADDTAXFL(DIEN,TAX,CODE,DEFAULT,IENCNT,FDA) ;
+ ;D MES^XPDUTL("Adding default Taxonomy Field Values for "_CODE_".")
+ D MES^XPDUTL("Adding default Header Text for "_CODE_".")
+ N ENCTYPE,IENS,NODEIEN,RESULT,TEMP,VALUE,X
+ S VALUE=$$ADDTAXF1^PXRMDTAX(CODE,.DEFAULT)
+ S X=$S(CODE="POV":141,1:142)
+ S IENS=DIEN_","
+ S FDA(801.41,IENS,X)=VALUE
+ Q
+ ;
+ ;use to build an array of codes to create a taxonomy from
+BLDARRAY(DIEN,ARRAY,TCNT,TEXT) ;
+ N CLASS,CNT,CODESYSN,CODESYS,FNUM,IEN,NAME,TEMP
+ S CNT=0
+ S NAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ S TCNT=TCNT+1,TEXT(TCNT)="Dialog "_NAME_" Pre-conversion codes"
+ F CODESYS="ICD9(","ICPT(" D
+ .S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"DIALOG",DIEN,CODESYS,IEN)) Q:IEN'>0  D
+ ..S CODESYSN=$S(CODESYS[9:"ICD",1:"CPT")
+ ..S CNT=CNT+1,ARRAY("CODE",CODESYSN,IEN)="I"_U_1
+ ..S TCNT=TCNT+1,TEXT(TCNT)="   "_$S(CODESYSN="ICD":"Diagnosis Code",1:"Procedure Code")_": "_$$GET1^DIQ($S(CODESYSN="ICD":80,1:81),IEN,.01)
+ I CNT=0 Q
+ S TCNT=TCNT+1,TEXT(TCNT)=""
+ S NAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ S CLASS=$P($G(^PXRMD(801.41,DIEN,100)),U)
+ I CLASS="N" S NAME=$P(NAME,"-",2),CLASS="L"
+ S TEMP=$$RTAXNAME^PXRMDUTL(NAME)
+ S ARRAY("NAME")=TEMP
+ S ARRAY("COUNT")=CNT
+ S ARRAY("CLASS")=CLASS
+ S ARRAY("SOURCE")="Reminder Dialog IEN: "_DIEN
+ Q
+ ;
+BLDTAXC(TEXT,TCNT,TIEN,DIEN) ;
+ N ARRAY,CNT,CODESYS,DNAME,TNAME,X
+ S TNAME=$P(^PXD(811.2,TIEN,0),U)
+ S DNAME=$P(^PXRMD(801.41,DIEN,0),U)
+ S TCNT=TCNT+1,TEXT(TCNT)="Taxonomy "_TNAME_" added to dialog."
+ S TCNT=TCNT+1,TEXT(TCNT)="Taxonomy "_TNAME_" post-conversion codes list:"
+ F X="POV","CPT" D
+ .K CODESYS,ARRAY
+ .D BLDCODE^PXRMDTAX(X,.CODESYS),CODES^PXRMDLLB(TIEN,.CODESYS,.ARRAY)
+ .S CNT=0 F  S CNT=$O(ARRAY(CNT)) Q:CNT'>0  S TCNT=TCNT+1,TEXT(TCNT)="   "_$S(X="POV":"Diagnosis Code",1:"Procedure Code")_": "_$P($P(ARRAY(CNT),U,2),":")
+ Q
+ ;create new taxonomy from dialog findings/additional findings,
+ ;trap errors, and store new taxonomy and codes
+CREATE(ARRAY,DIEN,TCNT,TEXT) ;
+ N CNT,IEN,CODESYS,CODE,ERR
+ S IEN=$$CRETAX^PXRMTXIM("",.ARRAY,.ERR)
+ I $D(ERR) D
+ .I IEN=0 D  Q
+ ..S TCNT=TCNT+1,TEXT(TCNT)="ERROR: A taxonomy could not be created"
+ ..S ^XTMP(PXRMXTMP,"DIALOG ERROR",DIEN,"ERROR")="Could not create a taxonomy. Dialog had the following codes assigned:"
+ ..;S ^XTMP(PXRMXTMP,"DIALOG ERROR",DIEN,"ERROR","DIALOG IEN")=DIEN
+ ..M ^XTMP(PXRMXTMP,"DIALOG ERROR",DIEN,"ERROR","CODE")=ARRAY("CODE")
+ .I IEN>0 D
+ ..S TCNT=TCNT+1,TEXT(TCNT)="ERROR: failed to add all the codes to the Taxonomy "_ARRAY("NAME")
+ ..S ^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN,"ERROR")="Could not add the following codes to the Taxonomy "_ARRAY("NAME")
+ ..M ^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN,"ERROR","CODE")=ERR
+ ..;S ^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN,"ERROR","TAXIEN")=IEN 
+ I IEN=0 Q 0
+ S ^XTMP(PXRMXTMP,"TAXONOMY",IEN)=""
+ S ^XTMP(PXRMXTMP,"TAXONOMY",IEN,"NAME")=ARRAY("NAME") K ARRAY("NAME")
+ S ^XTMP(PXRMXTMP,"TAXONOMY",IEN,"COUNT")=ARRAY("COUNT") K ARRAY("COUNT")
+ M ^XTMP(PXRMXTMP,"TAXONOMY",IEN,"DATA")=ARRAY("CODE")
+ D BLDTAXC(.TEXT,.TCNT,IEN,DIEN)
+ Q IEN
+ ;
+ ;determine if a new taxonomy needs to be use or if new taxonomy
+ ;already exist
+CRETAX ;
+ N ARRAY,CNT,DIEN,FIND,HASCODE,IEN,NAME,TAX,TCNT,TEXT,TYPE
+ D MES^XPDUTL(" ")
+ D MES^XPDUTL("Dialogs updates")
+ S DIEN=0 F  S DIEN=$O(^XTMP(PXRMXTMP,"DIALOG",DIEN)) Q:DIEN'>0  D
+ .I $G(^XTMP(PXRMXTMP,"DIALOG",DIEN,"DONE"))=1 Q
+ .K ARRAY,TEXT
+ .S TCNT=0
+ .D BLDARRAY(DIEN,.ARRAY,.TCNT,.TEXT) I '$D(ARRAY) Q
+ .S TAX=$$TAXEXIST(.ARRAY,DIEN,.TCNT,.TEXT) I TAX>0 S ^XTMP(PXRMXTMP,"DIALOG",DIEN,"PXD(811.2,",TAX)=2
+ .I TAX<1 S TAX=$$CREATE(.ARRAY,DIEN,.TCNT,.TEXT) I TAX>0 S ^XTMP(PXRMXTMP,"DIALOG",DIEN,"PXD(811.2,",TAX)=2
+ .S TCNT=TCNT+1,TEXT(TCNT)=""
+ .D MES^XPDUTL(.TEXT)
+ Q
+ ;
+ ;DEBUG CODE del to make clean-up easier for errors while in development
+DELXTMP ;
+ N ARRAY,DIEN,FIND,PXRMXTMP,TEMP,TIEN
+ S PXRMXTMP="PXRM DIALOG CONVERSION",TEMP="DIALOG",FIND="PXD(811.2,"
+ S DIEN=0 F  S DIEN=$O(^XTMP(PXRMXTMP,TEMP,DIEN)) Q:DIEN'>0  D
+ .S TIEN=0 F  S TIEN=$O(^XTMP(PXRMXTMP,TEMP,DIEN,FIND,TIEN)) Q:TIEN'>0  D
+ ..I +$G(^XTMP(PXRMXTMP,TEMP,DIEN,FIND,TIEN))=2 S ARRAY(DIEN,TIEN)=""
+ S DIEN=0 F  S DIEN=$O(ARRAY(DIEN)) Q:DIEN'>0  D
+ .S TIEN=0 F  S TIEN=$O(ARRAY(DIEN,TIEN)) Q:TIEN'>0  D
+ ..K ^XTMP(PXRMXTMP,TEMP,DIEN,FIND,TIEN)
+ Q
+ ;
+ ;build edit history from FDA array.
+EDITDES(DIEN,FDA,WP) ;
+ N CNT
+ S CNT=1
+ D MES^XPDUTL("Updating edit history of the dialog.")
+ i $g(FDA(801.41,DIEN_",",13))'="" S CNT=CNT+1,WP(CNT,0)="   Set Resolution Type to Done Elsewhere (Historical)"
+ I $G(FDA(801.41,DIEN_",",15))'="" S CNT=CNT+1,WP(CNT,0)="   Updated Finding Item Field"
+ I $G(FDA(801.41,DIEN_",",123))'="" S CNT=CNT+1,WP(CNT,0)="   Updated Taxonomy Selection Field to "_$G(FDA(801.41,DIEN_",",123))
+ I $G(FDA(801.41,DIEN_",",141))'="" S CNT=CNT+1,WP(CNT,0)="   Updated Diagnosis Header Text"
+ I $G(FDA(801.41,DIEN_",",142))'="" S CNT=CNT+1,WP(CNT,0)="   Updated Diagnosis Header Text"
+ ;I $D(FDA(801.46)) S CNT=CNT+1,WP(CNT,0)="   Update Taxonomy Fields"
+ I $D(FDA(801.4118)) S CNT=CNT+1,WP(CNT,0)="   Update Additional Finding Item Multiple"
+ I $D(FDA(801.412)) S CNT=CNT+1,WP(CNT,0)="   Added prompts to the dialog"
+ I CNT=1 S CNT=CNT+1,WP(CNT,0)="   Nothing"
+ Q
+ ;
+ ;loops through the xtmp of taxonomy determine the update path
+GETLIST ;
+ N ADDFVPL,CPTSTATUS,DIEN,FINDFVPL,IEN,POVSTATUS,TAXNEEDS,UPDTYPE,VALUE
+ K ^TMP("PXRMXMZ",$J)
+ D BLDRLIST^PXRMVPTR(801.41,15,.FINDFVPL)
+ D BLDRLIST^PXRMVPTR(801.4118,.01,.ADDFVPL)
+ S CPTSTATUS=$$GETSTAT^PXRMDTAX("CPT"),POVSTATUS=$$GETSTAT^PXRMDTAX("POV")
+ K ^TMP("PXRMXMZ",$J)
+ S ^TMP("PXRMXMZ",$J,1,0)="Dialog post-conversion report:"
+ S DIEN=0 F  S DIEN=$O(^XTMP(PXRMXTMP,"DIALOG",DIEN)) Q:DIEN'>0  D
+ .S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"DIALOG",DIEN,"PXD(811.2,",IEN)) Q:IEN'>0  D
+ ..S UPDTYPE=^XTMP(PXRMXTMP,"DIALOG",DIEN,"PXD(811.2,",IEN)
+ ..S TAXNEEDS=0
+ ..I $G(^XTMP(PXRMXTMP,"DIALOG",DIEN,"DONE"))'=1 D UPDATE(DIEN,IEN,UPDTYPE,CPTSTATUS,POVSTATUS,.TAXNEEDS)
+ ..D BLDTXT^PXRMP26X(DIEN,.FINDFVPL,.ADDFVPL,TAXNEEDS,0)
+ I $O(^TMP("PXRMXMZ",$J,""),-1)>1 D SEND^PXRMMSG("PXRMXMZ","Clinical Reminder Patch 26 Post-conversion dialog.")
+ ;K ^TMP("PXRMXMZ",$J)
+ Q
+ ;
+PRE ;
+ ;I $$PATCH^XPDUTL("PXRM*2.0*26") Q
+ N PXRMXTMP,PXRMSKIP
+ S PXRMXTMP="PXRM DIALOG CONVERSION"
+ K ^XTMP(PXRMXTMP)
+ S ^XTMP(PXRMXTMP,0)=$$FMADD^XLFDT(DT,30)_U_DT_U_"PXRM Patch 26 Dialog Conversion"
+ S PXRMSKIP("VA-WH PAP SMEAR OBTAINED")="",PXRMSKIP("VA-GP AAA PRIOR DIAGNOSIS")=""
+ S PXRMSKIP("VA-IM FLU H1N1 DONE (1 DOSE)")="",PXRMSKIP("VA-IM FLU H1N1 OUTSIDE (1 DOSE)")=""
+ S PXRMSKIP("VA-IM FLU HIGH DOSE DONE")="",PXRMSKIP("VA-IM FLU HIGH DOSE OUTSIDE")=""
+ D BLDLIST^PXRMP26X(.PXRMSKIP)
+ Q
+ ;
+POST ;
+ ;I $$PATCH^XPDUTL("PXRM*2.0*26") Q
+ K ^TMP($J,"PXRM TAX"),^TMP("PXRM DIALOG UPD",$J),^TMP("PXRM DIALOG STR",$J)
+ N PXRMXTMP
+ S PXRMXTMP="PXRM DIALOG CONVERSION"
+ D CRETAX
+ D GETLIST
+ D WRITE
+ D MAKNAT(801.41,"ADD TO PROBLEM LIST","PXRM FV ADD TO PROBLEM LIST")
+ D RENAME^PXRMUTIL(801.41,"VA-ECOE DX LIST","VA-ECOE DX GROUP")
+ ;K ^XTMP(PXRMXTMP),^TMP($J,"PXRM TAX"),^TMP("PXRM DIALOG UPD",$J),^TMP("PXRM DIALOG STR",$J)
+ K ^TMP($J,"PXRM TAX"),^TMP("PXRM DIALOG UPD",$J),^TMP("PXRM DIALOG STR",$J)
+ Q
+ ;
+MAKNAT(FILENUM,OLDNAME,NEWNAME) ;Rename entry OLDNAME to NEWNAME in
+ ;file number FILENUM.
+ N DA,DIE,DR,NIEN,PXRMINST,TEXT
+ S DA=$$FIND1^DIC(FILENUM,"","BXU",OLDNAME)
+ I DA=0 Q
+ S PXRMINST=1
+ S NIEN=$$FIND1^DIC(FILENUM,"","BXU",NEWNAME) I NIEN>0 Q
+ S DIE=FILENUM
+ S DR=".01///^S X=NEWNAME;100///N"
+ D ^DIE
+ S TEXT(1)="Converting "_OLDNAME_" IEN: "_DA,TEXT(2)="to national value "_NEWNAME
+ D MES^XPDUTL(.TEXT)
+ Q
+ ;
+ ;compare array with new taxonomies already created if one matches the
+ ;array returns that taxonomy IEN
+TAXEXIST(ARRAY,DIEN,TCNT,TEXT) ;
+ N CIEN,CODESYS,FAIL,IEN,MATCH,RESULT,EDATE,SDATE,TAX,TYPE
+ S RESULT=0,MATCH=0
+ S TAX=0 F  S TAX=$O(^XTMP(PXRMXTMP,"TAXONOMY",TAX)) Q:TAX'>0!(MATCH=1)  D
+ .I ^XTMP(PXRMXTMP,"TAXONOMY",TAX,"COUNT")'=ARRAY("COUNT") Q
+ .S FAIL=0
+ .S TYPE="" F  S TYPE=$O(^XTMP(PXRMXTMP,"TAXONOMY",TAX,"DATA",TYPE)) Q:TYPE=""!(FAIL=1)  D
+ ..S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"TAXONOMY",TAX,"DATA",TYPE,IEN)) Q:IEN'>0!(FAIL=1)  D
+ ...I '$D(ARRAY("CODE",TYPE,IEN)) S FAIL=1 Q
+ .I FAIL=0 S RESULT=TAX,MATCH=1 D BLDTAXC(.TEXT,.TCNT,RESULT,DIEN)
+ Q RESULT
+ ;
+ ;determine what updates are needed for the Taxonomy
+ ; add taxonomy as a finding item/additional finding item if prompts
+ ;should be added
+ ; calls UPDATE^DIE
+UPDATE(DIEN,TAX,UPDTYPE,CPTSTATUS,POVSTATUS,TAXNEEDS) ;
+ N CLASS,DEFAULT,DNAME,FDA,FIND,IENCNT,IENROOT,IENS,MSG,NAME,SAME,START,TEXT,TDX,TPR,TYPE,TAXSEL
+ S DNAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ D MES^XPDUTL("Updating record for dialog "_DNAME_" IEN: "_DIEN)
+ S IENROOT(1)=DIEN
+ S TDX=$$TOK^PXRMDTAX(TAX,"POV")
+ S TPR=$$TOK^PXRMDTAX(TAX,"CPT")
+ I TDX=1 D GETTAXDF^PXRMDTAX(.DEFAULT,"POV",$S(POVSTATUS=2:1,1:0))
+ I TPR=1 D GETTAXDF^PXRMDTAX(.DEFAULT,"CPT",$S(CPTSTATUS=2:1,1:0))
+ I TDX=0,TPR=0 D  Q
+ .S ^XTMP(PXRMXTMP,"DIALOG ERROR",DIEN,"ERROR")="A taxonomy does not have codes marked to be used in a dialog."
+ S IENCNT=DIEN
+ ;
+ S FIND=$P($G(^PXRMD(801.41,DIEN,1)),U,5) I FIND'="" D  G UPDATEX
+ .S SAME=0 I FIND[811.2 D
+ ..;if same find only add prompts if suppress prompts is null
+ ..I +FIND=TAX D  Q
+ ...S SAME=1
+ ...I UPDTYPE<2 D
+ ....S TAXSEL="N"
+ ....I TPR=1 S TAXSEL="P" I POVSTATUS=2 S FDA(801.41,DIEN_",",13)="2"
+ ....I TDX=1 S TAXSEL="D" I CPTSTATUS=2 S FDA(801.41,DIEN_",",13)="2"
+ ....I TPR=1,TDX=1 D
+ .....K FDA(801.41,DIEN_",",13)
+ .....S TAXSEL="A"
+ .....I CPTSTATUS=POVSTATUS,POVSTATUS=2 S FDA(801.41,DIEN_",",13)="2" Q
+ .....I CPTSTATUS'=POVSTATUS S TAXNEEDS=1
+ ....S FDA(801.41,DIEN_",",123)=TAXSEL
+ ....I TDX=1 D ADDTAXFL(DIEN,TAX,"POV",.DEFAULT,.IENCNT,.FDA)
+ ....I TPR=1 D ADDTAXFL(DIEN,TAX,"CPT",.DEFAULT,.IENCNT,.FDA)
+ ...I UPDTYPE=1 D PROMPTS(DIEN,TAXSEL,.DEFAULT,.IENCNT,.FDA)
+ . I SAME=1 Q
+ . D ADDFIND1(DIEN,TAX,.DEFAULT,.IENCNT,.FDA)
+ ;
+ D ADDFIND(DIEN,TAX,UPDTYPE,.DEFAULT,.IENCNT,.FDA)
+ ;
+UPDATEX ;
+ ;populate edit history
+ N WP
+ S WP(1,0)="Reminder Code Conversion Routine did the following:"
+ D EDITDES(DIEN,.FDA,.WP)
+ ;S IENCNT=IENCNT+1,IENS="+"_IENCNT_","_DIEN_","
+ S IENCNT=IENCNT+1,IENS="+"_IENCNT_","_DIEN_","
+ S FDA(801.44,IENS,.01)=DT
+ S FDA(801.44,IENS,1)=DUZ
+ S FDA(801.44,IENS,2)="WP"
+ ;populate required fields from existing entry
+ S NAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ S CLASS=$P($G(^PXRMD(801.41,DIEN,100)),U)
+ S TYPE=$P($G(^PXRMD(801.41,DIEN,0)),U,4)
+ ;
+ S FDA(801.41,DIEN_",",.01)=NAME
+ S FDA(801.41,DIEN_",",4)=TYPE
+ S FDA(801.41,DIEN_",",100)=CLASS
+ D UPDATE^DIE("","FDA","","MSG")
+ I '$D(MSG) S ^XTMP(PXRMXTMP,"DIALOG",DIEN,"DONE")=1
+ I $D(MSG) D AWRITE^PXRMUTIL("MSG")
+ S ^XTMP(PXRMXTMP,"DIALOG UPDATED",DIEN)=1
+ D MES^XPDUTL("Completed record updates for dialog "_DNAME_" IEN: "_DIEN)
+ D MES^XPDUTL(" ")
+ Q
+ ;
+ ;DEBUG CODE to be deleted
+WRITENAM ;
+ N NAME,PXRMXTMP,TEMP,DIEN
+ S PXRMXTMP="PXRM DIALOG CONVERSION",TEMP="DIALOG"
+ S DIEN=0 F  S DIEN=$O(^XTMP(PXRMXTMP,TEMP,DIEN)) Q:DIEN'>0  D
+ .S NAME=$P($G(^PXRMD(801.41,DIEN,0)),U)
+ .I NAME["WAT" D
+ ..K ^XTMP(PXRMXTMP,TEMP,DIEN,"ICD9(")
+ Q
+ ;
+ ;write out the final overview when the updates are done
+WRITE ;
+ N ARRAY,CNT,FIRST,IEN,NAME,NODE,TEXT,CODESYS,CODE
+ S CNT=0
+ D MES^XPDUTL("Overview")
+ I $D(^XTMP(PXRMXTMP,"TAXONOMY"))>0 D
+ . S CNT=0
+ . ;S CNT=CNT+1,TEXT(CNT)="The following Taxonomies were created:"
+ . S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"TAXONOMY",IEN)) Q:IEN'>0  S CNT=CNT+1
+ . I CNT>0 D MES^XPDUTL("Created "_CNT_" taxonomies")
+ ;
+ I $D(^XTMP(PXRMXTMP,"DIALOG UPDATED"))>0 D
+ . S CNT=0
+ . S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"DIALOG UPDATED",IEN)) Q:IEN'>0  S CNT=CNT+1
+ . I CNT>0 D MES^XPDUTL("Updated "_CNT_" dialogs")
+ I '$D(^XTMP(PXRMXTMP,"DIALOG UPDATED")),$D(^XTMP(PXRMXTMP,"TAXONOMY ERROR")) D MES^XPDUTL("No errors found") Q
+ S CNT=1
+ ;
+ S TEXT(CNT,0)="Manual Correction is needed for the following items"
+ I $D(^XTMP(PXRMXTMP,"DIALOG ERROR")) D
+ .S CNT=CNT+1,TEXT(CNT,0)="",CNT=CNT+1,TEXT(CNT,0)="The following dialog(s) had an error in the update process."
+ .S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN)) Q:IEN'>0  D
+ ..S NAME=$P($G(^PXRMD(801.41,IEN,0)),U) I NAME="" Q
+ ..S ARRAY(IEN)=""
+ ..S CNT=CNT+1,TEXT(CNT,0)="   "_NAME
+ ..I $D(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN,"CODE")) D
+ ...S CNT=CNT+1,TEXT(CNT,0)="   List of pre-conversion codes below:"
+ ...S CODESYS="" F  S CODESYS=$O(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN,"CODE",CODESYS)) Q:CODESYS=""  D
+ ....S CODE="" F  S CODE=$O(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN,"CODE",CODESYS,CODE)) Q:CODE=""  D
+ .....S CNT=CNT+1,TEXT(CNT,0)="      "_CODESYS_": "_CODE
+ ..I $D(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN,"ERROR")) S CNT=CNT+1,TEXT(CNT,0)="       "_$G(^XTMP(PXRMXTMP,"DIALOG ERROR",IEN,"ERROR"))
+ ;
+ I $D(^XTMP(PXRMXTMP,"TAXONOMY ERROR")) D
+ .S CNT=CNT+1,TEXT(CNT,0)="",CNT=CNT+1,TEXT(CNT,0)="The following taxonomies are missing codes."
+ .S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN)) Q:IEN'>0  D
+ ..S NAME=$P($G(^PXD(811.2,IEN,0)),U) I NAME="" Q
+ ..S CNT=CNT+1,TEXT(CNT,0)="   "_NAME
+ ..S CNT=CNT+1,TEXT(CNT,0)="   List of pre-conversion codes below:"
+ ..S CODESYS="" F  S CODESYS=$O(^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN,"CODE",CODESYS)) Q:CODESYS=""  D
+ ...S CODE="" F  S CODE=$O(^XTMP(PXRMXTMP,"TAXONOMY ERROR",IEN,"CODE",CODESYS,CODE)) Q:CODE=""  D
+ ....S CNT=CNT+1,TEXT(CNT,0)="      "_CODESYS_": "_CODE
+ ;
+ S FIRST=1
+ S IEN=0 F  S IEN=$O(^XTMP(PXRMXTMP,"DIALOG",IEN)) Q:IEN'>0  D
+ .I $G(^XTMP(PXRMXTMP,"DIALOG",IEN,"DONE"))=1 Q
+ .I $D(ARRAY(IEN)) Q
+ .S NAME=$P($G(^PXRMD(801.41,IEN,0)),U) I NAME="" Q
+ .I FIRST=1 D
+ ..S CNT=CNT+1,TEXT(CNT,0)="",CNT=CNT+1,TEXT(CNT,0)="The following dialogs took an error in UPDATE^DIE.",FIRST=0
+ .S CNT=CNT+1,TEXT(CNT,0)="   "_NAME
+ ;
+ I CNT>1 D
+ .K ^TMP("PXRMERRM")
+ .M ^TMP("PXRMERRM",$J)=TEXT
+ .D SEND^PXRMMSG("PXRMERRM","Clinical Reminder Patch 26 Errors.")
+ ;
+ ;D MES^XPDUTL(.TEXT)
+ ;D MES^XPDUTL(.TEXT)
+ Q
+ ;

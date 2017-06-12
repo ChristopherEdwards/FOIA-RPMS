@@ -1,0 +1,486 @@
+ ;BSTS.DtsQueryDaoPort.1
+ ;(C)InterSystems, generated for class BSTS.DtsQueryDaoPort.  Do NOT edit. 10/22/2016 08:53:34AM
+ ;;7A464262;BSTS.DtsQueryDaoPort
+ ;
+zaddAssociationType(assocType) public {
+ Quit ..WebMethod("addAssociationType").Invoke($this,"",.assocType) }
+zaddAuthority(authority) public {
+ Quit ..WebMethod("addAuthority").Invoke($this,"",.authority) }
+zaddAuthorityProperty(authority,property) public {
+ Quit ..WebMethod("addAuthorityProperty").Invoke($this,"",.authority,.property) }
+zaddConcept(concept) public {
+ Quit ..WebMethod("addConcept").Invoke($this,"",.concept) }
+zaddConceptAssociation(conceptAssociation) public {
+ Quit ..WebMethod("addConceptAssociation").Invoke($this,"",.conceptAssociation) }
+zaddConceptProperty(concept,property) public {
+ Quit ..WebMethod("addConceptProperty").Invoke($this,"",.concept,.property) }
+zaddDefiningConcept(concept,definingConcept) public {
+ Quit ..WebMethod("addDefiningConcept").Invoke($this,"",.concept,.definingConcept) }
+zaddDefiningRole(concept,role) public {
+ Quit ..WebMethod("addDefiningRole").Invoke($this,"",.concept,.role) }
+zaddNamespace(namespace) public {
+ Quit ..WebMethod("addNamespace").Invoke($this,"",.namespace) }
+zaddNamespaceProperty(namespace,property) public {
+ Quit ..WebMethod("addNamespaceProperty").Invoke($this,"",.namespace,.property) }
+zaddPropertyType(newPropertyType) public {
+ Quit ..WebMethod("addPropertyType").Invoke($this,"",.newPropertyType) }
+zaddQualifierType(newQualifierType) public {
+ Quit ..WebMethod("addQualifierType").Invoke($this,"",.newQualifierType) }
+zaddRoleType(roleType) public {
+ Quit ..WebMethod("addRoleType").Invoke($this,"",.roleType) }
+zaddRootConcept(type,rootConcept) public {
+ Do (..WebMethod("addRootConcept")).Invoke($this,"",.type,.rootConcept) }
+zaddSubset(subset) public {
+ Quit ..WebMethod("addSubset").Invoke($this,"",.subset) }
+zaddSubsetProperty(subset,property) public {
+ Quit ..WebMethod("addSubsetProperty").Invoke($this,"",.subset,.property) }
+zaddSubsetVersion(version) public {
+ Quit ..WebMethod("addSubsetVersion").Invoke($this,"",.version) }
+zaddSubsetVersionProperty(version,property) public {
+ Quit ..WebMethod("addSubsetVersionProperty").Invoke($this,"",.version,.property) }
+zaddSynonym(synonym) public {
+ Quit ..WebMethod("addSynonym").Invoke($this,"",.synonym) }
+zaddTerm(newTerm) public {
+ Quit ..WebMethod("addTerm").Invoke($this,"",.newTerm) }
+zaddTermAssociation(newTermAssociation) public {
+ Quit ..WebMethod("addTermAssociation").Invoke($this,"",.newTermAssociation) }
+zaddTermProperty(term,property) public {
+ Quit ..WebMethod("addTermProperty").Invoke($this,"",.term,.property) }
+zaddVersion(version) public {
+ Quit ..WebMethod("addVersion").Invoke($this,"",.version) }
+zaddVersionProperty(version,property) public {
+ Quit ..WebMethod("addVersionProperty").Invoke($this,"",.version,.property) }
+zbuildSubset(subsetId) public {
+ Quit ..WebMethod("buildSubset").Invoke($this,"",.subsetId) }
+zclassify(namespaceId) public {
+ Quit ..WebMethod("classify").Invoke($this,"",.namespaceId) }
+zcreateNamespaceRevision(namespaceId,comments) public {
+ Quit ..WebMethod("createNamespaceRevision").Invoke($this,"",.namespaceId,.comments) }
+zcreateRoleGroup(concept,roles) public {
+ Quit ..WebMethod("createRoleGroup").Invoke($this,"",.concept,.roles) }
+zcreateSubsetRevision(subsetId,comments) public {
+ Quit ..WebMethod("createSubsetRevision").Invoke($this,"",.subsetId,.comments) }
+zdeleteAssociationType(assocType) public {
+ Quit ..WebMethod("deleteAssociationType").Invoke($this,"",.assocType) }
+zdeleteAuthorityById(authorityId) public {
+ Quit ..WebMethod("deleteAuthorityById").Invoke($this,"",.authorityId) }
+zdeleteAuthorityByName(authorityName) public {
+ Quit ..WebMethod("deleteAuthorityByName").Invoke($this,"",.authorityName) }
+zdeleteAuthorityProperty(authority,property) public {
+ Quit ..WebMethod("deleteAuthorityProperty").Invoke($this,"",.authority,.property) }
+zdeleteConcept(concept) public {
+ Quit ..WebMethod("deleteConcept").Invoke($this,"",.concept) }
+zdeleteConceptAssociation(conceptAssociation) public {
+ Quit ..WebMethod("deleteConceptAssociation").Invoke($this,"",.conceptAssociation) }
+zdeleteConceptProperty(concept,property) public {
+ Quit ..WebMethod("deleteConceptProperty").Invoke($this,"",.concept,.property) }
+zdeleteDefiningConcept(concept,definingConcept) public {
+ Quit ..WebMethod("deleteDefiningConcept").Invoke($this,"",.concept,.definingConcept) }
+zdeleteDefiningRole(concept,role) public {
+ Quit ..WebMethod("deleteDefiningRole").Invoke($this,"",.concept,.role) }
+zdeleteNamespaceByCode(namespaceCode) public {
+ Quit ..WebMethod("deleteNamespaceByCode").Invoke($this,"",.namespaceCode) }
+zdeleteNamespaceById(namespaceId) public {
+ Quit ..WebMethod("deleteNamespaceById").Invoke($this,"",.namespaceId) }
+zdeleteNamespaceByName(namespaceName) public {
+ Quit ..WebMethod("deleteNamespaceByName").Invoke($this,"",.namespaceName) }
+zdeleteNamespaceProperty(namespace,property) public {
+ Quit ..WebMethod("deleteNamespaceProperty").Invoke($this,"",.namespace,.property) }
+zdeletePropertyType(propertyType) public {
+ Quit ..WebMethod("deletePropertyType").Invoke($this,"",.propertyType) }
+zdeleteQualifierType(qualifierType) public {
+ Quit ..WebMethod("deleteQualifierType").Invoke($this,"",.qualifierType) }
+zdeleteRoleType(roleType) public {
+ Quit ..WebMethod("deleteRoleType").Invoke($this,"",.roleType) }
+zdeleteRoleTypeWithReferences(roleType,removeReferences) public {
+ Quit ..WebMethod("deleteRoleTypeWithReferences").Invoke($this,"",.roleType,.removeReferences) }
+zdeleteRootConcept(type,rootConcept) public {
+ Quit ..WebMethod("deleteRootConcept").Invoke($this,"",.type,.rootConcept) }
+zdeleteSubset(subsetId) public {
+ Quit ..WebMethod("deleteSubset").Invoke($this,"",.subsetId) }
+zdeleteSubsetProperty(subset,property) public {
+ Quit ..WebMethod("deleteSubsetProperty").Invoke($this,"",.subset,.property) }
+zdeleteSubsetVersionById(versionId,subsetId) public {
+ Quit ..WebMethod("deleteSubsetVersionById").Invoke($this,"",.versionId,.subsetId) }
+zdeleteSubsetVersionByName(versionName,subsetId) public {
+ Quit ..WebMethod("deleteSubsetVersionByName").Invoke($this,"",.versionName,.subsetId) }
+zdeleteSubsetVersionProperty(version,property) public {
+ Quit ..WebMethod("deleteSubsetVersionProperty").Invoke($this,"",.version,.property) }
+zdeleteSynonym(synonym) public {
+ Quit ..WebMethod("deleteSynonym").Invoke($this,"",.synonym) }
+zdeleteSystemContextProperty(key) public {
+ Do (..WebMethod("deleteSystemContextProperty")).Invoke($this,"",.key) }
+zdeleteTerm(term) public {
+ Quit ..WebMethod("deleteTerm").Invoke($this,"",.term) }
+zdeleteTermAssociation(termAssociation) public {
+ Quit ..WebMethod("deleteTermAssociation").Invoke($this,"",.termAssociation) }
+zdeleteTermProperty(term,property) public {
+ Quit ..WebMethod("deleteTermProperty").Invoke($this,"",.term,.property) }
+zdeleteUserContextProperty(key) public {
+ Do (..WebMethod("deleteUserContextProperty")).Invoke($this,"",.key) }
+zdeleteVersionById(versionId,namespaceId) public {
+ Quit ..WebMethod("deleteVersionById").Invoke($this,"",.versionId,.namespaceId) }
+zdeleteVersionByName(versionName,namespaceId) public {
+ Quit ..WebMethod("deleteVersionByName").Invoke($this,"",.versionName,.namespaceId) }
+zdeleteVersionProperty(version,property) public {
+ Quit ..WebMethod("deleteVersionProperty").Invoke($this,"",.version,.property) }
+zexecuteBatchSQLUpdate(sqlItems) public {
+ Quit ..WebMethod("executeBatchSQLUpdate").Invoke($this,"",.sqlItems) }
+zexecuteSQL(sql) public {
+ Quit ..WebMethod("executeSQL").Invoke($this,"",.sql) }
+zexecuteSQLQuery(sqlItem) public {
+ Quit ..WebMethod("executeSQLQuery").Invoke($this,"",.sqlItem) }
+zexecuteSQLUpdate(sql) public {
+ Quit ..WebMethod("executeSQLUpdate").Invoke($this,"",.sql) }
+zexecuteSQLUpdates(sql,sqlItems) public {
+ Quit ..WebMethod("executeSQLUpdates").Invoke($this,"",.sql,.sqlItems) }
+zfetchAuthorityById(authorityId,asd) public {
+ Quit ..WebMethod("fetchAuthorityById").Invoke($this,"",.authorityId,.asd) }
+zfetchAuthorityByName(authorityName,asd) public {
+ Quit ..WebMethod("fetchAuthorityByName").Invoke($this,"",.authorityName,.asd) }
+zfetchConceptHistory(conceptId,namespaceId,fromTime,asd) public {
+ Quit ..WebMethod("fetchConceptHistory").Invoke($this,"",.conceptId,.namespaceId,.fromTime,.asd) }
+zfetchConceptSubsets(conceptId,conceptNamespaceId) public {
+ Quit ..WebMethod("fetchConceptSubsets").Invoke($this,"",.conceptId,.conceptNamespaceId) }
+zfetchParentReferences(roleType) public {
+ Quit ..WebMethod("fetchParentReferences").Invoke($this,"",.roleType) }
+zfetchRightIdentityReferences(roleType) public {
+ Quit ..WebMethod("fetchRightIdentityReferences").Invoke($this,"",.roleType) }
+zfetchSubsetConceptCount(subset) public {
+ Quit ..WebMethod("fetchSubsetConceptCount").Invoke($this,"",.subset) }
+zfetchSubsetConcepts(subsetId,snapshotTime,asd) public {
+ Quit ..WebMethod("fetchSubsetConcepts").Invoke($this,"",.subsetId,.snapshotTime,.asd) }
+zfetchSubsetNamespaces(subsetId) public {
+ Quit ..WebMethod("fetchSubsetNamespaces").Invoke($this,"",.subsetId) }
+zfetchSubsetPreview(options) public {
+ Quit ..WebMethod("fetchSubsetPreview").Invoke($this,"",.options) }
+zfetchTermHistory(termId,namespaceId,fromTime,asd) public {
+ Quit ..WebMethod("fetchTermHistory").Invoke($this,"",.termId,.namespaceId,.fromTime,.asd) }
+zfetchTermProperties(term) public {
+ Quit ..WebMethod("fetchTermProperties").Invoke($this,"",.term) }
+zfetchVersionById(id,namespaceId,asd) public {
+ Quit ..WebMethod("fetchVersionById").Invoke($this,"",.id,.namespaceId,.asd) }
+zfetchVersionByName(name,namespaceId,asd) public {
+ Quit ..WebMethod("fetchVersionByName").Invoke($this,"",.name,.namespaceId,.asd) }
+zfilterSubsetConcepts(subsetId,subsetSnapshotTime,concepts) public {
+ Quit ..WebMethod("filterSubsetConcepts").Invoke($this,"",.subsetId,.subsetSnapshotTime,.concepts) }
+zfindAllSubsets(asd) public {
+ Quit ..WebMethod("findAllSubsets").Invoke($this,"",.asd) }
+zfindAssociationTypeById(id,namespaceId) public {
+ Quit ..WebMethod("findAssociationTypeById").Invoke($this,"",.id,.namespaceId) }
+zfindAssociationTypeByName(name,namespaceId) public {
+ Quit ..WebMethod("findAssociationTypeByName").Invoke($this,"",.name,.namespaceId) }
+zfindAuthorityPropertyTypeById(id,authorityId) public {
+ Quit ..WebMethod("findAuthorityPropertyTypeById").Invoke($this,"",.id,.authorityId) }
+zfindAuthorityPropertyTypeByNam(name,authorityId) public {
+ Quit ..WebMethod("findAuthorityPropertyTypeByName").Invoke($this,"",.name,.authorityId) }
+zfindAuthorityQualifierTypeById(id,authorityId) public {
+ Quit ..WebMethod("findAuthorityQualifierTypeById").Invoke($this,"",.id,.authorityId) }
+zfindAuthorityQualifierTypeByNa(name,authorityId) public {
+ Quit ..WebMethod("findAuthorityQualifierTypeByName").Invoke($this,"",.name,.authorityId) }
+zfindConceptByCode(conceptCode,namespaceId,asd) public {
+ Quit ..WebMethod("findConceptByCode").Invoke($this,"",.conceptCode,.namespaceId,.asd) }
+zfindConceptById(conceptId,namespaceId,asd) public {
+ Quit ..WebMethod("findConceptById").Invoke($this,"",.conceptId,.namespaceId,.asd) }
+zfindConceptByName(conceptName,namespaceId,asd) public {
+ Quit ..WebMethod("findConceptByName").Invoke($this,"",.conceptName,.namespaceId,.asd) }
+zfindConceptsWithAllSynonymMatc(pattern,options) public {
+ Quit ..WebMethod("findConceptsWithAllSynonymMatching").Invoke($this,"",.pattern,.options) }
+zfindConceptsWithAssociationQua(assocType,qualType,pattern,options,inverse) public {
+ Quit ..WebMethod("findConceptsWithAssociationQualifierMatching").Invoke($this,"",.assocType,.qualType,.pattern,.options,.inverse) }
+zfindConceptsWithConceptAssocia(assocType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithConceptAssociationMatching").Invoke($this,"",.assocType,.pattern,.options) }
+zfindConceptsWithInverseConcept(assocType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithInverseConceptAssociationMatching").Invoke($this,"",.assocType,.pattern,.options) }
+zfindConceptsWithInverseRoleMat(roleType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithInverseRoleMatching").Invoke($this,"",.roleType,.pattern,.options) }
+zfindConceptsWithNameMatching(pattern,options) public {
+ Quit ..WebMethod("findConceptsWithNameMatching").Invoke($this,"",.pattern,.options) }
+zfindConceptsWithPropertyMatchi(propType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithPropertyMatching").Invoke($this,"",.propType,.pattern,.options) }
+zfindConceptsWithPropertyQualif(propType,qualType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithPropertyQualifierMatching").Invoke($this,"",.propType,.qualType,.pattern,.options) }
+zfindConceptsWithRoleMatching(roleType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithRoleMatching").Invoke($this,"",.roleType,.pattern,.options) }
+zfindConceptsWithSynonymMatchin(synonymType,pattern,options) public {
+ Quit ..WebMethod("findConceptsWithSynonymMatching").Invoke($this,"",.synonymType,.pattern,.options) }
+zfindNamespaceByCode(namespaceCode,attributeSetDescriptor) public {
+ Quit ..WebMethod("findNamespaceByCode").Invoke($this,"",.namespaceCode,.attributeSetDescriptor) }
+zfindNamespaceById(namespaceId,attributeSetDescriptor) public {
+ Quit ..WebMethod("findNamespaceById").Invoke($this,"",.namespaceId,.attributeSetDescriptor) }
+zfindNamespaceByName(namespaceName,attributeSetDescriptor) public {
+ Quit ..WebMethod("findNamespaceByName").Invoke($this,"",.namespaceName,.attributeSetDescriptor) }
+zfindPropertyTypeById(id,namespaceId) public {
+ Quit ..WebMethod("findPropertyTypeById").Invoke($this,"",.id,.namespaceId) }
+zfindPropertyTypeByName(name,namespaceId) public {
+ Quit ..WebMethod("findPropertyTypeByName").Invoke($this,"",.name,.namespaceId) }
+zfindQualifierTypeById(id,namespaceId) public {
+ Quit ..WebMethod("findQualifierTypeById").Invoke($this,"",.id,.namespaceId) }
+zfindQualifierTypeByName(name,namespaceId) public {
+ Quit ..WebMethod("findQualifierTypeByName").Invoke($this,"",.name,.namespaceId) }
+zfindRoleTypeByCode(code,namespaceId) public {
+ Quit ..WebMethod("findRoleTypeByCode").Invoke($this,"",.code,.namespaceId) }
+zfindRoleTypeById(id,namespaceId) public {
+ Quit ..WebMethod("findRoleTypeById").Invoke($this,"",.id,.namespaceId) }
+zfindRoleTypeByName(name,namespaceId) public {
+ Quit ..WebMethod("findRoleTypeByName").Invoke($this,"",.name,.namespaceId) }
+zfindSubset(filter,asd) public {
+ Quit ..WebMethod("findSubset").Invoke($this,"",.filter,.asd) }
+zfindSubsetById(subsetId,asd) public {
+ Quit ..WebMethod("findSubsetById").Invoke($this,"",.subsetId,.asd) }
+zfindSubsetByName(subsetName,asd) public {
+ Quit ..WebMethod("findSubsetByName").Invoke($this,"",.subsetName,.asd) }
+zfindSubsetPropertyTypeById(id,subsetId) public {
+ Quit ..WebMethod("findSubsetPropertyTypeById").Invoke($this,"",.id,.subsetId) }
+zfindSubsetPropertyTypeByName(name,subsetId) public {
+ Quit ..WebMethod("findSubsetPropertyTypeByName").Invoke($this,"",.name,.subsetId) }
+zfindSubsetQualifierTypeById(id,subsetId) public {
+ Quit ..WebMethod("findSubsetQualifierTypeById").Invoke($this,"",.id,.subsetId) }
+zfindSubsetQualifierTypeByName(name,subsetId) public {
+ Quit ..WebMethod("findSubsetQualifierTypeByName").Invoke($this,"",.name,.subsetId) }
+zfindSubsetVersionById(id,subsetId,asd) public {
+ Quit ..WebMethod("findSubsetVersionById").Invoke($this,"",.id,.subsetId,.asd) }
+zfindSubsetVersionByName(name,subsetId,asd) public {
+ Quit ..WebMethod("findSubsetVersionByName").Invoke($this,"",.name,.subsetId,.asd) }
+zfindTermByCode(termCode,namespaceId,asd) public {
+ Quit ..WebMethod("findTermByCode").Invoke($this,"",.termCode,.namespaceId,.asd) }
+zfindTermById(termId,namespaceId,asd) public {
+ Quit ..WebMethod("findTermById").Invoke($this,"",.termId,.namespaceId,.asd) }
+zfindTermsByName(termName,namespaceId,asd) public {
+ Quit ..WebMethod("findTermsByName").Invoke($this,"",.termName,.namespaceId,.asd) }
+zfindTermsWithAssociationQualif(assocType,qualType,pattern,options,inverse) public {
+ Quit ..WebMethod("findTermsWithAssociationQualifierMatching").Invoke($this,"",.assocType,.qualType,.pattern,.options,.inverse) }
+zfindTermsWithInverseSynonymMat(synonymType,pattern,options) public {
+ Quit ..WebMethod("findTermsWithInverseSynonymMatching").Invoke($this,"",.synonymType,.pattern,.options) }
+zfindTermsWithInverseTermAssoci(assocType,pattern,options) public {
+ Quit ..WebMethod("findTermsWithInverseTermAssociationMatching").Invoke($this,"",.assocType,.pattern,.options) }
+zfindTermsWithNameMatching(pattern,options) public {
+ Quit ..WebMethod("findTermsWithNameMatching").Invoke($this,"",.pattern,.options) }
+zfindTermsWithPropertyMatching(propType,pattern,options) public {
+ Quit ..WebMethod("findTermsWithPropertyMatching").Invoke($this,"",.propType,.pattern,.options) }
+zfindTermsWithPropertyQualifier(propType,qualType,pattern,options) public {
+ Quit ..WebMethod("findTermsWithPropertyQualifierMatching").Invoke($this,"",.propType,.qualType,.pattern,.options) }
+zfindTermsWithTermAssociationMa(assocType,pattern,options) public {
+ Quit ..WebMethod("findTermsWithTermAssociationMatching").Invoke($this,"",.assocType,.pattern,.options) }
+zgenerateAuthorityItemId(authorityId,idKey,idCount) public {
+ Quit ..WebMethod("generateAuthorityItemId").Invoke($this,"",.authorityId,.idKey,.idCount) }
+zgenerateNamespaceItemId(namespaceId,idKey,idCount) public {
+ Quit ..WebMethod("generateNamespaceItemId").Invoke($this,"",.namespaceId,.idKey,.idCount) }
+zgenerateNextConceptId(namespaceId,idCount) public {
+ Quit ..WebMethod("generateNextConceptId").Invoke($this,"",.namespaceId,.idCount) }
+zgenerateNextTermId(namespaceId,idCount) public {
+ Quit ..WebMethod("generateNextTermId").Invoke($this,"",.namespaceId,.idCount) }
+zgenerateSubsetItemId(subsetId,idKey,idCount) public {
+ Quit ..WebMethod("generateSubsetItemId").Invoke($this,"",.subsetId,.idKey,.idCount) }
+zgetAllKinds() public {
+ Quit ..WebMethod("getAllKinds").Invoke($this,"") }
+zgetAllLicenses(condition) public {
+ Quit ..WebMethod("getAllLicenses").Invoke($this,"",.condition) }
+zgetAllNamespaceQualifierTypes(namespaceId) public {
+ Quit ..WebMethod("getAllNamespaceQualifierTypes").Invoke($this,"",.namespaceId) }
+zgetAllPropertyTypesOfAuthority(authorityId) public {
+ Quit ..WebMethod("getAllPropertyTypesOfAuthority").Invoke($this,"",.authorityId) }
+zgetAllRoleTypes() public {
+ Quit ..WebMethod("getAllRoleTypes").Invoke($this,"") }
+zgetAllSubsetQualifierTypes(subsetId) public {
+ Quit ..WebMethod("getAllSubsetQualifierTypes").Invoke($this,"",.subsetId) }
+zgetAssociationNavChildContext(focusConcept,focusConceptASD,associationType) public {
+ Quit ..WebMethod("getAssociationNavChildContext").Invoke($this,"",.focusConcept,.focusConceptASD,.associationType) }
+zgetAssociationNavParentContext(focusConcept,focusConceptASD,associationType) public {
+ Quit ..WebMethod("getAssociationNavParentContext").Invoke($this,"",.focusConcept,.focusConceptASD,.associationType) }
+zgetAssociationTypes(namespaceId) public {
+ Quit ..WebMethod("getAssociationTypes").Invoke($this,"",.namespaceId) }
+zgetAuthorities() public {
+ Quit ..WebMethod("getAuthorities").Invoke($this,"") }
+zgetAuthorityPropertyQualifierT(authorityId) public {
+ Quit ..WebMethod("getAuthorityPropertyQualifierTypes").Invoke($this,"",.authorityId) }
+zgetAuthorityPropertyTypes(authorityId) public {
+ Quit ..WebMethod("getAuthorityPropertyTypes").Invoke($this,"",.authorityId) }
+zgetClassifyDetail(namespaceId) public {
+ Quit ..WebMethod("getClassifyDetail").Invoke($this,"",.namespaceId) }
+zgetConceptAssociationTypes(namespaceId) public {
+ Quit ..WebMethod("getConceptAssociationTypes").Invoke($this,"",.namespaceId) }
+zgetConceptChildRoots(rootConceptASD,namespaceId) public {
+ Quit ..WebMethod("getConceptChildRoots").Invoke($this,"",.rootConceptASD,.namespaceId) }
+zgetConceptPropertyQualifierTyp(namespaceId) public {
+ Quit ..WebMethod("getConceptPropertyQualifierTypes").Invoke($this,"",.namespaceId) }
+zgetConceptPropertyTypes(namespaceId) public {
+ Quit ..WebMethod("getConceptPropertyTypes").Invoke($this,"",.namespaceId) }
+zgetCycleErrors(namespaceId) public {
+ Quit ..WebMethod("getCycleErrors").Invoke($this,"",.namespaceId) }
+zgetEqErrors(namespaceId) public {
+ Quit ..WebMethod("getEqErrors").Invoke($this,"",.namespaceId) }
+zgetExtendingNamespaces(subsNamespaceId) public {
+ Quit ..WebMethod("getExtendingNamespaces").Invoke($this,"",.subsNamespaceId) }
+zgetKinds(namespaceId) public {
+ Quit ..WebMethod("getKinds").Invoke($this,"",.namespaceId) }
+zgetLicense(source) public {
+ Quit ..WebMethod("getLicense").Invoke($this,"",.source) }
+zgetNamespacePropertyQualifierT(namespaceId) public {
+ Quit ..WebMethod("getNamespacePropertyQualifierTypes").Invoke($this,"",.namespaceId) }
+zgetNamespacePropertyTypes(namespaceId) public {
+ Quit ..WebMethod("getNamespacePropertyTypes").Invoke($this,"",.namespaceId) }
+zgetNamespaces() public {
+ Quit ..WebMethod("getNamespaces").Invoke($this,"") }
+zgetNavChildContext(focusConcept,focusConceptASD) public {
+ Quit ..WebMethod("getNavChildContext").Invoke($this,"",.focusConcept,.focusConceptASD) }
+zgetNavChildContextInNamespace(focusConcept,focusConceptASD,namespace) public {
+ Quit ..WebMethod("getNavChildContextInNamespace").Invoke($this,"",.focusConcept,.focusConceptASD,.namespace) }
+zgetNavParentContext(focusConcept,focusConceptASD) public {
+ Quit ..WebMethod("getNavParentContext").Invoke($this,"",.focusConcept,.focusConceptASD) }
+zgetNavParentContextInNamespace(focusConcept,focusConceptASD,namespace) public {
+ Quit ..WebMethod("getNavParentContextInNamespace").Invoke($this,"",.focusConcept,.focusConceptASD,.namespace) }
+zgetNoKindConcepts(namespaceId) public {
+ Quit ..WebMethod("getNoKindConcepts").Invoke($this,"",.namespaceId) }
+zgetNoParentConcepts(namespaceId) public {
+ Quit ..WebMethod("getNoParentConcepts").Invoke($this,"",.namespaceId) }
+zgetRoleTypes(namespaceId) public {
+ Quit ..WebMethod("getRoleTypes").Invoke($this,"",.namespaceId) }
+zgetSchemaVersion(schemaName) public {
+ Quit ..WebMethod("getSchemaVersion").Invoke($this,"",.schemaName) }
+zgetServerDatabaseType() public {
+ Quit ..WebMethod("getServerDatabaseType").Invoke($this,"") }
+zgetServerVersion() public {
+ Quit ..WebMethod("getServerVersion").Invoke($this,"") }
+zgetSubConcepts(concept,asd) public {
+ Quit ..WebMethod("getSubConcepts").Invoke($this,"",.concept,.asd) }
+zgetSubsetConceptChildRoots(rootConceptASD,namespace,subsetId) public {
+ Quit ..WebMethod("getSubsetConceptChildRoots").Invoke($this,"",.rootConceptASD,.namespace,.subsetId) }
+zgetSubsetNavChildContext(focusConcept,subsetId,namespace,focusConceptASD) public {
+ Quit ..WebMethod("getSubsetNavChildContext").Invoke($this,"",.focusConcept,.subsetId,.namespace,.focusConceptASD) }
+zgetSubsetNavParentContext(focusConcept,subsetId,namespace,focusConceptASD) public {
+ Quit ..WebMethod("getSubsetNavParentContext").Invoke($this,"",.focusConcept,.subsetId,.namespace,.focusConceptASD) }
+zgetSubsetPropertyQualifierType(subsetId) public {
+ Quit ..WebMethod("getSubsetPropertyQualifierTypes").Invoke($this,"",.subsetId) }
+zgetSubsetPropertyTypes(subsetId) public {
+ Quit ..WebMethod("getSubsetPropertyTypes").Invoke($this,"",.subsetId) }
+zgetSubsetVersion(subsetId) public {
+ Quit ..WebMethod("getSubsetVersion").Invoke($this,"",.subsetId) }
+zgetSubsetVersionByTime(subsetId,time) public {
+ Quit ..WebMethod("getSubsetVersionByTime").Invoke($this,"",.subsetId,.time) }
+zgetSubsetVersionPropertyQualif(subsetId) public {
+ Quit ..WebMethod("getSubsetVersionPropertyQualifierTypes").Invoke($this,"",.subsetId) }
+zgetSubsetVersionPropertyTypes(subsetId) public {
+ Quit ..WebMethod("getSubsetVersionPropertyTypes").Invoke($this,"",.subsetId) }
+zgetSubsetVersions(subsetId) public {
+ Quit ..WebMethod("getSubsetVersions").Invoke($this,"",.subsetId) }
+zgetSynonymTypes(namespaceId) public {
+ Quit ..WebMethod("getSynonymTypes").Invoke($this,"",.namespaceId) }
+zgetSystemContextProperty(key,defaultValue) public {
+ Quit ..WebMethod("getSystemContextProperty").Invoke($this,"",.key,.defaultValue) }
+zgetSystemContextPropertyKeys() public {
+ Quit ..WebMethod("getSystemContextPropertyKeys").Invoke($this,"") }
+zgetTermAssociationTypes(namespaceId) public {
+ Quit ..WebMethod("getTermAssociationTypes").Invoke($this,"",.namespaceId) }
+zgetTermPropertyQualifierTypes(namespaceId) public {
+ Quit ..WebMethod("getTermPropertyQualifierTypes").Invoke($this,"",.namespaceId) }
+zgetTermPropertyTypes(namespaceId) public {
+ Quit ..WebMethod("getTermPropertyTypes").Invoke($this,"",.namespaceId) }
+zgetUserContextProperty(key,defaultValue) public {
+ Quit ..WebMethod("getUserContextProperty").Invoke($this,"",.key,.defaultValue) }
+zgetUserContextPropertyKeys() public {
+ Quit ..WebMethod("getUserContextPropertyKeys").Invoke($this,"") }
+zgetVersion(namespaceId) public {
+ Quit ..WebMethod("getVersion").Invoke($this,"",.namespaceId) }
+zgetVersionByTime(namespaceId,time) public {
+ Quit ..WebMethod("getVersionByTime").Invoke($this,"",.namespaceId,.time) }
+zgetVersionPropertyQualifierTyp(namespaceId) public {
+ Quit ..WebMethod("getVersionPropertyQualifierTypes").Invoke($this,"",.namespaceId) }
+zgetVersionPropertyTypes(namespaceId) public {
+ Quit ..WebMethod("getVersionPropertyTypes").Invoke($this,"",.namespaceId) }
+zgetVersions(namespaceId) public {
+ Quit ..WebMethod("getVersions").Invoke($this,"",.namespaceId) }
+zhasAdminPermission(permission) public {
+ Quit ..WebMethod("hasAdminPermission").Invoke($this,"",.permission) }
+zhasAuthorityPermission(authorityId,permission) public {
+ Quit ..WebMethod("hasAuthorityPermission").Invoke($this,"",.authorityId,.permission) }
+zhasNamespacePermission(namespaceId,permission) public {
+ Quit ..WebMethod("hasNamespacePermission").Invoke($this,"",.namespaceId,.permission) }
+zhasSubsetPermission(subsetId,permission) public {
+ Quit ..WebMethod("hasSubsetPermission").Invoke($this,"",.subsetId,.permission) }
+zisAssociationTypeUsed(assocType) public {
+ Quit ..WebMethod("isAssociationTypeUsed").Invoke($this,"",.assocType) }
+zisPropertyTypeUsed(propType) public {
+ Quit ..WebMethod("isPropertyTypeUsed").Invoke($this,"",.propType) }
+zisQualifierTypeUsed(type) public {
+ Quit ..WebMethod("isQualifierTypeUsed").Invoke($this,"",.type) }
+zisRoleTypeUsed(roleType) public {
+ Quit ..WebMethod("isRoleTypeUsed").Invoke($this,"",.roleType) }
+zisSubConcept(concept1,concept2) public {
+ Quit ..WebMethod("isSubConcept").Invoke($this,"",.concept1,.concept2) }
+zisSubConceptByCode(conceptCode1,concept2,namespaceId) public {
+ Quit ..WebMethod("isSubConceptByCode").Invoke($this,"",.conceptCode1,.concept2,.namespaceId) }
+zisSubConceptById(conceptId1,conceptId2,namespaceId) public {
+ Quit ..WebMethod("isSubConceptById").Invoke($this,"",.conceptId1,.conceptId2,.namespaceId) }
+zisSubConceptByName(conceptName1,conceptName2,namespaceId) public {
+ Quit ..WebMethod("isSubConceptByName").Invoke($this,"",.conceptName1,.conceptName2,.namespaceId) }
+zisSubConceptOfConcepts(concept1,concepts) public {
+ Quit ..WebMethod("isSubConceptOfConcepts").Invoke($this,"",.concept1,.concepts) }
+zisSubConceptOfConceptsByName(conceptName,concepts,namespaceId) public {
+ Quit ..WebMethod("isSubConceptOfConceptsByName").Invoke($this,"",.conceptName,.concepts,.namespaceId) }
+zisWorkingVersion(version) public {
+ Quit ..WebMethod("isWorkingVersion").Invoke($this,"",.version) }
+zping() public {
+ Quit ..WebMethod("ping").Invoke($this,"") }
+zsaveSubsetExpression(subsetId,expression) public {
+ Do (..WebMethod("saveSubsetExpression")).Invoke($this,"",.subsetId,.expression) }
+zsaveSystemContextProperty(key,value) public {
+ Do (..WebMethod("saveSystemContextProperty")).Invoke($this,"",.key,.value) }
+zsaveUserContextProperty(key,value) public {
+ Do (..WebMethod("saveUserContextProperty")).Invoke($this,"",.key,.value) }
+zsyncAuthorityItemId(authorityId,idKey,idValue) public {
+ Do (..WebMethod("syncAuthorityItemId")).Invoke($this,"",.authorityId,.idKey,.idValue) }
+zsyncNamespaceItemId(namespaceId,idKey,idValue) public {
+ Do (..WebMethod("syncNamespaceItemId")).Invoke($this,"",.namespaceId,.idKey,.idValue) }
+zsyncSubsetItemId(subsetId,idKey,idValue) public {
+ Do (..WebMethod("syncSubsetItemId")).Invoke($this,"",.subsetId,.idKey,.idValue) }
+zungroupRoleGroup(concept,roleGroupNum) public {
+ Do (..WebMethod("ungroupRoleGroup")).Invoke($this,"",.concept,.roleGroupNum) }
+zupdateAssociationType(oldAssocType,newAssocType) public {
+ Quit ..WebMethod("updateAssociationType").Invoke($this,"",.oldAssocType,.newAssocType) }
+zupdateAuthority(oldAuthority,newAuthority) public {
+ Quit ..WebMethod("updateAuthority").Invoke($this,"",.oldAuthority,.newAuthority) }
+zupdateAuthorityProperty(authority,oldProp,newProp) public {
+ Quit ..WebMethod("updateAuthorityProperty").Invoke($this,"",.authority,.oldProp,.newProp) }
+zupdateConcept(oldConcept,newConcept) public {
+ Quit ..WebMethod("updateConcept").Invoke($this,"",.oldConcept,.newConcept) }
+zupdateConceptAssociation(oldConceptAssociation,newConceptAssociation) public {
+ Quit ..WebMethod("updateConceptAssociation").Invoke($this,"",.oldConceptAssociation,.newConceptAssociation) }
+zupdateConceptProperty(concept,oldProp,newProp) public {
+ Quit ..WebMethod("updateConceptProperty").Invoke($this,"",.concept,.oldProp,.newProp) }
+zupdateDefiningConcept(concept,deletedDefiningConcept,addedDefiningConcept) public {
+ Quit ..WebMethod("updateDefiningConcept").Invoke($this,"",.concept,.deletedDefiningConcept,.addedDefiningConcept) }
+zupdateDefiningRole(concept,deleteRole,addRole) public {
+ Quit ..WebMethod("updateDefiningRole").Invoke($this,"",.concept,.deleteRole,.addRole) }
+zupdateNamespace(oldNamespace,newNamespace) public {
+ Quit ..WebMethod("updateNamespace").Invoke($this,"",.oldNamespace,.newNamespace) }
+zupdateNamespaceProperty(namespace,oldProp,newProp) public {
+ Quit ..WebMethod("updateNamespaceProperty").Invoke($this,"",.namespace,.oldProp,.newProp) }
+zupdatePrimitive(concept,primitive) public {
+ Quit ..WebMethod("updatePrimitive").Invoke($this,"",.concept,.primitive) }
+zupdatePropertyType(oldPropertyType,newPropertyType) public {
+ Quit ..WebMethod("updatePropertyType").Invoke($this,"",.oldPropertyType,.newPropertyType) }
+zupdateQualifierType(oldQualifierType,newQualifierType) public {
+ Quit ..WebMethod("updateQualifierType").Invoke($this,"",.oldQualifierType,.newQualifierType) }
+zupdateRoleType(oldRoleType,newRoleType) public {
+ Quit ..WebMethod("updateRoleType").Invoke($this,"",.oldRoleType,.newRoleType) }
+zupdateSubset(oldSubset,newSubset) public {
+ Quit ..WebMethod("updateSubset").Invoke($this,"",.oldSubset,.newSubset) }
+zupdateSubsetProperty(subset,oldProp,newProp) public {
+ Quit ..WebMethod("updateSubsetProperty").Invoke($this,"",.subset,.oldProp,.newProp) }
+zupdateSubsetVersion(oldVersion,newVersion) public {
+ Quit ..WebMethod("updateSubsetVersion").Invoke($this,"",.oldVersion,.newVersion) }
+zupdateSubsetVersionProperty(version,oldProp,newProp) public {
+ Quit ..WebMethod("updateSubsetVersionProperty").Invoke($this,"",.version,.oldProp,.newProp) }
+zupdateSynonym(oldSynonym,newSynonym) public {
+ Quit ..WebMethod("updateSynonym").Invoke($this,"",.oldSynonym,.newSynonym) }
+zupdateTerm(oldTerm,newTerm) public {
+ Quit ..WebMethod("updateTerm").Invoke($this,"",.oldTerm,.newTerm) }
+zupdateTermAssociation(oldTermAssociation,newTermAssociation) public {
+ Quit ..WebMethod("updateTermAssociation").Invoke($this,"",.oldTermAssociation,.newTermAssociation) }
+zupdateTermProperty(term,oldProperty,newProperty) public {
+ Quit ..WebMethod("updateTermProperty").Invoke($this,"",.term,.oldProperty,.newProperty) }
+zupdateVersion(oldVersion,newVersion) public {
+ Quit ..WebMethod("updateVersion").Invoke($this,"",.oldVersion,.newVersion) }
+zupdateVersionProperty(version,oldProp,newProp) public {
+ Quit ..WebMethod("updateVersionProperty").Invoke($this,"",.version,.oldProp,.newProp) }

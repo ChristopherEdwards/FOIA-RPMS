@@ -1,11 +1,11 @@
 PXRMFLST ; SLC/PJH - List Resolution Statuses ;03/09/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;List selected finding type parameter
  ;------------------------------------
 START N BY,DC,DHD,DIC,FLDS,FR,L,LOGIC,MODE,NOW,TO,Y
  ;Get lists of finding types for display
- N DEF,DEF1,DEF2 D DEF^PXRMRUTL(.DEF,.DEF1,.DEF2)
+ N DEF,DEF1,DEF2 D DEF^PXRMRUTL("811.902",.DEF,.DEF1,.DEF2)
  ;
 SELECT S MODE=""
  S DIC="^PXRMD(801.45,"
@@ -22,7 +22,7 @@ END Q
 ALL N BY,DC,DHD,DIC,FLDS,FR,L,LOGIC,MODE,NOW,TO,Y
  S Y=1,MODE="GENERAL"
  ;Get lists of finding types for display
- N DEF,DEF1,DEF2 D DEF^PXRMRUTL(.DEF,.DEF1,.DEF2)
+ N DEF,DEF1,DEF2 D DEF^PXRMRUTL("811.902",.DEF,.DEF1,.DEF2)
  ; Set Date for Header
  S NOW=$$NOW^XLFDT
  S NOW=$$FMTE^XLFDT(NOW,"1P")
@@ -38,7 +38,7 @@ ALL N BY,DC,DHD,DIC,FLDS,FR,L,LOGIC,MODE,NOW,TO,Y
  ;--------------------
 INQ(Y) N BY,DC,DHD,DIC,FLDS,FR,L,LOGIC,MODE,NOW,TO
  ;Get lists of finding types for display
- N DEF,DEF1,DEF2 D DEF^PXRMRUTL(.DEF,.DEF1,.DEF2)
+ N DEF,DEF1,DEF2 D DEF^PXRMRUTL("811.902",.DEF,.DEF1,.DEF2)
  S MODE=""
  S DIC="^PXRMD(801.45,"
  S DIC(0)="AEMQ"
@@ -75,7 +75,7 @@ SET ;Setup all the variables
  ;
  Q
  ;
-FDES N X S X=$P($G(^PXRMD(801.45,D0,0)),U) Q:X=""
+FDES N X S X=$P($G(^PXRMD(801.45,D0,0)),U) Q:X="" 
  I X="POV" W "(DIAGNOSIS)" Q
  I X="CPT" W "(PROCEDURE)" Q
  W "("_$G(DEF2(X))_")"

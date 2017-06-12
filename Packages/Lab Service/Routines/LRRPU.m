@@ -1,5 +1,5 @@
-LRRPU ;VA/DALOI/JMC - Interim Report Results Utility ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**1027,1028,1031**;NOV 01, 1997
+LRRPU ;VA/DALOI/JMC - Interim Report Results Utility ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1027,1028,1031,1033**;NOV 01, 1997
  ;
  ;;VA LR Patche(s): 286
  ;
@@ -21,7 +21,8 @@ TSTRES(LRDFN,LRSS,LRIDT,LRDN,LR60,LRCODE) ; Test results and parameters
  ;       Ensure that all Results have leading zeros, if necessary
  NEW ZFRES
  S ZFRES=$P(LRX,"^",1)
- D ZEROFIX^BLR7OGMP(LR60,.ZFRES)
+ ; D ZEROFIX^BLR7OGMP(LR60,.ZFRES)
+ D:+$G(LR60) ZEROFIX^BLR7OGMP(LR60,.ZFRES)  ; IHS/MSC/MKK - LR*5.2*1033
  S $P(LRX,"^")=ZFRES
  K ZFRES
  ; ----- END IHS/OIT/MKK - LR*5.2*1031

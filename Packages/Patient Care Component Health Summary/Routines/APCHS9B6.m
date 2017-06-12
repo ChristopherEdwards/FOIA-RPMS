@@ -1,5 +1,5 @@
 APCHS9B6 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 8/28/2007 code set versioning in TOBACCO1
  ;
@@ -60,7 +60,7 @@ TOBACCO3 ;lookup in health status
 TOBACCO1 ;check problem file for tobacco use
  K APCH S APCHX=APCHSDFN_"^PROBLEMS [DM AUDIT PROBLEM SMOKING DXS" S E=$$START1^APCLDF(APCHX,"APCH(") Q:E  I $D(APCH(1)) D
  . ;I $P(^ICD9($P(APCH(1),U,2),0),U,1)=305.13 S APCHTOB="PAST USE OF TOBACCO"_" - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(APCH(1),U,4),0),U,5),0),U),1,30) Q  cmi/anch/maw 8/27/2007 orig line
- . I $P($$ICDDX^ICDCODE($P(APCH(1),U,2),,,1),U,2)=305.13 S APCHTOB="PAST USE OF TOBACCO"_" - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(APCH(1),U,4),0),U,5),0),U),1,30) Q  ;cmi/anch/maw 8/27/2007 code set versioning
+ . I $P($$ICDDX^ICDEX($P(APCH(1),U,2),,,"I"),U,2)=305.13 S APCHTOB="PAST USE OF TOBACCO"_" - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(APCH(1),U,4),0),U,5),0),U),1,30) Q  ;cmi/anch/maw 8/27/2007 code set versioning
  . S APCHTOB="YES, USES TOBACCO - "_$E($P(^AUTNPOV($P(^AUPNPROB(+$P(APCH(1),U,4),0),U,5),0),U),1,30)
  .Q
  Q

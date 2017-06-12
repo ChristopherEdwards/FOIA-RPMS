@@ -1,0 +1,135 @@
+BTIUPDD1 ; IHS/MSC/MGH - Problem Objects ;21-Oct-2015 14:20;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1012,1013,1014**;MAR 20, 2013;Build 6
+ ;IHS/MSC/MGH Patch 1013 added CP=2 for todays care plans
+ ;
+ Q
+ ;
+ ;
+ ;Get the problems associated with this visit and only the latest or items updated during this visit
+VST(DFN,TARGET,VIEN,CP) ;Problems updated this visit
+ N PROB,CNT,RET,I,VST
+ S CNT=0,CP=$G(CP)
+ K @TARGET
+ S VIEN=$G(VIEN)
+ I VIEN'="" G GETPRB
+ S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
+ I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S VIEN=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
+ D GETPRB
+ I CNT=0 S @TARGET@(1,0)="No Problems used as POVs in this visit record"
+ Q "~@"_$NA(@TARGET)
+ ;
+GETPRB ;Get problems to update
+ N POV,PRIEN,PCNT,ARRAY
+ S ARRAY=""
+ I $G(VIEN)="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S PCNT=0,PRIEN=0
+ F  S PRIEN=$O(^AUPNPROB("AC",DFN,PRIEN)) Q:'PRIEN  D
+ .;Check for which statuses to return
+ .S STAT=$P($G(^AUPNPROB(PRIEN,0)),U,12)
+ .Q:STAT="D"
+ .I $D(^AUPNPROB(PRIEN,14,"B",VIEN)) D
+ ..D GETDATA(.ARRAY,PRIEN,VIEN)
+ ;IHS/MSC/MGH Patch 1014
+ D ADDITMS(.ARRAY)
+ Q
+GETDATA(ARRAY,PRIEN,VIEN) ;Get data for a problem
+ N NARR,STATUS,ICD
+ S NARR=$$POV^BTIUPDD(VIEN,PRIEN)
+ S ARRAY($P(NARR,U,2),$P(NARR,U,1),PRIEN)=""
+ Q
+ ;S NARR=$$GET1^DIQ(9000010.07,POV,.04)
+ADDITMS(ARRAY) ;Get items in order
+ N STAT,NARR,PRIEN
+ S STAT="" F  S STAT=$O(ARRAY(STAT)) Q:STAT=""  D
+ .S NARR="" F  S NARR=$O(ARRAY(STAT,NARR)) Q:NARR=""  D
+ ..S PRIEN="" F  S PRIEN=$O(ARRAY(STAT,NARR,PRIEN)) Q:PRIEN=""  D
+ ...S PCNT=PCNT+1
+ ...D ADD($J(PCNT,2)_")"_NARR_" "_"("_STAT_")")
+ ...D QUAL^BTIUPV1(PRIEN,.CNT)
+ ...I CP=1 D
+ ....D FINDCP^BTIUPV1(PRIEN,"G",.CNT)  ;Add goals
+ ....D FINDCP^BTIUPV1(PRIEN,"P",.CNT)  ;Add care plans
+ ...;IHS/MSC/MGH Patch 1013
+ ...I CP=2 D
+ ....D FINDCP(PRIEN,"G",.CNT)
+ ....D FINDCP(PRIEN,"P",.CNT)
+ ...D VIDT^BTIUPV1(PRIEN,VIEN,.CNT)   ;Visit instruction
+ ...D VTRDT^BTIUPV1(PRIEN,VIEN,.CNT)  ;V treatment/regimens
+ ...D REFDT^BTIUPV1(PRIEN,VIEN,.CNT)  ;V REFERRALS
+ ...D EDU^BTIUPV1(PRIEN,VIEN,.CNT)  ;V education by date
+ Q
+FINDCP(PRIEN,TYPE,CNT) ;Find a care plan for today Patch 1013
+ N INVDT,INVDT2,SIGNDT,ARRDT,STATUS,EDATE,IEN,NODE,PRV,PRVNM,INVDT,CPIEN,CVTDT,SIGN,NODE,Z,DONE,SIEN,PCNT,ARRAY
+ S DONE=0,PCNT=0,ARRAY=""
+ S INVDT="" S INVDT=$O(^AUPNCPL("APDT",PRIEN,TYPE,INVDT))
+ Q:INVDT=""
+ S CVTDT=9999999-INVDT
+ Q:$P(CVTDT,".",1)'=DT
+ S CPIEN="" F  S CPIEN=$O(^AUPNCPL("APDT",PRIEN,TYPE,INVDT,CPIEN)) Q:CPIEN=""  D
+ .S SIEN=$C(0) S SIEN=$O(^AUPNCPL(CPIEN,11,SIEN),-1)
+ .S STATUS=$P($G(^AUPNCPL(CPIEN,11,SIEN,0)),U,1)
+ .Q:STATUS'="A"
+ .S INVDT2=9999999-$P($G(^AUPNCPL(CPIEN,0)),U,5)
+ .S ARRAY(INVDT2,CPIEN)=""
+ Q:$D(ARRAY)<10
+ S ARRDT="" F  S ARRDT=$O(ARRAY(ARRDT)) Q:'+ARRDT  D
+ .S CPIEN="" F  S CPIEN=$O(ARRAY(ARRDT,CPIEN)) Q:'+CPIEN  D
+ ..I PCNT=0 S PCNT=1 D
+ ...I TYPE="P" D ADD("   -CARE PLANS:")
+ ...I TYPE="G" D ADD("   -GOALS:")
+ ..S NODE=$G(^AUPNCPL(CPIEN,0))
+ ..S PRV=$$GET1^DIQ(9000092,CPIEN,.03,"I")
+ ..S PRVNM=$$GET1^DIQ(9000092,CPIEN,.03)
+ ..S SIGNDT=$$GET1^DIQ(9000092,CPIEN,.08,"I")
+ ..S SIGNDT=$$FMTE^XLFDT($P(SIGNDT,".",1),5)
+ ..S SIGN=$$GET1^DIQ(9000092,CPIEN,.07)
+ ..S EDATE=$$GET1^DIQ(9000092,CPIEN,.05)
+ ..Q:SIGN=""&(PRV'=DUZ)
+ ..D TEXT^BTIUPV1(TYPE,CPIEN)
+ Q
+INPT(DFN,TARGET,VIEN,CP) ;Problems updated this hospitalization
+ N PROB,CNT,RET,I,VST
+ S CNT=0,CP=$G(CP)
+ K @TARGET
+ S VIEN=$G(VIEN)
+ I VIEN'="" G GETIP
+ S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
+ I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S VIEN=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
+ D GETIP
+ I CNT=0 S @TARGET@(1,0)="No Problems used during this inpatient record"
+ Q "~@"_$NA(@TARGET)
+ ;
+GETIP ;Get problems to update
+ N PRIEN,PCNT,INP,STAT
+ S PCNT=0
+ S PRIEN="" F  S PRIEN=$O(^AUPNPROB("AC",DFN,PRIEN)) Q:'PRIEN  D
+ .;Check for which statuses to return
+ .S STAT=$P($G(^AUPNPROB(PRIEN,0)),U,12)
+ .Q:STAT="D"
+ .S INP=""
+ .F  S INP=$O(^AUPNPROB(PRIEN,15,"B",VIEN,INP)) Q:'+INP  D
+ ..D DATA(PRIEN,VIEN)
+ Q
+DATA(PRIEN,VIEN) ;Get data for a problem
+ N NARR,STATUS,ICD
+ S PCNT=PCNT+1
+ S NARR=$$GET1^DIQ(9000011,PRIEN,.05)
+ D ADD($J(PCNT,2)_")"_NARR)
+ D QUAL^BTIUPV1(PRIEN,.CNT)
+ I CP=2 D
+ .D FINDCP^BTIUPV1(PRIEN,"G",.CNT)  ;Add goals
+ .D FINDCP^BTIUPV1(PRIEN,"P",.CNT)  ;Add care plans
+ I CP>0 D
+ .D VIDT^BTIUPV1(PRIEN,VIEN,.CNT)   ;Visit instruction
+ .D VTRDT^BTIUPV1(PRIEN,VIEN,.CNT)  ;V treatment/regimens
+ .D REFDT^BTIUPV1(PRIEN,VIEN,.CNT)  ;V REFERRALS
+ .D EDU^BTIUPV1(PRIEN,VIEN,.CNT)  ;V education by date
+ Q
+ADD(DATA) ;add to list
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)=DATA
+ Q
+TMPGBL(X) ;EP
+ K ^TMP("BGOPRDD",$J) Q $NA(^($J))

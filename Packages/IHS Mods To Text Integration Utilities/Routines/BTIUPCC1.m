@@ -1,5 +1,5 @@
-BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;03-Oct-2012 14:35;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010**;NOV 04, 2004;Build 24
+BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;06-Jan-2016 12:37;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010,1012,1013,1016**;NOV 04, 2004;Build 10
  ;IHS/ITSC/LJF 02/24/2005 PATCH 1002 - enhanced measurement display
  ;             04/14/2005 PATCH 1002 - fixed logic for last measurement on same day
  ;             01/26/2006 PATCH 1004 - Added fix for problem list w/o dates
@@ -8,6 +8,8 @@ BTIUPCC1 ; IHS/ITSC/LJF - IHS PCC OBJECTS ;03-Oct-2012 14:35;DU
  ;            Patch 1005 fixed formatting error on date for correct sorting
  ;            Patch 1006 added classification for problems, skip entered in error vitals
  ;            Patch 1010 added qualifiers
+ ;            Patch 1012 Problems changed for new statuses
+ ;            Patch 1016 added comments to problems
 LASTPRC(DFN,TIUICD,TIUPRC) ;EP -- returns date of last X procedure
  ;TIUICD=array of ICD procedure codes
  ;TIUPRC=phrase explaining type of procedures; used in output
@@ -58,11 +60,16 @@ LASTMSR(DFN,TIUMSR,TIUCAP,TIUDATE) ;EP; -- returns last measurement for patient
  S X=$S($G(TIUCAP):"Last "_TIUMSR_": ",1:"")
  ;
  ;IHS/ITSC/LJF 02/24/2005 PATCH 1002 lines added to display more details
- NEW Y,RET
+ NEW Y,RET,VMIEN
  I $P(LINE,U,2)="" Q X_$P(LINE,U)
  I TIUMSR="TMP" S Y=$P(LINE,U),Y=Y_" F ["_$J((Y-32)*(5/9),3,1)_" C]",$P(LINE,U)=Y
  I ((TIUMSR="HT")!(TIUMSR="HC")!(TIUMSR="WC")!(TIUMSR="AG")) S Y=$P(LINE,U),Y=$J(Y,5,2)_" in ["_$J((Y*2.54),5,2)_" cm]",$P(LINE,U)=Y
  I TIUMSR="WT" S Y=$P(LINE,U),Y=$J(Y,5,2)_" lb ["_$J((Y*.454),5,2)_" kg]",$P(LINE,U)=Y
+ I TIUMSR="BMI" D
+ .S VMIEN=$P(LINE,U,2)
+ .S Y=$P(LINE,U),Y=$J(Y,5,2)
+ .I $$PREG^BTIUPCC6(DFN,VMIEN)=1 S Y=Y_"*"
+ .S $P(LINE,U)=Y
  I $P(LINE,U,4)="" S RET=X_$P(LINE,U)_$$LSTDATE($P(LINE,U,2),$P(LINE,U,3),$G(TIUDATE))
  I $P(LINE,U,4)'="" S RET=X_$P(LINE,U)_$$LSTDATE($P(LINE,U,2),$P(LINE,U,3),$G(TIUDATE))_" Qualifiers: "_$P(LINE,U,4)
  Q RET
@@ -70,19 +77,21 @@ LASTMSR(DFN,TIUMSR,TIUCAP,TIUDATE) ;EP; -- returns last measurement for patient
 BMI(DFN,TIUCAP) ;EP -- returns BMI based on last ht and wt
  ; TIUCAP=1 if caption with measurement name is to be returned
  NEW HT,WT,H,W,BMI,X
- S HT=$$LASTMSR($G(DFN),"HT",0,0) I HT<1 Q ""
- S WT=$$LASTMSR($G(DFN),"WT",0,0) I WT<1 Q ""
- S BMI=""
+ S BMI=$$LASTMSR($G(DFN),"BMI",0,0) I +BMI<1 Q ""
+ ;S BMI=$J(BMI,0,2)
+ ;S HT=$$LASTMSR($G(DFN),"HT",0,0) I HT<1 Q ""
+ ;S WT=$$LASTMSR($G(DFN),"WT",0,0) I WT<1 Q ""
+ ;S BMI=""
  ; -- "borrowed" code from APCHS9B1
  ;S W=(WT/5)*2.3,H=(HT*2.5),H=(H*H)/10000,BMI=(W/H),BMI=$J(BMI,4,1)
  ; -- PATCH 1004 changed logic to match BEH MEASUREMENT CONTROL FILE
- S WT=WT*.45359,HT=HT*.0254,HT=HT*HT,BMI=+$J(WT/HT,0,2)
+ ;S WT=WT*.45359,HT=HT*.0254,HT=HT*HT,BMI=+$J(WT/HT,0,2)
  S X=$S($G(TIUCAP):"BMI: ",1:"")
  Q X_BMI
  ;
 LSTMEAS(DFN,TIUMSR) ; -- returns most current measurement (internal values)
  ;IHS/ITSC/LJF 04/`4/2005 PATCH 1002 rewrote logic to deal with >1 measurement per day
- NEW MSR,VDT,IEN,X,TIU,LINE,ARR,DATE,STOP,QUALIF
+ NEW MSR,VDT,IEN,X,Y,TIU,LINE,ARR,DATE,STOP,QUALIF
  S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" Q ""
  ;
  ;S STOP=$O(^AUPNVMSR("AA",DFN,MSR,0))\1   ;stop at most recent date
@@ -96,9 +105,10 @@ LSTMEAS(DFN,TIUMSR) ; -- returns most current measurement (internal values)
  .. ; value ^ visit ien ^ event date internal format
  .. Q:TIU(2,"I")=1                ;Quit if entered in error
  .. S LINE=$G(TIU(.04))_U_$G(TIU(.03,"I"))_U_$G(TIU(1201,"I"))
+ .. ;I TIUMSR'="BP" S Y=$P(LINE,U),Y=$J(Y,5,2),$P(LINE,U)=Y
  .. S DATE=$S($G(TIU(1201,"I"))]"":TIU(1201,"I"),1:(9999999-$P(VDT,"."))_"."_$P(VDT,".",2))
- .. S QUALIF=$$QUAL^BTIULO7(IEN)
- .. S ARR(DATE,IEN)=LINE_U_QUALIF
+ .. S QUALIF=$$QUAL^BTIULO7A(IEN)
+ .. S ARR(DATE,IEN)=LINE_U_QUALIF_U_IEN
  ;
  I '$D(ARR) Q "None found"
  S DATE=$O(ARR(""),-1),IEN=$O(ARR(DATE,""),-1),LINE=ARR(DATE,IEN)
@@ -116,27 +126,44 @@ LSTDATE(DATE1,DATE2,YES) ;EP -- returns event date or visit date;PATCH 1002 fixe
  N Y S Y=$$GET1^DIQ(9000010,+DATE1,.01,"I") ;visit date from visit ien
  Q "  ("_$$FMTE^XLFDT(Y)_")"  ;visit date from visit ien
  ;
-PROBLEM(DFN,STATUS,DATES,TARGET) ;EP -- returns the patient's problem list
- ; If STATUS="A" then active list is returned
- ; If STATUS="I" then inactive list is returned
- NEW PROB,CNT,LINE,MOD,ADD,CLASS
- S CNT=0
- S PROB=0 F  S PROB=$O(^AUPNPROB("ACTIVE",DFN,STATUS,PROB)) Q:'PROB  D
- . S CNT=$G(CNT)+1
- . I CNT=1 S @TARGET@(1,0)=$S(STATUS="A":"Active",1:"Inactive")_" Problems: " S CNT=2
- . S LINE=$$GET1^DIQ(9000011,PROB,.05)      ;prov narrative
- . S CLASS=$$GET1^DIQ(9000011,PROB,.15)     ;Classification
- . I CLASS'="" S LINE=LINE_" Classification: "_CLASS
- . I DATES="D" D
- . . S ADD=$$GET1^DIQ(9000011,PROB,.08),MOD=$$GET1^DIQ(9000011,PROB,.03)  ;dates added/modified
- . . S LINE=LINE_"  ("_$S(ADD=MOD:"Added on "_ADD,1:"Last update on "_MOD)_")"
- . S @TARGET@(CNT,0)=$$SP(5)_LINE
- I CNT=0 S @TARGET@(1,0)=$S(STATUS="A":"Active",1:"Inactive")_" Problems:  None Found"
+PROBLEM(DFN,STATUS,DATES,TARGET,COMMENT) ;EP -- returns the patient's problem list
+ NEW PROB,CNT,LINE,MOD,ADD,CLASS,TXT,STAT,OLD,EXTRA,PCNT
+ S CNT=0,OLD="",PCNT=0,COMMENT=$G(COMMENT)
+ ;IHS/MSC/MGH PATCH 1012
+ S STAT="" F  S STAT=$O(^AUPNPROB("ACTIVE",DFN,STAT)) Q:STAT=""  D
+ .S PROB=0 F  S PROB=$O(^AUPNPROB("ACTIVE",DFN,STAT,PROB)) Q:'PROB  D
+ .. Q:STAT="D"
+ .. Q:STATUS'[STAT
+ .. I OLD'=STAT D
+ ... S OLD=STAT
+ ... S TXT=$S(STAT="A":"Chronic",STAT="E":"Episodic",STAT="S":"Sub-Acute",STAT="O":"Social",1:"Inactive")
+ ... S CNT=CNT+1
+ ... S @TARGET@(CNT,0)=TXT_" Problems: "
+ .. S LINE=$$GET1^DIQ(9000011,PROB,.05)      ;prov narrative
+ .. ;I $P(LINE,"|",1)["*" S LINE=$P(LINE,"|",2)
+ .. S EXTRA=""
+ .. I $L(LINE)>75 S EXTRA=$E(LINE,76,$L(LINE)),LINE=$E(LINE,1,75)
+ .. S CNT=CNT+1,PCNT=PCNT+1
+ .. S @TARGET@(CNT,0)=$J(PCNT,2)_")"_LINE
+ .. I EXTRA'="" D
+ ... S CNT=CNT+1
+ ... S @TARGET@(CNT,0)=$$SP(5)_EXTRA
+ .. S LINE=""
+ .. S CLASS=$$GET1^DIQ(9000011,PROB,.15)     ;Classification
+ .. I CLASS'="" S LINE=" Classification: "_CLASS
+ .. I DATES="D" D
+ ... S ADD=$$GET1^DIQ(9000011,PROB,.08),MOD=$$GET1^DIQ(9000011,PROB,.03)  ;dates added/modified
+ ... S LINE=LINE_"("_$S(ADD=MOD:"Added on "_ADD,1:"Last update on "_MOD)_")"
+ ... S CNT=CNT+1
+ ... S @TARGET@(CNT,0)=$$SP(5)_LINE
+ ..D QUAL^BTIUPV1(PROB,.CNT)
+ ..I COMMENT=1 D NOTEDSP(PROB)
+ I CNT=0 S @TARGET@(1,0)=$S(STATUS="A":"Chronic",STATUS="E":"Episodic",STATUS="S":"Sub-Acute",STATUS="O":"Social",STATUS="I":"Inactive",1:"Active")_" Problems:  None Found"
  Q "~@"_$NA(@TARGET)
  ;
 UPDPROB(DFN,TARGET) ;EP; -- returns list of problems added or updated today
  NEW PROB,CNT,LINE,STATUS,ADD,MOD,CLASS
- F STATUS="A","I" D
+ F STATUS="A","E","S","O","I" D
  . S PROB=0 F  S PROB=$O(^AUPNPROB("ACTIVE",DFN,STATUS,PROB)) Q:'PROB  D
  .. S ADD=$$GET1^DIQ(9000011,PROB,.08,"I"),MOD=$$GET1^DIQ(9000011,PROB,.03,"I")  ;dates added/modified (internal format)
  .. I (ADD'=DT)&(MOD'=DT) Q                                                      ;not added or updated today
@@ -155,3 +182,32 @@ PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
  ;
 SP(NUM) ; -- SUBRTN to pad spaces
  Q $$PAD(" ",NUM)
+NOTEDSP(PROB) ;Display notes for this problem
+ N BTIUNFP,BTIUQ,SITE,BHSNAB,BTIUNDF,BHSITE,BFCN,BTIUN,BTIUNAR
+ S BTIUNFP=0 F BTIUQ=0:0 S BTIUNFP=$O(^AUPNPROB(PROB,11,BTIUNFP)) Q:'BTIUNFP  D DSPFACN
+ Q
+DSPFACN ; DISPLAY NOTES FOR SELECTED FACILITY
+ Q:$D(^AUPNPROB(PROB,11,BTIUNFP,11,0))'=1  Q:$O(^(0))=""
+ S BHSITE=^AUPNPROB(PROB,11,BTIUNFP,0) D GETSITE^BHSUTL S BFCN=BHSNAB
+ S BTIUNDF=0 F BTIUQ=0:0 S BTIUNDF=$O(^AUPNPROB(PROB,11,BTIUNFP,11,BTIUNDF)) Q:'BTIUNDF  S BTIUN=^(BTIUNDF,0) D DSPN
+ Q
+DSPN ; DISPLAY SINGLE NOTE
+ N NTEDTE,TXT2,COMM,X,SUBCOUNT,SUBLINE
+ Q:$P(BTIUN,U,4)="E"
+ Q:$P(BTIUN,U,4)="I"
+ S COMM=$P(BTIUN,U,3) S X=$P(BTIUN,U,5)
+ I X>0 D REGDT4^GMTSU S NTEDTE=X
+ F BTIUQ=0:0 Q:$E(BFCN)'=" "  S BFCN=$E(BFCN,2,99)
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="     Note: "_BFCN_" "_$P(BTIUN,U)_" on "_NTEDTE
+ S MAXLEN=60
+ I $L(COMM)>MAXLEN D
+ .S TXT2=$$WRAP^TIULS(COMM,MAXLEN)
+ .F SUBCOUNT=1:1 S SUBLINE=$P(TXT2,"|",SUBCOUNT) Q:SUBLINE=""  D ADD2(SUBLINE)
+ E  D ADD2(COMM)
+ADD2(TXT) ;
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="     "_TXT
+ Q
+ S BHSTXT=BHSNAR,BHSICL=34 D PRTTXT^BHSUTL
+ Q

@@ -1,5 +1,5 @@
 APCLOS ; IHS/CMI/LAB - PCC Operational Summary ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;CMI/TUCSON/LAB - patch 3 fixed FY date calculations
  ;
 START ;
@@ -83,8 +83,8 @@ ED ;get ending date
 EXCL ;
  I 'APCLAMBS G ZIS
  K APCLEXCL,APCLDXT
- W !!,"Since you have chosen a operations summary type that contains the ambulatory",!,"section, you have the option of excluding certain ICD-9 diagnoses from the",!,"list of top ten diagnoses for ambulatory visits.",!
- W !,"For example, to eliminate Pharmacy refill diagnoses, you need to exclude",!,"V68.1 from this report."
+ W !!,"Because you have chosen an operations summary type that contains the ambulatory",!,"section, you have the option of excluding certain ICD diagnoses from the",!,"list of top ten diagnoses for ambulatory visits.",!
+ W !,"For example, to eliminate Pharmacy refill diagnoses, you need to exclude",!,"ICD-9 code V68.1 and ICD-10 code Z76.0 from this report."
  ;exclude any diagnoses codes?
  S APCLEXCL=""
  S DIR(0)="Y",DIR("A")="Do you wish to exclude any diagnoses codes from the ambulatory section",DIR("B")="N" KILL DA D ^DIR KILL DIR

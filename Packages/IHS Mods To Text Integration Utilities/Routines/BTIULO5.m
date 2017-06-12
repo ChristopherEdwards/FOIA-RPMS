@@ -1,10 +1,13 @@
-BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;15-Jul-2013 09:49;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006,1009,1011**;NOV 04, 2004;Build 9
+BTIULO5 ; IHS/ITSC/LJF - STILL MORE OBJECTS FOR EHR ;27-Apr-2016 12:26;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1004,1005,1006,1009,1012,1013,1016**;NOV 04, 2004;Build 10
  ;IHS/ITSC/LJF 12/10/2004 PATCH 1001 V Orders object was not displaying a modified order
  ;             04/08/2005 PATCH 1002 Indented display of medication sig
  ;                        PATCH 1004 Changed to EHR 1.1 visit selection
  ;                        PATCH 1005 change V ED to include comments if multi-line option used
  ;                        PATCH 1006 changes to create error message if no visit found
+ ;                        Patch 1012 for SNOMEd
+ ;                        Patch 1013 for ICD-10
+ ;IHS/MSC/MGH Patch 1016 added normal/abnormal qualifier
 VORD(TARGET) ; returns orders for current vuecentric visit context
  I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
  NEW X,I,VST,CNT,RESULT
@@ -13,7 +16,6 @@ VORD(TARGET) ; returns orders for current vuecentric visit context
  S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
  I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
  S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
- ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
  I VST<1 Q " "
  D GETORD(.RESULT,VST)
  ;
@@ -26,7 +28,7 @@ VORD(TARGET) ; returns orders for current vuecentric visit context
  ;
 GETORD(RETURN,VSIT) ;
  K RETURN
- NEW DAT,DFN,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,NEWORD
+ NEW DAT,DFN,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,NEWORD,OLD,MED
  S C=0
  S X=$G(^AUPNVSIT(VSIT,0)),DAT=X\1 Q:'DAT
  S DFN=$P(X,U,5),LOC=$P(X,U,22)_";SC("
@@ -37,15 +39,17 @@ GETORD(RETURN,VSIT) ;
  Q:'$D(ORLIST)
  ;
  F X=0:0 S X=$O(^TMP("ORR",$J,ORLIST,X)) Q:'X  K ORD M ORD=^(X) D
- . S C=C+1
+ . S C=C+1,OLD=0
+ . S MED=""
  . S Y=$P($G(^OR(100,+ORD,0)),U,10)
  . I $L(Y),Y'=LOC Q
  . I $P(ORD,U,7)="canc" Q
  . F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;Patch 1011
+ .. ;Change order fix for patch 1012
+ .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999)
  .. ;I $E(ORD("TX",Y),1,3)="to " Q
- .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;IHS/ITSC/LJF 12/10/2004 PATCH 1001
+ .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)  ;IHS/ITSC/LJF 12/10/2004 PATCH 1001
  .. I $E(ORD("TX",Y),1,3)="to " D
  ...K RETURN(C)
  ...S NEWORD=$E(ORD("TX",Y),4,999)
@@ -57,12 +61,11 @@ GETORD(RETURN,VSIT) ;
  ;
 VPOV(TARGET,MULTI) ; returns diagnoses for current vuecentric visit context
  ; MULTI=0 return one line of diagnosis names; MULTI=1 return 1 line per diagnosis
- I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
+ ;I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
  NEW VST,I,X,CNT,RESULT
  S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
  I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
  S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1  S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
- ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
  D GETPOV(.RESULT,VST,MULTI)
  ;
  K @TARGET S CNT=0
@@ -75,32 +78,62 @@ VPOV(TARGET,MULTI) ; returns diagnoses for current vuecentric visit context
 GETPOV(RETURN,VIEN,MULTI) ;return every diagnosis for current visit
  ; VISIT=Visit IEN
  ;
- NEW IEN,CNT,BTIU,LINE,ASTHMA,CODE,PAT,CON
+ NEW ARRAY,IEN,AIEN,FNUM,STRING,CNT,BTIU,LINE,ASTHMA,PCNT,CODE,PAT,CON,NARR,IEN2,Q,SNO
  K RETURN
  ;
  S IEN=0 F  S IEN=$O(^AUPNVPOV("AD",VIEN,IEN)) Q:'IEN  D
  . S ASTHMA=0
- . I 'MULTI S RETURN(1)=$G(RETURN(1))_$$GET1^DIQ(9000010.07,IEN,.04)_"; " Q
- . S CNT=$G(CNT)+1
- . K BTIU D ENP^XBDIQ1(9000010.07,IEN,".01:.13","BTIU(","I")
- . S LINE=""
- . I (BTIU(.12)="PRIMARY")!(CNT=1) S LINE=" [P] "         ;mark if primary dx
- . S CODE=$G(BTIU(.01,"I"))
- . S ASTHMA=$$CHECK^BGOASLK(CODE)
- . I +ASTHMA D
- .. S PAT=BTIU(.02,"I")
- .. S CON=$$ACONTROL(PAT)
- .. I CON'="" S LINE=LINE_" Control: "_CON
- . F I=.06,.05,.09,.13,.11 D                   ;check for other fields
- .. I (I=.09),BTIU(.09)]"" S LINE=LINE_"; "_$$ECODE(IEN) Q
- .. I BTIU(I)]"" S LINE=LINE_"; "_BTIU(I)
- . S RETURN(CNT)=$J(CNT,2)_") "_BTIU(.04)_LINE
+ . S NARR=$$GET1^DIQ(9000010.07,IEN,.04)
+ . I $P(NARR,"|",1)["*" S NARR=$P(NARR,"|",2)
+ . I $P(NARR,"|",2)=" " S NARR=$P(NARR,"|",1)
+ . I NARR'="" S ARRAY(NARR,IEN)=""
+ S NARR="",IEN=0
+ F  S NARR=$O(ARRAY(NARR)) Q:NARR=""  D
+ .S IEN=0 S IEN=$O(ARRAY(NARR,IEN)) Q:IEN=""  D    ;Only get the first one
+ .. I 'MULTI S RETURN(1)=$G(RETURN(1))_NARR_"; " Q
+ .. S CNT=$G(CNT)+1,PCNT=$G(PCNT)+1
+ .. K BTIU D ENP^XBDIQ1(9000010.07,IEN,".01:.29;1102","BTIU(","IE")
+ .. S LINE=""
+ .. I (BTIU(.12)="PRIMARY") S LINE=" [P] "         ;mark if primary dx
+ .. S CODE=$G(BTIU(.01))
+ .. S SNO=$G(BTIU(1102))
+ .. S ASTHMA=$$CHECK^BGOASLK(CODE,SNO)
+ .. I +ASTHMA D
+ ... S PAT=BTIU(.02,"I")
+ ... S CON=$$ACONTROL(PAT)
+ ... I CON'="" S LINE=LINE_" Control: "_CON
+ .. F I=.06,.05,.09,.13,.11,.29 D                   ;check for other fields
+ ... I (I=.09),BTIU(.09)]"" S LINE=LINE_"; "_$$ECODE(IEN) Q
+ ... I BTIU(I)]"" S LINE=LINE_"; "_BTIU(I)
+ ..S NARR=BTIU(.04)
+ ..I $P(NARR,"|",1)["*" S NARR=$P(NARR,"|",2)
+ ..I $P(NARR,"|",2)=" " S NARR=$P(NARR,"|",1)
+ ..S RETURN(CNT)=$J(PCNT,2)_") "_NARR_LINE
+ .. ;Return qualifiers
+ ..F X=13,17,18,14 D
+ ...S STRING=""
+ ...S IEN2=0 F  S IEN2=$O(^AUPNVPOV(IEN,X,IEN2)) Q:'+IEN2  D
+ ....S Q=""
+ ....S FNUM=$S(X=13:9000010.0713,X=17:9000010.0717,X=18:9000010.0718,X=14:9000010.0714)
+ ....S AIEN=IEN2_","_IEN_","
+ ....S Q=$$GET1^DIQ(FNUM,AIEN,.01)
+ ....S Q=$P($$CONC^BSTSAPI(Q_"^^^1"),U,4)
+ ....S STRING=$S(STRING="":Q,1:STRING_" "_Q)
+ ... I STRING'="" D
+ ....S CNT=CNT+1
+ ....S RETURN(CNT)="    "_STRING
  Q
  ;
 ECODE(IEN) ; return narrative for e-code
- NEW X
+ NEW X,Y,VDT,VIEN
+ ;Patch 1013 changed for ICD-10
+ S Y=""
+ S VIEN=$$GET1^DIQ(9000010.07,IEN,.03,"I")
+ S VDT=$P($$GET1^DIQ(9000010,VIEN,.01,"I"),".",1)
  S X=$$GET1^DIQ(9000010.07,IEN,.09,"I") I 'X Q ""
- Q $$GET1^DIQ(80,X,3)
+ I $$AICD S Y=$P($$ICDDX^ICDEX(IEN,VDT,"","I"),U,4)
+ E  S Y=$$GET1^DIQ(80,X,3)
+ Q Y
 ACONTROL(DFN) ;Find last entry of patient's asthma control
  N LEVEL,ADT,IEN,ENTER
  S LEVEL=""
@@ -121,7 +154,6 @@ VPTED(TARGET,MULTI) ; returns patient education topics for current vuecentric vi
  ;I VST="" Q " "
  I VST="" S @TARGET@(1,0)="No visit selected" Q "~@"_$NA(@TARGET)
  S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="A visit was not created." Q "~@"_$NA(@TARGET)
- ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
  D GETPTED(.RESULT,VST,MULTI)
  ;
  K @TARGET S CNT=0
@@ -134,14 +166,16 @@ VPTED(TARGET,MULTI) ; returns patient education topics for current vuecentric vi
 GETPTED(RETURN,VIEN,MULTI) ;return every edcuation topic for current visit
  ; VISIT=Visit IEN
  ;
- NEW IEN,CNT,BTIU,LINE,NUM
+ NEW IEN,CNT,BTIU,LINE,NUM,TOPIC
  K RETURN
  ;
  S IEN=0 F  S IEN=$O(^AUPNVPED("AD",VIEN,IEN)) Q:'IEN  D
  . I 'MULTI S RETURN(1)=$G(RETURN(1))_$$GET1^DIQ(9000010.16,IEN,.01)_"; " Q
  . S CNT=$G(CNT)+1,NUM=$G(NUM)+1
  . K BTIU D ENP^XBDIQ1(9000010.16,IEN,".01;.05:.08;.11","BTIU(","I")
- . S LINE="  "_$$EDABBRV(BTIU(.01,"I"))_": "_BTIU(.08)_" min.; "
+ . ;S LINE="  "_$$EDABBRV(BTIU(.01,"I"))_": "_BTIU(.08)_" min.; "
+ . S TOPIC=$$GET1^DIQ(9000010.16,IEN,.01)
+ . S LINE="  "_TOPIC_": "_BTIU(.08)_" min.; "
  . S LINE=LINE_BTIU(.07)_"; Understanding-"_BTIU(.06)
  . S RETURN(CNT)=$J(NUM,2)_LINE
  . S CNT=$G(CNT)+1
@@ -158,7 +192,6 @@ VMED(TARGET,SIG) ;EP; returns medications for current vuecentric visit context
  S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
  I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
  S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
- ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
  I $G(SIG) D GETSIG(.RESULT,VST) I 1
  E  D GETMED(.RESULT,VST)
  ;
@@ -216,3 +249,5 @@ PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
  ;
 SP(NUM) ; -- SUBRTN to pad spaces
  Q $$PAD(" ",NUM)
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")="4.0":1,1:0)

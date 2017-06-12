@@ -1,5 +1,5 @@
 ABSPOSCG ; IHS/SD/RLT - Set up ABSP() - CONT;      [ 05/22/2006  9:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**17,20,21,22,42**;MAY 22, 2006
+ ;;1.0;PHARMACY POINT OF SALE;**17,20,21,22,42**;MAY 22, 2006;Build 15
  ;---
  ;IHS/SD/RLT - 05/22/06 - Patch 17
  ;    Created new routine ABSPOSCC getting too large.

@@ -1,5 +1,5 @@
 ABSPOSSG ; IHS/SD/lwj - Special gets for formats ;      [ 12/23/2002  8:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,2,3,4,5,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,2,3,4,5,42**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ; IHS/SD/lwj 07/31/02
  ; If version 3.2 there were several fields that were defined - when

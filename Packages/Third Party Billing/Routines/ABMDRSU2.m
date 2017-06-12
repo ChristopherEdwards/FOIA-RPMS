@@ -1,8 +1,9 @@
 ABMDRSU2 ; IHS/ASDST/DMJ - Summarized Claim Display-PART 2 ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**14**;NOV 12, 2009;Build 238
  ;Original;TMD;
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - updated DX^ABMCVAPI call to be numeric
  ;
 GPRV ;
  K ABMX
@@ -30,7 +31,8 @@ CHKPOV ;
  S ABM("X")=""
  S ABMX(0)=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,ABMX(0),0)),U)
  Q:ABMX(0)=""
- Q:'$D(^ICD9(ABMX(0),0))  S ABM("X")=$E($P($$DX^ABMCVAPI(ABMX(0),""),U,4),1,28)
+ ;Q:'$D(^ICD9(ABMX(0),0))  S ABM("X")=$E($P($$DX^ABMCVAPI(ABMX(0),""),U,4),1,28)  ;abm*2.6*14 update API call
+ Q:'$D(^ICD9(ABMX(0),0))  S ABM("X")=$E($P($$DX^ABMCVAPI(+ABMX(0),""),U,4),1,28)  ;abm*2.6*14 update API call
  Q
  ;
 GPRC ;

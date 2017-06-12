@@ -1,16 +1,52 @@
 BQIDCAH3 ;VNGT/HS/ALA-Ad Hoc continued ; 22 Apr 2011  12:02 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
-LAB(FGLOB,TGLOB,LAB,LABTX,FDT,TDT,LNOT,MPARMS) ;EP - Lab test search
- NEW LBPT,LTAX,TREF,NGLOB,LCT,CT,IEN
+LAB(FGLOB,TGLOB,LAB,LABTX,FDT,TDT,LNOT,MPARMS,MAPARMS) ;EP - Lab test search
+ NEW LTAX,TREF,NGLOB,LCT,CT,IEN,RVAL,LB
  S NGLOB=$NA(^TMP("BQIDCLAB",$J)) K @NGLOB
+ K LBPT
  I $G(TGLOB)="" Q
+ I $D(APARMS)!($D(MAPARMS)) D  Q
+ . I LBOP="!" D
+ .. S LAB=""
+ .. F  S LAB=$O(APARMS("LAB",LAB)) Q:LAB=""  D
+ ... S RVAL=$O(APARMS("LAB",LAB,""))
+ ... I RVAL="NUMLAB" S NUMLAB=APARMS("LAB",LAB,"NUMLAB")
+ ... I RVAL="SETLAB" S SETLAB=APARMS("LAB",LAB,"SETLAB")
+ ... D LB
+ .. S LAB=""
+ .. F  S LAB=$O(MAPARMS("LAB",LAB)) Q:LAB=""  D LB
+ . I LBOP="&" D
+ .. ;K LBPT
+ .. S LAB="",CT=0
+ .. F  S LAB=$O(APARMS("LAB",LAB)) Q:LAB=""  D  S CT=CT+1
+ ... S RVAL=$O(APARMS("LAB",LAB,""))
+ ... I RVAL="NUMLAB" S NUMLAB=APARMS("LAB",LAB,"NUMLAB")
+ ... I RVAL="SETLAB" S SETLAB=APARMS("LAB",LAB,"SETLAB")
+ ... D LB
+ .. S LAB=""
+ .. F  S LAB=$O(MAPARMS("LAB",LAB)) Q:LAB=""  D LB
+ .. S LAB="" K NUMLAB,SETLAB
+ .. F  S LAB=$O(MPARMS("LAB",LAB)) Q:LAB=""  D
+ ... S:'$D(APARMS("LAB",LAB)) CT=CT+1
+ ... I '$D(APARMS("LAB",LAB)) D LB
+ .. S IEN=""
+ .. F  S IEN=$O(LBPT(IEN)) Q:IEN=""  D
+ ... S LCT=0,LB=""
+ ... F  S LB=$O(LBPT(IEN,LB)) Q:LB=""  S LCT=LCT+1
+ ... I LCT=CT,'LNOT D
+ .... S @TGLOB@(IEN)="",LB=""
+ .... F  S LB=$O(LBPT(IEN,LB)) Q:LB=""  D
+ ..... S LIEN=""
+ ..... F  S LIEN=$O(LBPT(IEN,LB,LIEN)) Q:LIEN=""  S @CRIT@("LAB",IEN,LIEN)=""
+ ... I LCT=CT,LNOT S @NGLOB@(IEN)="" K @CRIT@("LAB",IEN)
  I $G(LAB)'="" D LB
  I $G(LABTX)'="" D
  . S TREF=$NA(MPARMS("LAB"))
  . K @TREF
  . S LTAX=$P(@("^"_$P(LABTX,";",2)_$P(LABTX,";",1)_",0)"),"^",1)
- . D BLD^BQITUTL(LTAX,TREF)
+ . I LABTX["ATXAX" D BLD^BQITUTL(LTAX,TREF)
+ . I LABTX["ATXLAB" D BLD^BQITUTL(LTAX,TREF,"L")
  I LBOP="!" D
  . I $D(MPARMS("LAB")) S LAB="" F  S LAB=$O(MPARMS("LAB",LAB)) Q:LAB=""  D LB
  I LBOP="&" D
@@ -20,8 +56,12 @@ LAB(FGLOB,TGLOB,LAB,LABTX,FDT,TDT,LNOT,MPARMS) ;EP - Lab test search
  . F  S IEN=$O(LBPT(IEN)) Q:IEN=""  D
  .. S LCT=0,LB=""
  .. F  S LB=$O(LBPT(IEN,LB)) Q:LB=""  S LCT=LCT+1
- .. I LCT=CT,'LNOT S @TGLOB@(IEN)="" Q
- .. I LCT=CT,LNOT S @NGLOB@(IEN)=""
+ .. I LCT=CT,'LNOT D
+ ... S @TGLOB@(IEN)="",LB=""
+ ... F  S LB=$O(LBPT(IEN,LB)) Q:LB=""  D
+ .... S LIEN=""
+ .... F  S LIEN=$O(LBPT(IEN,LB,LIEN)) Q:LIEN=""  S @CRIT@("LAB",IEN,LIEN)=""
+ .. I LCT=CT,LNOT S @NGLOB@(IEN)="" K @CRIT@("LAB",IEN)
  ;
  I LNOT,$G(FGLOB)'="" D
  . S IEN="" F  S IEN=$O(@FGLOB@(IEN)) Q:IEN=""  D
@@ -32,24 +72,19 @@ LAB(FGLOB,TGLOB,LAB,LABTX,FDT,TDT,LNOT,MPARMS) ;EP - Lab test search
  Q
  ;
 LB ;EP
- NEW DFN,IEN
+ NEW DFN,IEN,LBRES,RES,LOK
  S TDT=$S(TDT'="":TDT,1:DT)
  I $G(FGLOB)'="" D  Q
  . NEW IEN
  . S IEN=""
  . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
  .. I $O(^AUPNVLAB("AA",IEN,LAB,""))="" Q
- .. S BDT="",EDT=9999999-DT
- .. I FDT'="" S BDT=9999999-FDT+1,EDT=9999999-TDT
- .. F  S BDT=$O(^AUPNVLAB("AA",IEN,LAB,BDT)) Q:BDT=""!(BDT<EDT)  D
- ... S LIEN=""
- ... F  S LIEN=$O(^AUPNVLAB("AA",IEN,LAB,BDT,LIEN)) Q:LIEN=""  D
- .... S VIS=$P($G(^AUPNVLAB(LIEN,0)),U,3) I VIS="" Q
- .... I $G(^AUPNVSIT(VIS,0))="" Q
- .... Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
- .... I LBOP="!",'LNOT S @TGLOB@(IEN)="" Q
- .... I LBOP="!",LNOT S @NGLOB@(IEN)="" Q
- .... I LBOP="&" S LBPT(IEN,LAB)=""
+ .. I FDT="" D
+ ... S BDT=""
+ ... F  S BDT=$O(^AUPNVLAB("AA",IEN,LAB,BDT)) Q:BDT=""  D LBDT
+ .. I FDT'="" D
+ ... S BGT=9999999-FDT,ENT=9999999-TDT,BDT=ENT-1
+ ... F  S BDT=$O(^AUPNVLAB("AA",IEN,LAB,BDT)) Q:BDT=""!(BDT>BGT)  D LBDT
  ;
  S IEN=""
  F  S IEN=$O(^AUPNVLAB("B",LAB,IEN)) Q:IEN=""  D
@@ -59,14 +94,108 @@ LB ;EP
  . Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
  . S VSDTM=$P(^AUPNVSIT(VIS,0),U,1)\1
  . I FDT'="",VSDTM<FDT!(VSDTM>TDT) Q
- . I DFN'="",LBOP="!",'LNOT S @TGLOB@(DFN)="" Q
- . I DFN'="",LBOP="!",LNOT S @NGLOB@(DFN)="" Q
- . I DFN'="",LBOP="&" S LBPT(DFN,LAB)=""
+ . S LBRES=$P($G(^AUPNVLAB(IEN,0)),U,4)
+ . ; If looking for a lab result
+ . S RES=0
+ . I $G(SETLAB)="",$G(NUMLAB)="",'$D(MAPARMS("LAB",LAB,"SETLAB")),'$D(MAPARMS("LAB",LAB,"NUMLAB")) S ROK=0,RES=1,LOK=1
+ . I $G(SETLAB)'=""!($G(NUMLAB)'="")!($D(MAPARMS("LAB",LAB,"SETLAB")))!($D(MAPARMS("LAB",LAB,"NUMLAB"))) S ROK=1,LOK=0 D LBR
+ . I LBOP="!",'LNOT D  Q
+ .. I ROK,'RES Q
+ .. S @TGLOB@(DFN)=""
+ .. I LOK S @CRIT@("LAB",DFN,IEN)=""
+ . I LBOP="!",LNOT D  Q
+ .. I ROK,'RES Q
+ .. S @NGLOB@(DFN)=""
+ .. I LOK S @CRIT@("LAB",DFN,IEN)=""
+ . I LBOP="&" D  Q
+ .. I ROK,'RES Q
+ .. ;S LBPT(DFN,LAB,IEN)=IEN_U_LBRES B
+ .. S LBPT(DFN,LAB,IEN)=""
+ .. I LOK S @CRIT@("LAB",DFN,IEN)=""
  ;
  Q
  ;
+LBDT ;EP - Date search
+ S LIEN=""
+ F  S LIEN=$O(^AUPNVLAB("AA",IEN,LAB,BDT,LIEN)) Q:LIEN=""  D
+ . S VIS=$P($G(^AUPNVLAB(LIEN,0)),U,3) I VIS="" Q
+ . I $G(^AUPNVSIT(VIS,0))="" Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
+ . S LBRES=$P($G(^AUPNVLAB(LIEN,0)),U,4)
+ . ; If looking for a lab result
+ . S RES=0
+ . I $G(SETLAB)="",$G(NUMLAB)="",'$D(MAPARMS("LAB",LAB,"SETLAB")),'$D(MAPARMS("LAB",LAB,"NUMLAB")) S ROK=0,RES=1,LOK=1
+ . I $G(SETLAB)'=""!($G(NUMLAB)'="")!($D(MAPARMS("LAB",LAB,"SETLAB")))!($D(MAPARMS("LAB",LAB,"NUMLAB"))) S ROK=1,LOK=0 D LBR
+ . I LBOP="!",'LNOT D  Q
+ .. I ROK,'RES Q
+ .. S @TGLOB@(IEN)=""
+ .. I LOK S @CRIT@("LAB",IEN,LIEN)=""
+ . I LBOP="!",LNOT D  Q
+ .. I ROK,'RES Q
+ .. S @NGLOB@(IEN)=""
+ .. I LOK S @CRIT@("LAB",IEN,LIEN)=""
+ . I LBOP="&" D  Q
+ .. I ROK,'RES Q
+ .. ;S LBPT(IEN,LAB)=LIEN_U_LBRES
+ .. S LBPT(IEN,LAB,LIEN)=""
+ .. I LOK S @CRIT@("LAB",IEN,LIEN)=""
+ Q
+ ;
+LBR ;EP - Lab results
+ I LBRES="" Q
+ NEW LBR,VCRIT1,VCRIT2,ROPER,OPER,OPER2,RES1,RES2,SCODE,LI
+ I $G(SETLAB)'="" S SCODE=$$LSET(LAB)
+ I $D(MAPARMS("LAB",LAB,"SETLAB")) S SCODE=$$LSET(LAB)
+ I $G(SETLAB)'="",'$D(MAPARMS("LAB",LAB,"SETLAB")),LBRES=$P(SCODE,":",1)!(LBRES=$P(SCODE,":",2)) S LOK=1,RES=1 Q
+ I $D(MAPARMS("LAB",LAB,"SETLAB")) D
+ . S LBR="" F  S LBR=$O(MAPARMS("LAB",LAB,"SETLAB",LBR)) Q:LBR=""  D
+ .. F LI=1:1:$L(SCODE,";") I LBR=$P($P(SCODE,";",LI),":",1) D
+ ... I LBRES=LBR S LOK=1,RES=1 Q
+ ... I LBRES=$P($P(SCODE,";",LI),":",2) S LOK=1,RES=1
+ ;
+ I $G(NUMLAB)'="" D  Q
+ . NEW REX,R
+ . S R=0,REX=0 F  S R=$O(^BQICARE(OWNR,1,PLIEN,5,R)) Q:'R  I ^BQICARE(OWNR,1,PLIEN,5,R,0)["exclusive" S REX=1
+ . I LBRES?.ULP Q
+ . I LBRES'?.PN,LBRES'?.N Q
+ . I $E(LBRES,$L(LBRES),$L(LBRES))?.P S LBRES=$E(LBRES,1,$L(LBRES)-1)
+ . ; if value starts with a punctuation e.g. < or >
+ . I $E(LBRES,1,1)?.P S ROPER=$E(LBRES,1,1),LBRES=$E(LBRES,2,$L(LBRES))
+ . I NUMLAB["~" S VCRIT1=$P(NUMLAB,"~",1),VCRIT2=$P(NUMLAB,"~",2)
+ . E  S VCRIT1=NUMLAB,VCRIT2=""
+ . F I=1:1:$L(VCRIT1) Q:$E(VCRIT1,I,I)'?.P
+ . S OPER=$E(VCRIT1,1,I-1),RES1=$E(VCRIT1,I,$L(VCRIT1))
+ . I $E(OPER,$L(OPER),$L(OPER))="." D
+ .. S OPER=$E(OPER,1,$L(OPER)-1),RES1="."_RES1
+ . I $G(VCRIT2)'="" D
+ .. F I=1:1:$L(VCRIT2) Q:$E(VCRIT2,I,I)'?.P
+ .. S OPER2=$E(VCRIT2,1,I-1),RES2=$E(VCRIT2,I,$L(VCRIT2))
+ .. I $E(OPER2,$L(OPER2),$L(OPER2))="." D
+ ... S OPER2=$E(OPER2,1,$L(OPER2)-1),RES2="."_RES2
+ . I VCRIT2="" D
+ .. I $G(ROPER)="",@("LBRES"_OPER_"RES1") S LOK=1,RES=1 Q
+ .. I $G(ROPER)'="",OPER=ROPER,@("LBRES"_OPER_"RES1") S LOK=1,RES=1 Q
+ .. I $G(ROPER)'="",OPER'=ROPER Q
+ . I VCRIT2'="" D
+ .. I @("LBRES"_OPER_"RES1"),@("LBRES"_OPER2_"RES2") S LOK=1,RES=1
+ .. I REX D
+ ... I @("LBRES"_OPER_"RES1") S LOK=1,RES=1
+ ... I @("LBRES"_OPER2_"RES2") S LOK=1,RES=1
+ Q
+ ;
+LSET(LN) ;EP - Set of codes for lab test
+ NEW VALUE,TYP
+ I $G(^LAB(60,LN,0))="" Q VALUE
+ S TYP=$P(^LAB(60,LN,0),"^",12),VALUE=""
+ I TYP'="" D
+ . NEW FLD,TEST
+ . S FLD=$P(TYP,",",2)
+ . D FIELD^DID(63.04,FLD,"","*","TEST")
+ . S VALUE=$G(TEST("POINTER"))
+ Q VALUE
+ ;
 MED(FGLOB,TGLOB,MED,MEDTX,FDT,TDT,MNOT,MPARMS) ;EP - Medication search
- NEW MDPT,TREF,MTAX,NGLOB
+ NEW MDPT,TREF,MTAX,NGLOB,MIEN,MCT,CT
  S NGLOB=$NA(^TMP("BQIDCMED",$J)) K @NGLOB
  I $G(TGLOB)="" Q
  I $G(MED)'="" D MD
@@ -84,8 +213,10 @@ MED(FGLOB,TGLOB,MED,MEDTX,FDT,TDT,MNOT,MPARMS) ;EP - Medication search
  . F  S IEN=$O(MDPT(IEN)) Q:IEN=""  D
  .. S MCT=0,MD=""
  .. F  S MD=$O(MDPT(IEN,MD)) Q:MD=""  S MCT=MCT+1
- .. I MCT=CT,'MNOT S @TGLOB@(IEN)="" Q
- .. I MCT=CT,MNOT S @NGLOB@(IEN)=""
+ .. I MCT=CT,'MNOT D
+ ... S @TGLOB@(IEN)=""
+ ... F  S MD=$O(MDPT(IEN,MD)) Q:MD=""  S MIEN=MDPT(IEN,MD),@CRIT@("MED",IEN,MIEN)=""
+ .. I MCT=CT,MNOT S @NGLOB@(IEN)="" K @CRIT@("MED",IEN)
  ;
  I MNOT,$G(FGLOB)'="" D
  . S IEN="" F  S IEN=$O(@FGLOB@(IEN)) Q:IEN=""  D
@@ -102,15 +233,12 @@ MD ;EP
  . NEW IEN,MDP
  . S IEN=""
  . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
- .. S BDT="",EDT=9999999-DT
- .. I FDT'="" S BDT=9999999-FDT+1,EDT=9999999-TDT
- .. F  S BDT=$O(^AUPNVMED("AA",IEN,BDT)) Q:BDT=""!(BDT<EDT)  D
- ... S MIEN=""
- ... F  S MIEN=$O(^AUPNVMED("AA",IEN,BDT,MIEN)) Q:MIEN=""  D
- .... S MDP=$P($G(^AUPNVMED(MIEN,0)),U,1)
- .... I MDOP="!",MDP=MED,MNOT S @NGLOB@(IEN)="" Q
- .... I MDOP="!",MDP=MED,'MNOT S @TGLOB@(IEN)="" Q
- .... I MDOP="&",MDP=MED S MDPT(IEN,MED)=""
+ .. I FDT="" D
+ ... S BDT=""
+ ... F  S BDT=$O(^AUPNVMED("AA",IEN,BDT)) Q:BDT=""  D MDDT
+ .. I FDT'="" D
+ ... S BGT=9999999-FDT,ENT=9999999-TDT,BDT=ENT-1
+ ... F  S BDT=$O(^AUPNVMED("AA",IEN,BDT)) Q:BDT=""!(BDT>BGT)  D MDDT
  ;
  S IEN=""
  F  S IEN=$O(^AUPNVMED("B",MED,IEN)) Q:IEN=""  D
@@ -121,6 +249,86 @@ MD ;EP
  . S VSDTM=$P(^AUPNVSIT(VIS,0),U,1)\1
  . I FDT'="",VSDTM<FDT!(VSDTM>TDT) Q
  . I DFN'="",MDOP="!",MNOT S @NGLOB@(DFN)="" Q
- . I DFN'="",MDOP="!",'MNOT S @TGLOB@(DFN)="" Q
- . I DFN'="",MDOP="&" S MDPT(DFN,MED)=""
+ . I DFN'="",MDOP="!",'MNOT S @TGLOB@(DFN)="",@CRIT@("MED",DFN,IEN)="" Q
+ . I DFN'="",MDOP="&" S MDPT(DFN,MED)=IEN
+ Q
+ ;
+MDDT ; EP
+ S MIEN=""
+ F  S MIEN=$O(^AUPNVMED("AA",IEN,BDT,MIEN)) Q:MIEN=""  D
+ . S MDP=$P($G(^AUPNVMED(MIEN,0)),U,1)
+ . I MDOP="!",MDP=MED,MNOT S @NGLOB@(IEN)="" Q
+ . I MDOP="!",MDP=MED,'MNOT S @TGLOB@(IEN)="",@CRIT@("MED",IEN,MIEN)="" Q
+ . I MDOP="&",MDP=MED S MDPT(IEN,MED)=MIEN
+ Q
+ ;
+CPT(FGLOB,TGLOB,CPT,CPTTX,FDT,TDT,CNOT,MPARMS) ;EP - CPT test search
+ NEW CPPT,CTAX,TREF,NGLOB,LCT,CT,IEN
+ S NGLOB=$NA(^TMP("BQIDCCPT",$J)) K @NGLOB
+ I $G(TGLOB)="" Q
+ I $G(CPT)'="" D CP
+ I $G(CPTTX)'="" D
+ . S TREF=$NA(MPARMS("CPT"))
+ . K @TREF
+ . S CTAX=$P(@("^"_$P(CPTTX,";",2)_$P(CPTTX,";",1)_",0)"),"^",1)
+ . D BLD^BQITUTL(CTAX,TREF)
+ I CPOP="!" D
+ . I $D(MPARMS("CPT")) S CPT="" F  S CPT=$O(MPARMS("CPT",CPT)) Q:CPT=""  D CP
+ I CPOP="&" D
+ . K CPPT
+ . S CPT="",CT=0 F  S CPT=$O(MPARMS("CPT",CPT)) Q:CPT=""  D CP S CT=CT+1
+ . S IEN=""
+ . F  S IEN=$O(CPPT(IEN)) Q:IEN=""  D
+ .. S LCT=0,LB=""
+ .. F  S LB=$O(CPPT(IEN,LB)) Q:LB=""  S LCT=LCT+1
+ .. I LCT'=CT K CPPT(IEN),@CRIT@("CPT",IEN) Q
+ .. I LCT=CT,'CNOT S @TGLOB@(IEN)="" Q
+ .. I LCT=CT,CNOT S @NGLOB@(IEN)="" K @CRIT@("CPT",IEN)
+ ;
+ I CNOT,$G(FGLOB)'="" D
+ . S IEN="" F  S IEN=$O(@FGLOB@(IEN)) Q:IEN=""  D
+ .. I '$D(@NGLOB@(IEN)) S @TGLOB@(IEN)=""
+ I CNOT,$G(FGLOB)="" D
+ . S IEN=0 F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  I '$D(@NGLOB@(IEN)) S @TGLOB@(IEN)=""
+ K @NGLOB
+ Q
+ ;
+CP ;EP
+ NEW DFN,IEN
+ S TDT=$S(TDT'="":TDT,1:DT)
+ I $G(FGLOB)'="" D  Q
+ . NEW IEN
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. I $O(^AUPNVCPT("AA",IEN,CPT,""))="" Q
+ .. I FDT="" D
+ ... S BDT=""
+ ... F  S BDT=$O(^AUPNVCPT("AA",IEN,CPT,BDT)) Q:BDT=""  D CPDT
+ .. I FDT'="" D
+ ... S BGT=9999999-FDT,ENT=9999999-TDT,BDT=ENT-1
+ ... F  S BDT=$O(^AUPNVCPT("AA",IEN,CPT,BDT)) Q:BDT=""!(BDT>BGT)  D CPDT
+ ;
+ S IEN=""
+ F  S IEN=$O(^AUPNVCPT("B",CPT,IEN)) Q:IEN=""  D
+ . I $G(^AUPNVCPT(IEN,0))="" Q
+ . S DFN=$P($G(^AUPNVCPT(IEN,0)),U,2),VIS=$P(^AUPNVCPT(IEN,0),U,3) I VIS="" Q
+ . I $G(^AUPNVSIT(VIS,0))="" Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
+ . S VSDTM=$P(^AUPNVSIT(VIS,0),U,1)\1
+ . I FDT'="",VSDTM<FDT!(VSDTM>TDT) Q
+ . I DFN'="",CPOP="!",'CNOT S @TGLOB@(DFN)="",@CRIT@("CPT",DFN,IEN)="" Q
+ . I DFN'="",CPOP="!",CNOT S @NGLOB@(DFN)="" Q
+ . I DFN'="",CPOP="&" S CPPT(DFN,CPT)=IEN
+ ;
+ Q
+ ;
+CPDT ;EP
+ S LIEN=""
+ F  S LIEN=$O(^AUPNVCPT("AA",IEN,CPT,BDT,LIEN)) Q:LIEN=""  D
+ . S VIS=$P($G(^AUPNVCPT(LIEN,0)),U,3) I VIS="" Q
+ . I $G(^AUPNVSIT(VIS,0))="" Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
+ . I CPOP="!",'CNOT S @TGLOB@(IEN)=LIEN,@CRIT@("CPT",IEN,LIEN)="" Q
+ . I CPOP="!",CNOT S @NGLOB@(IEN)="" Q
+ . I CPOP="&" S CPPT(IEN,CPT)=LIEN
  Q

@@ -1,5 +1,5 @@
 BGP7D862 ; IHS/CMI/LAB - measure C ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
 RHEUAR(P,BDATE,EDATE) ;EP
  ;must have osteoarthritis on pl prior to BDATE or have a pov prior to bdate
@@ -17,9 +17,10 @@ RHEUAR(P,BDATE,EDATE) ;EP
  S (X,B)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(H)  D
  .Q:$P(^AUPNPROB(X,0),U,8)>BDATE  ;if added to pl after beginning of time period, no go
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:$P(^AUPNPROB(X,0),U,12)'="A"
- .Q:'$$ICD^ATXCHK(Y,T,9)
- .S H=$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" "_$P($$ICDDX^ICDCODE(Y),U,2)_" Problem list"
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .Q:'$$ICD^BGP7UTL2(Y,T,9)
+ .S H=$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" "_$P($$ICDDX^BGP7UTL2(Y),U,2)_" Problem list"
  .Q
  I H="" Q ""  ;don't go further as patient does not have RHEU arthritis prior to the report period
 RPDXS ;check for 2 dxs in time period

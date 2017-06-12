@@ -1,5 +1,5 @@
 BGOVEXAM ; IHS/BAO/TMD - V Exam Management ;02-Oct-2013 13:02;PLS
- ;;1.1;BGO COMPONENTS;**1,3,11,12**;Mar 20, 2007;Build 3
+ ;;1.1;BGO COMPONENTS;**1,3,11,12,13**;Mar 20, 2007;Build 3
  ; Return exam records for a patient
  ;  DFN = Patient IEN
  ; .RET = Returned as a list of record in one of two formats:
@@ -43,7 +43,15 @@ GET(RET,DFN) ;EP
  ...S CNT=CNT+1
  ...S @RET@(CNT)="E"_U_EXNAME_U_VDATE_U_RESULT_U_COMMENT_U_PRVNAME_U_FACNAM_U_PRVIEN_U_LOC_U_EXAM_U_VXAM_U_VIEN_U_VCAT_U_$$ISLOCKED^BEHOENCX(VIEN)_U_EVNDT
  ; Add refusal data
- D REFGET^BGOUTL2(RET,DFN,9999999.15,.CNT)
+ N ARRAY,CNT2,Z,STR,SAVE,SAVE2,DATA
+ S CNT2=0,ARRAY="DATA"
+ D REFGET^BGOUTL2(.ARRAY,DFN,9999999.15,.CNT2)
+ S Z=0 F  S Z=$O(@ARRAY@(Z)) Q:Z=""  D
+ .S STR=$G(@ARRAY@(Z))
+ .S SAVE=$P(STR,U,13),SAVE2=$P(STR,U,11)
+ .I SAVE'="" S $P(STR,U,11)=SAVE,$P(STR,U,13)=SAVE2
+ .S CNT=CNT+1
+ .S @RET@(CNT)=STR
  Q
  ; Return a list of exam types
  ; Returned as a list of records in the format:
@@ -62,6 +70,20 @@ GETTYPES(RET,DUMMY) ;EP
  .S CODE=$P(REC,U,2)
  .S CPT=$P(REC,U,11)
  .S CNT=CNT+1,@RET@(CNT)=EXAM_U_NAME_U_CODE_U_CPT
+ Q
+ ; Get list of valid results for a given EXAM Name or IEN
+GETRSLTS(RET,EXAM) ;EP
+ N CNT,RL,RLIST
+ ;S RET=$$TMPGBL^BGOUTL,CNT=0
+ K RET
+ S CNT=0
+ Q:$G(EXAM)=""
+ I EXAM'?1.N D
+ .S EXAM=$O(^AUTTEXAM("B",EXAM,""))
+ Q:'EXAM
+ D VXAMR^AUPNCIX(EXAM,"RLIST")
+ S RL=0
+ F  S RL=$O(RLIST(RL)) Q:'RL  S CNT=CNT+1,RET(CNT)=$P(RLIST(RL),U,2)
  Q
  ; Get primary provider for this V EXAM
 PRIPRV(RET,VXAM) ;EP

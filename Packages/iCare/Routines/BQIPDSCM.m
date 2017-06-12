@@ -1,5 +1,5 @@
 BQIPDSCM ;VNGT/HS/BEE-Panel Description Utility ; 7 Apr 2008  4:28 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -92,8 +92,10 @@ DESC(OWNR,PLIEN,DESC) ;EP - Format Panel Generated Description
  .. I PTYP'="T" S VALUE=$$GET1^DIQ(90505.02,IENS,.02,"E")
  .. I PTYP="D" S VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1))
  .. I PTYP="R" D
- ... S VALUE=$$DATE^BQIUL1(VALUE)
- ... S VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1))
+ ... I VALUE["T" S VALUE=$$DATE^BQIUL1(VALUE),VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1)) Q
+ ... D RANGE^BQIDCAH1(VALUE,PPIEN,PNAM) D
+ .... S VALUE=VALUE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ ... ;
  .. S PMAP=$$PMAP^BQIDCDF(SOURCE,PNAM) I VALUE]"",PMAP]"" D MAP(SOURCE,PMAP,.VALUE,.PNAM)
  .. S PEXE=$$PEXE^BQIDCDF(SOURCE,PNAM) I VALUE]"",PEXE]"" X PEXE
  .. ;
@@ -112,15 +114,17 @@ DESC(OWNR,PLIEN,DESC) ;EP - Format Panel Generated Description
  ... I PTYP'="T" S VALUE=$$GET1^DIQ(90505.21,IENS,.01,"E")
  ... I PTYP="D" S VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1))
  ... I PTYP="R" D
- .... S VALUE=$$DATE^BQIUL1(VALUE)
- .... S VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1))
+ .... I VALUE["T" S VALUE=$$DATE^BQIUL1(VALUE),VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1)) Q
+ .... ;S VALUE=$$DATE^BQIUL1(VALUE)
+ .... ;S VALUE=$$UP^XLFSTR($$FMTE^XLFDT(VALUE,1))
  ... I VALUE]"",PMAP]"" D MAP(SOURCE,PMAP,.VALUE,.PNAM)
  ... I VALUE]"",PEXE]"" X PEXE
  ... I VALUE]"" S PARMS(PNAM,$$TRUNC(VALUE))=""
  .. Q
  . ;Assemble parameter description
  . D PDESC(TYPE,SOURCE,.TDESC,.PARMS)
- . S DESC(1,0)=$G(TDESC)
+ . I $L(TDESC)<70 S DESC(1,0)=$G(TDESC) Q
+ . D WP(TDESC,.DESC)
  ;
  ;Retrieve filter information
  D FILTER^BQIPDSCF(OWNR,PLIEN,.FPARMS)
@@ -138,8 +142,18 @@ TRUNC(VAL) ;EP - Truncate value to 255
  Q:$L(VAL)<256 VAL
  Q $E(VAL,1,252)_"..."
  ;
-CNT(PARM) ;EP - Return number of entries for specific parameter
+WP(TEXT,DESC) ;EP - update description text
+ NEW DIWL,DIWR,BQN
+ K ^UTILITY($J,"W")
+ S DIWL=1,DIWR=45
+ I '$D(DESC) D
+ . S X=TEXT
+ . D ^DIWP
+ . S BQN=""
+ . F  S BQN=$O(^UTILITY($J,"W",1,BQN)) Q:BQN=""  S DESC(BQN,0)=^UTILITY($J,"W",1,BQN,0)
+ Q
  ;
+CNT(PARM) ;EP - Return number of entries for specific parameter
  I PARM="" Q 0
  I $G(PARMS(PARM))="" Q 0
  Q $L(PARMS(PARM),",")
@@ -148,12 +162,15 @@ FCNT(FPRM) ;EP - Return if filter is defined for panel
  ;
  N PORD
  I FPRM="" Q 0
- ;S PORD=$$PORD^BQIDCDF(FSOURCE,FPRM) Q:PORD="" 0
  I $D(FPARMS("VAL",FPRM)) Q $L(FPARMS("VAL",FPRM),", ")
  Q 0
  ;
-CATIPC(OWNR,PLIEN,DESC) ;EP - Add in category and IPC status
+PCNT(PRM) ;EP - Return if parameter is defined for panel
+ I PRM="" Q 0
+ I $D(PARMS(PRM)) Q $L(PARMS(PRM),", ")
+ Q 0
  ;
+CATIPC(OWNR,PLIEN,DESC) ;EP - Add in category and IPC status
  NEW PCAT,PIPC,DA,IENS,DII
  ;
  S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA)
@@ -214,9 +231,11 @@ PSVST(BQITYPE,BQIVST,BQITIME,BQIMPRM) ;EP - Assemble Primary/Secondary Provider 
  ;
  ;Assemble Visit Check Description
  S STR=BQIVST
- S STR=STR_" "_$S(BQITYPE="PRIM":"PRIMARY VISIT PROVIDER",1:"PRIMARY/SECONDARY VISIT PROVIDER")
+ S STR=STR_" "_$S(BQITYPE="PRIM":"Primary Visit Provider",1:"Primary/Secondary Visit Provider")
  S STR=STR_" "_$S(BQIVST>1:"visits",1:"visit")
- S STR=STR_" in "_$S(BQITIME="T-24M":"2 years",BQITIME="T-12M":"1 year",1:$P(BQITIME,"T-",2))
+ ;Now added in executable string
+ ;I $G(BQITIME)]"" S STR=STR_" in "_$S(BQITIME="T-24M":"2 years",BQITIME="T-12M":"1 year",1:$P(BQITIME,"T-",2))
+ S BE=$G(BE)+1,BE(BE)=BQITYPE_U_BQITIME
  ;
  ;Save New Entry With Visit Check Description
  S BQIMPRM(BQITYPE)=STR
@@ -327,6 +346,7 @@ FDESC(PARMS,FPARMS) ;EP - Assemble filter description
  . S DII=$O(DESC(""),"-1") S DII=$G(DII)+1
  . S DESC(DII,0)=VAL_"; "
  ;
+ D WP(TDESC,.DESC)
  Q
  ;
 MPARMS(PARMS,DEL) ;EP - Convert multiple values into single value
@@ -362,9 +382,15 @@ FPARMS(FPARMS) ;EP - Convert multiple filter values into single value
  NEW NAME,PORD
  S PORD="" F  S PORD=$O(FPARMS(PORD)) Q:PORD=""  D
  . S NAME="" F  S NAME=$O(FPARMS(PORD,NAME)) Q:NAME=""  D
- .. NEW VAL,VALS,DLM
- .. S VAL="",VALS=""
- .. F  S VAL=$O(FPARMS(PORD,NAME,VAL)) Q:VAL=""  S VALS=VALS_VAL_$S($G(FPARMS(PORD,NAME,VAL))]"":FPARMS(PORD,NAME,VAL),1:", ") K FPARMS(PORD,NAME,VAL)
+ .. NEW VAL,VALS,DLM,APOS
+ .. S VAL="",VALS="",APOS="'"
+ .. ;
+ .. ;Determine whether to add an apostrophe
+ .. S VAL=$O(FPARMS(PORD,NAME,VAL)) S:VAL="" APOS=""
+ .. S VAL=$O(FPARMS(PORD,NAME,VAL)) S:VAL="" APOS=""
+ .. S VAL="" F  S VAL=$O(FPARMS(PORD,NAME,VAL)) Q:VAL=""  D
+ ... I NAME="DEC" S VALS=VALS_APOS_VAL_APOS_$S($G(FPARMS(PORD,NAME,VAL))]"":FPARMS(PORD,NAME,VAL),1:", ") K FPARMS(PORD,NAME,VAL) Q
+ ... S VALS=VALS_APOS_VAL_APOS_$S($G(FPARMS(PORD,NAME,VAL))]"":FPARMS(PORD,NAME,VAL),1:" OR ") K FPARMS(PORD,NAME,VAL)
  .. F DLM=", "," AND "," OR " S VALS=$$TKO^BQIUL1(VALS,DLM)
  .. S FPARMS(PORD,NAME)=VALS
  ;

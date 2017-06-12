@@ -1,5 +1,5 @@
-BGP 11 PAT ED MEASURES
-ZWR
+OSEHRA ZGO Export: BGP 11 PAT ED MEASURES
+12-JUN-2017 09:47:27 ZWR
 ^BGPPEIB(0)="BGP 11 PAT ED MEASURES^90545.15I^7^7"
 ^BGPPEIB(1,0)="1^Rate of User Population Patients Receiving Patient Education^1^List of User Pop Pts who received Patient Education during Report Period"
 ^BGPPEIB(1,11,0)="^90545.151101^9^9^3101121^^^^"

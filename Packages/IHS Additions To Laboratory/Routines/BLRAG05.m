@@ -1,5 +1,5 @@
-BLRAG05 ; IHS/MSC/SAT - LABORATORY ACCESSION GUI RPCS ; 01 MAY 2013  1300;SAT
- ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997;Build 185
+BLRAG05 ; IHS/MSC/SAT - LABORATORY ACCESSION GUI RPCS ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1031,1034**;NOV 01, 1997;Build 88
  ;
  ;  BLR REF LAB USING LEDI   - UL^BLRAG02      = return the value of the 'REF LAB USING LEDI?' field in the BLR MASTER CONTROL file
  ;  BLR ICD LOOKUP           - ICDLKUP^BLRAG07 = ICD code lookup
@@ -166,6 +166,9 @@ NEXT ;from LROE1
  S ^TMP("BLRAG",$J,0)=$S(+BLREFF:"T00020ERROR_ID",1:"T00020CLEAN")_"^T00020POINTERS^T00200ACCESSION_OR_MESSAGE"
  S BLRAGI="" F  S BLRAGI=$O(BLRTMP("BLRAG",$J,BLRAGI)) Q:BLRAGI=""  D
  .S ^TMP("BLRAG",$J,BLRAGI)=BLRTMP("BLRAG",$J,BLRAGI)
+ ;
+ D:BLRBT="T" STORDIAG   ; Store diagnosis codes if Billing Type = "T" -- IHS/MSC/MKK - LR*5.2*1034
+ ;
  K BLRTMP
  Q
  ;
@@ -231,3 +234,49 @@ MORE ; I M9>1 K DIR S DIR("A")="Do you have the entire order",DIR(0)="Y" D ^DIR 
  S BLRAN=$P(BLRTNOD,U,5)
  S:BLRAA'="" BLRRET=$P($G(^LRO(68,+$G(BLRAA),1,+$G(BLRAD),1,+$G(BLRAN),.2)),U,1)
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+STORDIAG ; EP - Store the Diagnosis code(s)
+ NEW BLRAGI,BLRJ,BLRTSTL,ERRS,F60DESC,F60IEN,F60PTR,FDA,ICDSTR,ICDIEN,LRODT,LRSN,LRTN,ORDERN,ORDIEN,STORIEN,STR1,STR2,UID
+ ;
+ S BLRAGI=0
+ F  S BLRAGI=$O(^TMP("BLRAG",$J,BLRAGI))  Q:BLRAGI<1  D
+ . S STR1=$G(^TMP("BLRAG",$J,BLRAGI))
+ . Q:+$P(STR1,"^")  ; Quit if Error (Piece 1 > 0)
+ . ;
+ . S BLRTSTL=$P(STR1,"^",2)
+ . S ICDSTR=$P(BLRTSTL,"|",2)
+ . Q:ICDSTR=""     ; Quit if no ICD code
+ . ;
+ . S STR2=$P(BLRTSTL,"|")
+ . S LRODT=$P(STR2,":",1),LRSN=$P(STR2,":",2),LRTN=$P(STR2,":",3)
+ . S ORDERN=$$GET1^DIQ(69.01,LRSN_","_LRODT,9.5,"I")
+ . Q:ORDERN<1      ; Quit if no Order #
+ . ;
+ . S LRDFN=$$GET1^DIQ(69.01,LRSN_","_LRODT,.01,"I")
+ . S DFN=$$GET1^DIQ(63,LRDFN,.03,"I")
+ . ;
+ . S F60PTR=$$GET1^DIQ(69.03,LRTN_","_LRSN_","_LRODT,.01,"I")
+ . Q:$$REFLAB^BLRUTIL6(DUZ(2),+F60PTR)<1    ; If Test not MAPPED, do NOT put into 9009026.3
+ . ;
+ . S X=$$ORD^BLRRLEDI(ORDERN,DFN) ; Create entry in 9009026.3, if necessary
+ . ;
+ . S ORDIEN=$$FIND1^DIC(9009026.3,,,ORDERN)
+ . Q:ORDIEN<1      ; Quit if Order # NOT in 9009026.3
+ . ;
+ . S UID=$$GET1^DIQ(69.03,LRTN_","_LRSN_","_LRODT,13)
+ . ;
+ . ; Store ICD code(s) and Tests into DIAGNOSIS field
+ . F ICDCNT=1:1:$L(ICDSTR,":")  D
+ .. K ERRS,FDA
+ .. S ICDIEN=$P(ICDSTR,":",ICDCNT)
+ .. ;
+ .. ; Skip if UNCODED DIAGNOSIS
+ .. Q:$$GET1^DIQ(80,ICDIEN,.01)=".9999"!($$GET1^DIQ(80,ICDIEN,.01)="ZZZ.999")
+ .. ;
+ .. K ERRS,FDA
+ .. S FDA(9009026.31,"?+1,"_ORDIEN_",",.01)=ICDIEN
+ .. S:$L(F60PTR) FDA(9009026.31,"?+1,"_ORDIEN_",",1)=F60PTR
+ .. D UPDATE^DIE(,"FDA",,"ERRS")
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034

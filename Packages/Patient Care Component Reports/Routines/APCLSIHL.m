@@ -1,5 +1,5 @@
 APCLSIHL ;cmi/flag/maw - APCL ILI CDC HL7 Export 5/12/2010 9:26:17 AM
- ;;3.0;IHS PCC REPORTS;**29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**29,30**;FEB 05, 1997;Build 27
  ;
  ;
  ;
@@ -199,92 +199,65 @@ PID(R) ;EP
  S X=$$ADDSEG^HLOAPI(.HLMSTATE,.ARY,.ERR)
  Q
  ;
- ; Create PID segment
+ ;
 PIDLAB(R) ;EP
- N PID,PID3,PID8,PID7
- S PID=$G(^APCLDATA($J,R,"PID"))
- S PID3=$P(PID,U)
- S PID8=$P(PID,U,2)
- S PID7=$P(PID,U,3)
- S HLQ=HL1("Q")
- D SET(.ARY,"PID",0)
- D SET(.ARY,1,1)
- D SET(.ARY,PID3,3)
- D SET(.ARY,PID8,8)
- D SET(.ARY,PID7,7)
- S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+ D PIDLAB^APCLSIH1(R)
  Q
  ;
-ZIDLAB(R) ;-- create the ZID segment
- N ZID,ZID1
- S ZID=$G(^APCLDATA($J,R,"ZID"))
- S ZID1=$P(ZID,U)
- D SET(.ARY,"ZID",0)
- D SET(.ARY,1,1)
- D SET(.ARY,ZID1,2)
- S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+ZIDLAB(R) ;
+ D ZIDLAB^APCLSIH1(R)
  Q
  ;
-PV1(R) ;-- setup the JVN PV1 segment
+PV1(R) ;-- setup the PV1 segment
+ N PRVI,PRV,LNM,FNM,MI,NPI
  D SET(.ARY,"PV1",0)
  D SET(.ARY,1,1)
  D SET(.ARY,R(6),3,1)
  D SET(.ARY,R(41),3,2)
+ ;add attending doctor to PV1-7 with NPI in the format NPI^LAST^FIRST^MIDDLE^^^^N
+ S PRVI=$G(R(138))
+ I $G(PRVI) D
+ . S NPI=$$GET1^DIQ(200,PRVI,41.99)
+ . S PRV=$$GET1^DIQ(200,PRVI,.01)
+ . ;D STDNAME^XLFNAME(.PRV,"CP")
+ . ;S LNM=$G(PRV("FAMILY"))
+ . ;S FNM=$G(PRV("GIVEN"))
+ . ;S MI=$G(PRV("MIDDLE"))
+ . D SET(.ARY,NPI,7,1)
+ . ;D SET(.ARY,LNM,7,2)
+ . ;D SET(.ARY,FNM,7,3)
+ . ;D SET(.ARY,MI,7,4)
+ . D SET(.ARY,"N",7,8)
  D SET(.ARY,R(12),19)
  D SET(.ARY,R(16),36)
+ D SET(.ARY,R(132),41)  ;p30 visit status
  D SET(.ARY,$$HLD(R(7)),44)
  D SET(.ARY,$$HLD(R(17)),45)
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
  ;
 PV1LAB(R) ;-- setup the PV1 LAB segment
- N PV1,PV13,PV132,PV115,PV144,PV145
- S PV1=$G(^APCLDATA($J,R,"PV1"))
- S PV13=$P(PV1,U,1)
- S PV132=$P(PV1,U,2)
- S PV115=$P(PV1,U,3)
- S PV144=$P(PV1,U,4)
- S PV145=$P(PV1,U,5)
- D SET(.ARY,"PV1",0)
- D SET(.ARY,1,1)
- D SET(.ARY,PV13,3,1)
- D SET(.ARY,PV132,3,2)
- D SET(.ARY,PV115,15)
- D SET(.ARY,PV144,44)
- D SET(.ARY,PV145,45)
- S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+ D PV1LAB^APCLSIH1(R)
  Q
  ;
 DG1(R,SQ,DG13) ;-- set the repeating DG1
+ N ICDT
+ ;S ICDT=$P($$ICDDX^APCLSILU(DG13,$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDT=$P($$ICDDX^APCLSILU(DG13,R(7)),U,20)  ;get the icd type based on the code
  D SET(.ARY,"DG1",0)
  D SET(.ARY,SQ,1)
  D SET(.ARY,"ICD",2)
  D SET(.ARY,DG13,3)
+ D SET(.ARY,$S(ICDT="30":"I10",1:"I9"),3,3)  ;set the diagnosis type here
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
  ;
-DG1LAB(R) ;-- set the repeating DG1
- N BDA,DG1,DG13
- S BDA=0 F  S BDA=$O(^APCLDATA($J,R,"DG1",BDA)) Q:'BDA  D
- . S DG1=$G(^APCLDATA($J,R,"DG1",BDA))
- . S DG13=$P(DG1,U)
- . S APCLFCNT=APCLFCNT+1
- . D SET(.ARY,"FT1",0)
- . D SET(.ARY,APCLFCNT,1)
- . D SET(.ARY,DG13,19)
- . S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+DG1LAB(R) ;EP
+ D DG1LAB^APCLSIH1(R)
  Q
  ;
-PR1LAB(R) ;-- set the repeating DG1
- N BDA,PR1,PR13
- S BDA=0 F  S BDA=$O(^APCLDATA($J,R,"PR1",BDA)) Q:'BDA  D
- . S PR1=$G(^APCLDATA($J,R,"PR1",BDA))
- . S PR13=$P(PR1,U)
- . S APCLFCNT=APCLFCNT+1
- . D SET(.ARY,"FT1",0)
- . D SET(.ARY,+$G(APCLFCNT),1)
- . D SET(.ARY,PR13,25)
- . S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+PR1LAB(R) ;EP
+ D PR1LAB^APCLSIH1(R)
  Q
  ;
 OBX(R) ;-- setup the ILI OBX segment
@@ -322,26 +295,8 @@ OBXMSR(R) ;-- setup the ILI OBX HT/WT segment
  . ;
  Q
  ;
-OBXLAB(R) ;-- setup the ILI OBX segment
- N BDA,OBX,OBX1,OBX2,OBX31,OBX32,OBX5
- S BDA=0 F  S BDA=$O(^APCLDATA($J,R,"OBX",BDA)) Q:'BDA  D
- . S OBX=$G(^APCLDATA($J,R,"OBX",BDA))
- . S OBX1=$P(OBX,U)
- . S OBX2=$P(OBX,U,2)
- . S OBX3=$P(OBX,U,3)
- . I OBX3'="TMP" D
- .. S OBX31=$P(OBX3,"~")
- .. S OBX32=$P(OBX3,"~",2)
- . S OBX5=$P(OBX,U,4)
- . D SET(.ARY,"OBX",0)
- . D SET(.ARY,OBX1,1)
- . D SET(.ARY,OBX2,2)
- . I '$G(OBX31) D SET(.ARY,OBX3,3)
- . I $G(OBX31) D
- .. I $G(OBX31)]"" D SET(.ARY,OBX31,3,1)
- .. D SET(.ARY,OBX32,3,2)
- . D SET(.ARY,OBX5,5)
- . S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
+OBXLAB(R) ;
+ D OBXLAB^APCLSIH1(R)
  Q
  ;
 ZLI(R) ;-- setup the ILI ZLI segment
@@ -353,13 +308,22 @@ ZLI(R) ;-- setup the ILI ZLI segment
  D SET(.ARY,$$HLD(R(19)),6)
  D SET(.ARY,R(21),8)
  D SET(.ARY,R(22),9)
+ I $G(R(22))["." D
+ . N ICDTA
+ . ;S ICDTA=$P($$ICDDX^APCLSILU(R(22),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)
+ . S ICDTA=$P($$ICDDX^APCLSILU(R(22),R(7)),U,20)  ;get the icd type based on the code
+ . D SET(.ARY,$S(ICDTA="30":"I10",1:"I9"),9,3)
  D SET(.ARY,R(33),10)
  D SET(.ARY,R(34),11)
  D SET(.ARY,R(35),12)
  D SET(.ARY,R(36),13)
  D SET(.ARY,R(39),16)
  D SET(.ARY,$$HLD(R(40)),17)
+ N ICDT
+ ;S ICDT=$P($$ICDDX^APCLSILU(R(43),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)
+ S ICDT=$P($$ICDDX^APCLSILU(R(43),R(7)),U,20)  ;get the icd type based on the code
  D SET(.ARY,R(43),19)
+ I $G(R(43))]"" D SET(.ARY,$S(ICDT="30":"I10",1:"I9"),19,3)
  D SET(.ARY,R(44),20)
  D SET(.ARY,R(59),21)
  D SET(.ARY,R(60),22)
@@ -370,6 +334,10 @@ ZLI(R) ;-- setup the ILI ZLI segment
  D SET(.ARY,R(65),27)
  D SET(.ARY,$$HLD(R(123)),28)
  D SET(.ARY,$$HLD(R(124)),29)
+ D SET(.ARY,R(133),30)
+ D SET(.ARY,R(134),31)
+ D SET(.ARY,R(135),32)
+ D SET(.ARY,$$HLD(R(136)),33)
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
  ;
@@ -382,14 +350,34 @@ ZPC(R) ;-- setup the ZPC segment
  D SET(.ARY,"ZPC",0)
  D SET(.ARY,R(107),1)
  D SET(.ARY,R(113),2)
+ N ICDT
+ ;S ICDT=$P($$ICDDX^APCLSILU(R(113),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDT=$P($$ICDDX^APCLSILU(R(113),R(7)),U,20)  ;get the icd type based on the code
+ I $G(R(113))]"" D SET(.ARY,$S(ICDT="30":"I10",1:"I9"),2,3)
  D SET(.ARY,$$HLD(R(114)),3)
  D SET(.ARY,R(115),4)
+ N ICDTA
+ ;S ICDTA=$P($$ICDDX^APCLSILU(R(115),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDTA=$P($$ICDDX^APCLSILU(R(115),R(7)),U,20)  ;get the icd type based on the code
+ I $G(R(115))]"" D SET(.ARY,$S(ICDTA="30":"I10",1:"I9"),4,3)
  D SET(.ARY,$$HLD(R(116)),5)
  D SET(.ARY,R(117),6)
+ N ICDTB
+ ;S ICDTB=$P($$ICDDX^APCLSILU(R(117),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDTB=$P($$ICDDX^APCLSILU(R(117),R(7)),U,20)  ;get the icd type based on the code
+ I $G(R(117))]"" D SET(.ARY,$S(ICDTB="30":"I10",1:"I9"),6,3)
  D SET(.ARY,$$HLD(R(118)),7)
  D SET(.ARY,R(119),8)
+ N ICDTC
+ ;S ICDTC=$P($$ICDDX^APCLSILU(R(119),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDTC=$P($$ICDDX^APCLSILU(R(119),R(7)),U,20)  ;get the icd type based on the code
+ I $G(R(119))]"" D SET(.ARY,$S(ICDTC="30":"I10",1:"I9"),8,3)
  D SET(.ARY,$$HLD(R(120)),9)
  D SET(.ARY,R(121),10)
+ N ICDTD
+ ;S ICDTD=$P($$ICDDX^APCLSILU(R(121),$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDTD=$P($$ICDDX^APCLSILU(R(121),R(7)),U,20)  ;get the icd type based on the code
+ I $G(R(121))]"" D SET(.ARY,$S(ICDTD="30":"I10",1:"I9"),10,3)
  D SET(.ARY,$$HLD(R(122)),11)
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
@@ -403,9 +391,13 @@ ZAV(R,SQ,ZAV2,ZAV3) ;-- setup the ILI ZAV segment
  Q
  ;
 ZSR(R,SQ,ZSR2) ;-- setup the ILI ZSR segment
+ N ICDT
+ ;S ICDT=$P($$ICDDX^APCLSILU(ZSR2,$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)  ;get the icd type based on the code
+ S ICDT=$P($$ICDDX^APCLSILU(ZSR2,R(7)),U,20)  ;get the icd type based on the code
  D SET(.ARY,"ZSR",0)
  D SET(.ARY,SQ,1)
  D SET(.ARY,ZSR2,2)
+ D SET(.ARY,$S(ICDT="30":"I10",1:"I9"),2,3)  ;set the diagnosis type here
  S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  Q
  ;
@@ -433,7 +425,11 @@ ZAN(R) ;-- setup the ILI ZAN segment
  .. S VALD=$$FMTHL7^XLFDT($G(R(I+42)))
  .. D SET(.ARY,"ZAN",0)
  .. D SET(.ARY,ZANC,1)
+ .. N ICDT
+ .. ;S ICDT=$P($$ICDDX^APCLSILU(VAL,$P($G(^APCLDATA($J,R,"PV1")),U,5)),U,20)
+ .. S ICDT=$P($$ICDDX^APCLSILU(VAL,R(7)),U,20)  ;get the icd type based on the code
  .. D SET(.ARY,VAL,2)
+ .. D SET(.ARY,$S(ICDT="30":"I10",1:"I9"),2,3)
  .. D SET(.ARY,VALD,3)
  .. S X=$$ADDSEG^HLOAPI(.HLST,.ARY,.ERR)
  .. S ZANC=ZANC+1
@@ -491,7 +487,7 @@ HLD(FDT) ;-- convert to HL7 date
  S D=$$FMTHL7^XLFDT(Y)
  Q D
  ;
-GL(IN,TYP) ;-- write out the batch to a global for saving in APCLSLAB
+GL(IN,TYP) ;-- write out batch
  K ^APCLTMP($J)
  N BDA,BDO,HLODAT,MSH,MSGP,MSG,BT,BT1,BT2,BT3
  S APCLCNT=0
@@ -538,7 +534,7 @@ WRITE(T) ; use XBGSAVE to save the temp global (APCLDATA) to a delimited
  S TST=0
  ;I '$$PROD^XUPROD() S TST=1
  I $P($G(^APCLILIC(1,0)),U,5)="T" S TST=1
- S (XBFN,APCLDFN)=$S(TST:"FLZ",$G(APCLFLF):"FLF",1:"FLU")_"_"_APCLASU_"_"_$$DATE(DT)_"_P29.txt"
+ S (XBFN,APCLDFN)=$S(TST:"FLZ",$G(APCLFLF):"FLF",1:"FLU")_"_"_APCLASU_"_"_$$DATE(DT)_"_P30.txt"
  S XBS1="SURVEILLANCE ILI SEND"
  ;
  D ^XBGSAVE

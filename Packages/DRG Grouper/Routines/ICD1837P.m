@@ -1,0 +1,2 @@
+ICD1837P ;;ALB/EG/DHH - FY 2008 UPDATE ; 11/9/07 1:17pm
+ ;;18.0;DRG Grouper;**37**;Oct 13,2000;Build 7

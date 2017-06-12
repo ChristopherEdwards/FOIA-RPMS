@@ -1,5 +1,5 @@
 ABSPOSH5 ; IHS/SD/lwj - Post 5.1 Claim Response ;8/7/02 [ 09/04/2002  12:57 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;File FDATA() Array Data in Claim Response File (9002313.03)

@@ -1,5 +1,5 @@
-PSON52 ;BIR/DSD - files new entries in prescription file ;06-Mar-2013 09:46;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014,143,219,148,239,201,268,260,225,303,1015,1016**;DEC 1997;Build 74
+PSON52 ;BIR/DSD - files new entries in prescription file ;06-Dec-2013 08:18;DU
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,23,27,32,46,71,111,124,117,131,139,157,1005,1006,1007,1008,1011,1013,1014,143,219,148,239,201,268,260,225,303,1015,1016,1017**;DEC 1997;Build 40
  ;External reference ^PS(55 supported by DBIA 2228
  ;External reference to PSOUL^PSSLOCK supported by DBIA 2789
  ;External reference to ^XUSEC supported by DBIA 10076
@@ -15,6 +15,8 @@ PSON52 ;BIR/DSD - files new entries in prescription file ;06-Mar-2013 09:46;PLS
  ;                          05/22/12 - Line DT+2
  ;                          11/20/12 - Line DT+15
  ;                          03/06/13 - Line DD-2
+ ;                          06/04/13 - Added DSCMED reference
+ ;            IHS/MSC/MGH   08/05/13 - Line DT+16
 EN(PSOX) ;Entry Point
 START ;
  D:$D(XRTL) T0^%ZOSV ; Start RT Monitor
@@ -54,7 +56,10 @@ DT ;IHS/MSC/PLS - 02/13/2012
  S PSOX("COPIES")=$S($G(PSOX("COPIES"))]"":PSOX("COPIES"),1:1)
  I $G(PSORX("PHARM"))]"" S PSOX("PHARMACIST")=PSORX("PHARM") K PSORX("PHARM")
  S:$L($G(APSPPRIO)) PSOX("APSPPRIO")=APSPPRIO  ;IHS/MSC/PLS - 09/27/11
- S PSOX("RXNORM")=$$RXNORM^APSPFNC1($G(PSOX("NDC")))  ;IHS/MSC/PLS - 11/20/2012
+ ;S PSOX("RXNORM")=$$RXNORM^APSPFNC1($G(PSOX("NDC")))  ;IHS/MSC/PLS - 11/20/2012
+ ;IHS/MSC/MGH Patch 1017 changed depending on pickup location
+ I $G(PSOX("PICKUP"))'="" S PSOX("NDC")=$$GETNDC^APSPFNC1($G(PSODRUG("IEN")),$G(PSOX("PICKUP")))
+ S PSOX("RXNORM")=$$RXNORM^APSPFNC1($G(PSOX("NDC")))  ;IHS/MSC/MGH - 10/25/2013
  D INITPRV
 INITX Q
  ;
@@ -230,3 +235,4 @@ DD ;;PSOX("RX #");;0;;1
  ;;PSOX("PRV ZIP");;999999931;;6
  ;;PSOX("DEA_VA_USPHS");;999999931;;7
  ;;PSOX("APSPPRIO");;999999931;;8
+ ;;PSOX("DSCMED");;999999921;;8

@@ -1,5 +1,5 @@
 AMHRAS3 ; IHS/CMI/LAB - list ALCOHOL screenings ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 INFORM ;
@@ -83,9 +83,10 @@ RESULT ;result screenig
  W !?3,"2)  Positive"
  W !?3,"3)  Refused"
  W !?3,"4)  Unable to Screen"
- W !?3,"5)  Screenings done with no result entered"
+ W !?3,"5)  Referral Needed"
+ W !?3,"6)  Screenings done with no result entered"
  W !
- K DIR S DIR(0)="L^1:5",DIR("A")="Which result values do you want included on this list",DIR("B")="" KILL DA D ^DIR KILL DIR
+ K DIR S DIR(0)="L^1:6",DIR("A")="Which result values do you want included on this list",DIR("B")="" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G AGE
  I Y="" G AGE
  S AMHRREST=Y

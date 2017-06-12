@@ -1,5 +1,5 @@
-BGP 07 CMS INDICATORS
-ZWR
+OSEHRA ZGO Export: BGP 07 CMS INDICATORS
+12-JUN-2017 09:47:22 ZWR
 ^BGPCMSIA(0)="BGP 07 CMS INDICATORS^90532.01I^3^3"
 ^BGPCMSIA(1,0)="1^1^Heart Attack (Acute Myocardial Infarction or AMI) Treatment^Heart Attack (Acute Myocardial Infarction or AMI) Treatment^^1"
 ^BGPCMSIA(1,1)="D AMI^BGP7C1"

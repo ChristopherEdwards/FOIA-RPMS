@@ -1,5 +1,5 @@
 BYIMSEGS ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6,7**;JUN 01, 2015;Build 242
  ;
  ;code to supplement fields in the HL7 segments
  ;
@@ -253,7 +253,10 @@ NK12 N X,FN,LN,MN
  S X=$P($G(^DPT(INDA,.21)),U)
  S LN=$P(X,",")
  S FN=$P($P(X,",",2)," ")
- S MN=$P(X," ",2)
+ S MN=$P($P(X,",",2)," ",2)
+ ;PATCH 7 USE DEFAULT LN AND FN IF NOT DEFINED
+ S:LN="" LN="LAST_NAME"
+ S:FN="" FN="FIRST_NAME"
  S INA("NK12")=LN_CS_FN_CS_MN_CS_CS_CS_CS_"L"
  S INA("NK12",1)=INA("NK12")
  Q
@@ -290,20 +293,55 @@ NK1END Q
  ;-----
  ;-----
 PV1 ;EP;FOR PV1 SEGMENT CONTENT
+ ;PATCH 7 ADD PV1 COMPONENT
+ D PV11
+ D PV12
  D PV13
+ D PV17
+ D PV19
+ D PV119
  D PV120
  D PV144
+ Q
+ ;-----
+PV11 ;PV1-01
+ S INA("PV11",1)=1
+ Q
+ ;-----
+PV12 ;PV1-02
+ S INA("PV12",1)="R"
  Q
  ;-----
 PV13 ;PV1-03 PAT LOC
  S INA("PV13",1)=""
  Q
  ;-----
+PV17 ;PV1-07
+ S INA("PV17",1)=""
+ S P=$$PRIMPROV^APCLV(INDA,"I")
+ Q:'P
+ S X=$$PROV(P)
+ S INA("PV17",1)=X
+ Q
+ ;-----
+PV19 ;PV1-09
+ S INA("PV19",1)=""
+ S P=$$PRIMPROV^APCLV(INDA,"I")
+ Q:'P
+ S X=$$PROV(P)
+ S INA("PV19",1)=X
+ Q
+ ;-----
+PV119 ;PV1-19
+ ;PATCH 7
+ S INA("PV119",1)=INDA_CS_CS_CS_"RPMS"_CS_"MR"
+ Q
+ ;-----
 PV120 ;PV1-20 VFC
  S INA("PV120",1)=$$VFC^BYIMIMM3(INDA)
  Q
  ;-----
-PV144 ;VISIT DATE
+PV144 ;PV1-44 VISIT DATE
  N X,Y,Z
  S INA("PV144",1)=""
  S X=$P($G(^AUPNVSIT(+$G(INDA),0)),".")
@@ -328,13 +366,17 @@ ORC1 ;
  Q
  ;-----
 ORC2 ;
- S INA("ORC2",INDA)=INDA_"-"_$P($G(^AUTTLOC(+$G(DUZ(2)),0)),U,10)_CS_"IHS"
+ ;PATCH 7 MAX LENGTH 15
+ ;S INA("ORC2",INDA)=INDA_"-"_$P($G(^AUTTLOC(+$G(DUZ(2)),0)),U,10)_CS_"IHS"
+ S INA("ORC2",INDA)=$E(INDA_"-"_$P($G(^AUTTLOC(+$G(DUZ(2)),0)),U,10),1,15)_CS_"IHS"
  Q
  ;-----
 ORC3 ;
  N X
  S X=$P($G(^AUPNVSIT(+$P($G(^AUPNVIMM(+INDA,0)),U,3),0)),".")
  S INA("ORC3",INDA)=$E($$TIMEIO^INHUT10(X),1,8)_"-"_INDA_"-"_$P($$HRN^BYIMIMM3($P($G(^AUPNVIMM(+INDA,0)),U,2)),U)_CS_$P($$HRN^BYIMIMM3($P($G(^AUPNVIMM(+INDA,0)),U,2)),U,4)
+ ;PATCH 7 NOT MORE THAN 20 CHARACTERS
+ S $P(INA("ORC3",INDA),U,2)=$E($P(INA("ORC3",INDA),U,2),1,20)
  Q
  ;-----
 ORC5 ;
@@ -346,13 +388,8 @@ ORC10 ;entered by
  S INA("ORC10",INDA)=""
  S P=+$P(X12,U,14)
  S:'P P=+$P(V0,U,23)
- S X=$P($G(^VA(200,P,0)),U)
- Q:X=""
- S TITLE=$$TITLE(P)
- S NPI=$$NPI(P)
- S Y=$P($P(X,",",2)," ")
- S Z=$P($P(X,",",2)," ",2)
- S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_TITLE_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ Q:'P
+ S X=$$PROV(P)
  S INA("ORC10",INDA)=X
  Q
  ;-----
@@ -365,18 +402,15 @@ ORC12 ;ordering provider
  .S Y=+$P($G(^AUPNVIMM(+INDA,0)),U,3)
  .S P=+$O(^AUPNVPRV("AD",Y,0))
  .S P=+$G(^AUPNVPRV(P,0))
- S X=$P($G(^VA(200,P,0)),U)
- Q:X=""
- S TITLE=$$TITLE(P)
- S NPI=$$NPI(P)
- S Y=$P($P(X,",",2)," ")
- S Z=$P($P(X,",",2)," ",2)
- S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_TITLE_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ Q:'P
+ S X=$$PROV(P)
  S INA("ORC12",INDA)=X
  Q
  ;-----
 ORC17 ;setup for ORC17 variable - location
- S INA("ORC17",INDA)=CS_CS_CS_$P($G(^DIC(4,+$G(DUZ(2)),0)),U)
+ ;PATCH 7
+ ;S INA("ORC17",INDA)=CS_CS_CS_$P($G(^DIC(4,+$G(DUZ(2)),0)),U)
+ S INA("ORC17",INDA)=$P($G(^AUTTLOC(+$G(DUZ(2)),0)),U,10)_CS_$P($G(^DIC(4,+$G(DUZ(2)),0)),U)_CS_"RPMS"
 ORCEND Q
  ;-----
  ;-----
@@ -414,22 +448,25 @@ RXA4 ;date/time entered
  ;-----
 RXA5 ;admin code
  N X
- S X=$P(Z,U,3)
+ S X=$P(Z0,U,3)
  S:$L(X)=1 X="0"_X
- S INA("RXA5",INDA)=X_CS_$P(Z,U)_CS_"CVX"
+ S INA("RXA5",INDA)=X_CS_$P(Z0,U)_CS_"CVX"
  Q
  ;-----
 RXA6 ;dose
  N X
  S X=+$P(X0,U,11)
  S:$E(X)="." X="0"_X
- S:'X!($P(X0,U,7)="E") X="999"
+ ;PATCH 7 USE DEFAULT VOLUME WHEN NOT RECORDED
+ S:'X X=$P(Z0,U,18)
+ ;S:'X X="999"
+ S:'X X=""
  S INA("RXA6",INDA)=X
  Q
  ;-----
 RXA7 ;quantity definition
  S INA("RXA7",INDA)=""
- S:INA("RXA6",INDA) INA("RXA7",INDA)="mL^MilliLiters^UCUM"
+ I INA("RXA6",INDA),INA("RXA6",INDA)'>997 S INA("RXA7",INDA)="mL^MilliLiters^UCUM"
  Q
  ;-----
 RXA9 ;admin history
@@ -445,13 +482,8 @@ RXA10 ;encounter provider
  .S Y=+$P($G(^AUPNVIMM(+INDA,0)),U,3)
  .S P=+$O(^AUPNVPRV("AD",Y,0))
  .S P=+$G(^AUPNVPRV(P,0))
- S X=$P($G(^VA(200,P,0)),U)
- Q:X=""
- S TITLE=$$TITLE(P)
- S N=$$NPI(P)
- S Y=$P($P(X,",",2)," ")
- S Z=$E($P($P(X,",",2)," ",2))
- S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_TITLE_CS_CS_CS_$S(NPI]"":"IHS",1:"")_CS_"L"
+ Q:'P
+ S X=$$PROV(P)
  S INA("RXA10",INDA)=X
  Q
  ;-----
@@ -462,7 +494,8 @@ RXA11 ;location of encounter
  I $D(^BYIMPARA(DUZ(2),5,Z,0)) S X=$P(^(0),U,2)
  I '$D(^BYIMPARA(DUZ(2),5,Z,0)) S X=$P($G(^DIC(4,Z,0)),U)
  I $E(X,1,5)="OTHER"!(X=""),$P(V21,U)]"" S X=$P(V21,U)
- S INA("RXA11",INDA)=CS_CS_CS_X ;$P(X," ",1,2)
+ ;PATCH 7 NOT MORE THAN 20 CHARACTERS
+ S INA("RXA11",INDA)=CS_CS_CS_$E(X,1,20)
  Q
  ;-----
 RXA15 ;immunization lot number
@@ -599,7 +632,7 @@ QPDEND Q
 VSET(INDA) ;SET VISIT VARIABLES
  S X0=^AUPNVIMM(INDA,0)
  S X12=$G(^AUPNVIMM(INDA,12))
- S Z=$G(^AUTTIMM(+X0,0))
+ S Z0=$G(^AUTTIMM(+X0,0))
  S V0=$G(^AUPNVSIT(+$P(X0,U,3),0))
  S V21=$G(^AUPNVSIT(+$P(X0,U,3),21))
  S T=$P(V0,U,7)
@@ -611,11 +644,23 @@ NPI(PRV) ;
  Q NPI
  ;-----
  ;-----
-TITLE(P) ;GET PROVIDER'S TITLE
+TITLE(P) ;GET PROVIDER'S TITLE/PROVIDER CLASS
  Q:'$G(P) ""
  N X,Y,Z
- S X=$P($G(^VA(200,P,0)),U,9)
+ S X=$P($G(^VA(200,P,"PS")),U,5)
  Q:'X ""
- S X=$P($G(^DIC(3.1,X,0)),U)
+ S X=$P($G(^DIC(7,X,0)),U,2)
  Q X
  ;-----
+PROV(P) ;RETURN PROVIDER COMPONENT INFO
+ ;PATCH 7 ADD PROV CALL TO ENSURE PROPER FORMAT
+ N X,Y,Z
+ S X=$P($G(^VA(200,P,0)),U)
+ Q:X="" ""
+ S TITLE=$$TITLE(P)
+ S NPI=$$NPI(P)
+ S Y=$P($P(X,",",2)," ")
+ S Z=$P($P(X,",",2)," ",2)
+ S X=NPI_CS_$P(X,",")_CS_Y_CS_Z_CS_CS_TITLE_CS_CS_CS_$S(NPI]"":"RPMS",1:"RPMS")_CS_"L"
+ Q X
+ ;

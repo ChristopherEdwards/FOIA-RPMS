@@ -1,5 +1,5 @@
-LEXRXXS ;ISL/KER - Re-Index Save/Send ;08/17/2011
- ;;2.0;LEXICON UTILITY;**81**;Sep 23, 1996;Build 15
+LEXRXXS ;ISL/KER - Re-Index Save/Send ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**81,80**;Sep 23, 1996;Build 10
  ;               
  ; Global Variables
  ;    ^LEX(               SACC 1.3
@@ -7,8 +7,10 @@ LEXRXXS ;ISL/KER - Re-Index Save/Send ;08/17/2011
  ;    ^TMP("LEXRX")       SACC 2.3.2.5.1
  ;               
  ; External References
- ;    HOME^%ZIS           ICR  10086
+ ;    $$FMDIFF^XLFDT      ICR  10103
  ;    $$TITLE^XLFSTR      ICR  10104
+ ;    HOME^%ZIS           ICR  10086
+ ;    ^DIC                ICR  10006
  ;    ^XMD                ICR  10070
  ;               
  ; Local Variables NEWed or KILLed Elsewhere

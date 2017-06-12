@@ -1,12 +1,12 @@
-BTIUPRPN ;IHS/MSC/MGH Special header/printer formats  ;11-Nov-2010 14:59;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1008**;Jun 20, 1997;Build 15
+BTIUPRPN ;IHS/MSC/MGH - Special header/printer formats  ;29-Aug-2014 15:41;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1008,1012,1013**;Jun 20, 1997;Build 33
  ;Copy of SLC/MJC - Print SF 509 Progress Notes ;;7-6-95 9:00pm
 DEVICE(TIUFLAG,TIUSPG) ; pick your device
  ;
  W ! K IOP S %ZIS="Q" D ^%ZIS I POP K POP G EXIT
  S TIUFLAG=+$G(TIUFLAG),TIUSPG=+$G(TIUSPG)
  I $D(IO("Q")) K IO("Q") D  G EXIT
- .S ZTRTN="ENTRY1^TIUPRPN",ZTSAVE("^TMP(""TIUPR"",$J,")=""
+ .S ZTRTN="ENTRY1^TIUPRPN",ZTSAVE("^TMP(""TIUPR"",$J,")="",ZTSAVE("TIUD0")=""
  .S ZTSAVE("TIUFLAG")="",ZTSAVE("TIUSPG")="",ZTDESC="TIU PRT PNS"
  .D ^%ZTLOAD W !,$S($D(ZTSK):"Request Queued!",1:"Request Canceled!")
  .K ZTSK,ZTDESC,ZTDTH,ZTIO,ZTRTN,ZTSAVE,TIUFLAG,TIUSPG
@@ -17,14 +17,14 @@ ENTRY ; Entry point to print progress notes-called from ^TIUA
  N TIUSPG
  U IO
 ENTRY1 ; Entry point from above
- N TIUERR,D0,DN,Y,DTOUT,DUOUT,DIRUT,DIROUT,TIUTYPE
+ N TIUERR,D0,DN,Y,DTOUT,DUOUT,DIRUT,DIROUT
  I $E(IOST)="C" S (TIUSPG,TIUFLAG)=1
  I '+$G(TIUFLAG) S TIUSPG=1
  K ^TMP("TIULQ",$J)
  I $D(ZTQUEUED) S ZTREQ="@" ; Tell TaskMan to delete Task log entry
  ;If this title is defined as a special type
- ;S TIUTYPE=$P(TIU("DOCTYP"),U,1)
- S TIUTYPE=$P(TIUD0,U,1)
+ ;Patch 1013 wrapped it with $G
+ S TIUTYPE=$P($G(TIUD0),U,1)
  I +TIUTYPE D PRINT^BTIUPRT1(TIUTYPE,1,0)
  E  D PRINT^TIUPRPN1($G(TIUFLAG),$G(TIUSPG))
 EXIT K ^TMP("TIULQ",$J),^TMP("TIUPR",$J)

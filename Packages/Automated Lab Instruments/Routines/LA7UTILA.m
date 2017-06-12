@@ -1,5 +1,5 @@
-LA7UTILA ;VA/DALOI/JMC - Browse UI message ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**23,27,46,64,1027**;NOV 01, 1997
+LA7UTILA ;VA/DALOI/JMC - Browse UI message ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**23,27,46,1018,64,1027,1033**;NOV 01, 1997
  ;
 EN ; Select a Universal Interface message to browse.
  D EXIT ; Housekeeping before we start.
@@ -67,7 +67,7 @@ DQ ; Dequeue entry point.
  . F  S I=$O(@(LA7ROOT_","_I_")"))  Q:'I  D  Q:LA7QUIT
  . . S LA7X=^(I)
  . . I LA7X="" W ! Q  ; Print blank separator line
- . . F  S LA7Y=$E(LA7X,1,IOM-1) Q:LA7Y=""  D  Q:LA7QUIT
+ . .  F  S LA7Y=$E(LA7X,1,IOM-1) Q:LA7Y=""  D  Q:LA7QUIT
  . . . S LA7X=$E(LA7X,IOM,$L(LA7X))
  . . . I $L(LA7X) S LA7CONT=1,LA7X="--->"_LA7X
  . . . W !,LA7Y
@@ -108,7 +108,11 @@ BRO(LA7HDR,LA7DOC,LA7IEN,LA7J) ; Setup text for browser.
  . . S X=^XTMP(K,I)
  . . I $P(X,"^",2)=LA7IEN D
  . . . S J=J+1,^TMP("DDB",$J,LA7DOC,J)="Date: "_$$FMTE^XLFDT($P(K,"^",2)+I,1)
- . . . S J=J+1,^TMP("DDB",$J,LA7DOC,J)="Text: "_$P(X,"^",4) ; Get error message.
+ . . . ; S J=J+1,^TMP("DDB",$J,LA7DOC,J)="Text: "_$P(X,"^",4) ; Get error message.
+ . . . ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1033
+ . . . I $L($P(X,"^",4))'>74  S J=J+1,^TMP("DDB",$J,LA7DOC,J)="Text: "_$P(X,"^",4)
+ . . . I $L($P(X,"^",4))>74 D MULTI($P(X,"^",4),.J)
+ . . . ; ----- END IHS/OIT/MKK - LR*5.2*1033
  . . . S J=J+1,^TMP("DDB",$J,LA7DOC,J)=" "
  I J(0)=J S J=J+1,^TMP("DDB",$J,LA7DOC,J)=$$CJ^XLFSTR("[None Found]",IOM-1)
  S J=J+1,^TMP("DDB",$J,LA7DOC,J)=" "
@@ -139,6 +143,31 @@ BRO(LA7HDR,LA7DOC,LA7IEN,LA7J) ; Setup text for browser.
  S LA7HDR=LA7HDR_" Msg #"_LA7DOC_" - "_$P(^LAHM(62.49,LA7DOC,0),"^",6)
  S ^TMP($J,"LIST",LA7HDR)="^TMP(""DDB"",$J,"_LA7DOC_")"
  Q
+ ;
+ ; ------- BEGIN IHS/OIT/MKK - LR*5.2*1033
+MULTI(STR,LINE) ; EP - Text line needs to be "wrapped"
+ NEW LM,DIWL,DIWR,DIWF,DIWPLINE
+ ;
+ S RIGHTM=70    ; Right Margin
+ ;
+ ; Use FileMan DIWP routine to "wrap" text
+ S LM=0
+ S X=STR
+ K ^UTILITY($J,"W")
+ S DIWL=LM,DIWR="",DIWF="C"_RIGHTM
+ D ^DIWP
+ ;
+ ; Put wrapped string into BROWSER "array"
+ S LINE=LINE+1,DIWPLINE=1
+ S ^TMP("DDB",$J,LA7DOC,LINE)="Text: "_$$TRIM^XLFSTR($G(^UTILITY($J,"W",LM,DIWPLINE,0)),"LR"," ")
+ ;
+ F  S DIWPLINE=$O(^UTILITY($J,"W",LM,DIWPLINE))  Q:DIWPLINE<1  D
+ . S LINE=LINE+1
+ . S ^TMP("DDB",$J,LA7DOC,LINE)=$$TRIM^XLFSTR($G(^UTILITY($J,"W",LM,DIWPLINE,0)),"LR"," ")
+ ;
+ K ^UTILITY($J,"W")
+ Q
+ ; ------- END IHS/OIT/MKK - LR*5.2*1033
  ;
 PF ; Parse message fields
  ;

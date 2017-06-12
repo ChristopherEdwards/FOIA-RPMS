@@ -1,5 +1,5 @@
 BMCPXCHK ; IHS/PHXAO/TMJ - CHECK CPT CAT/PX AT CLOSE TIME ;
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006;Build 51
  ;4.0*3 10.30.2007 IHS/OIT/FCJ ADDED CSV CHANGES
  ;
  ; This routine checks to insure the cpt category and the cpt

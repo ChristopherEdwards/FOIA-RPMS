@@ -1,30 +1,37 @@
-BGP7DL ; IHS/CMI/LAB - IHS GPRA 07 SELECTED REPORT DRIVER ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7DL ; IHS/CMI/LAB - IHS GPRA 16 SELECTED REPORT DRIVER 21 May 2010 12:10 PM 09 Feb 2017 1:35 PM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
  W:$D(IOF) @IOF
- W !!,$$CTR("IHS 2007 CRS - Clinical Performance Measure Report (Selected Measures)",80)
+ W !!,$$CTR("IHS 2017 CRS - Clinical Performance Measure Report (Selected Measures)",80)
 INTRO ;
  D XIT
  W !,"This will produce a Performance Measure Report for one or more measures for a ",!,"year period you specify.  You will be asked to provide: 1) the"
  W !,"reporting period, 2) the baseline period to compare data to, and 3) the ",!,"Community taxonomy to determine which patients will be included."
 SETIND ;
  D XIT
- S BGPINDT=""
- S DIR(0)="S^DM:Diabetes-Related Measures;CVD:Cardiovascular Disease Prevention for At-Risk Patients;WH:Women's Health-Related Measures;SEL:Selected Performance Measures (User Defined)"
+ S BGPINDG=""
+ S BGPRTYPE=4,BGPYRPTH="C"
+ S DIR(0)="S^DM:Diabetes-Related Measures;CVD:Cardiovascular Disease Prevention for At-Risk Patients;WH:Women's Health-Related Measures"
+ S DIR(0)=DIR(0)_";IPC:Improving Patient Care Measures;PQA:Pharmacy Quality Alliance Measures;AST:Asthma-Related Measures;SEL:Selected Performance Measures (User Defined)"
  S DIR("A")="Which set of Performance measures should be included in this report" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
- S BGPINDT=$E(Y)
- I BGPINDT="S" D SI I '$D(BGPIND) G SETIND
+ S BGPINDG=$E(Y)
+ I BGPINDG="S" D SI I '$D(BGPIND) G SETIND
 GI ;gather all measures
- I BGPINDT="D" D DI
- I BGPINDT="C" D CI
- I BGPINDT="W" D WI
- ;I BGPINDT="E" D EI
+ I BGPINDG="D" D DI
+ I BGPINDG="C" D CI
+ I BGPINDG="W" D WI
+ I BGPINDG="I" D II
+ I BGPINDG="P" D PI
+ I BGPINDG="A" D AI
+ ;I BGPINDG="E" D EI
  I '$D(BGPIND) W !!,"no measures selected" G SETIND
  D TAXCHK^BGP7XTCH
+ S X=$$DEMOCHK^BGP7UTL2()
+ I 'X W !!,"Exiting Report....." D PAUSE^BGP7DU,XIT Q
 TP ;get time period
- S BGPRTYPE=4,BGP7RPTH="C"
+ S BGPRTYPE=4,BGPYRPTH="C"
  S (BGPBD,BGPED,BGPTP)=""
  S DIR(0)="S^1:January 1 - December 31;2:April 1 - March 31;3:July 1 - June 30;4:October 1 - September 30;5:User-Defined Report Period",DIR("A")="Enter the date range for your report" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D XIT Q
@@ -36,19 +43,20 @@ TP ;get time period
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
  I BGPQTR=4 S BGPBD=($E(BGPPER,1,3)-1)_"1001",BGPED=$E(BGPPER,1,3)_"0930"
- I BGPQTR=5 S BGPBD=$$FMADD^XLFDT(BGPPER,-364),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ ;I BGPQTR=5 S D=$$FMADD^XLFDT(BGPPER,1) S BGPBD=($E(BGPPER,1,3)-1)_$E(D,4,7),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
+ I BGPQTR=5 S D=$$FMADD^XLFDT(BGPPER,1) S BGPBD=($E(BGPPER,1,3)-1)_$E(D,4,7),BGPED=BGPPER,BGPPER=$E(BGPED,1,3)_"0000"
  I BGPED>DT D  G:BGPDO=1 TP
  .W !!,"You have selected Current Report period ",$$FMTE^XLFDT(BGPBD)," through ",$$FMTE^XLFDT(BGPED),"."
  .W !,"The end date of this report is in the future; your data will not be",!,"complete.",!
- .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates?",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .K DIR S BGPDO=0 S DIR(0)="Y",DIR("A")="Do you want to change your Current Report Dates",DIR("B")="N" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) S BGPDO=1 Q
  .I Y S BGPDO=1 Q
  .Q
 BY ;get baseline year
  S BGPVDT=""
- W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 1999, 2000"
+ W !!,"Enter the Baseline Year to compare data to.",!,"Use a 4 digit year, e.g. 2010"
  S DIR(0)="D^::EP"
- S DIR("A")="Enter Year (e.g. 2000)"
+ S DIR("A")="Enter Year (e.g. 2010)"
  D ^DIR KILL DIR
  I $D(DIRUT) G TP
  I $D(DUOUT) S DIRUT=1 G TP
@@ -95,20 +103,8 @@ COM1 ;
  .I $D(DIRUT) S BGPQUIT=1
  .I Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+ K BGPQUIT
+ ;
 HOME ;
  S BGPHOME=$P($G(^BGPSITE(DUZ(2),0)),U,2)
  I BGPHOME="" W !!,"Home Location not found in Site File!!",!,"PHN Visits counts to Home will be calculated using clinic 11 only!!" H 2 G BEN
@@ -122,32 +118,35 @@ BEN ;
  S BGPBEN=Y
 SUM ;display summary of this report
  W:$D(IOF) @IOF
- W !,$$CTR("SUMMARY OF 2007 CLINICAL MEASURE PERFORMANCE REPORT TO BE GENERATED")
+ W !,$$CTR("SUMMARY OF 2017 CLINICAL MEASURE PERFORMANCE REPORT TO BE GENERATED")
  W !!,"The date ranges for this report are:"
  W !?5,"Report Period: ",?31,$$FMTE^XLFDT(BGPBD)," to ",?31,$$FMTE^XLFDT(BGPED)
  W !?5,"Previous Year Period: ",?31,$$FMTE^XLFDT(BGPPBD)," to ",?31,$$FMTE^XLFDT(BGPPED)
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
- I $G(BGPMFITI) W !!,"The MFI Location Taxonomy to be used is: ",$P(^ATXAX(BGPMFITI,0),U)
  I BGPHOME W !,"The HOME location is: ",$P(^DIC(4,BGPHOME,0),U)," ",$P(^AUTTLOC(BGPHOME,0),U,10)
  I 'BGPHOME W !,"No HOME Location selected."
- W !!,"These performance measures will be calculated: " S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  W $P(^BGPINDA(X,0),U,3)," ; "
+ W !!,"These performance measures will be calculated: " S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  W $P(^BGPINDG(X,0),U,3)," ; "
  W !!,"Lists will be produced for these measures: "
- S X=0 F  S X=$O(BGPLIST(X)) Q:X'=+X  W $P(^BGPINDA(X,0),U,3)," ; "
+ S X=0 F  S X=$O(BGPLIST(X)) Q:X'=+X  W $P(^BGPINDG(X,0),U,3)," ; "
+ D TEXT^BGP7DSL
+ I $D(DIRUT) G BEN
  D PT^BGP7DSL
  I BGPROT="" G BEN
 ZIS ;call to XBDBQUE
  D REPORT^BGP7UTL
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
+ S BGPUF=$$GETDIR^BGP7UTL2()
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
 ZIS1 ;
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDCA(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDPA(" D ^DIK K DIK D XIT Q
- I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDBA(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDCG(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDPG(" D ^DIK K DIK D XIT Q
+ I POP W !,"Report Aborted" S DA=BGPRPT,DIK="^BGPGPDBG(" D ^DIK K DIK D XIT Q
  I $D(IO("Q")) G TSKMN
 DRIVER ;
+ I $D(ZTQUEUED) S ZTREQ="@"
  D ^BGP7D1
  U IO
  D ^BGP7DP
@@ -161,19 +160,28 @@ NODEV1 ;
  D ^%ZISC
  D XIT
  Q
-DI ;
- S X=0 F  S X=$O(^BGPINDAC("ADM",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDAC(X,0),U,1))=""
+DI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("ADM",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
  Q
-CI ;
- S X=0 F  S X=$O(^BGPINDAC("ACARD",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDAC(X,0),U,1))=""
+CI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("ACARD",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
  Q
-WI ;
- S X=0 F  S X=$O(^BGPINDAC("AWH",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDAC(X,0),U,1))=""
+AI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("AAST",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
  Q
-EI ;
- S X=0 F  S X=$O(^BGPINDAC("AEL",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDAC(X,0),U,1))=""
+II ;EP
+ S X=0 F  S X=$O(^BGPINDGC("AIPC",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
  Q
-SI ;
+PI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("APQA",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
+ Q
+WI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("AWH",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
+ Q
+EI ;EP
+ S X=0 F  S X=$O(^BGPINDGC("AEL",1,X)) Q:X'=+X  S BGPIND($P(^BGPINDGC(X,0),U,1))=""
+ Q
+SI ;EP
  K BGPIND
  D EN^BGP7DSI
  I '$D(BGPIND) Q
@@ -196,7 +204,7 @@ TSKMN ;EP ENTRY POINT FROM TASKMAN
  I $G(IO("DOC"))]"" S ZTIO=ZTIO_";"_$G(IO("DOC"))
  I $D(IOM)#2,IOM S ZTIO=ZTIO_";"_IOM I $D(IOSL)#2,IOSL S ZTIO=ZTIO_";"_IOSL
  K ZTSAVE S ZTSAVE("BGP*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="DRIVER^BGP7DL",ZTDTH="",ZTDESC="CRS 05 COM REPORT" D ^%ZTLOAD D XIT Q
+ S ZTCPU=$G(IOCPU),ZTRTN="DRIVER^BGP7DL",ZTDTH="",ZTDESC="CRS 15 COM REPORT" D ^%ZTLOAD D XIT Q
  Q
  ;
 NODEV ;
@@ -206,7 +214,7 @@ NODEV ;
  ;
 XIT ;
  D ^%ZISC
- D EN^XBVK("BGP")
+ D EN^XBVK("BGP") I $D(ZTQUEUED) S ZTREQ="@"
  K DIRUT,DUOUT,DIR,DOD
  K DIADD,DLAYGO
  D KILL^AUPNPAT
@@ -243,7 +251,7 @@ CHKY ;
  Q
 F ;calendar year
  S (BGPPER,BGPVDT)=""
- W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2007"
+ W !!,"Enter the Calendar Year for the report END date.  Use a 4 digit",!,"year, e.g. 2017"
  S DIR(0)="D^::EP"
  S DIR("A")="Enter Year"
  S DIR("?")="This report is compiled for a period.  Enter a valid date."

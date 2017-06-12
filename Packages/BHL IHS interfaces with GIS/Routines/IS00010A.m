@@ -1,6 +1,6 @@
-IS00010A ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on DEC 05, 2014
+IS00010A ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on AUG 03, 2015
  ;Part 2
- ;Copyright 2014 SAIC
+ ;Copyright 2015 SAIC
 EN S (INX,X)=$G(@INV@("MSH12"))
  S:$L(X) X=+X
  S @INV@("MSH12")=$G(X)

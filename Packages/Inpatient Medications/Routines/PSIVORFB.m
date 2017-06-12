@@ -1,5 +1,5 @@
-PSIVORFB ;BIR/MLM-FILE/RETRIEVE ORDERS IN ^PS(55 ;04-Apr-2013 21:29;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**3,18,28,68,58,85,110,111,120,134,213,161,1010,1015**;16 DEC 97;Build 62
+PSIVORFB ;BIR/MLM-FILE/RETRIEVE ORDERS IN ^PS(55 ;17-Mar-2014 13:20;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**3,18,28,68,58,85,110,111,120,134,213,161,1010,1015,1018**;16 DEC 97;Build 21
  ;
  ; Reference to ^PS(50.7 is supported by DBIA #2180.
  ; Reference to ^PS(51.2 is supported by DBIA #2178.
@@ -14,11 +14,15 @@ PSIVORFB ;BIR/MLM-FILE/RETRIEVE ORDERS IN ^PS(55 ;04-Apr-2013 21:29;PLS
  ;          - IHS/MSC/PB - modified line GTDRG+6 to add the stability offset value to
  ;            the DRG array for each additive and solution
  ;          - IHS/MSC/PB - 2/11/13 added line OFFSET+5 to add a default value of seven days if the offset is 0
+ ;          - IHS/MSC/PLS - 03/17/14 - Added change to NEW55 and LIMSTOP EP from VistA PSJ*5.0*273
  ;
 NEW55 ; Get new order number in 55.
  N DA,DD,DO,DIC,DLAYGO,X,Y,PSIVLIM,MINS,PSJDSTP1,PSJDSTP2,A,PSJCLIN,PSJDNM,PSJPROV,PSJWARD,PSJPAO,PSJALRT
  I $D(^PS(55,+DFN)),'$D(^PS(55,+DFN,0)) D ENSET0^PSGNE3(+DFN)
- I $G(PSJORD)["V"!($G(PSJORD)["P"),$G(P(2))]"" D LIMSTOP(.PSJDSTP1,.PSJDSTP2)
+ ;IHS/MSC/PLS - 03/17/14 - Added logic from PSJ*5.0*273
+ I $G(PSJORD)["V"!($G(PSJORD)["P"),$G(P(2))]"" D
+ .I '$G(PSIVSITE) S PSIVSN=$P(P("IVRM"),"^") D ENCHK^PSIVSET
+ .D LIMSTOP(.PSJDSTP1,.PSJDSTP2)
  I ($G(PSJORD)["P"!($G(PSJORD)["V"))&$G(PSIVLIM) I $$CMPLIM(PSJORD,PSJDSTP1,PSJDSTP2) D
  . D
  .. S PSJPROV=DUZ I PSJORD["P" S PSJPROV=$P($G(^PS(53.1,+PSJORD,0)),"^",2)
@@ -108,7 +112,6 @@ GT55 ; Retrieve data from 55 into local array
  D:'$D(PSJLABEL) GTPC(ON55) S ND=$G(^PS(55,DFN,"IV",+ON55,.2)),P("PD")=$S($P(ND,U):$P(ND,U)_U_$$OIDF^PSJLMUT1(+ND)_U_$P($G(^PS(50.7,+ND,0)),U),1:""),P("DO")=$P(ND,U,2),P("PRY")=$P(ND,U,4),P("NAT")=$P(ND,U,5),(PSJCOM,P("PRNTON"))=$P(ND,U,8)
  I P("PRY")="D",'+P("IVRM") S P("IVRM")=+$G(PSIVSN)_U_$P($G(^PS(59.5,+$G(PSIVSN),0)),U)
  S P("MR")=$P(ND,U,3),ND=$G(^PS(51.2,+P("MR"),0)),P("MR")=P("MR")_U_$S($P(ND,U,3)]"":$P(ND,U,3),1:$P(ND,U)) D GTCUM
- S P("OFFSET")=$P($G(^PS(55,DFN,"IV",+ON55,9999999)),U)
  D GTDRG,GTOT^PSIVUTL(P(4))
  N ND2P5 S ND2P5=$G(^PS(55,DFN,"IV",+ON55,2.5)) D
  .S P("DUR")=$P(ND2P5,"^",2)
@@ -149,7 +152,7 @@ LIMSTOP(PSJDSTP1,PSJDSTP2) ; Calculate default stop date using IV Limit
  I 'PSIVLIM,PSIVLIM]"" S PSIVLIM=$$GETMIN^PSIVCAL(PSIVLIM,DFN,PSJORD)
  I PSIVLIM]"" D
  . S MINS=$$GETMIN^PSIVCAL(PSIVLIM,DFN,PSJORD),PSJDSTP1=$$FMADD^XLFDT(P(2),0,0,MINS)
- . S X=$P(PSJDSTP1,"."),PSJDSTP2=X_$S($P(PSIVSITE,"^",14)="":.2359,1:"."_$P(PSIVSITE,"^",14))
+ . S X=$P(PSJDSTP1,"."),PSJDSTP2=X_$S($P($G(PSIVSITE),"^",14)="":.2359,1:"."_$P(PSIVSITE,"^",14))
  Q
  ;
 GETFRQ(PSJSKED) ;Get frequency using name of schedule

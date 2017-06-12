@@ -1,5 +1,5 @@
 ABSPOSJ1 ;IHS/SD/lwj - NCPDP 5.1 pre and post init for V1.0 patch 3 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44,45,46**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**3,6,12,14,16,17,24,28,29,31,32,36,37,38,39,42,43,44,45,46,47**;Jun 1,2001;Build 15
  ;
  ; Pre and Post init routine use in absp0100.03k
  ;------------------------------------------------------------------
@@ -113,6 +113,10 @@ DELFLD(FLDNUM) ;
  S FDA(9002313.0201,MEDIEN_","_CLMIEN_",",FLDNUM)=""
  D FILE^DIE("","FDA","MSG")
  S FND=1              ;we found at least 1
+ Q
+POST47 ; IHS/OIT/RCS 04/08/2014 Patch 47 Add the new ICD10 General default date
+ D DEF2^ABSPOSJ2
+ D POST46
  Q
 POST46 ; IHS/OIT/RCS 11/28/2012 Patch 46 Add the Maximum Dollar Limit, Unsuppress Fields 147,384 for Medicare Part D plans
  D DOL^ABSPOSJ2
@@ -288,13 +292,6 @@ POST ;EP - This will be the entry point for the post init in patch
  D ^ABSPOSSC       ;create Cache entry in dial out (from Patch 2)
  D RESTORE^ABSPOSJ2
  D UPSETUP         ;log that the conversion is complete
- Q
-RST320 ; this will restore the 320 value onto the 320 node, piece 20
- N FDA,MSG,VALUE
- S VALUE=$P($G(^ABSPOSXX(RTN,CLMIEN,320)),U)
- Q:VALUE=""
- S FDA(9002313.02,CLMIEN_",",320)=VALUE
- D FILE^DIE(,"FDA","MSG")
  Q
 MOVFLD(FLDNUM,VALUE) ;Adds the field back to it's new location
  N FDA,MSG

@@ -1,8 +1,10 @@
 BMCCLO ; IHS/PHXAO/TMJ - CLOSE OUT A REFERRAL ;     [ 09/27/2006  1:32 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**1,2**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**1,2,8,9**;JAN 09, 2006;Build 51
  ;
  ; This option allows the RCIS manager to select and close out
  ; referrals.
+ ;BMC*4.0*8;IHS/OIT/FCJ; ADDED SNOMED PROMPT AND TEST FOR TOC PENDING
+ ;
  ;
 START ;
  S BMCCLOSE=1
@@ -14,6 +16,7 @@ MAIN ;
  S BMCQ=0
  D REFERRAL ;             get referral record to close out
  Q:BMCQ
+ D GETSNO^BMCADD3         ;bmc*4.0*8 Set snomed code
  D FINAL ;                get final values
  D STATUS ;               get final status
  Q:BMCQ
@@ -24,13 +27,21 @@ MAIN ;
  Q
  ;
 REFERRAL ; GET REFERRAL TO CLOSE
- S BMCQ=1
+ ;S BMCQ=1  ;BMC*4.0*8
  W !
  ;S DIC="^BMCREF(",DIC(0)="AEMQ",DIC("S")="I $$FILTER^BMCFLTR(2,BMCCURFY,0)",DIC("A")="Select RCIS REFERRAL by Patient or by Referral Date or #: "
  S DIC="^BMCREF(",DIC(0)="AEMQ",DIC("S")="I $$FILTER^BMCFLTR(2,BMCCURFY,2)",DIC("A")="Select RCIS REFERRAL by Patient or by Referral Date or #: "
  D DIC^BMCFMC
- Q:Y<1
+ ;Q:Y<1   ;BMC*4.0*8
+ I Y<1 S BMCQ=1 Q  ;BMC*4.0*8
  S BMCRIEN=+Y
+ ;BMC*4.0*8 NEW TEST FOR TOC
+ I $P($G(^BMCREF(BMCRIEN,13)),U,3),$P(^BMCREF(BMCRIEN,0),U,15)="A1",$P(^BMCREF(BMCRIEN,13),U,4)="P" D  Q:BMCQ
+ .W !,"The Transfer of Care Document has not been printed, faxed or transmitted."
+ .W !,"Please complete this before closing the Referral.",!
+ .S DIR(0)="YO",DIR("A")="Do you want to quit the close process",DIR("B")="Y" K DA D ^DIR K DIR
+ .S:($D(DIRUT))!(Y) BMCQ=1
+ ;BMC*4.0*8 END OF CHANGES
  S BMCQ=0
  Q
  ;
@@ -40,6 +51,7 @@ FINAL ; GET FINAL VALUES
  Q:'Y
  S (BMCDXT,BMCPXT)="F"
  S BMCMODE="M"   ;BMC*4.0*1 IHS/OIT/FCJ 1.19.06
+ S BMCDOS=$$AVDOS^BMCRLU(BMCRIEN,"N") ;BMC*4.0*9
  F  D TYPE^BMCMOD Q:BMCQ  ;      modify referral
  S BMCQ=0
  Q
@@ -85,6 +97,13 @@ VERIFY3 ;
  I BMCRIO="I" S X=1110 D VERIFYRQ
  S:$E(DR)=";" $E(DR)=""
  I DR="" S BMCLQ=1 K DR Q
+SNOCLS ;EP FR BMCCHS;BMC*4.0*8 7.22.13 IHS.OIT.FCJ; ADD SNOMED CODE WHEN CLOSED-COMPLETED AND ACTUAL DOS
+ Q:$D(^BMCREF(BMCRIEN,23,"B",371531000))
+ S DIC="^BMCREF(",X=371531000
+ S DIADD=1,DIC(0)="L",LAYGO=90001 S:'$D(^BMCREF(BMCRIEN,23)) DIC("P")=90001.23
+ S DIC=DIC_BMCRIEN_",23,",DA(1)=BMCRIEN
+ D ^DIC
+ I +Y<0 W !,"The closure snomed clinical term was not added to the referral."
  Q
  ;
 VERIFYRQ ; CHK REQUIRED FIELDS

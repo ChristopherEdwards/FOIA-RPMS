@@ -1,5 +1,5 @@
-LRPXSXRA ;VA/SLC/PKR - Build indexes for Lab Anatomic Path. ;10/9/03  14:24
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+LRPXSXRA ;VA/SLC/PKR - Build indexes for Lab Anatomic Path. ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1030,1031,1034**;NOV 01, 1997;Build 88
  ;
  ;;VA LR Patch(s): 295
  ;

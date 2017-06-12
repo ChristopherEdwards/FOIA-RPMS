@@ -1,5 +1,5 @@
 ABSPOSUE ; IHS/FCS/DRS - impossible errors ;      
- ;;1.0;PHARMACY POINT OF SALE;**17**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**17**;JUN 21, 2001;Build 15
  Q
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT - 04/10/06 - Patch 17

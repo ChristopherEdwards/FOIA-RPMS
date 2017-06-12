@@ -1,5 +1,5 @@
-BTIULO4 ; IHS/ITSC/LJF - MORE VISIT OBJECTS FOR EHR ;03-Oct-2012 14:38;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010**;NOV 04, 2004;Build 24
+BTIULO4 ; IHS/ITSC/LJF - MORE VISIT OBJECTS FOR EHR ;30-Nov-2015 07:22;du
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1002,1004,1005,1006,1010,1012,1013,1015**;NOV 04, 2004;Build 3
  ;IHS/ITSC/LJF 02/25/2005 PATCH 1002 added code for VITALS FOR VISIT CONTEXT object
  ;Added EHR 1.1 calls for visit selection
  ;Patch 6 added text for visit not selected
@@ -104,16 +104,20 @@ VMSRD(TARGET) ;EP; returns msr for current vuecentric visit context in a single 
  Q "~@"_$NA(@TARGET)
  ;
 GETMSRD(RETURN,VISIT) ; loop through visit measurements and get results
- NEW MIEN,CNT,QUALIF
+ NEW MIEN,CNT,QUALIF,Y
  K RETURN
  S MIEN=0 F  S MIEN=$O(^AUPNVMSR("AD",VISIT,MIEN)) Q:'MIEN  D
  . K TIU D ENP^XBDIQ1(9000010.01,MIEN,".01;.04;2;1201","TIU(","I")
  . Q:TIU(2,"I")=1     ;SKIP ENTERED IN ERROR VITALS
- . S QUALIF=$$QUAL^BTIULO7(MIEN)
+ . S QUALIF=$$QUAL^BTIULO7A(MIEN)
  . S CNT=$G(CNT)+1
  . I TIU(.01)="WT" S TIU(.04)=$J(TIU(.04),5,2)_" ("_$J((TIU(.04)*.454),5,2)_" kg)"
  . I ((TIU(.01)="HT")!(TIU(.01)="HC")!(TIU(.01)="WC")!(TIU(.01)="AG")) S TIU(.04)=$J(TIU(.04),5,2)_" ("_$J((TIU(.04)*2.54),5,2)_" cm)"
  . I TIU(.01)="TMP" S TIU(.04)=TIU(.04)_" ("_($J((10*((TIU(.04)-32)/1.8)),5,2)/10)_" C)"
+ . I TIU(.01)="BMI" D
+ . .S Y=$J(TIU(.04),5,2)
+ . .I $$PREG^BTIUPCC6(DFN,VST)=1 S Y=Y_"*"
+ . .S TIU(.04)=Y
  . I QUALIF="" S RETURN(TIU(1201),TIU(.01))=$$NAME(TIU(.01,"I"))_": "_TIU(.04)_$$LSTDATE^BTIUPCC1(VISIT,TIU(1201,"I"),1)
  . I QUALIF'="" S RETURN(TIU(1201),TIU(.01))=$$NAME(TIU(.01,"I"))_": "_TIU(.04)_$$LSTDATE^BTIUPCC1(VISIT,TIU(1201,"I"),1)_" Qualifiers: "_QUALIF
  Q
@@ -147,12 +151,15 @@ GETMSR(BTRRET,BTRIN) ; Returns common measurements for visit context
  . S TYP=$P(X,U)
  . S TYPNM=$P($G(^AUTTMSR(TYP,0)),U) Q:TYPNM=""
  . S:'DAT DAT=+$G(^AUPNVSIT(VIEN,0))
- . S QUALIF=$$QUAL^BTIULO7(VMIEN)
+ . S QUALIF=$$QUAL^BTIULO7A(VMIEN)
  . S C=C+1
  . I FORMAT=1 D  Q
  .. S MSRSTR=TYPNM_":"_$P(X,U,4)
  .. I TYPNM="WT" S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_$J(($P(X,U,4)*.454),5,2)_" kg)"
  .. I ((TYPNM="HT")!(TYPNM="WC")!(TYPNM="HC")!(TYPNM="AG")) S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_$J(($P(X,U,4)*2.54),5,2)_" cm)"
+ .. I TYPNM="BMI" D
+ ...I $$PREG^BTIUPCC6(DFN,VIEN)=1 S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_"*"
+ ...E  S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)
  .. I TYPNM="TMP" S MSRSTR=TYPNM_":"_$J($P(MSRSTR,":",2),5,2)_" ("_(((10*(($P(X,U,4)-32)/1.8))\1)/10)_" C)"
  .. I QUALIF="" S BTRRET=$S($G(BTRRET)="":"",1:BTRRET_", ")_MSRSTR
  .. I QUALIF'="" S BTRRET=$S($G(BTRRET)="":"",1:BTRRET_", ")_MSRSTR_"["_QUALIF_"]"

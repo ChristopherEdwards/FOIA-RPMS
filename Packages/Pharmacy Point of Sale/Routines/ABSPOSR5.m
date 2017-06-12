@@ -1,5 +1,5 @@
 ABSPOSR5  ;IHS/OIT/SCR - REJECTION REPORT BY REJECTION REASON
- ;;1.0;PHARMACY POINT OF SALE;**29,30,34,35,39,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**29,30,34,35,39,40**;JUN 21, 2001;Build 15
  ; DISPLAYS POS CLAIMS BY REJECT CODE
  ; PATCH 40 NOTES: This routine was removed from POS MENUs and replaced with routine ABSPOSRY which does not use
  ;  ABSP REPORT MASTER file or the ^ABSPT("NON-FILEMAN" cross-reference. It is staying with the build for comparison

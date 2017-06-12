@@ -1,0 +1,52 @@
+BQICMPAT ;GDIT/HS/ALA-Care Mgmt Recalc ; 03 Oct 2014  2:45 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
+ ;
+ ;
+EN(DFN,CRCE) ;EP
+ NEW UID,SOURCE,SRIEN,SRCIEN
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S CRCE=$G(CRCE,"")
+ I CRCE'="" D
+ . S SOURCE=CRCE
+ . D SRC(SOURCE) I SRIEN="" Q
+ . D CALC
+ I CRCE="" S SRIEN="" F  S SRIEN=$O(^BQI(90506.5,"AD",1,SRIEN)) Q:SRIEN=""  D CALC
+ Q
+ ;
+SRC(SOURCE) ; EP
+ S SRIEN=$O(^BQI(90506.5,"B",SOURCE,"")) I SRIEN="" Q
+ S SRC=$P(^BQI(90506.5,SRIEN,0),U,2)
+ Q
+ ;
+CALC ; EP
+ D CLNUP
+ I $P($G(^BQI(90506.5,SRIEN,0)),"^",10)=1 Q
+ S SOURCE=$P($G(^BQI(90506.5,SRIEN,0)),"^",1)
+ S SRC=$P($G(^BQI(90506.5,SRIEN,0)),U,2)
+ ; If patient is deceased, don't calculate
+ I $P($G(^DPT(DFN,.35)),U,1)'="" Q
+ ; If patient has no active HRNs, quit
+ I '$$HRN^BQIUL1(DFN) Q
+ ; If patient has no visit in past 3 years
+ I '$$VTHR^BQIUL1(DFN) Q
+ I SOURCE="DM Audit" D
+ . S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J),BDMJOB=UID,BDMBTH=$H
+ . S CYR=$P($G(^BQI(90508,1,"DM")),U,1),BDMDMRG=$P($G(^BQI(90508,1,"DM")),"^",2)
+ . S CIEN=$O(^BQI(90508,1,21,"B",CYR,"")) I CIEN="" Q
+ . S PGTHR=$P(^BQI(90508,1,21,CIEN,0),U,2),PGRF=$P(^(0),U,4)
+ . K ^XTMP(PGRF,BDMJOB)
+ . S BDMRBD=DT,BDMADAT=DT,BDMTYPE="P",BDMRED=$$FMADD^XLFDT(BDMADAT,-365)
+ . S BDMBDAT=$$FMADD^XLFDT(BDMADAT,-365),BDMPD=DFN
+ . D @("GATHER^"_PGTHR)
+ D PAT^BQIRGASP(DFN,SRC)
+ Q
+ ;
+CLNUP ;EP - Clean up record
+ I SRIEN="" Q
+ S SRCIEN=$O(^BQIPAT(DFN,60,"B",SRIEN,""))
+ I SRCIEN'="" D
+ . NEW DA,DIK
+ . S DA(1)=DFN,DA=SRCIEN
+ . S DIK="^BQIPAT("_DA(1)_",60,"
+ . D ^DIK
+ Q

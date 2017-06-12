@@ -1,5 +1,5 @@
 BQITRMT ;PRXM/HC/ALA - Find Treatment Prompts ; 24 Apr 2007  12:29 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  Q
  ;
 EN ;
@@ -29,7 +29,7 @@ POP ; Find all Treatment Prompts for CVD tagged patients
  .. ; If no active HRNS, quit
  .. I '$$HRN^BQIUL1(BQIDFN) Q
  .. ; If no visit in last 3 years, quit
- .. I '$$VTHR^BQIUL1(BQIDFN) Q
+ .. ;I '$$VTHR^BQIUL1(BQIDFN) Q
  .. ; Set the date/time last updated
  .. I $G(^BQIPAT(BQIDFN,0))'="" S $P(^BQIPAT(BQIDFN,0),U,7)=$$NOW^XLFDT()
  .. ;
@@ -60,7 +60,7 @@ PAT(BQIDFN) ;EP - Find treatment prompts for one patient
  ; If no active HRNS, quit
  I '$$HRN^BQIUL1(BQIDFN) Q
  ; If no visit in last 3 years, quit
- I '$$VTHR^BQIUL1(BQIDFN) Q
+ ;I '$$VTHR^BQIUL1(BQIDFN) Q
  ; Set the date/time last updated
  I $G(^BQIPAT(BQIDFN,0))'="" S $P(^BQIPAT(BQIDFN,0),U,7)=$$NOW^XLFDT()
  ;
@@ -92,7 +92,7 @@ PAT(BQIDFN) ;EP - Find treatment prompts for one patient
  Q
  ;
 FILE ;EP - File a record
- NEW DA,DIC
+ NEW DA,DIC,DINUM,X,DLAYGO,Y
  S DA(1)=BQIDFN,(DINUM,X)=BQTIEN,DIC="^BQIPAT("_DA(1)_",50,",DIC(0)="L"
  S DLAYGO=90507.55,DIC("P")=DLAYGO
  I $G(^BQIPAT(BQIDFN,50,0))="" S ^BQIPAT(BQIDFN,50,0)="^90507.55P^^"
@@ -108,6 +108,7 @@ FILE ;EP - File a record
  ;
 DEL(BQDFN) ;EP - Delete treatment prompts
  NEW BQIUPD
+ I $P($G(^BQIPAT(BQDFN,0)),"^",1)="" S $P(^BQIPAT(BQDFN,0),"^",1)=BQDFN,^BQIPAT("B",BQDFN,BQDFN)=""
  S BQIUPD(90507.5,BQDFN_",",.07)="@"
  D FILE^DIE("","BQIUPD","ERROR")
  NEW DIK,DA

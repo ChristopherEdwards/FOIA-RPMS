@@ -1,5 +1,5 @@
-APSPFNC5 ;IHS/MSC/PLS - Prescription Creation Support ;28-Oct-2013 10:10;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1016**;Sep 23, 2004;Build 74
+APSPFNC5 ;IHS/MSC/PLS - Prescription Creation Support ;25-Feb-2014 16:15;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1016,1018**;Sep 23, 2004;Build 21
  ;=================================================================
  ;IHS/MSC/MGH Added seach by type of pharmacy
  ;Return list of pharmacies
@@ -110,6 +110,7 @@ STATES ;;List of states
  ;;DE^DELAWARE
  ;;FL^FLORIDA
  ;;GA^GEORGIA
+ ;;GU^GUAM
  ;;HI^HAWAII
  ;;ID^IDAHO
  ;;IL^ILLINOIS
@@ -119,6 +120,7 @@ STATES ;;List of states
  ;;KY^KENTUCKY
  ;;LA^LOUISIANA
  ;;ME^MAINE
+ ;;MP^MARIANAS PACIFIC
  ;;MD^MARYLAND
  ;;MA^MASSACHUSETTS
  ;;MI^MICHIGAN

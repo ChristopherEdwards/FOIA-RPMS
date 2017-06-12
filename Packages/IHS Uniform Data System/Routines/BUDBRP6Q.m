@@ -1,5 +1,5 @@
 BUDBRP6Q ; IHS/CMI/LAB - HIV/DEP ;
- ;;9.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 02, 2015;Build 42
+ ;;10.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 04, 2016;Build 50
  ;
 L ;EP  - NEW HIV
  NEW BUDGOT,BUDDOA
@@ -78,10 +78,10 @@ M ;EP
  ;DO THEY HAVE A SCREEN?
  ;CHECK exam, phq2, phq9, phqt for a positive and if no positive get the first negative
  S (BUDSCR,BUDPLAN)=""
- S BUDSCR=$$DEPRES(DFN,BUDP12BD,BUDED)
+ S BUDSCR=$$DEPRES(DFN,BUDBD,BUDED)
  I BUDSCR]"" G R
  ;now check for any without a result and assume negative (per Duane)
- S BUDSCR=$$DEPNORES(DFN,BUDP12BD,BUDED)
+ S BUDSCR=$$DEPNORES(DFN,BUDBD,BUDED)
 R ;
  S BUDN=0
  I BUDSCR="" G M1

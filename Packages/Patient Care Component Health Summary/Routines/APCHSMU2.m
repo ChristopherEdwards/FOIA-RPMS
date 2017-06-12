@@ -1,5 +1,5 @@
 APCHSMU2 ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
  ;cmi/anch/maw 8/28/2007 code set versioning in CPT
@@ -41,7 +41,7 @@ CPT(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^ATXAPI($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -72,8 +72,8 @@ LASTDX(P,T,BDATE,EDATE) ;EP
  ..S APCHDX3=$P($G(^AUPNVPOV(APCHDX2,0)),U)
  ..Q:APCHDX3=""  ;bad xref
  ..Q:'$D(^ICD9(APCHDX3))
- ..Q:'$$ICD^ATXCHK(APCHDX3,APCHTX5,9)
- ..S APCHDX4=1_"^"_$P($$ICDDX^ICDCODE(APCHDX3,,,1),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
+ ..Q:'$$ICD^ATXAPI(APCHDX3,APCHTX5,9)
+ ..S APCHDX4=1_"^"_$P($$ICDDX^ICDEX(APCHDX3,,,"I"),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
  ..Q
  .Q
  Q APCHDX4
@@ -84,7 +84,7 @@ LASTDXI(P,T,BDATE,EDATE) ;EP
  S (APCHDX1,APCHDX2,APCHDX3,APCHDX4,APCHTX5)=""
  I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
  I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
- S APCHTX5=+$$CODEN^ICDCODE(T,80)
+ S APCHTX5=+$$CODEABA^ICDEX(T,80)
  I APCHTX5=""!(APCHTX5=-1) Q ""  ;not a CODE
  S APCHDX4=""  ;return value
  S APCHDXBD=9999999-BDATE,APCHDXED=9999999-EDATE  ;get inverse date and begin at edate-1 and end when greater than begin date
@@ -93,7 +93,7 @@ LASTDXI(P,T,BDATE,EDATE) ;EP
  ..S APCHDX3=$P($G(^AUPNVPOV(APCHDX2,0)),U)
  ..Q:APCHDX3=""  ;bad xref
  ..Q:APCHDX3'=APCHTX5
- ..S APCHDX4=1_"^"_$P($$ICDDX^ICDCODE(APCHDX3,,,1),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
+ ..S APCHDX4=1_"^"_$P($$ICDDX^ICDEX(APCHDX3,,,"I"),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
  ..Q
  .Q
  Q APCHDX4
@@ -112,8 +112,8 @@ LASTPRC(P,T,BDATE,EDATE) ;EP
  .S APCHDX2=0 F  S APCHDX2=$O(^AUPNVPRC("AA",P,APCHDX1,APCHDX2)) Q:APCHDX2'=+APCHDX2!(APCHDX4]"")  D
  ..S APCHDX3=$P($G(^AUPNVPRC(APCHDX2,0)),U)
  ..Q:APCHDX3=""  ;bad xref
- ..Q:'$$ICD^ATXCHK(APCHDX3,APCHTX5,0)
- ..S APCHDX4=1_"^"_$P($$ICDOP^ICDCODE(APCHDX3),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
+ ..Q:'$$ICD^ATXAPI(APCHDX3,APCHTX5,0)
+ ..S APCHDX4=1_"^"_$P($$ICDOP^ICDEX(APCHDX3,,,"I"),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
  ..Q
  .Q
  Q APCHDX4
@@ -125,7 +125,7 @@ LASTPRCI(P,T,BDATE,EDATE) ;EP
  S (APCHDX1,APCHDX2,APCHDX3,APCHDX4,APCHTX5)=""
  I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)  ;if no date then set to DOB
  I $G(EDATE)="" S EDATE=DT  ;if no end date then set to today
- S APCHTX5=+$$CODEN^ICDCODE(T,80.1)
+ S APCHTX5=+$$CODEABA^ICDEX(T,80.1)
  I APCHTX5=""!(APCHTX5=-1) Q ""  ;not a valid PROC
  S APCHDX4=""  ;return value
  S APCHDXBD=9999999-BDATE,APCHDXED=9999999-EDATE  ;get inverse date and begin at edate-1 and end when greater than begin date
@@ -134,7 +134,7 @@ LASTPRCI(P,T,BDATE,EDATE) ;EP
  ..S APCHDX3=$P($G(^AUPNVPRC(APCHDX2,0)),U)
  ..Q:APCHDX3=""  ;bad xref
  ..Q:APCHTX5'=APCHDX3
- ..S APCHDX4=1_"^"_$P($$ICDOP^ICDCODE(APCHDX3),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
+ ..S APCHDX4=1_"^"_$P($$ICDOP^ICDEX(APCHDX3,,,"I"),U,2)_"^"_(9999999-APCHDX1)_"^"_APCHDX3_"^"_APCHDX2
  ..Q
  .Q
  Q APCHDX4
@@ -179,7 +179,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U)]"")  D
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U)]"")  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^ATXAPI(I,T,1)
  ..S G=$$TYPEREF^APCHSMU(Y)_$E($$VAL^XBDIQ1(81,I,$$FFD^APCHSMU(81)),1,(44-$L($$TYPEREF^APCHSMU(Y))))_"^on "_$$FMTE^XLFDT(D)_"^"_D
  .Q
  Q G
@@ -193,7 +193,7 @@ RADREF(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S I=0 F  S I=$O(^AUPNPREF("AA",P,71,I)) Q:I=""!($P(G,U)]"")  D
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,71,I,X)) Q:X'=+X!($P(G,U)]"")  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,71,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
  ..S C=$P($G(^RAMIS(71,I,0)),U,9) Q:C=""
- ..Q:'$$ICD^ATXCHK(C,T,1)
+ ..Q:'$$ICD^ATXAPI(C,T,1)
  ..S N=$P(^AUPNPREF(Y,0),U,7)
  ..S G=$$TYPEREF^APCHSMU(Y)_$E($$VAL^XBDIQ1(81,C,$$FFD^APCHSMU(81)),1,(44-$L($$TYPEREF^APCHSMU(Y))))_"^on "_$$FMTE^XLFDT(D)_"^"_D
  .Q
@@ -202,3 +202,33 @@ RADREF(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
 LASTTD(P) ;EP
  I '$G(P) Q ""
  Q $$LASTTD^APCLAPI4(P)
+PRCREFT(P,BDATE,EDATE,T) ;EP - return ien of proc
+ I '$G(P) Q ""
+ I '$G(T) Q ""
+ I $G(EDATE)="" Q ""
+ I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ NEW G,X,Y,Z,I
+ S G=""
+ S I=0 F  S I=$O(^AUPNPREF("AA",P,80.1,I)) Q:I=""!($P(G,U))  D
+ .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,80.1,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,80.1,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
+ ..Q:'$$ICD^ATXAPI(I,T,0)
+ ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)_"^"_$P($$ICDOP^ICDEX(I,"","","I"),U,2)
+ .Q
+ Q G
+MAMREF ;EP
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",76092,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",76090,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",76091,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",77055,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",77056,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",77057,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",77058,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D",77059,0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D","G0202",0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D","G0204",0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ S V=$$REF^APCHSMU(APCHSPAT,71,$O(^RAMIS(71,"D","G0206",0)),APCHLAST) I V]"" S X=$P(V,U) D S(X) S X=$P(V,U,2) I X]"" D S(X)
+ Q
+S(X) ;
+ NEW %,C S (C,%)=0 F  S %=$O(APCHSTEX(%)) Q:%'=+%  S C=C+1
+ S APCHSTEX(C+1)=X
+ Q

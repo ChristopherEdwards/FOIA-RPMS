@@ -1,10 +1,11 @@
 BIDX ;IHS/CMI/MWR - RISK FOR FLU & PNEUMO, CHECK FOR DIAGNOSES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CHECK FOR DIAGNOSES IN A TAXONOMY RANGE, WITHIN A GIVE DATE RANGE.
  ;;  FROM LORI BUTCHER, 9-18-05
  ;;  PATCH 5: New code to check for Smoking Health Factors.   HFSMKR+23
  ;;  PATCH 9: Changes to include Hep B Risk.  RISK+9, RISK+41
+ ;;  PATCH 13: Changes to check for Flu High Risk.   RISK+25, HASDX+38
  ;
  ;
  ;----------
@@ -15,6 +16,7 @@ RISK(BIDFN,BIFDT,BIRSK,BIRISKI,BIRISKP,BIRISKH) ;EP Return High Risk Influenza &
  ;     2 - BIFDT   (opt) Forecast Date (date used for forecast).
  ;     3 - BIRSK   (opt) Risk Parameter: 0=none, 1=Hep B only, 2=Pneumo only,
  ;                       12=Hep B & Pneumo, 23=Pneumo only + Smoking, 123=all.
+ ;                       4=Flu only.
  ;     4 - BIRISKI (ret) 1=Patient has Risk of Influenza; otherwise 0.
  ;     5 - BIRISKP (ret) 1=Patient has Risk of Pneumo; otherwise 0.
  ;     6 - BIRISKH (ret) 1=Patient has Risk of HEP B; otherwise 0.
@@ -31,13 +33,21 @@ RISK(BIDFN,BIFDT,BIRSK,BIRISKI,BIRISKP,BIRISKH) ;EP Return High Risk Influenza &
  ;---> Patient age in years.
  N BIAGEY S BIAGEY=$$AGE^BIUTL1(BIDFN,1,BIFDT)
  ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Code to look for High Risk Flu
+ I BIRSK=4 D  Q
+ .Q:(BIAGEY<18)  Q:(BIAGEY>50)
+ .S Y=+$$HASDX(BIDFN,"BI HIGH RISK FLU",2,BIBEGDT,BIFDT)
+ .S:(Y>0) BIRISKI=1
+ ;**********
+ ;
  ;---> No High Risk computation under 19 years.
  Q:(BIAGEY<19)
  N Y
  ;
  ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ;---> Comment out Flu code since all ages are forecast for Flu.
- ;
  ;---> Check Influenza Risk (2 Flu Dx's over 3-year range).
  ;---> Flu now forecast for all.
  ;D:('BIRSK!(BIRSK=1))
@@ -102,23 +112,36 @@ HASDX(BIDFN,BITAX,BINUM,BIBD,BIED) ;EP
  ;
  I $G(BIBD)="" S BIBD=$$DOB^AUPNPAT(BIDFN)
  I $G(BIED)="" S BIED=DT
- NEW BITAXI,BIIBD,BIIED,BISD,X,Y,I,P,R,C
+ NEW BITAXI,BIIBD,BIIED,BISD,X,Y,I,P,R,C,BIREF
  S BITAXI=$O(^ATXAX("B",BITAX,0))
  I 'BITAXI Q "-1^Invalid Taxonomy name"
  S R=0  ;return value
  S BIIBD=9999999-BIBD  ;inverse of beginning date
  S BIIED=9999999-BIED  ;inverse of ending date
  S BISD=BIIED-1  ;start one day later for $O
+ ;ihs/cmi/lab - added lines below for ICD10
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Code to prevent error out if atx_0510.11k missing.
+ ;I $D(^ICDS(0)) D
+ I $D(^ICDS(0)),$T(^ATXAPI)]"" D
+ .;**********
+ .K ^TMP($J,"BITAX")
+ .S BIREF=$NA(^TMP($J,"BITAX"))
+ .D BLDTAX^ATXAPI(BITAX,BIREF,BITAXI)
  S C=0  ;counter for diagnoses
  S X=0 F  S X=$O(^AUPNVPOV("AA",BIDFN,X)) Q:X=""!(X>BIIBD)!(C=BINUM)  D
  .S Y=0 F  S Y=$O(^AUPNVPOV("AA",BIDFN,X,Y)) Q:Y'=+Y!(C=BINUM)  D
  ..Q:'$D(^AUPNVPOV(Y,0))  ;bad xref
  ..S P=$P($G(^AUPNVPOV(Y,0)),"^")
  ..Q:P=""  ;bad entry
- ..Q:'$$ICD^ATXCHK(P,BITAXI,9)  ;this diagnosis not in taxonomy
+ ..;added lines below for ICD10
+ ..I $D(^TMP($J,"BITAX")) Q:'$D(^TMP($J,"BITAX",P))
+ ..I '$D(^TMP($J,"BITAX")) Q:'$$ICD^ATXCHK(P,BITAXI,9)  ;this diagnosis not in taxonomy
  ..S C=C+1  ;update counter as diagnosis found
  ..Q
  .Q
+ K ^TMP($J,"BITAX")
  I C<BINUM Q 0  ;patient did not meet the required # of diagnoses
  Q 1
  ;
@@ -168,27 +191,52 @@ V2DM(P,BDATE,EDATE) ;EP - are there 2 visits with DM?
  I '$D(^AUPNVSIT("AC",P)) Q ""  ;patient has no visits
  I '$G(BDATE) S BDATE=$$DOB^AUPNPAT(P)
  I '$G(EDATE) S EDATE=DT
- NEW A,T,X,G,D,V
- K ^TMP($J,"A")
- S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
- I '$D(^TMP($J,"A",1)) Q ""  ;no visits returned
+ NEW T,BIREF,PDA,PIEN,CDX,VST,VDT,IBDATE,IEDATE,V,G  ;IHS/CMI/LAB/maw - modified and added lines to speed up the process
+ ;K ^TMP($J,"A")
+ ;S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(B,A)
+ ;I '$D(^TMP($J,"A",1)) Q ""  ;no visits returned
  S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
- S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G>2)  S V=$P(^TMP($J,"A",X),U,5) D
- .Q:'$D(^AUPNVSIT(V,0))
- .Q:'$P(^AUPNVSIT(V,0),U,9)  ;0 DEPENDENT ENTRIES
- .Q:$P(^AUPNVSIT(V,0),U,11)  ;DELETED VISIT
- .Q:"SAHOR"'[$P(^AUPNVSIT(V,0),U,7)  ;ELIMINATE TELEPHONE CALLS, CHART REVIEWS, ETC
- .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,T,9) S D=1
- .Q:'D
- .S G=G+1
- .Q
+ ;IHS/CMI/LAB - added lines below for icd10
+ ;MWRZZZ  COMMENT OUT NEXT LINE, ADD ONE AFTER.
+ ;I $D(^ICDS(0)) D
+ I $D(^ICDS(0)),$T(^ATXAPI)]""
+ .K ^TMP($J,"BITAX")  ;IHS/CMI/LAB - clean out old nodes just in case
+ .S BIREF=$NA(^TMP($J,"BITAX"))  ;IHS/CMI/LAB
+ .D BLDTAX^ATXAPI("SURVEILLANCE DIABETES",BIREF,T)
+ ;S (X,G)=0 F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G>1)  S V=$P(^TMP($J,"A",X),U,5) D
+ ;.Q:'$D(^AUPNVSIT(V,0))
+ ;.Q:'$P(^AUPNVSIT(V,0),U,9)  ;0 DEPENDENT ENTRIES
+ ;.Q:$P(^AUPNVSIT(V,0),U,11)  ;DELETED VISIT
+ ;.Q:"SAHOR"'[$P(^AUPNVSIT(V,0),U,7)  ;ELIMINATE TELEPHONE CALLS, CHART REVIEWS, ETC
+ ;.S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) D
+ ;..S %=$P(^AUPNVPOV(Y,0),U)
+ ;S (PDA,G)=0 F  S PDA=$O(^AUPNVPOV("AC",P,PDA)) Q:'PDA!(G>1)  D
+ ;. S CDX=$P($G(^AUPNVPOV(PDA,0)),U)
+ S IBDATE=9999999-BDATE
+ S IEDATE=9999999-EDATE
+ S G=0
+ K V
+ S PDA=IEDATE-1 F  S PDA=$O(^AUPNVPOV("AA",P,PDA)) Q:'PDA!(PDA>IBDATE)!(G>1)  D
+ . S PIEN=0 F  S PIEN=$O(^AUPNVPOV("AA",P,PDA,PIEN)) Q:'PIEN  D
+ .. S CDX=$P($G(^AUPNVPOV(PIEN,0)),U)
+ .. Q:'CDX
+ .. I $D(^TMP($J,"BITAX")) Q:'$D(^TMP($J,"BITAX",CDX))
+ .. I '$D(^TMP($J,"BITAX")) Q:'$$ICD^ATXCHK(CDX,T,9)
+ .. S VST=$P($G(^AUPNVPOV(PIEN,0)),U,3)
+ .. Q:'VST  ;HAPPENS
+ .. Q:'$D(^AUPNVSIT(VST,0))
+ .. Q:"SAHOR"'[$P(^AUPNVSIT(VST,0),U,7)  ;ELIMINATE TELEPHONE CALLS, CHART REVIEWS, ETC
+ .. I '$D(V(VST)) S V(VST)="",G=G+1
+ K ^TMP($J,"BITAX")
  ;Q 1  ;for testing a positive hit on Diabetes.
  Q $S(G<2:"",1:1)
  ;**********
  ;
  ;----------
 TEST ;
- S X=$$HASDX(40503,"SURVEILLANCE DIABETES",1,3050914,3050914)
- W !,X
- Q
+ ;D ^%T
+ ;S P=0 F  S P=$O(^AUPNPAT(P)) Q:P'=+P  S X=$$HASDX(P,"BI HIGH RISK PNEUMO",2,3020101,DT) W ".",X
+ ;S P=0 F  S P=$O(^AUPNPAT(P)) Q:P'=+P  S X=$$V2DM(P,,) I X S ^LORIHAS(P)="" W ".",P
+ ;D ^%T
+ ;Q

@@ -1,5 +1,5 @@
 APCDEIN ; IHS/CMI/LAB - INITIALIZE VARS ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11,15,16**;MAY 14, 2009;Build 9
  ;
  ;
 EN ;PEP - set up PCC Data Entry environment vars
@@ -53,10 +53,11 @@ EHRESP ;EP
  W !! S DIE="^APCDSITE(",DA=APCDSITE,DR=".28Include all visits in the coding queue list?" D ^DIE K DIE
  W !! S DIE="^APCDSITE(",DA=APCDSITE,DR=".29Default Response for 'Is Coding Complete?' in Data Entry" D ^DIE K DIE
  W !! S DIE="^APCDSITE(",DA=APCDSITE,DR=".32Require Chart Deficiency Reason on Visits marked as Incomplete?" D ^DIE K DIE
+ W !! S DIE="^APCDSITE(",DA=APCDSITE,DR=".38Number of days to chart w/ deficiencies is delinquent" D ^DIE K DIE
  D ^XBFMK K APCDSITE
  Q
 DISPSC ;
-  W !!,"Service Category exclusions:  If you would like to exclude"
+ W !!,"Service Category exclusions:  If you would like to exclude"
  W !,"visits with a particular service category from the list of"
  W !,"visits displayed in the coding queue you must enter those"
  W !,"service categories to the list below.  For example, if you"
@@ -64,7 +65,7 @@ DISPSC ;
  W !,"you should add 'I' to the list."
  W !,"Please note:  If you leave the list blank (empty) then all"
  W !,"direct (non-CHS) visits will display in the coding queue."
- W !,"Event visits never display in the coding queue.",!!
+ W !,"Historical EVENT visits never display in the coding queue.",!!
  W !,"Your site is currently set up to exclude visits with the"
  W !,"following service categories from the coding queue:"
  I '$O(^APCDSITE(APCDSITE,13,0)) W !!,"None selected, All visit service categories will be included",!,"in the coding queue." Q
@@ -81,7 +82,7 @@ EDIT ;
  G EDIT
 ADD ;add to list of service categories
  K DIR
- S DIR(0)="S^A:AMBULATORY;H:HOSPITALIZATION;I:IN HOSPITAL;C:CHART REVIEW;T:TELECOMMUNICATIONS;D:DAY SURGERY;O:OBSERVATION;R:NURSING HOME;N:NOT FOUND"
+ S DIR(0)="S^A:AMBULATORY;H:HOSPITALIZATION;I:IN HOSPITAL;C:CHART REVIEW;T:TELECOMMUNICATIONS;D:DAY SURGERY;O:OBSERVATION;R:NURSING HOME;N:NOT FOUND;M:TELEMEDICINE"
  S DIR("A")="Add which one" K DA D ^DIR KILL DIR
  I $D(DIRUT) Q
  I Y="" Q

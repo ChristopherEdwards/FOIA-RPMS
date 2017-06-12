@@ -1,0 +1,90 @@
+ABMUTL8A ; IHS/ASDST/DMJ - 837 UTILITIES ;      
+ ;;2.6;IHS Third Party Billing;**1,4,6,8,9,10,11,13,14**;NOV 12, 2009;Build 238
+ ;
+PXSET(X) ;EP - set px array
+ ;x=bill ien
+ K ABMPX
+ K ABMICD
+ N I,J
+ S ABMCNT=0
+ S I=0
+ F  S I=$O(^ABMDBILL(DUZ(2),X,19,"C",I)) Q:'I  D
+ .S J=0
+ .F  S J=$O(^ABMDBILL(DUZ(2),X,19,"C",I,J)) Q:'J  D
+ ..S ABMCNT=ABMCNT+1
+ ..;start old abm*2.6*14 ICD10 002H
+ ..;S:ABMCNT=1 ABMPX(ABMCNT)="BR"
+ ..;S:ABMCNT'=1 ABMPX(ABMCNT)="BQ"
+ ..;end old start new 002H
+ ..S:ABMCNT=1 ABMPX(ABMCNT)=$S($P($G(^ABMDBILL(DUZ(2),X,19,J,0)),U,6)=1:"BBR",1:"BR")
+ ..S:ABMCNT'=1 ABMPX(ABMCNT)=$S($P($G(^ABMDBILL(DUZ(2),X,19,J,0)),U,6)=1:"BBQ",1:"BQ")
+ ..;end new 002H
+ ..S ABMICD=$P($G(^ABMDBILL(DUZ(2),X,19,J,0)),U)
+ ..S $P(ABMPX(ABMCNT),":",2)=$TR($P($$ICDOP^ABMCVAPI(+ABMICD,ABMP("VDT")),U,2),".")  ;CSV-c
+ ..S $P(ABMPX(ABMCNT),":",3)="D8"
+ ..S $P(ABMPX(ABMCNT),":",4)=$$Y2KD2^ABMDUTL($P(^ABMDBILL(DUZ(2),X,19,J,0),U,3))
+ S I=0
+ ;start old abm*2.6*1 HEAT2836
+ ;F  S I=$O(^ABMDBILL(DUZ(2),X,21,"C",I)) Q:'I  D
+ ;.S J=0
+ ;.F  S J=$O(^ABMDBILL(DUZ(2),X,21,"C",I,J)) Q:'J  D
+ ;..N ABMCODE
+ ;..S ABMCODE=$P($G(^ABMDBILL(DUZ(2),X,21,J,0)),U)
+ ;..S ABMCNT=ABMCNT+1
+ ;..S:ABMCNT=1 ABMPX(ABMCNT)="BP"
+ ;..S:ABMCNT'=1 ABMPX(ABMCNT)="BO"
+ ;..S $P(ABMPX(ABMCNT),":",2)=$P($$CPT^ABMCVAPI(+ABMCODE,ABMP("VDT")),U,2)  ;CSV-c
+ ;..S $P(ABMPX(ABMCNT),":",3)="D8"
+ ;..S $P(ABMPX(ABMCNT),":",4)=$$Y2KD2^ABMDUTL($P(^ABMDBILL(DUZ(2),X,21,J,0),U,5))
+ ;end old HEAT2836
+ Q
+OSSET(X) ;EP - occurrence span set
+ ;x=bill ien
+ K ABMOS
+ S ABMCNT=0
+ N I
+ S I=0
+ F  S I=$O(^ABMDBILL(DUZ(2),X,57,I)) Q:'I  D
+ .S ABMLINE=^ABMDBILL(DUZ(2),X,57,I,0)
+ .S ABMCNT=ABMCNT+1
+ .S ABMOS(ABMCNT)="BI"
+ .S $P(ABMOS(ABMCNT),":",2)=$P($G(^ABMDCODE(+$P(ABMLINE,U),0)),U)
+ .S $P(ABMOS(ABMCNT),":",3)="RD8"
+ .S $P(ABMOS(ABMCNT),":",4)=$$Y2KD2^ABMDUTL($P(ABMLINE,"^",2))_"-"_$$Y2KD2^ABMDUTL($P(ABMLINE,"^",3))
+ Q
+OCSET(X) ;EP - occurrence set
+ ;x=bill ien
+ K ABMOC
+ S ABMCNT=0
+ N I
+ S I=0
+ F  S I=$O(^ABMDBILL(DUZ(2),X,51,I)) Q:'I  D
+ .S ABMLINE=^ABMDBILL(DUZ(2),X,51,I,0)
+ .S ABMCNT=ABMCNT+1
+ .S ABMOC(ABMCNT)="BH"
+ .S $P(ABMOC(ABMCNT),":",2)=$P($G(^ABMDCODE(+$P(ABMLINE,U),0)),U)
+ .S $P(ABMOC(ABMCNT),":",3)="D8"
+ .S $P(ABMOC(ABMCNT),":",4)=$$Y2KD2^ABMDUTL($P(ABMLINE,"^",2))
+ Q
+CDSET(X) ;EP - condition code set
+ ;x=bill ien
+ K ABMCD
+ S ABMCNT=0
+ N I
+ S I=0
+ F  S I=$O(^ABMDBILL(DUZ(2),X,53,I)) Q:'I  D
+ .S ABMLINE=^ABMDBILL(DUZ(2),X,53,I,0)
+ .S ABMCNT=ABMCNT+1
+ .S ABMCD(ABMCNT)="BG"
+ .S $P(ABMCD(ABMCNT),":",2)=$P($G(^ABMDCODE(+ABMLINE,0)),U)
+ Q
+ANES(X) ;EP - anesthesia charges set
+ K ABMANES
+ S ABMCNT=0
+ N I
+ S I=0
+ F  S I=$O(^ABMDBILL(DUZ(2),X,39,I)) Q:'I  D  Q:ABMCNT=2
+ .S ABMCNT=ABMCNT+1
+ .S ABMANES(ABMCNT)=$S(ABMCNT=1:"BP",1:"BO")
+ .S $P(ABMANES(ABMCNT),":",2)=$$GET1^DIQ(81,$P($G(^ABMDBILL(DUZ(2),X,39,I,0)),U),".01")
+ Q

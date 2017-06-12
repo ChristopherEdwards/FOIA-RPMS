@@ -1,8 +1,8 @@
 APCDCAF ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2,7,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,7,8,11,15**;MAY 14, 2009;Build 11
  ;
  ;
-EN ; EP -- main entry point for CHART AUDIT LISTMANAGER DISPLAY
+EN ; EP -- main entry point
  S VALMCC=1
  NEW VALCNT
  D TERM^VALM0
@@ -21,7 +21,7 @@ HDR ;EP -- header code
 INIT ;EP -- init variables/list array
  S VALMSG="Q - Quit/?? for more actions/+ next/- previous"
  D GATHER  ;GATHER UP ALL VISITS FOR DISPLAY
- D RECDISP  ;sort list by desired sort variable and set up listman display
+ D RECDISP
  S VALMCNT=APCDRCNT
  Q
  ;
@@ -37,8 +37,10 @@ EXPND ; -- expand code
  Q
  ;
 SCW(C) ;EP
- I C="" Q 0  ;no service category
- I C="E" Q 0  ;never display events
+ I C="" Q 0
+ I C="E" Q 0
+ I C="D" Q 0  ;NOT USED BY IHS
+ I C="X" Q 0  ;NOT USED BY IHS
  I $D(^APCDSITE(DUZ(2),13,"B",C)) Q 0
  Q 1
  ;
@@ -51,13 +53,14 @@ GATHER ;
  ..S APCDV0=$G(^AUPNVSIT(APCDVIEN,0))
  ..Q:APCDV0=""
  ..Q:$P(APCDV0,U,5)=""
+ ..Q:'$D(^AUPNPAT($P(APCDV0,U,5),0))  ;no patient
+ ..Q:'$D(^DPT($P(APCDV0,U,5),0))  ;no patient
  ..Q:$$DEMO^APCLUTL($P(APCDV0,U,5),APCDDEMO)
  ..Q:$P(APCDV0,U,7)=""
  ..Q:'$$SCW($P(APCDV0,U,7))
  ..Q:'$P(APCDV0,U,9)        ;NO DEP ENTRIES
  ..Q:$P(APCDV0,U,11)        ;DELETED
  ..Q:$P(APCDV0,U,3)="C"     ;CONTRACT
- ..;Q:'$D(^AUPNVPOV("AD",APCDVIEN))  ;no pov  PER CAROLYN JOHNSON, INCLUDE THEM
  ..I $P(^APCDSITE(DUZ(2),0),U,28)=0,APCDPRVT'="X" Q:'$D(^AUPNVPRV("AD",APCDVIEN))  ;no provider
  ..S APCDVPP=$$PRIMPROV^APCLV(APCDVIEN,"I")
  ..;Q:'APCDVPP  ;no primary provider
@@ -65,21 +68,22 @@ GATHER ;
  ..Q:APCDVLOC=""  ;no location of encounter
  ..I $D(APCDLOCS),'$D(APCDLOCS(APCDVLOC)) Q  ;not a location we want
  ..S APCDVCLN=$P(APCDV0,U,8)
- ..I APCDCLNT="X",APCDVCLN]"" Q  ;has a clinic and only want those w/no clinic
- ..I APCDVCLN="",$D(APCDCLNS) Q  ;clinic blank and want certain clinics
+ ..I APCDCLNT="X",APCDVCLN]"" Q
+ ..I APCDVCLN="",$D(APCDCLNS) Q
  ..I $D(APCDCLNS),'$D(APCDCLNS(APCDVCLN)) Q  ;not a CLINIC we want
  ..S APCDVHL=$P(APCDV0,U,22)
- ..I APCDVHL="",$D(APCDHLS) Q  ;HOSP LOC blank and want certain HOSP LOCS
+ ..I APCDVHL="",$D(APCDHLS) Q
  ..I $D(APCDHLS),'$D(APCDHLS(APCDVHL)) Q  ;not a HOSP LOC we want
- ..I APCDVPP="",$D(APCDPRVS) Q  ;PRIM PROV blank and want certain PRIM PROVS
- ..I APCDPRVT="X",APCDVPP Q  ;only want visits with no provider and this visit has a prov
+ ..I APCDVPP="",$D(APCDPRVS) Q
+ ..I APCDPRVT="X",APCDVPP Q
  ..I $D(APCDPRVS),'$D(APCDPRVS(APCDVPP)) Q  ;not a PRIM PROV we want
  ..S APCDVCAS=$P($G(^AUPNVSIT(APCDVIEN,11)),U,11)
  ..I APCDVCAS="R" Q  ;DON'T DISPLAY REVIEWED VISITS
- ..;I $D(APCDCASS),'$D(APCDCASS(APCDVCAS)) Q
- ..S APCDVCDR=$$LASTCDR(APCDVIEN)  ;last chart deficiency reason
- ..I APCDVCDR="",$D(APCDCDRS) Q  ;
- ..I $D(APCDCDRS),'$D(APCDCDRS(APCDVCDR)) Q
+ ..K APCDVCDR D GETVCDR^APCDCAFS(APCDVIEN,"APCDVCDR")  ;GET ALL PENDING REASONS
+ ..I '$D(APCDVCDR),$D(APCDCDRS) Q  ;
+ ..S G=0 I $D(APCDCDRS) D
+ ...S X=0 F  S X=$O(APCDVCDR(X)) Q:X'=+X  I $D(APCDCDRS(X)) S G=1
+ ..I $D(APCDCDRS),'G Q
  ..S ^TMP($J,"APCDCAF",$$SORT(APCDVIEN,APCDSORT),APCDVIEN)=""
  ..Q
  .Q
@@ -91,7 +95,7 @@ GATHERP ; gather up visits for one patient
  .S APCDVIEN=0 F  S APCDVIEN=$O(^AUPNVSIT("AA",APCDCAFP,APCDODAT,APCDVIEN)) Q:APCDVIEN'=+APCDVIEN  D
  ..S APCDV0=$G(^AUPNVSIT(APCDVIEN,0))
  ..Q:APCDV0=""
- ..Q:"AOSTC"'[$P(APCDV0,U,7)  ;SERV CAT
+ ..Q:'$$SCW($P(APCDV0,U,7))
  ..Q:'$P(APCDV0,U,9)        ;NO DEP ENTRIES
  ..Q:$P(APCDV0,U,11)        ;DELETED
  ..Q:$P(APCDV0,U,3)="C"     ;CONTRACT
@@ -165,17 +169,17 @@ REC ;
  Q
  ;
 ERRORCHK(V) ;EP
- ;check for no pov, .9999 or multiple primary providers
  NEW E,X,C
  S E=""
- I $P(^AUPNVSIT(V,0),U,7)="I" Q ""
  I $P(^AUPNVSIT(V,0),U,7)="E" Q ""
- I '$D(^AUPNVPOV("AD",V)) S E="NO POV"
+ I $P(^AUPNVSIT(V,0),U,7)'="I",'$D(^AUPNVPOV("AD",V)) S E="NO POV"
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
- .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S E=".9999 POV "
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S:E]"" E=E_"," S E=".9999 POV" Q
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)="ZZZ.999" S:E]"" E=E_"," S E="ZZZ.999 POV"
  S X=0,C=0 F  S X=$O(^AUPNVPRV("AD",V,X)) Q:X'=+X  D
  .I $P(^AUPNVPRV(X,0),U,4)="P" S C=C+1
- I C>1 S E=E_"MULT PRIM PROV"
+ I C>1 S:E]"" E=E_"," S E=E_"MULT PRIM PROV"
+ I $$FINDPEND^APCDCAF6(V) S:E]"" E=E_"," S E=E_"CHART DEFICIENCIES"
  Q E
 RBLK(V,L) ;left blank fill
  NEW %,I
@@ -341,30 +345,32 @@ CASHX ;EP
  I Y="" W !,"No VISIT selected." D EOP G CASHXX
  I $D(DIRUT) W !,"No VISIT selected." D EOP G CASHXX
  S APCDVSIT=^TMP("APCDCAF",$J,"IDX",Y,Y)
- W !!,"Chart Audit History for VISIT:"
- W !?1,"Visit Date:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.01),"   Patient Name:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.05)
- W !?1,"Hospital Location:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.22),"  Primary Provider: ",$$PRIMPROV^APCLV(APCDVSIT,"N")
- W !!?2,"DATE OF AUDIT",?22,"STATUS",?42,"USER WHO AUDITED",?62,"CHART DEFICIENCY"
- S APCDX=0 F  S APCDX=$O(^AUPNVCA("AD",APCDVSIT,APCDX)) Q:APCDX'=+APCDX  D
- .K APCDAR D ENP^XBDIQ1(9000010.45,APCDX,".01;.04;.05;.06","APCDAR(","E")
- .W ! S T=2
- .S F=0 F  S F=$O(APCDAR(F)) Q:F'=+F  D
- ..W ?T,$E(APCDAR(F),1,18) S T=T+20
- I $O(^AUPNCANT(APCDVSIT,11,0)) D
- .W !!,"NOTES:"
- .S X=0 F  S X=$O(^AUPNCANT(APCDVSIT,11,X)) Q:X'=+X  W !,^AUPNCANT(APCDVSIT,11,X,0)
- D EOP
+ D VIEWR^XBLM("DCAH^APCDCAF")
  ;
 CASHXX ;
  K DIR,DIRUT,DUOUT,Y,APCDVSIT
  D BACK
  Q
+DCAH ;
  ;
+ W !!,"Chart Audit History for VISIT:"
+ W !?1,"Visit Date:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.01),"   Patient Name:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.05)
+ W !?1,"Hospital Location:  ",$$VAL^XBDIQ1(9000010,APCDVSIT,.22),"  Primary Provider: ",$$PRIMPROV^APCLV(APCDVSIT,"N")
+ W !!,"DATE OF AUDIT",?24,"STATUS",?40,"USER WHO AUDITED" ;,?62,"CHART DEFICIENCY"
+ S APCDX=0 F  S APCDX=$O(^AUPNVCA("AD",APCDVSIT,APCDX)) Q:APCDX'=+APCDX  D
+ .W !,$$GET1^DIQ(9000010.45,APCDX,.01),?24,$$GET1^DIQ(9000010.45,APCDX,.04),?40,$$GET1^DIQ(9000010.45,APCDX,.05)
+ W !!,"DEFICIENCY HISTORY"
+ W !,"=================="
+ S APCDX=0 F  S APCDX=$O(^AUPNVCA("AD",APCDVSIT,APCDX)) Q:APCDX'=+APCDX  D
+ .Q:$P(^AUPNVCA(APCDX,0),U,6)=""
+ .W !,$$GET1^DIQ(9000010.45,APCDX,.06),?31,$$DATE^APCDCAFA($P($P(^AUPNVSIT(APCDVSIT,0),U),".")),?42,$E($$GET1^DIQ(9000010.45,APCDX,.05),1,18)
+ S DA=APCDVSIT,DIC="^AUPNCANT(" D EN^DIQ
+ Q
 RESORT ;
  D FULL^VALM1
  W !!,"Resorting Visit List",!
  S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider"
- S DIR(0)=DIR(0)_";A:Chart Audit Status;R:Chart Deficiency Reason (Last one entered);I:Has Medicare/Medicaid or PI"
+ S DIR(0)=DIR(0)_";A:Chart Audit Status;I:Has Medicare/Medicaid or PI"
  S DIR("A")="How would you like the list of visits sorted",DIR("B")="D" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G RESORTX
  S APCDSORT=Y
@@ -401,7 +407,6 @@ HSX ;
  ;
 EOP ;EP - End of page.
  Q:$E(IOST)'="C"
- ;Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
  NEW DIR
  K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
  S DIR("A")="Press Enter to Continue",DIR(0)="E" D ^DIR
@@ -409,7 +414,6 @@ EOP ;EP - End of page.
  ;----------
 BH ;EP
  K DIR
- ;I $T(BROWS1^TIURA2)="" W !!,"TIU not installed" D EOP G NOTEX
  I '$D(^XUSEC("AMHZ CODING REVIEW",DUZ)) W !!,"You do not have the security access to see Behavioral Health Notes.",!,"Please see your supervisor for access.  The security key needed is AMHZ CODING REVIEW.",! D PAUSE^APCDALV1,BHX Q
  S DIR(0)="NO^1:"_APCDRCNT,DIR("A")="Display Behavioral Health Note for which Visit"
  D ^DIR K DIR S:$D(DUOUT) DIRUT=1

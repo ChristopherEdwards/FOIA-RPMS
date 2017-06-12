@@ -1,5 +1,5 @@
 BQICALRT ;GDIT/HS/ALA-Expanded Community Alerts ; 13 Oct 2011  3:42 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1,2**;Apr 18, 2012;Build 14
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
 FND ;EP - Find alerts
  NEW DA,DIK,UID
@@ -16,26 +16,8 @@ FND ;EP - Find alerts
  NEW OK,PCL,SIEN,V,VISIT,VSDTM,X,Y,COMM,DFN,DOD,DTY,ATY,SDATA,AIEN
  NEW LBT,VCLIN,BDT,BDXX,BGDT,BQIN,BSXX,CT,DEXEC,EDT,EXP,FILE,FLAG,I
  NEW N,OPER,OPER2,OVALUE,RES,RES2,RN,TIEN,TYP,VCAT,VDATE,VFL,X,Y,ZZ
- ; Need to get the program for the GPRA year to check active population
- NEW BGPHOME,BQIH,BQIINDF,BQIINDG,BQIMEASF,BQIMEASG,BQIY,BQIYR,BQIROU
- D INP^BQINIGHT
- I $G(BQIROU)="" Q
- I BQIROU["D10" S BQIROU=$E(BQIROU,1,$L(BQIROU)-1)
- I $T(@("ACTUPAP^"_BQIROU))="" Q
  ;
  I $G(DT)="" D DT^DICRW
- ; Get primary clinic list
- ;S PREF=$NA(^TMP("BQIPRCR",UID))
- ;K @PREF
- ;S BGDA=$O(^BGPCTRL("B",BQIYR,"")) I BGDA="" Q
- ;S BGI=0
- ;F  S BGI=$O(^BGPCTRL(BGDA,12,BGI)) Q:'BGI  D
- ;. S BGPC=$P(^BGPCTRL(BGDA,12,BGI,0),U,1)
- ;. S BGPCI=$O(^DIC(40.7,"C",BGPC,"")) I BGPCI="" Q
- ;. S @PREF@(BGPCI)=BGPC
- ; Add Emergency and Urgent Care to clinic list
- ;S BGPCI=$O(^DIC(40.7,"C",30,"")) I BGPCI'="" S @PREF@(BGPCI)=30
- ;S BGPCI=$O(^DIC(40.7,"C",80,"")) I BGPCI'="" S @PREF@(BGPCI)=80
  ;
  ; Set the alert temporary global
  NEW TDATA
@@ -58,14 +40,9 @@ FND ;EP - Find alerts
  .. S VISIT=""
  .. F  S VISIT=$O(^AUPNVSIT("B",BGDT,VISIT)) Q:VISIT=""  D
  ... I $P(^AUPNVSIT(VISIT,0),U,11)=1 Q
- ... ; Check for primary clinic
- ... ;S VCLIN=$P(^AUPNVSIT(VISIT,0),U,8)
- ... ;I VCLIN'="",'$D(@PREF@(VCLIN)) Q
  ... S VCAT=$P(^AUPNVSIT(VISIT,0),U,7)
  ... I VCAT'="A",VCAT'="C",VCAT'="H",VCAT'="T" Q
  ... S DFN=$P(^AUPNVSIT(VISIT,0),U,5) I DFN="" Q
- ... ;S EXEC="S OK=$$ACTUPAP^"_BQIROU_"("_DFN_","_STDT_","_ENDT_","""")"
- ... ;X EXEC I 'OK Q
  ... S VDATE=$P($G(^AUPNVSIT(VISIT,0)),U,1)\1 I VDATE=0 Q
  ... S @TDATA@("PT",DFN,VISIT)=VDATE
  ;
@@ -80,11 +57,14 @@ FND ;EP - Find alerts
  .. S DEXEC=$G(^BQI(90507.8,ALRT,31))
  .. I DEXEC'="" D
  ... X DEXEC
+ .. ; if EXPANDED DEFINITION has an executable
  .. S EXP=+$P($G(^BQI(90507.8,ALRT,2)),U,6) I EXP S EXEC=$G(^BQI(90507.8,ALRT,30))
  .. I EXP D
  ... X EXEC
+ ... ; if no result returned from the executable, quit
  ... I $G(RES(1))=0 Q
  ... S DTY=$P(^BQI(90507.8,ALRT,0),U,1),ATY=$P($G(^BQI(90507.8,ALRT,2)),U,1)
+ ... ; save the result
  ... S N=0 F  S N=$O(RES(N)) Q:N=""  D
  .... S SDATA=RES(N)
  .... S VISIT=$P(SDATA,U,4),VSDTM=$P(SDATA,U,2),IEN=$P(SDATA,U,5),FILE=$P(SDATA,U,7),TIEN=$P(SDATA,U,6)
@@ -101,11 +81,20 @@ FND ;EP - Find alerts
  ... I '$D(@TREF) Q
  ... S ATIEN=0,QFL=1
  ... F  S ATIEN=$O(@TREF@(ATIEN)) Q:ATIEN=""  D SRN(ATIEN,PT)
+ ... K @TREF
  .. Q:QFL
- .. ; Check for ICD codes
- .. S ATIEN=""
- .. F  S ATIEN=$O(^BQI(90507.8,ALRT,10,"B",ATIEN)) Q:ATIEN=""  D
- ... D SRN(ATIEN,PT)
+ .. ; Check for SNOMED subsets
+ .. NEW BQISUB,SN,BQIOK,SNIEN
+ .. S SN=0
+ .. F  S SN=$O(^BQI(90507.8,ALRT,13,SN)) Q:'SN  D
+ ... S TREF=$NA(^TMP("BQISNOM",$J)) K @TREF
+ ... S BQISUB=$P(^BQI(90507.8,ALRT,13,SN,0),U,1)
+ ... S BQIOK=$$SUBLST^BSTSAPI(TREF,BQISUB_"^36^1")
+ ... I 'BQIOK Q
+ ... S SNIEN=""
+ ... F  S SNIEN=$O(@TREF@(SNIEN)) Q:SNIEN=""  D
+ .... S SCID=$P(@TREF@(SNIEN),U,1)
+ .... D SNS(SCID,PT)
  ;
  ; Check for duplicates
  NEW LDTE
@@ -150,8 +139,8 @@ FND ;EP - Find alerts
  ... F  S DTE=$O(@DATA@(CM,TY,PT,"DX",DTE)) Q:DTE=""  D
  .... S DXN=""
  .... F  S DXN=$O(@DATA@(CM,TY,PT,"DX",DTE,DXN)) Q:DXN=""  D
- ..... I $T(ICDDX^ICDCODE)'="" S DXCC=$$ICD9^BQIUL3(DXN,DTE\1,2) ; Code set versioning
- ..... I $T(ICDDX^ICDCODE)="" S DXCC=$$GET1^DIQ(80,DXN_",",.01,"E")
+ ..... I $$VERSION^XPDUTL("BCSV") S DXCC=$$ICD9^BQIUL3(DXN,(DTE\1),2) ; csv
+ ..... I '$$VERSION^XPDUTL("BCSV") S DXCC=$$GET1^DIQ(80,DXN_",",.01,"E")
  ..... I DXCC="" Q
  ..... S VISIT=$P(@DATA@(CM,TY,PT,"DX",DTE,DXN),U,1)
  ..... I $P(HAS,U,1)=1 Q
@@ -308,4 +297,16 @@ SRN(TIEN,DFN) ; Search through all records
  .. I $G(^AUPNVPOV(IEN,0))="" Q
  .. I $P(^AUPNVPOV(IEN,0),U,1)'=TIEN Q
  .. S @DATA@(COMM,ALRT,DFN,"DX",VSDTM,TIEN)=VISIT_U_IEN_U_"9000010.07"
+ Q
+ ;
+SNS(BQCID,DFN) ;EP - Look by concept ID
+ S VISIT=""
+ F  S VISIT=$O(@TDATA@("PT",DFN,VISIT)) Q:VISIT=""  D
+ . ;  For each entry CONCEPT ID
+ . S IEN="",VSDTM=@TDATA@("PT",DFN,VISIT)
+ . F  S IEN=$O(^AUPNVPOV("AD",VISIT,IEN),-1) Q:IEN=""  D
+ .. ;  if a bad record (no zero node), quit
+ .. I $G(^AUPNVPOV(IEN,0))="" Q
+ .. I $P($G(^AUPNVPOV(IEN,11)),U,1)'=BQCID Q
+ .. S @DATA@(COMM,ALRT,DFN,"DX",VSDTM,BQCID)=VISIT_U_IEN_U_"9000010.07"
  Q

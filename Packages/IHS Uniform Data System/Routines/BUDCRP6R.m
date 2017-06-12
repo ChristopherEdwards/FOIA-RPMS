@@ -1,0 +1,217 @@
+BUDCRP6R ; IHS/CMI/LAB - UDS REPORT PROCESSOR ;
+ ;;10.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 04, 2016;Build 50
+ ;
+BMI(P,BDATE,EDATE,AGE) ;EP
+ NEW HDATE,BUDCMIH,W,H,X,WD
+ S BUDCMIH="",WD=""
+ I AGE>18,AGE<51 D  Q WD
+ .S HDATE=$$FMADD^XLFDT(BDATE,-(5*365)),HDATE=$$FMTE^XLFDT(HDATE)
+ .;S BDATE=$$FMADD^XLFDT(BDATE,-(5*365))
+ .S BDATE=$$FMTE^XLFDT(BDATE),EDATE=$$FMTE^XLFDT(EDATE)
+ .S W=$$WT(P,BDATE,EDATE)
+ .S WD=$P(W,U,2)
+ .S W=$P(W,U,1) I W=""!(W="?") Q
+ .;S HDATE=$$FMTE^XLFDT($$FMADD^XLFDT($P(^DPT(P,0),U,3),(19*365)))
+ .;S HDATE=BDATE
+ .S H=$$HT(P,HDATE,EDATE) I H="" Q
+ .S W=W*.45359,H=(H*.0254),H=(H*H),BUDCMIH=(W/H)
+ I AGE>50 D  Q WD
+ .S HDATE=$$FMADD^XLFDT(BDATE,-(2*365)),HDATE=$$FMTE^XLFDT(HDATE)
+ .S BDATE=$$FMTE^XLFDT(BDATE),EDATE=$$FMTE^XLFDT(EDATE)
+ .S W=$$WT(P,BDATE,EDATE)
+ .S WD=$P(W,U,2)
+ .S W=$P(W,U,1) I W=""!(W="?") Q
+ .;S HDATE=$$FMTE^XLFDT($$FMADD^XLFDT($P(^DPT(P,0),U,3),(19*365)))
+ .S HDATE=BDATE
+ .S H=$$HT(P,HDATE,EDATE) I H="" Q
+ .S W=W*.45359,H=(H*.0254),H=(H*H),BUDCMIH=(W/H)
+ I AGE<19 D  Q WD
+ .S X=$$HTWTSD(P,BDATE,EDATE)
+ .I '$P(X,"^") Q
+ .I '$P(X,"^",2) Q
+ .S W=$P(X,"^"),H=$P(X,"^",2),WD=$P(X,U,3)
+ .S W=W*.45359,H=(H*.0254),H=(H*H),BUDCMIH=(W/H)
+ .Q
+ Q ""
+HT(P,BDATE,EDATE) ;EP
+ I 'P Q ""
+ NEW %,BUDARRY,H,E
+ S %=P_"^LAST MEAS HT;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(%,"BUDARRY(") S H=$P($G(BUDARRY(1)),U,2)
+ I H="" Q H
+ I H["?" Q ""
+ S H=$J(H,2,0)
+ Q H
+WT(P,BDATE,EDATE) ;EP
+ I 'P Q ""
+ NEW %,E,BUDLW,X,BUDLN,BUDL,BUDLD,BUDLZ,BUDLX,ICD,BUDLWD
+ K BUDL S BUDLW="",BUDLWD="" S BUDLX=P_"^LAST 24 MEAS WT;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(BUDLX,"BUDL(")
+ S BUDLN=0 F  S BUDLN=$O(BUDL(BUDLN)) Q:BUDLN'=+BUDLN!(BUDLW]"")  D
+ .S BUDLZ=$P(BUDL(BUDLN),U,5)
+ .I '$D(^AUPNVPOV("AD",BUDLZ)) S BUDLW=$P(BUDL(BUDLN),U,2) Q
+ . S BUDLD=0 F  S BUDLD=$O(^AUPNVPOV("AD",BUDLZ,BUDLD)) Q:'BUDLD!(BUDLW]"")  D
+ .. S D=$P(BUDL(BUDLN),U)
+ .. S ICD=$P(^AUPNVPOV(BUDLD,0),U,1) ;$P($$ICDDX^ICDEX($P(^AUPNVPOV(BUDLD,0),U),D),U,2) D
+ .. I $$ICD^ATXCHK(ICD,$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0)),9) Q
+ .. S BUDLW=$P(BUDL(BUDLN),U,2),BUDLWD=$P(BUDL(BUDLN),U,1)
+ ..Q
+ Q BUDLW_U_BUDLWD
+HTWTSD(P,BDATE,EDATE) ;get last ht / wt on same day
+ I '$G(P) Q ""
+ KILL BUDLWTS,BUDLHTS,%,X,BUDLWTS1,BUDLHTS1,Y
+ ;get all hts during time frame
+ S %=P_"^ALL MEAS HT;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(%,"BUDLHTS(")
+ S Y=0 F  S Y=$O(BUDLHTS(Y)) Q:Y'=+Y  I $P(BUDLHTS(Y),U,2)="?"!($P(BUDLHTS(Y),U,2)="") K BUDLHTS(Y)
+ ;set the array up by date
+ K BUDLHTS1 S X=0 F  S X=$O(BUDLHTS(X)) Q:X'=+X  S BUDLHTS1($P(BUDLHTS(X),U))=X
+ ;get all wts during time frame
+ S %=P_"^ALL MEAS WT;DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(%,"BUDLWTS(")
+ S Y=0 F  S Y=$O(BUDLWTS(Y)) Q:Y'=+Y  I $P(BUDLWTS(Y),U,2)="?"!($P(BUDLWTS(Y),U,2)="") K BUDLWTS(Y)
+ ;set the array up by date
+ K BUDLWTS1 S X=0 F  S X=$O(BUDLWTS(X)) Q:X'=+X  S BUDLWTS1($P(BUDLWTS(X),U))=X
+ S BUDLCHT="",X=9999999 F  S X=$O(BUDLWTS1(X),-1) Q:X=""!(BUDLCHT]"")  I $D(BUDLHTS1(X)) S BUDLCHT=$P(BUDLWTS(BUDLWTS1(X)),U,2)_U_$P(BUDLHTS(BUDLHTS1(X)),U,2)_U_X
+ Q BUDLCHT
+G ;EP
+ NEW BUDGOT
+ S BUDGOT=""
+ S BUDDOB=$P(^DPT(DFN,0),U,3)
+ S BUDX18RB=($E(BUDBD,1,3)-18)_"1231"
+ Q:BUDDOB>BUDX18RB
+ Q:BUDMEDV<1
+ S BUDX18TH=$E(BUDDOB,1,3)+18_$E(BUDDOB,4,7)
+ I '$$VBBD^BUDCRP6V(DFN,$$FMADD^XLFDT(BUDX18TH,1),BUDED) Q
+ S X=$$GETV^BUDCRP6U(DFN,BUDDOB,BUDED,BUDSITE)
+ Q:X<2
+ K BUDTOBS,BUDTOBD
+ S BUDTOBDD=$E(BUDBD,1,3)-1_$E(BUDBD,4,7)
+ S BUDB24M=$$VD^APCLV(BUDLASTV),BUDB24M=$E(BUDB24M,1,3)-2_$E(BUDB24M,4,7)
+ S BUDTOBS=$$TOBACCO(DFN,BUDB24M,$$VD^APCLV(BUDLASTV))  ;SCREENED IN 24 MONTHS PRIOR TO OR ON LAST VISIT
+ ;I BUDTOBS]"",$P(BUDTOBS,U,3)'<BUDTOBDD S BUDSECG1("ABM")=$G(BUDSECG1("ABM"))+1,BUDGOT=1
+ S BUDUSER=$$TOBACCO^BUDCRP6U(DFN,BUDB24M,BUDED)
+ S BUDCESS=""
+ I BUDTOBS]"",BUDUSER="" S BUDGOT=1
+ I BUDTOBS]"",BUDUSER]"" S BUDCESS=$$TOBCESS^BUDCRP6U(DFN,BUDB24M,BUDED) I BUDCESS]"" S BUDGOT=1
+ I BUDGOT S BUDSECG1("ABM")=$G(BUDSECG1("ABM"))+1
+S1 ;put the rest in demoninator
+ S BUDSECG1("PTS")=$G(BUDSECG1("PTS"))+1 D
+ .I $G(BUDTUA2L) D
+ ..I 'BUDGOT S ^XTMP("BUDCRP6B",BUDJ,BUDH,"TUA2",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=BUDTOBS_"|"_$S(BUDUSER]"":$P(BUDUSER,U,1)_" "_$$DATE^BUDCUTL1($P(BUDUSER,U,2))_"|"_$P(BUDCESS,U,1)_" "_$$DATE^BUDCUTL1($P(BUDCESS,U,3)),1:"")
+ .I $G(BUDTUA1L) D
+ ..I BUDGOT S ^XTMP("BUDCRP6B",BUDJ,BUDH,"TUA1",BUDAGE,$P(^DPT(DFN,0),U),BUDCOM,DFN)=BUDTOBS_"|"_$S(BUDUSER]"":$P(BUDUSER,U,1)_" "_$$DATE^BUDCUTL1($P(BUDUSER,U,2))_"|"_$P(BUDCESS,U,1)_" "_$$DATE^BUDCUTL1($P(BUDCESS,U,3)),1:"")
+ Q
+ ;
+TOBACCO(P,BDATE,EDATE) ;
+ ;TOBACCO SCREENING IN DATE RANGE?
+ NEW BUDTOB,BUDX,BUDPV,BUDLAST
+ K BUDLAST
+ D TOBACCO1
+ I BUDTOB]"" S BUDLAST($P(BUDTOB,U,3))=BUDTOB
+ ;PATIENT ED
+ S BUDTOB=$$TOBPED(P,BDATE,EDATE)
+ I BUDTOB]"" S X=$P(BUDTOB,U,3),BUDLAST(X)=BUDTOB
+ ;V10.0 ICD10
+ K BUDG S %=P_"^ALL DX;DURING "_BDATE_"-"_EDATE,E=$$START1^APCLDF(%,"BUDG(")
+ S T=$O(^BUDCTSSC("B","TOBACCO SCREEN DXS",0))
+ S X=0,G="" F  S X=$O(BUDG(X)) Q:X'=+X  D
+ .S Y=+$P(BUDG(X),U,4)
+ .S Y=$P($G(^AUPNVPOV(Y,0)),U,1)
+ .I $D(^BUDCTSSC("AD",Y,T)) S BUDLAST($P(BUDG(X),U,1))=$P(BUDG(X),U,2)_U_$$FMTE^XLFDT($P(BUDG(X),U,1))_U_$P(BUDG(X),U,1)
+ ;I G]"" Q G
+ ;S BUDPV=$$LASTDX^BUDCUTL1(P,"BUD TOBACCO SCREEN DXS",BDATE,EDATE)
+ ;I BUDPV S BUDLAST($P(BUDPV,U,3))=$P(BUDPV,U,2)_U_$$FMTE^XLFDT($P(BUDPV,U,3))_U_$P(BUDPV,U,3)  ; Q BUDTOB
+ S BUDCPT=$$CPT^BUDCUTL1(P,BDATE,EDATE,$O(^ATXAX("B","BUD TOBACCO SCREEN CPTS",0)),7)
+ I BUDCPT]"" S BUDLAST($P(BUDCPT,U,3))=BUDCPT    ;S BUDTOB=BUDCPT Q BUDTOB
+ I '$D(BUDLAST) Q ""
+ S BUDX=0 F  S BUDX=$O(BUDLAST(BUDX)) Q:BUDX'=+BUDX  S BUDTOB=BUDX
+ Q BUDLAST(BUDTOB)
+TOBACCO1 ;
+ K BUDTOB
+ S BUDTOB=$$LASTHF(P,"TOBACCO (SMOKING)",BDATE,EDATE) K O,D,H
+ I BUDTOB]"" S BUDLAST($P(BUDTOB,U,3))=BUDTOB
+ S BUDTOB=$$LASTHF(P,"TOBACCO (SMOKELESS - CHEWING/DIP)",BDATE,EDATE) K O,D,H
+ I BUDTOB]"",'$D(BUDLAST($P(BUDTOB,U,3))) S BUDLAST($P(BUDTOB,U,3))=BUDTOB
+ ;S BUDTOB=$$LASTHF(P,"TOBACCO (EXPOSURE)",BDATE,EDATE) K O,D,H
+ ;I BUDTOB]"" S BUDLAST($P(BUDTOB,U,3))=BUDTOB
+ ;S BUDTOB=$$LASTHF(P,"TOBACCO",BDATE,EDATE) K O,D,H
+ ;I BUDTOB]"" S BUDLAST($P(BUDTOB,U,3))=BUDTOB
+ Q
+ ;
+LASTHF(P,C,BDATE,EDATE) ;EP
+ S C=$O(^AUTTHF("B",C,0))
+ I '$G(C) Q ""
+ S (H,D)=0 K O
+ F  S H=$O(^AUTTHF("AC",C,H))  Q:'+H  D
+ .Q:'$D(^AUPNVHF("AA",P,H))
+ .S D="" F  S D=$O(^AUPNVHF("AA",P,H,D)) Q:D'=+D  D
+ ..Q:(9999999-D)>EDATE
+ ..Q:(9999999-D)<BDATE
+ ..S O(D)=$O(^AUPNVHF("AA",P,H,D,""))
+ .Q
+ S D=$O(O(0))
+ I D="" Q D
+ Q $$VAL^XBDIQ1(9000010.23,O(D),.01)_"^"_$$FMTE^XLFDT(9999999-D)_"^"_(9999999-D)
+ ;
+TOBPED(P,BDATE,EDATE) ;EP
+ NEW Y,X,E,D,T,%,BUDG,BUDPED,SN
+ K BUDPED
+ S Y="BUDG("
+ S X=P_"^ALL EDUC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I '$D(BUDG) Q ""
+ S SN=$O(^BGPSNOMM("B","TOBACCO SCREEN PATIENT ED",0))
+ S (X,D)=0,%="",T="" F  S X=$O(BUDG(X)) Q:X'=+X  D
+ .S T=$P(^AUPNVPED(+$P(BUDG(X),U,4),0),U)
+ .Q:'T
+ .Q:'$D(^AUTTEDT(T,0))
+ .S T=$P(^AUTTEDT(T,0),U,2)
+ .I $P(T,"-")="TO" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-",2)="TO" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-",2)="SHS" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="305.1" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="649.00" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="649.01" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="649.02" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="649.03" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="649.04" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="V15.82" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="1034F" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="1035F" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="1036F" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $P(T,"-")="1000F" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $E($P(T,"-"),1,3)="F17" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I $E($P(T,"-"),1,6)="O99.33" S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ .I SN,$P(T,"-")]"",$D(^BGPSNOMM(SN,11,"B",$P(T,"-"))) S BUDPED($P(BUDG(X),U))=T_U_$$FMTE^XLFDT($P(BUDG(X),U))_U_$P(BUDG(X),U) Q
+ I '$D(BUDPED) Q ""
+ S X=0 F  S X=$O(BUDPED(X)) Q:X'=+X  S %=X
+ Q BUDPED(%)
+CAD2HD ;EP
+ D S(),S(),S()
+ D S("***** CONFIDENTIAL PATIENT INFORMATION, COVERED BY THE PRIVACY ACT *****")
+ D S($P(^VA(200,DUZ,0),U,2)_"    "_$$FMTE^XLFDT(DT))
+ D S("***  RPMS Uniform Data System (UDS)  ***")
+ D S("Patient List for Table 6B, Section I")
+ D S("Coronary Artery Disease: Lipid Therapy")
+ D S($P(^DIC(4,BUDSITE,0),U))
+ S X="Reporting Period: "_$$FMTE^XLFDT(BUDBD)_" to "_$$FMTE^XLFDT(BUDED) D S(X)
+ S X="Population:  "_$S($G(BUDCEN)=1:"Indian/Alaskan Native (Classification 01)",$G(BUDCEN)=2:"Not Indian Alaskan/Native (Not Classification 01)",$G(BUDCEN)=3:"All (both Indian/Alaskan Natives and Non 01)",1:"") D S(X)
+ D S()
+ D S("This report provides a list of all patients 18 years of age and older")
+ D S("with an active diagnosis of Coronary Artery Disease (CAD) including ")
+ D S("myocardial infarction (MI) or have had cardiac surgery and whose last ")
+ D S("LDL was greater than or equal to 130 or last recorded LDL is greater than")
+ D S("1yr from last visit in the report year who were not prescribed a ")
+ D S("lipid-lowering therapy medication or has no documented evidence of use by")
+ D S("patient of lipid lowering medication during the report period or has an ")
+ D S("allergy or adverse reaction to lipid-lowering therapy medications, had at")
+ D S("least two medical visits ever, and had a medical visit during the report")
+ D S("period.")
+ D S("Age is calculated as of December 31.")
+ D S("PATIENT NAME^HRN^COMMUNITY^SEX^AGE^Date of DX^DX or Svc CD^Medication^LDL")
+ I BUDROT="P",'BUDX2ALG W "CAD Patients with LDL >=130 w/o Lipid Lowering Medication",!
+ I BUDROT="P",BUDX2ALG W "CAD Patients w/LDL =>130 and an ALG or ADV Reaction to Lipid Lowering Medication"
+ I BUDROT="D",'BUDX2ALG D S("CAD Patients with LDL >=130 w/o Lipid Lowering Medication")
+ I BUDROT="D",BUDX2ALG D S("CAD Patients w/LDL =>130 and an ALG or ADV Reaction to Lipid Lowering Medication")
+ Q
+S(V) ;
+ S BUDDECNT=BUDDECNT+1
+ S ^TMP($J,"BUDDEL",BUDDECNT)=$G(V)
+ Q
+ ;------

@@ -1,74 +1,46 @@
-PXRMREV ; SLC - Review Date routines. ;06/19/2001
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
- ;
- ;Print review date reports
- ;-------------------------
-START N DATE,DIROUT,DTOUT,DUOUT,FTYPE
- F  D FILE(.FTYPE) Q:$D(DTOUT)!($D(DUOUT))  D  Q:$D(DTOUT)
- .;
- .D DATE(.DATE) I $D(DTOUT)!($D(DUOUT)) Q
- .;
- .N BY,DHD,FLDS,FR,L,NOW,TO
- .S FR="01/01/2000"
- .S TO=DATE
- .S BY="REVIEW DATE"
- .S FLDS=".01,REVIEW DATE;C60"
- .S L=0
- .;
- .I FTYPE="R" S DIC="^PXD(811.9,",DHD="REMINDERS TO REVIEW"
- .I FTYPE="T" S DIC="^PXD(811.2,",DHD="TAXONOMIES TO REVIEW"
- .I FTYPE="C" S DIC="^PXRMD(811.4,",DHD="CF'S TO REVIEW"
- .I FTYPE="D" S DIC="^PXRMD(801.41,",DHD="DIALOGS TO REVIEW"
- .;
- .S DHD=DHD_" (up to "_$$FMTE^XLFDT(DATE)_")"
- .;Print
- .D EN1^DIP
- .S DTOUT=1
- Q
- ;
- ;Select file for review
- ;----------------------
-FILE(Y) N X,DIR
- K DIROUT,DIRUT,DTOUT,DUOUT
- S DIR(0)="S"_U_"C:Computed Finding;"
- S DIR(0)=DIR(0)_"D:Reminder Dialog;"
- S DIR(0)=DIR(0)_"R:Reminder Definition;"
- S DIR(0)=DIR(0)_"T:Reminder Taxonomy;"
- S DIR("A")="Select File to Review"
- S DIR("B")="R"
- S DIR("?")="Select from the codes displayed. For detailed help type ??"
- S DIR("??")=U_"D HELP^PXRMREV(1)"
- D ^DIR K DIR
- I $D(DIROUT) S DTOUT=1
- Q
+PXRMREV ; SLC/PJH,PKR - Review Date routines. ;01/27/2012
+ ;;2.0;CLINICAL REMINDERS;**4,16,22**;Feb 04, 2005;Build 160
  ;
  ;Select the review date
  ;----------------------
-DATE(RDATE) ;
- N X,Y,DONE,DIR
- K DIROUT,DIRUT,DTOUT,DUOUT
- S DONE=0
- F  D  Q:$D(DTOUT)!($D(DUOUT))!DONE
- .S DIR(0)="DA^"_DT_"::EFTX"
- .S DIR("A")="Enter Review Cutoff Date: "
- .S DIR("B")=$$FMTE^XLFDT($$DT^XLFDT,"D")
- .S DIR("?")="This must be today or a future date. For detailed help type ??"
- .S DIR("??")=U_"D HELP^PXRMREV(2)"
- .W !
- .D ^DIR K DIR
- .I $D(DIROUT) S DTOUT=1
- .I $D(DTOUT)!($D(DUOUT)) Q
- .;I $E(Y,6,7)="00" W $C(7),"  ?? Enter exact date" Q
- .S RDATE=Y,DONE=1
- .K DIROUT,DIRUT,DTOUT,DUOUT
- Q
+DATE() ;
+ N DIR,DIROUT,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="DA^"_DT_"::EFTX"
+ S DIR("A")="Enter Review Cutoff Date: "
+ S DIR("B")=$$FMTE^XLFDT($$DT^XLFDT,"D")
+ S DIR("?")="This must be today or a future date. For detailed help type ??"
+ S DIR("??")=U_"D HELP^PXRMREV(2)"
+ W !
+ D ^DIR
+ I $D(DIROUT)!$D(DIRUT) Q ""
+ I $D(DTOUT)!($D(DUOUT)) Q ""
+ Q Y
+ ;
+ ;Select file for review
+ ;----------------------
+FILE() N DIR,DIROUT,DIRUT,DTOUT,DUOUT,X,Y
+ S DIR(0)="SO"_U_"C:Computed Finding;"
+ S DIR(0)=DIR(0)_"D:Reminder Dialog;"
+ S DIR(0)=DIR(0)_"L:Reminder Location List;"
+ S DIR(0)=DIR(0)_"O:Reminder Orderable Item Groups;"
+ S DIR(0)=DIR(0)_"U:Reminder Order Check Rules;"
+ S DIR(0)=DIR(0)_"R:Reminder Definition;"
+ S DIR(0)=DIR(0)_"S:Reminder Sponsor;"
+ S DIR(0)=DIR(0)_"T:Reminder Term;"
+ S DIR(0)=DIR(0)_"X:Reminder Taxonomy;"
+ S DIR("A")="Select File to Review"
+ S DIR("?")="Select from the codes displayed. For detailed help type ??"
+ S DIR("??")=U_"D HELP^PXRMREV(1)"
+ D ^DIR
+ I $D(DIROUT)!$D(DIROUT) Q ""
+ I $D(DTOUT)!$D(DUOUT) Q ""
+ Q Y
  ;
  ;General help text routine
  ;-------------------------
 HELP(CALL) ;
  N DIWF,DIWL,DIWR,HTEXT,IC
  S DIWF="C70",DIWL=0,DIWR=70
- ;
  I CALL=1 D
  .S HTEXT(1)="Select the file for which a Review Date report is required."
  .S HTEXT(2)=" "
@@ -89,3 +61,36 @@ HELP(CALL) ;
  K ^UTILITY($J,"W")
  W !
  Q
+ ;
+ ;Print review date reports
+ ;-------------------------
+START N DATE,DIROUT,DONE,DTOUT,DUOUT,FTYPE
+ S DONE=0
+ F  Q:DONE  D
+ . S FTYPE=$$FILE
+ . I FTYPE="" S DONE=1 Q
+ . S DATE=$$DATE
+ . I DATE="" S DONE=1 Q
+ .;
+ . N BY,DHD,DIC,FLDS,FR,L,NOW,TO
+ . S FR="01/01/2000"
+ . S TO=DATE
+ . S BY="REVIEW DATE"
+ . S FLDS=".01,REVIEW DATE;C60"
+ . S L=0
+ .;
+ . I FTYPE="C" S DIC="^PXRMD(811.4,",DHD="CF'S TO REVIEW"
+ . I FTYPE="D" S DIC="^PXRMD(801.41,",DHD="DIALOGS TO REVIEW"
+ . I FTYPE="L" S DIC="^PXRMD(810.9,",DHD="LOCATION LISTS TO REVIEW"
+ . I FTYPE="R" S DIC="^PXD(811.9,",DHD="REMINDERS TO REVIEW"
+ . I FTYPE="S" S DIC="^PXRMD(811.6,",DHD="SPONSORS TO REVIEW"
+ . I FTYPE="X" S DIC="^PXD(811.2,",DHD="TAXONOMIES TO REVIEW"
+ . I FTYPE="O" S DIC="^PXD(801,",DHD="ORDERABLE ITEM GROUPS TO REVIEW"
+ . I FTYPE="U" S DIC="^PXD(801.1,",DHD="ORDER CHECK RULES TO REVIEW"
+ . I FTYPE="T" S DIC="^PXRMD(811.5,",DHD="TERMS TO REVIEW"
+ .;
+ . S DHD=DHD_" (up to "_$$FMTE^XLFDT(DATE)_")"
+ .;Print
+ . D EN1^DIP
+ Q
+ ;

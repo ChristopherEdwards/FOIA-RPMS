@@ -1,13 +1,13 @@
-BEHOENPC ;MSC/IND/DKM - PCC Data Management ;18-Jul-2013 17:33;PLS
- ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009,005010**;Sep 18, 2007
+BEHOENPC ;MSC/IND/DKM - PCC Data Management ;19-Feb-2015 10:05;PLS
+ ;;1.1;BEH COMPONENTS;**005003,005004,005005,005006,005007,005008,005009,005010,005011,005012**;Sep 18, 2007
  ;=================================================================
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
  ; PCC  = Array of PCC data to process
  ; X,Y  = Not used (but required)
 SAVE(DATA,PCC,X,Y) ;EP
- N IDX,TYP,CODE,VIEN,VCAT,VLOC,VDAT,VOLOC,ADD,DEL,VAL,DFN,PRV,FLD,DAT,COM,VMSR
- S IDX=0,DATA=0,PRV=0
+ N IDX,TYP,CODE,VIEN,VCAT,VLOC,VDAT,VOLOC,ADD,DEL,VAL,DFN,PRV,FLD,DAT,COM,VMSR,PRIEN,RET
+ S IDX=0,DATA=0,PRV=0,X=$G(X)
  F  S IDX=$O(PCC(IDX)) Q:'IDX!DATA  D
  .S VAL=PCC(IDX),TYP=$P(VAL,U),CODE=$P(VAL,U,2),ADD=TYP["+",DEL=TYP["-",TYP=$TR(TYP,"+-")
  .D LOOK("COM",.COM)
@@ -99,6 +99,8 @@ VFEVT(FNUM,VFIEN,OPR,X) ;EP
  S ID=$P(GBL,"AUPNV",2)
  S:'$D(X) X=$G(@GBL@(VFIEN,0))
  S DFN=$P(X,U,2),VIEN=$P(X,U,3),DATA=VFIEN_U_$G(CIA("UID"))_U_OPR_U_$P(X,U)_U_VIEN
+ I ID="AST" D
+ .D:VIEN BRDCAST^CIANBEVT("VISIT."_VIEN_".POV",DATA)
  D:DFN BRDCAST^CIANBEVT("PCC."_DFN_"."_ID,DATA)
  D:VIEN BRDCAST^CIANBEVT("VISIT."_VIEN_"."_ID,DATA)
  D:VIEN VFMOD(VIEN)
@@ -129,39 +131,59 @@ PRV ;; Provider
  D:PRV>0 SET(.04,6,"1:P;0:S;:@"),STORE(.06)
  Q
 POV ;; Purpose of visit
- ;POV[1]^code[2]^^narrative[4]^^P/S[6]^^Add to problem list[8]
- N NAR,VAL1
+ ;POV[1]^code[2]^^narrative[4]^^P/S[6]^^Add to problem list[8] ^ SNOMED CONC CT [9] ^ Provider text [10]
+ N NAR,VAL1,SNO,DESC,X,PROB,CODE,TXT,FIVE
  ;IHS/MSC/MGH updated to use correct lookup
  ;S CODE=$$FIND1^DIC(80,,"X",CODE_" ","BA")
- ;MGH fix for patch 9
- S CODE=$P(CODE,":",1)
- S CODE=+$$CODEN^ICDCODE(CODE,80)
+ ;MGH fix for adding SNOMED codes to POV
+ S SNO=$P(VAL,U,9)
+ S CODE=$P(VAL,U,2)
+ ;IHS/MSC/MGH EHR patch 14 Change to using AUPN call to select current
+ S X=$$CONC^AUPNSICD(SNO_"^^^1")
+ ;S X=$$CONC^BSTSAPI(SNO_"^^^1")
+ S DESC=$P(X,U,3)
+ S FIVE=$P(X,U,5)
+ ;IHS/MSC/MGH changed to accomodate special cases
+ I +X S CODE=$P(FIVE,";",1)
+ S $P(VAL,U,2)=CODE
+ S $P(VAL,U,11)=DESC
+ S TXT=$P(VAL,U,10)
+ ;S CODE=$P(CODE,":",1)
+ I $$AICD S CODE=$P($$CODEN^ICDEX(CODE,80),"~",1)
+ E  S CODE=+$$CODEN^ICDCODE(CODE,80)
  Q:CODE'>0
  ;S NAR=$$NARR($P(VAL,U,4))
- S $P(VAL,U,4)=$$NARR($P(VAL,U,4))
+ S $P(VAL,U,4)=$$NARR(TXT_"|"_DESC)
  S NAR=$P(VAL,U,4)
  S VAL1=$P(VAL,U,2)
- D SET(.04,4),SET(.12,6,"1:P;0:S;:@"),SET(.08,7),STORE(.07)
- ;Update problem list
- I $P(VAL,U,8)=1 D PROBLST(VAL1)
+ ;IHS/MSC/MGH add problem to problem list if its not already there
+ S PROB=$$PROBLST^BEHOENP2(SNO,FIVE)
+ S $P(VAL,U,12)=PROB
+ D SET(.04,4),SET(.12,6,"1:P;0:S;:@"),SET(.08,7),SET(1101,9),SET(1102,11),SET(.16,12),STORE(.07)
+ ;Add any additional ICD codes as POVs
+ D ADDICD^BEHOENP2(.RET,.VAL,FIVE,PROB)
  Q
 CPT ;; CPT codes
  ;IHS/MSC/MGH fix for patch 9
  S CODE=$P(CODE,":",1)
+ ;IHS/MSC/MGH HOTFIX make sure we have the IEN and not just the code
+ S CODE=$$CODEN^ICPTCOD(CODE)
  S CODE=+$$CPT^ICPTCOD(CODE)
  D:CODE>0 SET(.16,7),STORE(.18)
  Q
 IMM ;; Immunizations
  ;  TIMM[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^Series[7]^Reaction[8]^
  ;    Contraindicated[9]^Refused[10]^LotNum[11]^Site[12]^Volume[13]^
- ;    VISDate[14]
+ ;    VISDate[14] ^ VFC Elig [15] ^ Admin notes [16]
  N REF,LOT,NEW,OFF
  ;MSC/MGH added offset for Vista/RPMS field conflicts
+ ;MSC/MGH Patch 13 added VFC elig
  S OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
  S REF=$P(VAL,U,10),LOT="",NEW=0
  I $G(VIEN),$P($G(^AUPNVSIT(VIEN,0)),U,7)'="E" S LOT=$P(VAL,U,11)
  I $L(REF) D STORE(),REFUSAL("IMMUNIZATION",REF) Q:REF'="@"
- D SET(.04,7),SET(.06,8),SET(.07,9),SET(.05,11),SET(.09+OFF,12),SET(.11+OFF,13),SET(.12+OFF,14)
+ D SET(.04,7),SET(.06,8),SET(.07,9),SET(.05,11),SET(.09+OFF,12)
+ D SET(.11+OFF,13),SET(.12+OFF,14),SET(.14+OFF,15),SET(1+OFF,16)
  Q:$$STORE(.11,,,.NEW)'>0
  I NEW,LOT,$L($T(LOTDECR^BIRPC3)) D LOTDECR^BIRPC3(LOT)
  I $P(VAL,U,9),$L($T(SETCONT^BGOVIMM2)) D
@@ -224,8 +246,8 @@ TRT ;; Treatments
 MSR ;; Vital measurements (new format)
  ; MSR[1]^Code[2]^Cat[3]^Nar[4]^Com[5]^Prv[6]^Value[7]^Units[8]^
  ;VMSR IEN[9]^GMRV IEN[10]^When entered[11]^Taken date[12]^Entered by[13]^Qualfier[14]
- N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW,QUALCT
- S ENTERIEN=""
+ N GMRV,IEN,WHEN,XM,YM,Z,BEHDATA,TAKEN,ENTER,ENTERIEN,I,QUALNAME,QUALS,RESULT,NEW,QUALCT,SAVEDATA
+ S ENTERIEN="",SAVEDATA=0
  S:'$D(VMSR) VMSR=$$GET^XPAR("ALL","BEHOVM USE VMSR")
  S XM=$P(VAL,U,7),YM=$P(VAL,U,8)
  I XM="" S DATA=0 Q
@@ -233,10 +255,14 @@ MSR ;; Vital measurements (new format)
  I DEL S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA) I RESULT="OK" S DATA=0 Q
  ;OIT/MSC/MGH Edits are now a delete and make a new entry
  I 'ADD D
- .S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D EIE^BEHOVM2(.RESULT,BEHDATA)
+ .S BEHDATA=$P(VAL,U,9)_U_DUZ_U_4 D
+ ..;IHS/MSC/MGH patch 13 line
+ ..I $P(VAL,U,2)=$$VTYPE^BEHOVM("HT") S SAVEDATA=BEHDATA
+ ..D EIE^BEHOVM2(.RESULT,BEHDATA)
  .I RESULT="OK" S DATA=0
  .E  S DATA=1  ;RESULT
  .S ADD=1,$P(VAL,U,9)=0
+ Q:DATA
  I 'DEL,$L(YM) D
  .S DATA=$$NORM^BEHOVM(CODE,.XM,.YM,VMSR)
  .S:'DATA $P(VAL,U,7)=XM,$P(VAL,U,8)=YM
@@ -279,6 +305,11 @@ MSR ;; Vital measurements (new format)
  ..Q:QUALNAME=""
  ..S QUAL(QUALNAME)=""
  .D QUAL^BEHOVM2(.RESULT,IEN,.QUAL)
+ ;IHS/MSC/MGH Patch 13 changed for storing BMI
+ I 'DEL D BMICALC^BEHOVM5(IEN)
+ ;I $P($G(^AUTTMSR(CODE,0)),U,1)="WT" D
+ ;.D BMISAVE^BEHOVM4(.RET,DFN,XM,TAKEN,VIEN) ;Store the BMI based on wt
+ ;I +SAVEDATA D DELBMIS^BEHOVM4($P(SAVEDATA,U,1),DFN)
  Q
 VIT ;; Vital measurements (old format)
  S TYP="MSR"
@@ -290,7 +321,7 @@ REFUSAL(TYPE,RSN) ;
  Q:'$L(RSN)!(VIEN'>0)
  S TYPE=$$FIND1^DIC(9999999.73,,"X",TYPE)
  Q:'TYPE
- N FDA,ERR,FNUM,IEN,OPR,DELX
+ N FDA,ERR,FNUM,IEN,OPR,DELX,IN,OUT,CT,HIS,X
  S FNUM=$P(^AUTTREFT(TYPE,0),U,2),OPR=1
  D REFUSAL^BEHOENP1(FNUM,CODE,VIEN,.IEN)
  I "@"[RSN Q:'IEN  S TYPE="@",OPR=2,DELX=$G(^AUPNPREF(IEN,0))
@@ -302,7 +333,26 @@ REFUSAL(TYPE,RSN) ;
  S @FDA@(.04)=$P(VAL,U,4)
  S @FDA@(.05)=FNUM
  S @FDA@(.06)=CODE
- S @FDA@(.07)=RSN
+ S @FDA@(.08)=$$NOW^XLFDT
+ ;IHS/MSC/MGH Patch 13 Added for reason
+ I $L(RSN)>0 D
+ .S CT=$$GET1^DIQ(9999999.102,RSN,.01)
+ .S HIS=$$GET1^DIQ(9999999.102,RSN,.04,"I")
+ .S @FDA@(.07)=HIS
+ .K ARR
+ .I CT'="" D
+ ..S IN=CT_"^^^1^"
+ ..S OUT="ARR"
+ ..S @FDA@(1.01)=CT
+ ..S X=$$CNCLKP^BSTSAPI(.OUT,.IN)
+ ..I X>0 D
+ ...S @FDA@(1.02)=ARR(1,"PRE","DSC")
+ ;END patch 13 mod
+ I $E(IEN)="+" D
+ .S @FDA@(1216)=$$NOW^XLFDT
+ .S @FDA@(1217)=DUZ
+ S @FDA@(1218)=$$NOW^XLFDT
+ S @FDA@(1219)=DUZ
  D UPDATE^DIE("","FDA","IEN","ERR")
  Q:$D(ERR("DIERR"))
  S:'OPR IEN=IEN(1)
@@ -319,44 +369,17 @@ REFEVT(IEN,OPR,X) ;EP
  Q
  ; Lookup and optionally add narrative
  ; Returns pointer to PROVIDER NARRATIVE file
-NARR(TXT) ;
- N IEN,TRC,FDA
- Q:'$L(TXT) ""
- S TXT=$$STRPNAR(TXT)  ;P7
- S TXT=$E(TXT,1,160),TRC=$E(TXT,1,30)
+NARR(DESCT) ;
+ N IEN,TRC,NARR,FDA,TXT
+ Q:'$L(DESCT) ""
+ ;S DESCT=$$STRPNAR(DESCT)  ;P14
+ S TXT=$E(DESCT,1,160),TRC=$E(DESCT,1,30)
+ ;S TXT="|"_DESCT
  F IEN=0:0 S IEN=$O(^AUTNPOV("B",TRC,IEN)) Q:'IEN  Q:$P($G(^AUTNPOV(IEN,0)),U)=TXT
  Q:IEN IEN
  S FDA(9999999.27,"+1,",.01)=TXT
- D UPDATE^DIE("E","FDA","IEN")
+ D UPDATE^DIE("E","FDA","IEN","ERR")
  Q $G(IEN(1))
-PROBLST(VAL) ; Add item to problem list if not already there
- N IEN,PROB,FOUND,NCODE,NUMBER,DATA,ICD,NUM,NUMBER,NEW
- S PROB="",FOUND=0
- S NCODE=$P(VAL,U,1)
- ;If this patient already has this code on his problem list, just quit
- F  S PROB=$O(^AUPNPROB("AC",DFN,PROB)) Q:PROB=""!(FOUND=1)  D
- .S ICD=$P($G(^AUPNPROB(PROB,0)),U,1)
- .S DATA=$$ICDDX^ICDCODE(ICD,80)
- .I $P(DATA,U,2)=NCODE S FOUND=1
- .S NUM=$P($G(^AUPNPROB(PROB,0)),U,7)
- .S NUMBER(NUM)=""
- Q:FOUND=1
- S NUM=9999
- S IEN="+1",OPR=0
- S NEW=$O(NUMBER(NUM),-1)+1
- S FDA=$NA(FDA(9000011,IEN_","))
- S @FDA@(.01)=CODE
- S @FDA@(.02)=DFN
- S @FDA@(.03)=$$NOW^XLFDT
- S @FDA@(.05)=NAR
- S @FDA@(.06)=DUZ(2)
- S @FDA@(.07)=NEW
- S @FDA@(.08)=$$NOW^XLFDT
- S @FDA@(.12)="A"
- S @FDA@(.14)=DUZ
- D UPDATE^DIE("","FDA","IEN","ERR")
- Q:$D(ERR("DIERR"))
- Q
 UPPER(X) ; Convert lower case X to UPPER CASE
  Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  ; Lookup Education Topic and return pointer if text passed
@@ -370,3 +393,5 @@ STRPNAR(NARR) ;EP-
  N LP,C,FLG
  F LP=1:1:$L(NARR) S C=$E(NARR,LP) I '(C?1P) S FLG=1 Q
  Q $S($G(FLG):$E(NARR,LP,$L(NARR)),1:"")
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")<"4.0":0,1:1)

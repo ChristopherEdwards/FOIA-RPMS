@@ -1,5 +1,5 @@
 ABSPOSRX ; IHS/FCS/DRS - callable from RPMS pharm ;     [ 01/21/2003  8:40 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,4,5,31,40,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,4,5,31,40,44**;JUN 21, 2001;Build 15
  Q
  ;
  ; Also used by other ABSPOSR* routines to find transactions

@@ -1,7 +1,8 @@
-BHSPMH1 ;IHS/MSC/MGH - Health Summary for Patient wellness handout ;16-Jan-2009 14:57;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2**;March 17,2006
+BHSPMH1 ;IHS/MSC/MGH - Health Summary for Patient wellness handout ;30-Nov-2015 10:27;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,8,12**;March 17,2006;Build 3
  ;===================================================================
  ;Taken from APCHPMH1 routine
+ ;P12 changed to use new API for taxonomies
  ;
 EP(BHSDFN) ;PEP - PASS DFN get back array of patient care summary
  ;at this point you are stuck with ^TMP("BHSPHS",$J,"PMH"
@@ -237,18 +238,22 @@ LASTBP ;
 LASTWC ;
  K BHSY S %=P_"^LAST MEAS WC" NEW X S E=$$START1^APCLDF(%,"BHSY(") S BHSX("WC")=$P($G(BHSY(1)),U,2),BHSX("WCD")=$P($G(BHSY(1)),U)
 BMI ;
+ ;Patch 8Changed to get stored BMIs
  I $$AGE^AUPNPAT(P)<19,(BHSX("WTD")'=BHSX("HTD")) Q
  I BHSX("WT")=""!('BHSX("HT")) Q
- S %=""
- S W=BHSX("WT")*.45359,H=(BHSX("HT")*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
- S BHSX("BMI")=%
+ K BHSY S %=P_"^LAST MEAS BMI" NEW X S E=$$START1^APCLDF(%,"BHSY(") S BHSX("BMI")=$P($G(BHSY(1)),U,2),BHSX("BMD")=$P($G(BHSY(1)),U)
+ ;S %=""
+ ;S W=BHSX("WT")*.45359,H=(BHSX("HT")*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
+ ;S BHSX("BMI")=%
  Q
  ;
 DMDX(P) ;
  ;check problem list OR must have 3 diagnoses
- N T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ N T
+ S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+ .I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW BHSX
  S BHSX=""

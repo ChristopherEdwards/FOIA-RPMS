@@ -1,9 +1,9 @@
-ICARE IPC CATEGORIES
-ZWR
+OSEHRA ZGO Export: ICARE IPC CATEGORIES
+12-JUN-2017 09:47:30 ZWR
 ^BQI(90506.8,0)="ICARE IPC CATEGORIES^90506.8^18^14"
 ^BQI(90506.8,1,0)="Cancer Screening^^S^2"
 ^BQI(90506.8,2,0)="Core^^C"
-^BQI(90506.8,3,0)="Health Risk Screening^^S^2"
+^BQI(90506.8,3,0)="Comprehensive Health Screening^^S^2"
 ^BQI(90506.8,4,0)="Outcome Measures^^S^2"
 ^BQI(90506.8,5,0)="Advanced^^C"
 ^BQI(90506.8,6,0)="Tobacco^^S^2"
@@ -30,10 +30,10 @@ ZWR
 ^BQI(90506.8,"B","Advanced",5)=""
 ^BQI(90506.8,"B","CVD Measures",17)=""
 ^BQI(90506.8,"B","Cancer Screening",1)=""
+^BQI(90506.8,"B","Comprehensive Health Screening",3)=""
 ^BQI(90506.8,"B","Continuity of Care",8)=""
 ^BQI(90506.8,"B","Core",2)=""
 ^BQI(90506.8,"B","DM Comprehensive Care",13)=""
-^BQI(90506.8,"B","Health Risk Screening",3)=""
 ^BQI(90506.8,"B","Million Hearts Campaign",16)=""
 ^BQI(90506.8,"B","Other",18)=""
 ^BQI(90506.8,"B","Other Core",9)=""

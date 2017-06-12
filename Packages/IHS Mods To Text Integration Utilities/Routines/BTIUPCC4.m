@@ -1,5 +1,5 @@
-BTIUPCC4 ; IHS/CIA/MGH - IHS PCC INPT OBJECTS ;28-Jun-2012 17:26;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1004,1005,1006,1010**;NOV 04, 2004;Build 24
+BTIUPCC4 ; IHS/CIA/MGH - IHS PCC INPT OBJECTS ;13-Dec-2013 09:55;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1004,1005,1006,1010,1012**;NOV 04, 2004;Build 45
  ;Patch 1005 added measurment list object
  ;Patch 1010 adds qualifiers
  ;==================================================================
@@ -19,7 +19,7 @@ LSTMEAS(DFN,TIUMSR,VAIN) ; -- returns most current measurement (internal values)
  .. K TIU D ENP^XBDIQ1(9000010.01,IEN,".03;.04;1201;2","TIU(","I")
  .. ; value ^ visit ien ^ event date internal format
  .. Q:TIU(2,"I")=1    ;Quit if entered in error
- .. S QUALIF=$$QUAL^BTIULO7(IEN)
+ .. S QUALIF=$$QUAL^BTIULO7A(IEN)
  .. S LINE=$G(TIU(.04))_U_$G(TIU(.03,"I"))_U_$G(TIU(1201,"I"))_U_QUALIF
  .. S DATE=$S($G(TIU(1201,"I"))]"":TIU(1201,"I"),1:(9999999-$P(VDT,"."))_"."_$P(VDT,".",2))
  .. S ARR(DATE,IEN)=LINE

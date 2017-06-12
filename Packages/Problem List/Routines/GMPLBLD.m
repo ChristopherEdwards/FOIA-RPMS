@@ -1,5 +1,5 @@
-GMPLBLD ; SLC/MKB -- Build Problem Selection Lists ; 3/12/03  9:31
- ;;2.0;Problem List;**3,28,33**;Aug 25, 1994
+GMPLBLD ; SLC/MKB -- Build Problem Selection Lists ;09/22/11  15:14
+ ;;2.0;Problem List;**3,28,33,36**;Aug 25, 1994;Build 65
  ;
  ;This routine invokes IA #3991
  ;
@@ -49,12 +49,14 @@ BUILD(LIST,MODE) ; Build ^TMP("GMPLST",$J,)
  . Q:'+$P(^TMP("GMPLIST",$J,IFN),U,4)
  . D CNTRL^VALM10(LCNT,14,$L(HDR),IOUON,IOUOFF)
  . F PSEQ=0:0 S PSEQ=$O(^GMPL(125.12,"C",+GROUP,PSEQ)) Q:PSEQ'>0  D
- . . S IFN=$O(^GMPL(125.12,"C",+GROUP,PSEQ,0)),LCNT=LCNT+1
- . . S ITEM=$G(^GMPL(125.12,IFN,0)),^TMP("GMPLST",$J,LCNT,0)="             "_$P(ITEM,U,4)
- . . I $L($P(ITEM,U,5)) D
+ .. S IFN=$O(^GMPL(125.12,"C",+GROUP,PSEQ,0)),LCNT=LCNT+1
+ .. S ITEM=$G(^GMPL(125.12,IFN,0)),^TMP("GMPLST",$J,LCNT,0)="             "_$P(ITEM,U,4)
+ .. I $L($P(ITEM,U,5)) D
+ ... N GMI
  ... S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_" ("_$P(ITEM,U,5)_")"
- ... I $$STATCHK^ICDAPIU($P(ITEM,U,5),DT) Q  ; code is active
- ... S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_"    <INACTIVE CODE>"
+ ... F GMI=1:1:$L($P(ITEM,U,5),"/") D
+ .... I $$STATCHK^ICDAPIU($P($P(ITEM,U,5),"/",GMI),DT) Q  ; code is active
+ .... S ^TMP("GMPLST",$J,LCNT,0)=^TMP("GMPLST",$J,LCNT,0)_"    <INACTIVE CODE>"
  . S LCNT=LCNT+1,^TMP("GMPLST",$J,LCNT,0)="   "
  S ^TMP("GMPLST",$J,0)=NUM_U_LCNT,VALMCNT=LCNT
  Q

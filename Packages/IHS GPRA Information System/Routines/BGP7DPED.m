@@ -1,5 +1,5 @@
-BGP7DPED ; IHS/CMI/LAB - IHS gpra print ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7DPED ; IHS/CMI/LAB - IHS gpra print 10 Apr 2017 2:46 PM 27 Jan 2017 12:37 PM ; 
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
 PRINT ;
@@ -19,12 +19,13 @@ DEL ;EP - create delimited output file
  K ^BGPDATA ;global for saving
  S X=0 F  S X=$O(^TMP($J,"BGPDEL",X)) Q:X'=+X  S ^BGPDATA(X)=^TMP($J,"BGPDEL",X)
  I '$D(BGPGUI) D
- .S XBFLT=1,XBFN=BGPDELF_".txt",XBMED="F",XBTLE="GPRA 07 DELIMITED PT ED OUTPUT",XBQ="N",XBF=0
+ .;S XBUF=BGPUF
+ .S XBFLT=1,XBFN=BGPDELF_".txt",XBMED="F",XBTLE="GPRA 16 DELIMITED PT ED OUTPUT",XBQ="N",XBF=0
  .D ^XBGSAVE
  .K XBFLT,XBFN,XBMED,XBTLE,XBE,XBF
  I $D(BGPGUI) D
- .S (C,X)=0 F  S X=$O(^BGPDATA(X)) Q:X'=+X  S C=C+1,^BGPGUIA(BGPGIEN,12,C,0)=^BGPDATA(X)
- .S ^BGPGUIA(BGPGIEN,12,0)="^90531.0812^"_C_"^"_C_"^"_DT
+ .S (C,X)=0 F  S X=$O(^BGPDATA(X)) Q:X'=+X  S C=C+1,^BGPGUIG(BGPGIEN,12,C,0)=^BGPDATA(X)
+ .S ^BGPGUIG(BGPGIEN,12,0)="^90558.1912^"_C_"^"_C_"^"_DT
  L -^BGPDATA
  K ^BGPDATA ;export global
  D EXIT
@@ -37,30 +38,31 @@ DEL1 ;EP
  S BGPIC=0 F  S BGPIC=$O(BGPIND(BGPIC)) Q:BGPIC=""  D
  .;now print individual measure
  .D S(" ",1,1),S(" ",1,1)
- .S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ .S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  .D S(" ",1,1)
+ .I $G(BGPDNT) G CALC
  .S X="Denominator(s):" D S(X,1,1)
- .S BGPX=0 F  S BGPX=$O(^BGPPEIA(BGPIC,61,"B",BGPX)) Q:BGPX'=+BGPX  D
- ..S BGPY=0 F  S BGPY=$O(^BGPPEIA(BGPIC,61,"B",BGPX,BGPY)) Q:BGPY'=+BGPY  D
- ...S BGPZ=0 F  S BGPZ=$O(^BGPPEIA(BGPIC,61,BGPY,11,BGPZ)) Q:BGPZ'=+BGPZ  D
- ....S Y=^BGPPEIA(BGPIC,61,BGPY,11,BGPZ,0) D S(Y,1,1)
+ .S BGPX=0 F  S BGPX=$O(^BGPPEIG(BGPIC,61,"B",BGPX)) Q:BGPX'=+BGPX  D
+ ..S BGPY=0 F  S BGPY=$O(^BGPPEIG(BGPIC,61,"B",BGPX,BGPY)) Q:BGPY'=+BGPY  D
+ ...S BGPZ=0 F  S BGPZ=$O(^BGPPEIG(BGPIC,61,BGPY,11,BGPZ)) Q:BGPZ'=+BGPZ  D
+ ....S Y=^BGPPEIG(BGPIC,61,BGPY,11,BGPZ,0) S:BGPZ=1 Y=" - "_Y D S(Y,1,1)
  ....Q
  ...Q
  ..Q
  .D S(" ",1,1)
  .S X="Numerator(s):" D S(X,1,1)
- .S BGPX=0 F  S BGPX=$O(^BGPPEIA(BGPIC,62,"B",BGPX)) Q:BGPX'=+BGPX  D
- ..S BGPY=0 F  S BGPY=$O(^BGPPEIA(BGPIC,62,"B",BGPX,BGPY)) Q:BGPY'=+BGPY  D
- ...S BGPZ=0 F  S BGPZ=$O(^BGPPEIA(BGPIC,62,BGPY,11,BGPZ)) Q:BGPZ'=+BGPZ  D
- ....S X=^BGPPEIA(BGPIC,62,BGPY,11,BGPZ,0) D S(X,1,1)
+ .S BGPX=0 F  S BGPX=$O(^BGPPEIG(BGPIC,62,"B",BGPX)) Q:BGPX'=+BGPX  D
+ ..S BGPY=0 F  S BGPY=$O(^BGPPEIG(BGPIC,62,"B",BGPX,BGPY)) Q:BGPY'=+BGPY  D
+ ...S BGPZ=0 F  S BGPZ=$O(^BGPPEIG(BGPIC,62,BGPY,11,BGPZ)) Q:BGPZ'=+BGPZ  D
+ ....S X=^BGPPEIG(BGPIC,62,BGPY,11,BGPZ,0) S:BGPZ=1 X=" - "_X D S(X,1,1)
  ....Q
  ...Q
  ..Q
  .D S(" ",1,1)
  .S BGPNODE=11
- .S BGPX=0 F  S BGPX=$O(^BGPPEIA(BGPIC,BGPNODE,BGPX)) Q:BGPX'=+BGPX  D
- ..S X=^BGPPEIA(BGPIC,BGPNODE,BGPX,0) D S(X,1,1)
- .D @BGPIC
+ .S BGPX=0 F  S BGPX=$O(^BGPPEIG(BGPIC,BGPNODE,BGPX)) Q:BGPX'=+BGPX  D
+ ..S X=^BGPPEIG(BGPIC,BGPNODE,BGPX,0) D S(X,1,1)
+CALC .D @BGPIC
  Q
 EXIT ;
  K ^TMP($J)
@@ -82,26 +84,28 @@ C(X,X2,X3) ;
  Q X
  ;
 1 ;
- D S(" ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S(" ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,1)
  S BGPPRD=$$V(2,BGPRPT,11,1)
  S BGPBLD=$$V(3,BGPRPT,11,1)
- S X="User Pop" D S(X,1,1)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
+ I '$G(BGPSEAT) S X="User Pop" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
  S N=11,P=2 D SETN
- S X="# w/ patient ed" D S(X,1,1)
+ S X="# w/ Patient Ed" D S(X,1,1)
  D H2^BGP7PDL1
  Q
 2 ;
- D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,7)
  S BGPPRD=$$V(2,BGPRPT,11,7)
  S BGPBLD=$$V(3,BGPRPT,11,7)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
  S X="Total Time Spent" D S(X,1,1) S X="Providing Education (mins)" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
@@ -142,7 +146,7 @@ C(X,X2,X3) ;
  S X="" D S(X,1,1)
  D S("Total # of Minutes recorded",1,1) D S("for All Providers",1,1)
  S Y=BGPAA_"^^"_BGPAB_"^^^"_BGPAC D S(Y,,2)
- D S("Total # of Topics with Provider",1,1) D S("and minutes recorded",1,1)
+ D S("Total # of Pt Ed Codes with Provider",1,1) D S("and minutes recorded",1,1)
  S Y=BGPCYN_"^^"_BGPPRN_"^^^"_BGPBLN D S(Y,,2)
  D S(" ",1,1)
  S X="Average Time Spent" D S(X,1,1) S X="All Providers (minutes)" D S(X,1,1)
@@ -154,37 +158,38 @@ C(X,X2,X3) ;
  I $G(BGPAREAA) D
  .S BGPCYD=999999999,BGPBLD=999999999,BGPPRD=999999999
  .S X=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  D
- ..I $P(^BGPPEDCA(X,11),U,4)]"",$P(^BGPPEDCA(X,11),U,4)<BGPCYD S BGPCYD=$P(^BGPPEDCA(X,11),U,4)
- ..I $P(^BGPPEDPA(X,11),U,4)]"",$P(^BGPPEDPA(X,11),U,4)<BGPPRD S BGPPRD=$P(^BGPPEDPA(X,11),U,4)
- ..I $P(^BGPPEDBA(X,11),U,4)]"",$P(^BGPPEDBA(X,11),U,4)<BGPBLD S BGPBLD=$P(^BGPPEDBA(X,11),U,4)
- .I BGPCYD=999999999 S BGPCYD=""
- .I BGPBLD=999999999 S BGPBLD=""
- .I BGPPRD=999999999 S BGPPRD=""
+ ..I $P($G(^BGPPEDCG(X,11)),U,4)]"",$P(^BGPPEDCG(X,11),U,4)<BGPCYD S BGPCYD=$P(^BGPPEDCG(X,11),U,4)
+ ..I $P($G(^BGPPEDPG(X,11)),U,4)]"",$P(^BGPPEDPG(X,11),U,4)<BGPPRD S BGPPRD=$P(^BGPPEDPG(X,11),U,4)
+ ..I $P($G(^BGPPEDBG(X,11)),U,4)]"",$P(^BGPPEDBG(X,11),U,4)<BGPBLD S BGPBLD=$P(^BGPPEDBG(X,11),U,4)
+ .I BGPCYD=999999999 S BGPCYD=0
+ .I BGPBLD=999999999 S BGPBLD=0
+ .I BGPPRD=999999999 S BGPPRD=0
  S X="" D S(X,1,1)
- S X="Minimum Time Spent" D S(X,2,1) S X="Providing Education (mins)" D S(X,1,1)
+ S X="Minimum Time Spent" D S(X,2,1) S X="All Providers (minutes)" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  I '$G(BGPAREAA) D
  .S BGPCYD=$$V(1,BGPRPT,11,5)
  .S BGPPRD=$$V(2,BGPRPT,11,5)
  .S BGPBLD=$$V(3,BGPRPT,11,5)
  I $G(BGPAREAA) D
- .S (BGPCYD,BGPPRD,BGPBLD)=""
+ .S (BGPCYD,BGPPRD,BGPBLD)=0
  .S X=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  D
- ..I $P(^BGPPEDCA(X,11),U,5)>BGPCYD S BGPCYD=$P(^BGPPEDCA(X,11),U,5)
- ..I $P(^BGPPEDPA(X,11),U,5)>BGPPRD S BGPPRD=$P(^BGPPEDPA(X,11),U,5)
- ..I $P(^BGPPEDBA(X,11),U,5)>BGPBLD S BGPBLD=$P(^BGPPEDBA(X,11),U,5)
+ ..I $P($G(^BGPPEDCG(X,11)),U,5)>BGPCYD S BGPCYD=$P(^BGPPEDCG(X,11),U,5)
+ ..I $P($G(^BGPPEDPG(X,11)),U,5)>BGPPRD S BGPPRD=$P(^BGPPEDPG(X,11),U,5)
+ ..I $P($G(^BGPPEDBG(X,11)),U,5)>BGPBLD S BGPBLD=$P(^BGPPEDBG(X,11),U,5)
  S X="" D S(X,1,1)
- S X="Maximum Time Spent" D S(X,1,1) S X="Providing Education (mins)" D S(X,1,1)
+ S X="Maximum Time Spent" D S(X,1,1) S X="All Providers (minutes)" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  Q
 3 ;
  S X=""
- D S("  ",1,1) D S("  ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S("  ",1,1) D S("  ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,8)
  S BGPPRD=$$V(2,BGPRPT,11,8)
  S BGPBLD=$$V(3,BGPRPT,11,8)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
  S X="Total # Education Codes" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
@@ -206,12 +211,13 @@ C(X,X2,X3) ;
  Q
 4 ;
  S X=""
- D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,9)
  S BGPPRD=$$V(2,BGPRPT,11,9)
  S BGPBLD=$$V(3,BGPRPT,11,9)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
  S X="Total # Education Codes" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
@@ -233,12 +239,13 @@ C(X,X2,X3) ;
  Q
 5 ;
  S X=""
- D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,10)
  S BGPPRD=$$V(2,BGPRPT,11,10)
  S BGPBLD=$$V(3,BGPRPT,11,10)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
  S X="Total # Education Codes" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
@@ -260,12 +267,13 @@ C(X,X2,X3) ;
  Q
 6 ;
  S X=""
- D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIA(BGPIC,0),U,2) D S(X,1,1)
+ D S(" ",1,1) D S(" ",1,1) ;S X=$P(^BGPPEIG(BGPIC,0),U,2) D S(X,1,1)
  D H1^BGP7PDL1
  D S(" ",1,1)
  S BGPCYD=$$V(1,BGPRPT,11,12)
  S BGPPRD=$$V(2,BGPRPT,11,12)
  S BGPBLD=$$V(3,BGPRPT,11,12)
+ I $G(BGPSEAT) S X=$P(^DIBT(BGPSEAT,0),U,1)_" Population" D S(X,1,1)
  S X="Total # Education Codes" D S(X,1,1)
  S Y=BGPCYD_"^^"_BGPPRD_"^^^"_BGPBLD D S(Y,,2)
  D S(" ",1,1)
@@ -289,6 +297,9 @@ C(X,X2,X3) ;
  S X="Blank (Not recorded)" D S(X,1,1)
  D H2^BGP7PDL1
  Q
+7 ;
+ D 7^BGP7DPEF
+ Q
 KITM ;
  K ^TMP($J)
  K ^XTMP("BGP7PE",BGPJ,BGPH)
@@ -296,16 +307,16 @@ KITM ;
 SETNM ;
  K BGPPROVS
  I $G(BGPAREAA) D SETNMA Q
- S X=0 F  S X=$O(^BGPPEDCA(BGPRPT,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDCA(BGPRPT,N,X,0),U),L=$P(^BGPPEDCA(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDCA(BGPRPT,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDCG(BGPRPT,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDCG(BGPRPT,N,X,0),U),L=$P(^BGPPEDCG(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDCG(BGPRPT,N,X,0),U,3)
  .I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,1)=M Q
  .S $P(BGPPROVS(C,L),U,1)=M
- S X=0 F  S X=$O(^BGPPEDPA(BGPRPT,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDPA(BGPRPT,N,X,0),U),L=$P(^BGPPEDPA(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDPA(BGPRPT,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDPG(BGPRPT,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDPG(BGPRPT,N,X,0),U),L=$P(^BGPPEDPG(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDPG(BGPRPT,N,X,0),U,3)
  .I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,2)=M Q
  .S $P(BGPPROVS(C,L),U,2)=M
- S X=0 F  S X=$O(^BGPPEDBA(BGPRPT,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDBA(BGPRPT,N,X,0),U),L=$P(^BGPPEDBA(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDBA(BGPRPT,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDBG(BGPRPT,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDBG(BGPRPT,N,X,0),U),L=$P(^BGPPEDBG(BGPRPT,N,X,0),U,2),M=$P(^BGPPEDBG(BGPRPT,N,X,0),U,3)
  .I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,3)=M Q
  .S $P(BGPPROVS(C,L),U,3)=M
  ;set %ages
@@ -327,16 +338,16 @@ SETNMA ;
  .Q
  Q
 SETNMA1 ;
- S X=0 F  S X=$O(^BGPPEDCA(Z,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDCA(Z,N,X,0),U),L=$P(^BGPPEDCA(Z,N,X,0),U,2),M=$P(^BGPPEDCA(Z,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDCG(Z,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDCG(Z,N,X,0),U),L=$P(^BGPPEDCG(Z,N,X,0),U,2),M=$P(^BGPPEDCG(Z,N,X,0),U,3)
  .;I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,1)=M Q
  .S $P(BGPPROVS(C,L),U,1)=$P($G(BGPPROVS(C,L)),U,1)+M
- S X=0 F  S X=$O(^BGPPEDPA(Z,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDPA(Z,N,X,0),U),L=$P(^BGPPEDPA(Z,N,X,0),U,2),M=$P(^BGPPEDPA(Z,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDPG(Z,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDPG(Z,N,X,0),U),L=$P(^BGPPEDPG(Z,N,X,0),U,2),M=$P(^BGPPEDPG(Z,N,X,0),U,3)
  .;I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,2)=M Q
  .S $P(BGPPROVS(C,L),U,2)=$P($G(BGPPROVS(C,L)),U,2)+M
- S X=0 F  S X=$O(^BGPPEDBA(Z,N,X)) Q:X'=+X  D
- .S C=$P(^BGPPEDBA(Z,N,X,0),U),L=$P(^BGPPEDBA(Z,N,X,0),U,2),M=$P(^BGPPEDBA(Z,N,X,0),U,3)
+ S X=0 F  S X=$O(^BGPPEDBG(Z,N,X)) Q:X'=+X  D
+ .S C=$P(^BGPPEDBG(Z,N,X,0),U),L=$P(^BGPPEDBG(Z,N,X,0),U,2),M=$P(^BGPPEDBG(Z,N,X,0),U,3)
  .;I $D(BGPPROVS(C,L)) S $P(BGPPROVS(C,L),U,3)=M Q
  .S $P(BGPPROVS(C,L),U,3)=$P($G(BGPPROVS(C,L)),U,3)+M
  .Q
@@ -355,14 +366,14 @@ SL(V) ;
 V(T,R,N,P,ND) ;EP ;SPDX
  I $G(BGPAREAA) G VA
  NEW X
- I T=1 S X=$P($G(^BGPPEDCA(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=2 S X=$P($G(^BGPPEDPA(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=3 S X=$P($G(^BGPPEDBA(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=1 S X=$P($G(^BGPPEDCG(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=2 S X=$P($G(^BGPPEDPG(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=3 S X=$P($G(^BGPPEDBG(R,N)),U,P) Q $S(X]"":X,1:0)
  Q ""
 VA ;
  NEW X,V,C S X=0,C="" F  S X=$O(BGPSUL(X)) Q:X'=+X  D
- .I T=1 S C=C+$P($G(^BGPPEDCA(X,N)),U,P)
- .I T=2 S C=C+$P($G(^BGPPEDPA(X,N)),U,P)
- .I T=3 S C=C+$P($G(^BGPPEDBA(X,N)),U,P)
+ .I T=1 S C=C+$P($G(^BGPPEDCG(X,N)),U,P)
+ .I T=2 S C=C+$P($G(^BGPPEDPG(X,N)),U,P)
+ .I T=3 S C=C+$P($G(^BGPPEDBG(X,N)),U,P)
  .Q
  Q $S(C]"":C,1:0)

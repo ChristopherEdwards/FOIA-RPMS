@@ -1,20 +1,26 @@
-ATXBULL2 ; IHS/OHPRD/TMJ -  AND DELETE BULLETINS FOR A TAXONOMY ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ATXBULL2 ; IHS/OHPRD/TMJ -  AND DELETE BULLETINS FOR A TAXONOMY ; 30 Oct 2012  7:22 AM
+ ;;5.1;TAXONOMY;**11,17**;FEB 04, 1997;Build 29
  ;
 ENTER ; ENTRY POINT - Taxonomy updated with bulletin to be triggered for a taxonomy; new bulletin for each taxonomy will be created
- S ATXFLG=""
- S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,5)=DUZ,$P(^(0),U,8)" D ^DIC K DR,DA,DIC K DIC I Y<1 G X1
- S ATXDFN=+Y
- I $P(^ATXAX(+Y,0),U,7) S ATXEXIST=1 W !,"If you want to change the mail group designated for this taxonomy's bulletin,",!,"delete the bulletin for this taxonomy and then recreate the bulletin and enter",!,"a new mail group."
+ ;S ATXFLG=""
+ ;S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I I $P(^(0),U,5)=DUZ,I $P(^(0),U,8)" D ^DIC K DR,DA,DIC K DIC I Y<1 G X1
+ S ATXDFN=ATXX
+ I $P(^ATXAX(ATXDFN,0),U,7) S ATXEXIST=1 W !,"If you want to change the mail group designated for this taxonomy's bulletin,",!,"delete the bulletin for this taxonomy and then recreate the bulletin and enter",!,"a new mail group."
  E  D CREATE I '$D(ATXBULL) W !,$C(7),"Bulletin could not be created!" G X1
+ W !!
  I '$D(ATXDEL) D
- . S DIE="^ATXAX(",DA=ATXDFN,DR=$S('$D(ATXEXIST):".03;.07////"_ATXBULL_";.11//B;.17;.19;.21",1:".03;.11;.17;.19;.21") D ^DIE K DIE,DA,ATXBULL
+ . I '$D(ATXEXIST) S DIE="^ATXAX(",DA=ATXDFN,DR=".07////"_ATXBULL D ^DIE K DIE,DA,ATXBULL
+ . S DA=ATXDFN,DIE="^ATXAX(",DR="[ATX BULLETIN SETUP" D ^DIE K DIE,DA,ATXBULL
  . I '$D(ATXEXIST) W !!,"Okay, a bulletin has been created for this taxonomy."
 X1 K ATXEXIST,ATXBULL,ATXDFN,ATXFLG,ATXDEL Q
  ;
 DELETE ; ENTRY POINT - Delete a bulletin from a taxonomy
+ W !,"Use this option to stop sending a bulletin for a taxonomy."
+ W !,"To resume sending a bulletin after it has been deleted, recreate it"
+ W !,"using the Enter Bulletin for a Taxonomy option."
+ W !
  S ATXFLG=""
- S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,5)=DUZ,$P(^(0),U,8)" D ^DIC K DIC I Y<1 G X2
+ S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,8)" D ^DIC K DIC I Y<1 G X2
  I '$P(^ATXAX(+Y,0),U,7) W !,"A bulletin does not exist for this taxonomy." G X2
  S ATXDFN=+Y,ATXDFN("BULL")=$P(^ATXAX(+Y,0),U,7)
  S DIR(0)="Y",DIR("B")="NO",DIR("A")="Are you sure you want to no longer have a bulletin issued for this taxonomy" D ^DIR K DIR
@@ -32,3 +38,9 @@ A . S DIC="^XMB(3.8,ATXGRP,1,",DA(1)=ATXGRP,DIC(0)="AEMQL",DIC("P")=$P(^DD(3.8,2
  I '$D(ATXGRP) W !,"Mail group not indicated, bulletin being removed for this taxonomy." S DA=ATXBULL,DIK="^XMB(3.6," D ^DIK K DA,DIK S ATXDEL=""
 X3 K ATXCOPY,ATXGRP,ATXSUB Q
  ;
+HFD ;EP - call from executable help
+ D EN^DDIOL("If you only want a bulletin sent the very first time the")
+ D EN^DDIOL("patient has had this diagnosis enter Yes below. It would")
+ D EN^DDIOL("be appropriate to answer yes if you only want a bulletin for a")
+ D EN^DDIOL("new case of a diagnosis.")
+ Q

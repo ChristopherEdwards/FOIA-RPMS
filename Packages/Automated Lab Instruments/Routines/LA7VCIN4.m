@@ -1,10 +1,13 @@
-LA7VCIN4 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VCIN4 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,1018,64,1027,1033**;NOV 01, 1997
+ ;
  ;This routine is a continuation of LA7VIN1 and is only called from there.
  Q
  ;
 OBR ; Process OBR segments
  N I,LA7CUP,LA7ENTRY,LA7IDE,LA7INST,LA7PDUZ,LA7TRAY,LA7X,LA7Y
+ S LA762495=$G(LA7INDX)  ;ihs/cmi/maw 03/08/2013 need for MU and LA7VCMI
+ S LA7OBR=$G(LA7SEG(0))  ;ihs/cmi/maw 03/08/2013 need for MU and LA7VCMI
  ;
  ; OBR Set ID
  S LA7SOBR=$$P^LA7VHLU(.LA7SEG,2,LA7FS)
@@ -51,6 +54,16 @@ OBR ; Process OBR segments
  . I $P(LA7X,LA7CS,I+2)="99VA64" S LA7ONLT=$P(LA7X,LA7CS,I),LA7ONLT(0)=$P(LA7X,LA7CS,I+1) Q
  . I LA7INTYP>19,LA7INTYP<30,$P(LA7X,LA7CS,I+2)="" S LA7ONLT=$P(LA7X,LA7CS,I),LA7ONLT(0)=$P(LA7X,LA7CS,I+1) Q
  ;
+ ; Specimen action code
+ S LA7SAC=$$P^LA7VHLU(.LA7SEG,12,LA7FS)
+ S LA7SACSN=$P(LA7SAC,LA7CS)
+ S LA7ICNT=0  ;ihs/cmi/maw MU lets start the isolate count in OBR, incremented in LA7VCMI
+ ;
+ S LA7MPN=$P($$P^LA7VHLU(.LA7SEG,27,LA7FS),LA7CS,2)  ;parent node
+ I LA7SACSN="G" D  ;MU this is a reflex, then lets set the parent as orignal accession
+ . S LA7SID=$P($$P^LA7VHLU(.LA7SEG,30,LA7FS),"&")
+ . S LA7FID=LA7SID
+ ;
  ; Specimen collection date/time
  S LA7CDT=$$HL7TFM^XLFDT($P($$P^LA7VHLU(.LA7SEG,8,LA7FS),LA7CS),"L")
  ;
@@ -61,8 +74,8 @@ OBR ; Process OBR segments
  S LA7CUP=+$P(LA7X,"^",2) ; Cup
  ; If POC interface set cup to file #62.49 ien
  I LA7INTYP>19,LA7INTYP<30 S LA7CUP=LA76249
- ;S LA7AA=$P(LA7X,"^",3) ;  Accession Area  ;cmi/maw 3/2/10 not used for ihs ref lab
- S LA7AA=+$O(^LRO(68,"B","SO",0))         ;  Accession Area  ;cmi/maw 3/2/10 ihs reference lab
+ S LA7AA=$P(LA7X,"^",3)
+ ; S LA7AA=+$O(^LRO(68,"B","SO",0))         ;  Accession Area  ;cmi/maw 3/2/10 ihs reference lab -- IHS/MSC/MKK - LR*5.2*1032 -- Commented out -- Don't do this:  "MI" incoming uses this routine as well.
  S LA7AD=$P(LA7X,"^",4) ;  Accession Date
  S LA7AN=$P(LA7X,"^",5) ;  Accession Entry
  S LA7ACC=$P(LA7X,"^",6) ;  Accession
@@ -71,6 +84,8 @@ OBR ; Process OBR segments
  ;I LA7UID'?1(10UN,15UN) S LA7UID=""
  ;cmi/maw 3/2/10 ihs ref lab
  S LA7UID=LA7SID  ;cmi/maw 3/2/10 OBR-3 contains the UID
+ ;
+ D ENTRYAUD^BLRUTIL("OBR^LA7VCIN4 5.0")   ; IHS/MSC/MKK - LR*5.2*1032
  ;
  ; Sequence Number
  ; If point of care interface (20-29) then use file #62.49 ien as IDE
@@ -105,9 +120,22 @@ OBR ; Process OBR segments
  ; Accession's subscript
  S LA7SS=$P(LA7AA(0),"^",2)
  ;
- ; Specimen action code
- S LA7SAC=$$P^LA7VHLU(.LA7SEG,12,LA7FS)
+ ; Relevant Clinical Information MU2
+ S LA7RCI=$P($$P^LA7VHLU(.LA7SEG,14,LA7FS),LA7CS,2)
  ;
+ ; Handle Result Status
+ S LA7RSTAT=$$P^LA7VHLU(.LA7SEG,26,LA7FS)
+ ;I LA7RSTAT="X" D  ;MU this is a cancelled test lets call auto cancellation
+ ;. D NOTPERF^BLRRLTDR(LA7UID) 
+ ;
+ ; Result copies to
+ ; ihs/cmi/maw TODO 02/28/2013 do something with result copies to
+ S LA7RCT=$P($$P^LA7VHLU(.LA7SEG,29,LA7FS),LA7CS,1,6)
+ S LA7RCT=$S($G(LA7RCT)]"":$TR(LA7RCT,"^","~"),1:"")
+ ;
+ ; Results Handling MU2
+ S LA7RHAND=$P($$P^LA7VHLU(.LA7SEG,50,LA7FS),LA7CS)
+ ; 
  ; Specimen(topography), collection sample, HL7 specimen source
  S (LA761,LA762,LA70070,LA7SPEC)=""
  S LA7SPTY=$$P^LA7VHLU(.LA7SEG,16,LA7FS)
@@ -166,8 +194,23 @@ OBR ; Process OBR segments
  . . S ^TMP("LA7 ORDER STATUS",$J,LA7I)=X
  ;
  I LA7INTYP=10,$G(LA7SM)'="",$G(LA7UID)'="" D SMUPDT
+ I LA7SACSN="G" D  ;MU this is a reflex, then lets set the parent as orignal accession
+ . ;S LA7MPN=$P($$P^LA7VHLU(.LA7SEG,27,LA7FS),LA7CS)  ;parent node
+ . ;S LA7SID=$P($$P^LA7VHLU(.LA7SEG,30,LA7FS),"&")
+ . ;S LA7FID=LA7SID
+ . Q:$G(LA7SS)="MI"
+ . S LA7TTEST=$P($$P^LA7VHLU(.LA7SEG,5,LA7FS),LA7CS)
+ . ;I $G(LA7SS)'="MI" D
+ . S LA7TTEST=$O(^LAB(62.4,LA7624,3,"AC",LA7TTEST,0))
+ . S LA7TTSTI=$P($G(^LAB(62.4,LA7624,3,LA7TTEST,0)),U)
+ . D ADDTST^BLRRLTAR(LA76249,LA7TTSTI,LA7SID)
+ D LAHOBR(LA7RCI,LA7RCT,LA7RHAND,LA7SACSN,$G(LA7RACE))  ;ihs/cmi/maw MU2
  Q
  ;
+LAHOBR(RCI,RCT,RHAND,SACSN,RACE) ;setup LAH
+ S ^LAH(LA7LWL,1,LA7ISQN,"IHSPID")=RACE
+ S ^LAH(LA7LWL,1,LA7ISQN,"IHSOBR")=RCI_U_RCT_U_RHAND_U_SACSN
+ Q
  ;
 LAGEN ; Sets up variables for call to ^LAGEN,  build entry in LAH
  ; requires LA7INST,LA7TRAY,LA7CUP,LA7AA,LA7AD,LA7AN,LA7LWL

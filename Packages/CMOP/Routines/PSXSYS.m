@@ -1,7 +1,8 @@
-PSXSYS ;BIR/WPB-Display CMOP System Status ;11 SEP 1998  8:38 AM
- ;;2.0;CMOP;**1,18,23,41**;11 Apr 97
+PSXSYS ;BIR/WPB-Display CMOP System Status ;07-Jul-2015 14:59;DU
+ ;;2.0;CMOP;**1,18,23,41,1019**;11 Apr 97;Build 4
  ;Reference to ^DIC(4.2 supported by DBIA #1966
  ;
+ ; Modified - IHS/MSC/PLS - 07/07/2015 - Line SET+2 added to allow multi-divisional processing
  S SYSFLAG=0
 SYSTEM ;displays the system status - called from the CMOP MGR menu
  S SY=$O(^PSX(550,"C",""))
@@ -36,6 +37,7 @@ EXIT K SYSFLAG,SYSTEM,SS,SY,Y,CDOM,FDOM,SYSSTAT,PP,PURG,PDTTM,XX,XMIT,STAT,AA,MM
  Q
 SET Q:'$D(^PSX(550,"C"))
  S (S1,DA)=$$KSP^XUPARAM("INST"),DIC="4",DIQ(0)="IE",DR=".01;99",DIQ="PSXUTIL" D EN^DIQ1 S S3=$G(PSXUTIL(4,S1,99,"I")),S2=$G(PSXUTIL(4,S1,.01,"E")) K DA,DIC,DIQ(0),DR
+ I $G(PSOSITE)'="" S S3=$P($G(^PS(59,PSOSITE,0)),"^",6)  ;IHS/MSC/PLS - 07/07/2015
  S PSXSYS=+$O(^PSX(550,"C",""))_"^"_$G(S3)_"^"_$G(S2)
  I $G(S3)="" S PSXER=$G(PSXER)_"^"_11 D ER1^PSXERR K PSXER Q
  K S3,S2,S1,PSXUTIL

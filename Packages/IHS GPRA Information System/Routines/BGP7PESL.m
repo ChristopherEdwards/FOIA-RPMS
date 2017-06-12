@@ -1,19 +1,33 @@
 BGP7PESL ; IHS/CMI/LAB - FY 06 DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;; ;
 RT ;EP
  ;for each measure list, choose report type
  W !!,"Select List Type.",!,"NOTE:  If you select All Patients, your list may be",!,"hundreds of pages and take hours to print.",!
- S DIR(0)="S^R:Random Patient List;P:Patient List by Provider;A:All Patients",DIR("A")="Choose report type for the Lists",DIR("B")="R" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^R:Random Patient List;P:Patient List by Provider"_$S($G(BGPEDPP):";O:One Education Provider;E:Patient List by Education Provider",1:"")_";A:All Patients",DIR("A")="Choose report type for the Lists"
+ S DIR("B")="R" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) S BGPQUIT="" K BGPLIST Q
  S BGPLIST=Y
  I BGPLIST="A" Q
+ I BGPLIST="E" D  Q
+ .W !!,"Please Note:  The education provider is obtained from the V Patient Ed File"
+ .W !,"and is recorded with each topic.  If the provider is not documented with the"
+ .W !,"topic the provider listed in the report will be 'Unknown'.",!
  I BGPLIST="P" D  G:BGPLPROV="" RT Q
  .S BGPLPROV="",BGPLPRV=""
  .S DIR(0)="9000001,.14",DIR("A")="Enter Designated Provider Name" KILL DA D ^DIR KILL DIR
  .I $D(DIRUT) Q
  .I Y="" Q
  .S BGPLPRV=+Y,BGPLPROV=Y(0,0)
+ I BGPLIST="O" D  G:BGPEPROV="" RT Q
+ .S BGPEPROV="",BGPEPRV=""
+ .S DIR(0)="9000001,.14",DIR("A")="Enter Education Provider Name" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) Q
+ .I Y="" Q
+ .S BGPEPRV=+Y,BGPEPROV=Y(0,0)
+ .W !!,"Please Note:  The education provider is obtained from the V Patient Ed File"
+ .W !,"and is recorded with each topic.  If the provider is not documented with the"
+ .W !,"topic the topic/patient will not be listed on the patient list.",!
  Q
 EP ;EP - CALLED FROM OPTION
  D EN
@@ -23,7 +37,7 @@ EOJ1 ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for GPRA LIST DISPLAY
- D EN^VALM("BGP 07 PATED LIST SELECTION")
+ D EN^VALM("BGP 17 PATED LIST SELECTION")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -31,17 +45,17 @@ EN ;EP -- main entry point for GPRA LIST DISPLAY
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="IHS FY 07 Patient Education Performance Measure Lists of Patients"
+ S VALMHDR(1)="IHS 2017 Patient Education Performance Measure Lists of Patients"
  S VALMHDR(2)="* indicates the list has been selected"
  Q
  ;
 INIT ; -- init variables and list array
  K BGPGLIST,BGPNOLI S BGPHIGH=""
  S (X,C,I)=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- .I $P(^BGPPEIA(X,0),U,4)]"" S C=C+1 D  Q
- ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPPEIA(X,0),U,4),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
- .I $P(^BGPPEIA(X,0),U,4)="" S C=C+1 D
- ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPPEIA(X,0),U,2),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPPEIG(X,0),U,4)]"" S C=C+1 D  Q
+ ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPPEIG(X,0),U,4),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPPEIG(X,0),U,4)="" S C=C+1 D
+ ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPPEIG(X,0),U,2),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
  S (VALMCNT,BGPHIGH)=C
  Q
  ;
@@ -69,7 +83,7 @@ ADD ;EP - add an item to the selected list - called from a protocol
  I Y="" W !,"No items selected." G ADDX
  I $D(DIRUT) W !,"No items selected." G ADDX
  D FULL^VALM1 W:$D(IOF) @IOF
- S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  S BGPI=$O(BGPGLIST("IDX",BGPGC,0)) I $D(BGPIND(BGPI)),'$D(BGPNOLI(BGPI)) S BGPLIST(BGPI)=""
+ S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  S BGPI=$O(BGPGLIST("IDX",BGPGC,0)),BGPI=BGPGLIST("IDX",BGPGC,BGPI) I $D(BGPIND(BGPI)),'$D(BGPNOLI(BGPI)) S BGPLIST(BGPI)=""
 ADDX ;
  D BACK
  Q
@@ -105,5 +119,5 @@ PT ;EP
  S DIR(0)="F^1:40",DIR("A")="Enter a filename for the delimited output (no more than 40 characters)" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G PT
  S BGPDELF=Y
- W !!,"When the report is finished your delimited output will be found in the",!,$P($G(^AUTTSITE(1,1)),U,2)," directory.  The filename will be ",BGPDELF,".txt",!
+ W !!,"When the report is finished your delimited output will be found in the",!,$$GETDEDIR^BGP7UTL2()," directory.  The filename will be ",BGPDELF,".txt",!
  Q

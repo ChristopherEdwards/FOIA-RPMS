@@ -1,5 +1,5 @@
 AUPNVMSR ; IHS/CMI/LAB - EDITS FOR AUPNVMSR (MEASUREMENTS:9000010.04) 24-MAY-1993 ; 30 Sep 2010  2:16 PM
- ;;2.0;IHS PCC SUITE;**2,5,7,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,5,7,8,10,15,16,17**;MAY 14, 2009;Build 18
  ;;
  ;;BJPC patch 1
  ;; - PF changed to 50-1000
@@ -77,6 +77,10 @@ PA ;EP (PAIN)
  I X'=+X K X Q
  K:(X<0)!(X>10) X
  Q
+NSST ;EP (NSST)
+ I X'=+X K X Q
+ K:(X<0)!(X>42) X
+ Q
 FI24 ;EP (PAIN)
  I X'=+X K X Q
  K:(X<0)!(X>10000) X
@@ -150,12 +154,14 @@ TONX ;
 VC ; (VISION CORRECTED)
 VU ; (VISION UNCORRECTED)
  I $D(DIFGLINE) Q  ;IHS/ASDST/GTH AUPN*99.1*7 02/15/2002 - do not do edit if in filegrams (mfi)
- I $L(X)>7!($L(X)<2) K X Q
- I '((X?2.3AN)!(X?1"/"2.3AN)!(X?2.3AN1"/"2.3AN)) K X Q
+ I $L(X)>11!($L(X)<2) K X Q
+ I '((X?2.3AN)!(X?1"/"2.3AN)!(X?2.3AN1"/"2.3AN)!(X?2"/"2.3AN)!(X?1"/"2.3AN1"/"2.3N)!(X?2.3AN1"/"2.3AN1"/"2.3AN)) K X Q
  I $P(X,"/",1)'="",+($P(X,"/",1)) I $P(X,"/",1)<10!($P(X,"/",1)>999) K X Q
  I $P(X,"/",1)'="",'($P(X,"/",1)) I $P(X,"/")'="HM"&($P(X,"/")'="LP")&($P(X,"/")'="NLP") K X Q
  I $P(X,"/",2)'="",+($P(X,"/",2)) I $P(X,"/",2)<10!($P(X,"/",2)>999) K X Q
- I $P(X,"/",2)'="",'($P(X,"/",2)) I $P(X,"/",2)'="HM"&($P(X,"/",2)'="LP")&($P(X,"/",2)'="NLP") K X Q  ;IHS/CMI/LAB - patch 1 changed 3 to 2
+ I $P(X,"/",2)'="",'($P(X,"/",2)) I $P(X,"/",2)'="HM"&($P(X,"/",2)'="LP")&($P(X,"/",2)'="NLP") K X Q  ;IHS/CMI/LAB -
+ I $P(X,"/",3)'="",+($P(X,"/",3)) I $P(X,"/",3)<10!($P(X,"/",3)>999) K X Q
+ I $P(X,"/",3)'="",'($P(X,"/",3)) I $P(X,"/",3)'="HM"&($P(X,"/",3)'="LP")&($P(X,"/",3)'="NLP") K X Q  ;IHS/CMI/LAB - patch 17 
  Q
 WT ;EP (WEIGHT)
  D:X?.E.A.E MWT
@@ -207,7 +213,7 @@ C ;
  S X=(X*.393701)
  Q
 AG ; (ABDOMINAL GIRTH)
- K:+X'=X!(X>150)!(X<10)!(X?.E1"."3N.N) X
+ K:+X'=X!(X>250)!(X<10)!(X?.E1"."3N.N) X
  Q
 FH ; Fundal Height
  K:+X'=X!(X>100)!(X<0)!(X?.E1"."3N.N) X
@@ -217,7 +223,7 @@ FT ; Fetal Heart Tones
  Q
 RS ;EP
  ;IHS/CMI/LAB - up'ed value to 100 pre Madonna Long aberdeen
- I X'?1.3N!(X<0)!(X>100) K X Q
+ I X'?1.3N!(X<0)!(X>140) K X Q
  Q
  ; 
 O2 ;EP called from input template
@@ -361,6 +367,33 @@ BL ;EP - called from birth length of Birth measurement file
  I X<6 K X Q
  I X>30 K X Q
  Q
+F10R ;EP (F10R)
+ ;For women:   <1, 1, 2, 3, 4, 5, 6, 8, 11, 14, 17, 22, 27, >30
+ ;For men:     <1, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 25, >30
+ I X="<1" Q
+ I X=1 Q
+ I X=2 Q
+ I X=3 Q
+ I X=4 Q
+ I X=5 Q
+ I X=6 Q
+ I X=8 Q
+ I X=">30" Q
+ I $G(AUPNSEX)="F"!($G(SEX)="F") D  Q
+ .I X=11 Q
+ .I X=14 Q
+ .I X=17 Q
+ .I X=22 Q
+ .I X=27 Q
+ .K X
+ I $G(AUPNSEX)="M"!($G(SEX)="M") D  Q
+ .I X=10 Q
+ .I X=12 Q
+ .I X=16 Q
+ .I X=20 Q
+ .I X=25 Q
+ .K X
+ Q
  ;
 OUT(IEN,VAL) ;EP called from output transform
  I 'IEN Q VAL
@@ -369,6 +402,9 @@ OUT(IEN,VAL) ;EP called from output transform
  I $P(^AUTTMSR(%,0),U)="FEF" Q $S(VAL["%":VAL,1:VAL_"%")
  I $P(^AUTTMSR(%,0),U)="FV1P" Q $S(VAL["%":VAL,1:VAL_"%")
  I $P(^AUTTMSR(%,0),U)="FVCP" Q $S(VAL["%":VAL,1:VAL_"%")
+ I $P(^AUTTMSR(%,0),U)="F10R" Q $S(VAL["%":VAL,1:VAL_"%")
+ I $P(^AUTTMSR(%,0),U)="CDR" D  Q VAL
+ .I $P(VAL,".",1)="" S VAL="0"_VAL
  I $P(^AUTTMSR(%,0),U)'="VC"&($P(^AUTTMSR(%,0),U)'="VU") Q VAL
  S VAL=$S($P(^AUPNVMSR(IEN,0),U,6):$P(^AUPNVMSR(IEN,0),U,6),1:"20")_"/"_$P(VAL,"/")_"-"_$S($P(^AUPNVMSR(IEN,0),U,6):$P(^AUPNVMSR(IEN,0),U,6),1:"20")_"/"_$P(VAL,"/",2)
  Q VAL

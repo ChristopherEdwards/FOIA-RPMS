@@ -1,5 +1,5 @@
 APCHS9B1 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;IHS PCC SUITE;**2,4,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,4,5,11**;MAY 14, 2009;Build 58
  ;
  ;IHS/CMI/LAB patch 3 many changes
  ;patch 14 added depression screening
@@ -122,7 +122,7 @@ HTN(P) ;
  ;check problem list OR must have 3 diagnoses
  N T S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW APCHX
  S APCHX=""
@@ -137,9 +137,9 @@ DMPN(P) ;return problem number of lowest DM code
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
+ .I $$ICD^ATXAPI(I,T,9) D
  ..;S D(+$P(^ICD9(I,0),U))=X  cmi/anch/maw 8/27/2007 orig line
- ..S D(+$P($$ICDDX^ICDCODE(I,,,1),U,2))=X  ;cmi/anch/maw 8/27/2007 code set versioning
+ ..S D(+$P($$ICDDX^ICDEX(I,,,"I"),U,2))=X  ;cmi/anch/maw 8/27/2007 code set versioning
  ..Q
  .Q
  S D=$O(D(""))
@@ -233,9 +233,9 @@ DEPPL(P,BDATE,EDATE) ;EP
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(G]"")  D
  .Q:$P(^AUPNPROB(X,0),U,12)'="A"
  .S I=$P($G(^AUPNPROB(X,0)),U)
- .Q:'$$ICD^ATXCHK(I,T,9)
+ .Q:'$$ICD^ATXAPI(I,T,9)
  .;S G="Yes - Problem List "_$P(^ICD9(I,0),U)  cmi/anch/maw 8/27/2007 orig line
- .S G="Yes - Problem List "_$P($$ICDDX^ICDCODE(I,,,1),U,2)  ;cmi/anch/maw 8/27/2007 code set versioning
+ .S G="Yes - Problem List "_$P($$ICDDX^ICDEX(I,,"I"),U,2)  ;cmi/anch/maw 8/27/2007 code set versioning
  .Q
  I G]"" Q G
  S (G,X,I)=""
@@ -245,11 +245,11 @@ DEPPL(P,BDATE,EDATE) ;EP
  .S I=$P($G(^AMHPPROB(X,0)),U)
  .S I=$P($G(^AMHPROB(I,0)),U,5)
  .Q:I=""
- .S I=+$$CODEN^ICDCODE(I,80)
+ .S I=+$$IEN^ICDEX(I,80,1)
  .Q:I=""
- .Q:'$$ICD^ATXCHK(I,T,9)
+ .Q:'$$ICD^ATXAPI(I,T,9)
  .;S G="Yes - BH Problem List "_$P(^ICD9(I,0),U)  cmi/anch/maw 8/27/2007 orig line
- .S G="Yes - BH Problem List "_$P($$ICDDX^ICDCODE(I,,,1),U,2)  ;cmi/anch/maw 8/27/2007 code set versioning
+ .S G="Yes - BH Problem List "_$P($$ICDDX^ICDEX(I,,,"I"),U,2)  ;cmi/anch/maw 8/27/2007 code set versioning
  .Q
  I G]"" Q G
  ;now check for 2 dxs in past year

@@ -1,5 +1,5 @@
 BGP5AU1D ; IHS/CMI/LAB - GPRA FLAT FILE DATA DUMP ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
 DESC ;----- ROUTINE DESCRIPTION
  ;;
  ;;This routine creates a text file containing the contents of

@@ -1,5 +1,5 @@
 AMHLRDSP ; IHS/CMI/LAB - DISPLAYS DAILY ACT RECORDS ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;;JUN 02, 2010;Build 18
  ;
  ;Display all records for the provider, on this date.
  ;
@@ -38,6 +38,6 @@ DISPRECS ;
  ..W ?41,"<*****>"
  .E  W ?42,"-----"
  .S AMHP=$O(^AMHRPRO("AD",AMHV,0)) I AMHP="" W ?56,"No Problems recorded." Q
- .W ?51,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W:$P(^AMHRPRO(AMHP,0),U,4) ?58,$E($P(^AUTNPOV($P(^AMHRPRO(AMHP,0),U,4),0),U),1,21)
+ .W ?51,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W ?58,$E($$GET1^DIQ(9002011.01,AMHP,.04),1,21)
  .Q
  Q

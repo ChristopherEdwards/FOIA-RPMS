@@ -1,4 +1,4 @@
-LA7VQN5A ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
+LA7VQN5A ;VA/DALOI/JMC - Process Incoming UI Msgs, continued ; 11-Apr-2014 07:11 ; MAW
  ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997;Build 9
  ; This routine is a continuation of LA7VIN5.
  ; It is performs processing of fields in OBX segments.

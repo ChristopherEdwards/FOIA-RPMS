@@ -1,5 +1,5 @@
 CIAOINIT ;MSC/IND/DKM - VueCentric Component KIDS support ;26-May-2006 18:19;DKM
- ;;1.1;VUECENTRIC COMPONENTS;;Oct 06, 2004
+ ;;1.1;VUECENTRIC COMPONENTS;;Oct 06, 2004;Build 36
  ;;Copyright 2000-2006, Medsphere Systems Corporation
  ;=================================================================
  ; Environment check

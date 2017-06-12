@@ -1,5 +1,5 @@
 ABMDE3A ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 2 ; 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,13,14,15**;NOV 12, 2009;Build 251
  ;
  ; IHS/SD/SDR - V2.5 P8 - IM14693/IM16105 - Added code for Accident State
  ; IHS/SD/SDR - v2.5 p9 - IM16001 - Made accident related editable
@@ -7,6 +7,8 @@ ABMDE3A ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 2 ;
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR - abm*2.6*6 - 5010 -changed AoB to accept "W"
  ;IHS/SD/SDR - 2.6*13 - exp mode 35; made changes to link Injury Date, Date First Symptom, and 9A Occurrence codes
+ ;IHS/SD/SDR - 2.6*14 - HEAT165301 - Removed link that was added in patch 13 to page 9A.
+ ;IHS/SD/SDR - 2.6*15 - HEAT165301 - Completely removed link to page 9A.  Now it won't even create the 9A entry.
  ;
 1 ;
  W !
@@ -64,32 +66,33 @@ W2 ;
  D ^DIR K DIR
  Q:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
  I Y=1 G ACTYPE
+ ;abm*2.6*14 HEAT165301 put back below original code to remove link from page 9A
  ;start old code abm*2.6*13 exp mode 35
- ;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)'=""!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)'="") D
- ;.I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)'="" D
- ;..S DA(1)=ABMP("CDFN")
- ;..S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
- ;..S DA=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)
- ;..D ^DIK
- ;.S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
- ;.S DR=".82////@;.83////@;.84////@"
- ;.D ^DIE K DR
- ;end old start new exp mode 35
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)'=""!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)'="") D
- .S ABMTEST=+$O(^ABMDCODE("AC","O","01",0))
- .S ABMI=0
- .F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI)) Q:'ABMI  D
- ..I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI,0)),U)'=ABMTEST Q
- ..D ^XBFMK
- ..S DA(1)=ABMP("CDFN")
- ..S DA=ABMI
- ..S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
- ..D ^DIK
- .;
+ .;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)'="" D
+ .;.S DA(1)=ABMP("CDFN")
+ .;.S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ .;.S DA=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)
+ .;.D ^DIK
  .S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
  .S DR=".82////@;.83////@;.84////@"
- .S DR=DR_";.86////@;.816////@"
  .D ^DIE K DR
+ ;end old start new exp mode 35
+ ;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)'=""!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)'="") D
+ ;.S ABMTEST=+$O(^ABMDCODE("AC","O","01",0))
+ ;.S ABMI=0
+ ;.F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI)) Q:'ABMI  D
+ ;..I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI,0)),U)'=ABMTEST Q
+ ;..D ^XBFMK
+ ;..S DA(1)=ABMP("CDFN")
+ ;..S DA=ABMI
+ ;..S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ ;..D ^DIK
+ ;.;
+ ;.S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN")
+ ;.S DR=".82////@;.83////@;.84////@"
+ ;.S DR=DR_";.86////@;.816////@"
+ ;.D ^DIE K DR
  ;end new exp mode 35
  Q
  ;
@@ -129,21 +132,23 @@ ACCODE ;EP - Entry Point for setting UB-82 Accident Code
  ;D FILE^DICN
  ;end old start new exp mode 35
  ;
+ ;start old abm*2.6*15 HEAT165301
  ;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)="" Q
- K ABMTEST,ABMI
- D ^XBFMK
- S DA(1)=ABMP("CDFN")
- S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
- S DIC("P")=$P(^DD(9002274.3,51,0),U,2)
- S X="`"_+$O(^ABMDCODE("AC","O","01",0))
- G ACHR:X=""
- S DIC(0)="ML"
- K DD,DO
- D ^DIC
- S DIE=DIC
- S DA=+Y
- S DR=".02////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)
- D ^DIE
+ ;K ABMTEST,ABMI
+ ;D ^XBFMK
+ ;S DA(1)=ABMP("CDFN")
+ ;S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ ;S DIC("P")=$P(^DD(9002274.3,51,0),U,2)
+ ;S X="`"_+$O(^ABMDCODE("AC","O","01",0))
+ ;G ACHR:X=""
+ ;S DIC(0)="ML"
+ ;K DD,DO
+ ;D ^DIC
+ ;S DIE=DIC
+ ;S DA=+Y
+ ;S DR=".02////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)
+ ;D ^DIE
+ ;end old HEAT165301
  ;end new exp mode 35
  Q
  ;

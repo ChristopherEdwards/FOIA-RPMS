@@ -1,0 +1,72 @@
+ATXDBJ ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON APR 01, 2014;
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
+ ;;BQI ALCOHOL SCREEN DXS
+ ;
+ ; This routine loads Taxonomy BQI ALCOHOL SCREEN DXS
+ ;
+START ;
+ K:'$G(ATXPGMC) ^TMP("ATX",$J)
+ S ATXPGMC=$G(ATXPGMC)+1
+ F ATXI=1:1 S X=$P($T(TMP+ATXI),";;",2,99) Q:X=""  S X="^TMP(""ATX"",$J,"_X,ATXI=ATXI+1,Y=$P($T(TMP+ATXI),";;",2,99) S @X=Y
+ D OTHER
+ I $O(^TMP("ATX",$J,3.6,0)) D BULL^ATXSTX2
+ I $O(^TMP("ATX",$J,9002226,0)) D TAX^ATXSTX2
+ D KILL^ATXSTX2
+ Q
+ ;
+TMP ;;TAXONOMY (WITH BULLETIN)
+ ;;21,"V11.3 ")
+ ;;1
+ ;;21,"V79.1 ")
+ ;;2
+ ;;9002226,1813,.01)
+ ;;BQI ALCOHOL SCREEN DXS
+ ;;9002226,1813,.02)
+ ;;Alcohol Screening
+ ;;9002226,1813,.04)
+ ;;n
+ ;;9002226,1813,.06)
+ ;;@
+ ;;9002226,1813,.08)
+ ;;0
+ ;;9002226,1813,.09)
+ ;;3131204
+ ;;9002226,1813,.11)
+ ;;@
+ ;;9002226,1813,.12)
+ ;;31
+ ;;9002226,1813,.13)
+ ;;1
+ ;;9002226,1813,.14)
+ ;;@
+ ;;9002226,1813,.15)
+ ;;80
+ ;;9002226,1813,.16)
+ ;;@
+ ;;9002226,1813,.17)
+ ;;@
+ ;;9002226,1813,3101)
+ ;;@
+ ;;9002226.01101,"1813,1",.01)
+ ;;Used in the HIV Management System for the Quality of Care report and the
+ ;;9002226.01101,"1813,2",.01)
+ ;;HMS Supplement report.
+ ;;9002226.02101,"1813,V11.3 ",.01)
+ ;;V11.3
+ ;;9002226.02101,"1813,V11.3 ",.02)
+ ;;V11.3
+ ;;9002226.02101,"1813,V11.3 ",.03)
+ ;;1
+ ;;9002226.02101,"1813,V79.1 ",.01)
+ ;;V79.1
+ ;;9002226.02101,"1813,V79.1 ",.02)
+ ;;V79.1
+ ;;9002226.02101,"1813,V79.1 ",.03)
+ ;;1
+ ;;9002226.04101,"1813,1",.01)
+ ;;BQI
+ ;;9002226.05101,"1813,1",.01)
+ ;;ALCOHOL
+ ;
+OTHER ; OTHER ROUTINES
+ Q

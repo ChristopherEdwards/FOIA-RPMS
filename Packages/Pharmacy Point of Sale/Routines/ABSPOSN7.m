@@ -1,5 +1,5 @@
 ABSPOSN7 ; IHS/FCS/DRS - NCPDP Fms F ILC A/R ;   [ 09/12/2002  10:17 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
 WCENTER(TEXT,MARGIN) ;
  W ?MARGIN-$L(TEXT)/2,TEXT,!

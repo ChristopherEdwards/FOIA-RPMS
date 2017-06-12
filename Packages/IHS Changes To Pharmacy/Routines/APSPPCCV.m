@@ -1,5 +1,5 @@
-APSPPCCV ;IHS/CIA/DKM/PLS - PCC Data Management ;21-Jun-2010 16:22;SM
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1005,1006,1007,1009**;Sep 23, 2004
+APSPPCCV ;IHS/CIA/DKM/PLS - PCC Data Management ;26-Oct-2015 17:40;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1004,1005,1006,1007,1009,1018,1020**;Sep 23, 2004;Build 7
  ; Modified - IHS/CIA/PLS - 10/07/05
  ;            IHS/MSC/PLS - 04/03/06
  ;                        - 10/31/06
@@ -8,6 +8,8 @@ APSPPCCV ;IHS/CIA/DKM/PLS - PCC Data Management ;21-Jun-2010 16:22;SM
  ;                        - 11/08/07 - Added RXV line label
  ;                        - 03/28/08 - Added logic to set Prescription Number into field 1102 of V MED file
  ;                        - 06/21/10 - Added line RXV+9
+ ;                        - 06/03/14 - Modified the POV subroutine
+ ;                        - 10/26/15 - Added N DIERR at STORE+16
  ; RPC: Update PCC data
  ; DATA = Returned as 0 if successful
  ; PCC  = Array of PCC data to process
@@ -75,6 +77,7 @@ STORE(FN,CF,CRT) ;EP
  S:'$D(FLD(1201))&$G(DAT) FLD(1201)=DAT
  M CIAFLD(FN,IEN_",")=FLD
  K FLD
+ N DIERR  ;P1020
  D UPDATE^DIE("","CIAFLD","CIAIEN","CIAERR")
  S:$G(DIERR) DATA=-CIAERR("DIERR",1)_U_CIAERR("DIERR",1,"TEXT",1)
  S:$G(CIAIEN(1)) IEN=$G(CIAIEN(1))
@@ -100,9 +103,34 @@ PRV ;; Provider
  D:PRV>0 SET(.04,6,"1:P;0:S;:@"),STORE(.06)
  Q
 POV ;; Purpose of visit
- S CODE=$$FIND1^DIC(80,,"X",CODE_" ","BA")
- D:CODE>0 SET(.04,4),SET(.12,5,"1:P;0:S;:@"),SET(.08,6),STORE(.07)
+ N NAR,VAL1,SNO,DESC,X,TXT,PICD
+ ;IHS/MSC/MGH updated to use correct lookup
+ ;S CODE=$$FIND1^DIC(80,,"X",CODE_" ","BA")
+ ;MGH Patch 1018 fix for adding SNOMED codes to POV
+ S SNO=373784005
+ S X=$$CONC^BSTSAPI(SNO_"^^^1")
+ S DESC=$P(X,U,3)
+ S PICD=$P(X,U,5)
+ S $P(VAL,U,7)=SNO
+ S $P(VAL,U,8)=DESC
+ I $$AICD S CODE=$P($$CODEN^ICDEX(CODE,80),"~",1)
+ E  S CODE=+$$CODEN^ICDCODE(CODE,80)
+ Q:CODE'>0
+ S TXT=$P(VAL,U,4)
+ S $P(VAL,U,4)=$$NARR(TXT_"|"_DESC)
+ D:CODE>0 SET(.04,4),SET(.12,5,"1:P;0:S;:@"),SET(.08,6),SET(1101,7),SET(1102,8),STORE(.07)
  Q
+ ; Lookup and optionally add narrative
+ ; Returns pointer to PROVIDER NARRATIVE file
+NARR(DESCT) ;
+ N IEN,TRC,NARR,FDA,TXT
+ Q:'$L(DESCT) ""
+ S TXT=$E(DESCT,1,160),TRC=$E(DESCT,1,30)
+ F IEN=0:0 S IEN=$O(^AUTNPOV("B",TRC,IEN)) Q:'IEN  Q:$P($G(^AUTNPOV(IEN,0)),U)=TXT
+ Q:IEN IEN
+ S FDA(9999999.27,"+1,",.01)=TXT
+ D UPDATE^DIE("E","FDA","IEN","ERR")
+ Q $G(IEN(1))
 CPT ;; CPT codes
  S CODE=+$$CPT^ICPTCOD(CODE)
  D:CODE>0 SET(.16,5),STORE(.18)
@@ -282,3 +310,5 @@ DELVSIT(VST) ;EP
  S APCDVDLT=VST
  D EN^APCDVDLT
  Q
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")<"4.0":0,1:1)

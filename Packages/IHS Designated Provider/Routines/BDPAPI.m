@@ -1,5 +1,5 @@
 BDPAPI ; IHS/CMI/TMJ - ADD A NEW DESIGNATED PROVIDER ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10**;MAY 14, 2009;Build 88
  ;
 AEDWH(BDPPAT,BDPIEN,BDPRET) ;PEP - called to add, edit or delete a WOMEN's HEALTH CASE MANAGER
  ;
@@ -78,7 +78,7 @@ EDIT(BDPRIEN,BDPTYPE,BDPPROV) ;EP - edit/add to multiple
  S $P(^BDPRECN(BDPRIEN,1,0),U,4)=BDPLNUM
  S BDPLINKI=1  ;tell fileman you are coming from bdp
  S DR=".01///"_"`"_BDPPROV
- L ^BDPRECN(BDPRIEN):10 I '$T Q "0^UNABLE TO LOCK GLOBAL"
+ L +^BDPRECN(BDPRIEN):10 I '$T Q "0^UNABLE TO LOCK GLOBAL"
  S DIE="^BDPRECN("_BDPRIEN_",1,",DA(1)=BDPRIEN,DA=BDPLIEN D ^DIE K DIE,DR,DA,DINUM
  L -^BDPRECN(BDPRIEN)
  I $D(Y) Q "0^ADDING PROVIDER TO LOG FAILED"
@@ -177,3 +177,16 @@ SETV1 ;
  S BDPI=$$VALI^XBDIQ1(90360.1,BDPX,.03)
  S BDPRET(BDPY)=$P(^BDPTCAT(BDPCIEN,0),U,1)_"^"_$$VAL^XBDIQ1(90360.1,BDPX,.03)_"^"_BDPI_"^"_$$VAL^XBDIQ1(200,BDPI,53.5)_"^"_$$VALI^XBDIQ1(90360.1,BDPX,.05)_"^"_$$VALI^XBDIQ1(90360.1,BDPX,.04)
  Q
+MA(P) ;PEP - called to get message agent for a patient
+ ;input - DFN
+ ;output - message agent IEN from file 200^message agent name^message agent email address from messagea agent file
+ ;if no message agent assigned to the patient null is returned
+ I '$G(P) Q ""
+ I '$D(^DPT(P,0)) Q ""
+ NEW I,N,R,E
+ D ALLDP^BDPAPI(P,"MESSAGE AGENT",.R)
+ I '$D(R("MESSAGE AGENT")) Q ""  ;patient does not have a message agent
+ S N=$P(R("MESSAGE AGENT"),U,1)  ;name
+ S I=$P(R("MESSAGE AGENT"),U,2)  ;ien in file 200
+ S E=$$GET1^DIQ(90360.5,I,.02)  ;dir email
+ Q I_"^"_N_"^"_E

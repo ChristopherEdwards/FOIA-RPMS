@@ -1,5 +1,5 @@
-BLRTASKS ;IHS/OIT/MKK - IHS LAB TASKS REPORT ; [ 05/31/2011  10:30 AM ]
- ;;5.2;LR;**1030**;NOV 01, 1997
+BLRTASKS ;IHS/OIT/MKK - IHS LAB TASKS REPORT ; 17-Dec-2015 15:37 ; MKK
+ ;;5.2;LR;**1030,1033,1034,1038**;NOV 01, 1997;Build 6
  ;
  ; Report to examine the TaskMan globals to determine IF all the
  ; REQUIRED Lab Tasks are tasked, or, if not, try to determine when
@@ -18,6 +18,7 @@ EP ; EP - Main Entry Point
  D INITVARS
  ;
  F  S OPTION=$O(LABTASKS(OPTION))  Q:OPTION=""  D
+ . K ROOT     ; IHS/MSC/MKK - LR*5.2*1038
  . S CHKOPT=OPTION
  . D OPTSTAT^XUTMOPT(CHKOPT,.ROOT)
  . S TASK=$P($G(ROOT(1)),"^")
@@ -34,6 +35,8 @@ EP ; EP - Main Entry Point
  W:+$G(DEBUG) !,"DEBUG SET.  $D(MESSAGE)=",$D(MESSAGE),!
  ;
  D:$D(MESSAGE) SENDMAIL("Daily LAB Option(s) Not Scheduled.",.MESSAGE)
+ ;
+ D CHEKSNAP   ; IHS/MSC/MKK - LR*5.2*1033
  ;
  Q
  ;
@@ -70,10 +73,13 @@ INITVARS ; EP
  ;
  S HED=HED+1 S HEADER(HED)=$$CJ^XLFSTR("LABORATORY TASKS",IOM)
  ;
+ I '$$TM^%ZTLOAD S HED=HED+1 S HEADER(HED)=$$CJ^XLFSTR("*** TaskMan is NOT Running ***",IOM)  ; IHS/MSC/MKK - LR*5.2*1034
+ ;
  S MAXLINES=22
  S LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
  ;
  S (MSGLINE,ALRTLINE)=0
+ S CNT=0                ; IHS/MSC/MKK - LR*5.2*1033
  Q
  ;
 CTMFUTDT ; EP - Check TaskMan FUTure DaTe
@@ -128,6 +134,8 @@ SENDALRT(ALERTMSG) ; EP - Send alert to LMI group AND Installer
 NINLMI(CHKDUZ) ; EP -- Check to see if DUZ is NOT part of LMI Mail Group
  NEW MGRPIEN,XMDUZ
  ;
+ Q:CHKDUZ=.5 0                      ; IHS/MSC/MKK - LR*5.2*1033 - Do NOT send anything to POSTMASTER (DUZ=.5)
+ ;
  ; Get IEN of LMI MaiL Group
  D CHKGROUP^XMBGRP("LMI",.MGRPIEN)  ; VA DBIA 1146
  Q:+(MGRPIEN)<1 1                   ; If no Mail Group, return TRUE
@@ -137,7 +145,7 @@ NINLMI(CHKDUZ) ; EP -- Check to see if DUZ is NOT part of LMI Mail Group
  S XMDUZ=DUZ
  S Y=MGRPIEN
  D CHK^XMA21                        ; VA DBIA 10067
-  ;
+ ;
  Q $S($T=1:0,1:1)
  ;
 SENDMAIL(MAILMSG,MESSAGE) ; EP -- Send MailMan E-mail to LMI group AND User
@@ -180,3 +188,168 @@ DEBUGRPT ; EP
  W ?64,HOWOFTEN
  W !
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.1*1033
+CHEKSNAP ; EP - Make certain the TAKE SNAPSHOTS field in the BLR MASTER CONTROL file is set to NO.
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S SITE=.9999999
+ F  S SITE=$O(^BLRSITE(SITE))  Q:SITE<1  D
+ . Q:+$$GET1^DIQ(9009029,SITE,"TAKE SNAPSHOTS","I")<1      ; Skip if NO or NULL.
+ . ;
+ . D ^XBFMK
+ . K FDA,ERRS
+ . S FDA(9009029,SITE_",",1)=0
+ . D FILE^DIE("K","FDA","ERRS")
+ . ;
+ . S ^TMP("BLRTASKS",$J,SITE)=$$GET1^DIQ(4,SITE,"NAME")
+ . S ^TMP("BLRTASKS",$J,SITE,$H)=$$HTE^XLFDT($H,"5MZ")
+ . S ^TMP("BLRTASKS",$J,SITE,$H,"TAKE SNAPSHOTS")=$$GET1^DIQ(9009029,SITE,"TAKE SNAPSHOTS")
+ . M:$D(ERRS) ^TMP("BLRTASKS",$J,SITE,$H,"TAKE SNAPSHOTS","ERRS")=ERRS
+ Q
+ ;
+SCRNREPT ; EP - DEBUG -- Print Report to the screen
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D INITVARS
+ ;
+ D SCRNINIT
+ ;
+ F  S OPTION=$O(LABTASKS(OPTION))  Q:OPTION=""  D SCRNLINE
+ D HLZTCPCK   ; IHS/MSC/MKK - LR*5.2*1038
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+SCRNINIT ; EP - DEBUG -- Initialization of variables
+ D OTHRINIT  Q     ; IHS/MSC/MKK - LR*5.2*1034
+ ;
+ S HEADER(4)=$$CJ^XLFSTR("TODAY:"_TODAY_"   ["_$$FMTE^XLFDT(TODAY,"5DZ")_"]",IOM)
+ S HEADER(5)=" "
+ S HEADER(6)="OPTION"
+ S $E(HEADER(6),26)="TASK"
+ S $E(HEADER(6),36)="SCHDDATE"
+ S $E(HEADER(6),49)="$$FMTE SCHDDATE"
+ S $E(HEADER(6),74)="Sched"
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S BLRVERN2="SCRNREPT"
+ Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+OTHRINIT ; EP Different version of SCRINIT above
+ NEW HED
+ ;
+ S HED=$O(HEADER("A"),-1)
+ ; S HED=HED+1,HEADER(HED)=$$CJ^XLFSTR("TODAY:"_TODAY_"   ["_$$FMTE^XLFDT(TODAY,"5DZ")_"]",IOM)
+ S HED=HED+1,HEADER(HED)=$$CJ^XLFSTR("TODAY:"_$$FMTE^XLFDT(TODAY,"5DZ")_"   ["_TODAY_"]",IOM) ; IHS/MSC/MKK - LR*5.2*1038
+ S HED=HED+1,HEADER(HED)=" "
+ S HED=HED+1,HEADER(HED)="OPTION"
+ ; S $E(HEADER(HED),26)="TASK"
+ S $E(HEADER(6),26)="TASK #"                ; IHS/MSC/MKK - LR*5.2*1038
+ S $E(HEADER(HED),36)="SCHDDATE"
+ ; S $E(HEADER(HED),49)="$$FMTE SCHDDATE"
+ S $E(HEADER(HED),50)="$$FMTE SCHDDATE"     ; IHS/MSC/MKK - LR*5.2*1038
+ S $E(HEADER(HED),74)="Sched"
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S BLRVERN2="SCRNREPT"
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ ;
+SCRNLINE ; EP - DEBUG -- Print line of data
+ D SCRNBRKO
+ ;
+ I CNT<1 D HEADERDT^BLRGMENU
+ W OPTION,?25,TASK,?35,SCHDDATE,?49,EXTSCHDT,?74,HOWOFTEN
+ W !
+ S CNT=CNT+1
+ Q
+ ;
+SCRNBRKO ; EP - DEBUG -- "Break out" Variables
+ S CHKOPT=OPTION
+ K ROOT  ; IHS/MSC/MKK - LR*5.2*1038
+ D OPTSTAT^XUTMOPT(CHKOPT,.ROOT)
+ S TASK=$P($G(ROOT(1)),"^")
+ S SCHDDATE=+$P($P($G(ROOT(1)),"^",2),"@")
+ S EXTSCHDT=$$UP^XLFSTR($$FMTE^XLFDT(SCHDDATE,"5MPZ"))
+ S HOWOFTEN=$P($G(ROOT(1)),"^",3)
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.1*1033
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.1*1038
+HLZTCPCK ; EP - Check to see if HLZTCP interface routine is running
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ ; Setup SYSTEM call
+ S SYSCALL="##class(%SYS.ProcessQuery).%OpenId(PID)."
+ ;
+ ; Setup Cache Objects to retrieve PIDs of jobs
+ S RSET=##class(%ResultSet).%New("%SYS.ProcessQuery:ListPids")
+ D RSET.Execute()
+ ;
+ S (HLZTCP,RTNCNT)=0
+ ;
+ ; Loop through PIDs
+ F  Q:'RSET.Next()!(HLZTCP)  D
+ . S PID=RSET.GetData(1)
+ . Q:PID<1
+ . ;
+ . ; Only analyze routines running on the current UCI.
+ . Q:$$GETSYS("NameSpace")'=$NAMESPACE
+ . ;
+ . S RTN=$$GETSYS("Routine")
+ . S:RTN'["NOJOBRTN" RTNCNT=RTNCNT+1
+ . ;
+ . S:RTN["HLZTCP" HLZTCP=PID
+ ;
+ ; W:HLZTCP<1 !,$$CJ^XLFSTR(RTNCNT_" Routines analyzed.",IOM)
+ W !,$$CJ^XLFSTR("HLZTCP is"_$S(HLZTCP:"",1:" >> NOT <<")_" running.",IOM)
+ Q
+ ;
+GETSYS(WOTDETAIL) ; EP -- Get System Information
+ 	S GETWOT=SYSCALL_WOTDETAIL_"Get()"
+ Q @GETWOT
+ ;
+ ;
+TESTGPID ; EP - Test the 'Get PID' code by looking at LAB routines ONLY
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S HEADER(1)="%SYS.ProcessQuery:ListPids"
+ S HEADER(2)="Testing RSET.Next() Looping"
+ D HEADERDT^BLRGMENU
+ ;
+ S HEADER(3)=$$CJ^XLFSTR("LAB Routines ONLY",IOM)
+ S HEADER(4)=" "
+ S $E(HEADER(5),15)="PID"
+ S $E(HEADER(5),25)="UCI"
+ S $E(HEADER(5),35)="Routine"
+ ;
+ ; Setup SYSTEM call
+ S SYSCALL="##class(%SYS.ProcessQuery).%OpenId(PID)."
+ ;
+ S RSET=##class(%ResultSet).%New("%SYS.ProcessQuery:ListPids")
+ D RSET.Execute()
+ S (HLZTCP,LABCNT,RTNCNT)=0
+ ;
+ F  Q:'RSET.Next()!(HLZTCP)  D
+ . S PID=RSET.GetData(1)
+ . Q:PID<1
+ . ;
+ . S UCI=$$GETSYS("NameSpace")
+ . ;
+ . S RTN=$$GETSYS("Routine")
+ . S RTNCNT=RTNCNT+1
+ . Q:$E(RTN,1,3)'="BLR"&($E(RTN,1,2)'="LA")&($E(RTN,1,2)'="LR")
+ . ;
+ . S LABCNT=LABCNT+1
+ . D:LABCNT=1 HEADERDT^BLRGMENU
+ . W ?4,$J(LABCNT,3),")",?14,PID,?24,UCI,?34,RTN,!
+ ;
+ I LABCNT<1 D
+ . F X=3:1:5 K HEADER(X)
+ . D HEADERDT^BLRGMENU
+ ;
+ W !,?4,RTNCNT," Routines analyzed."
+ W !!,?9,$S(LABCNT:LABCNT,1:"No")," LAB routine",$S(LABCNT=1:"",1:"s")," running."
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.1*1038

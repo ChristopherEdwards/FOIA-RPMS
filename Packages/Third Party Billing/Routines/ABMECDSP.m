@@ -1,17 +1,14 @@
 ABMECDSP ; IHS/ASDST/DMJ - ELECTRONIC CLAIMS DISPLAY (SUMMARY) ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
- ; Original;DMJ;03/18/96 5:05 PM
- ; IHS/ASDS/SDR - 01/16/02 - V2.4 Patch 10 - NOIS XAA-0800-200136
- ;     Modified so as not to combine different export modes into one file.
- ; IHS/SD/SDR - v2.5 p9 - IM17793 - Set ABMSITE before trying to use (<UNDEFINED>DISPDET+24^ABMECDSP)
- ; IHS/SD/SDR - v2.5 p10 - IM20178 - Fix for <SUBSCR>LOOP+6^ABMECDSP (no export mode on claim)
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,10,19**;NOV 12, 2009;Build 300
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added clearinghouse code
+ ;IHS/SD/SDR - 2.6*19 - HEAT138428 - Made changes for clearinghouse so it will create one file for each
+ ;   visit location.
  ; *********************************************************************
 START ;   
  D INIT                 ; Initialize variables
  D GDATA1               ; Find approved bills needing export
  Q:'$D(^TMP($J))        ; Quit if no electronic bills to export
- D DISP                 ; Display summary data
+ D DISP^ABMECDS2        ; Display summary data
  D ASKDET               ; Ask if user wants to see detail
  Q:$D(DTOUT)!($D(DUOUT))
  I $G(ABMDET) D
@@ -33,7 +30,7 @@ EMCREAT(ABMER,ABMSEQ) ; EP
  D INIT
  D GDATA1
  Q:'$D(^TMP($J))
- D DISP
+ D DISP^ABMECDS2
  D ASKSEQ
  Q
 INIT ;
@@ -69,104 +66,7 @@ LOOP ;
  S ^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,DA)=ABMBAMT
  Q
 DISP ;
- ; Display summary data
- S ABMSUMPG=1
- K ABMORE
- W !
- D SUMHEAD                    ; Write summary page column headers
- ;start old code abm*2.6*6 5010
- ;S ABMSEQ=0                   ; Sequence number
- ;S ABMINS("IEN")=0            ; Activer insurer IEN
- ;F  S ABMINS("IEN")=$O(^TMP($J,"S",ABMINS("IEN"))) Q:'ABMINS("IEN")  D  Q:+ABMEQUIT
- ;.S ABMINS=$E($P($G(^AUTNINS(ABMINS("IEN"),0)),U),1,30)  ; Insurer
- ;.S ABMVTYPE=0               ; Bill type
- ;.F  S ABMVTYPE=$O(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D  Q:+ABMEQUIT
- ;..S ABMEXP=0               ; Mode of export
- ;..F  S ABMEXP=$O(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D  Q:+ABMEQUIT
- ;...S ABMTAMT=$P(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP),U)   ; Total amount
- ;...S ABMCNT=$P(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)  ; Total count
- ;...S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)   ; Export mode description
- ;...I $G(ABMORE) D SUMPGHD    ; if more than one page do page hdr
- ;...S ABMSEQ=ABMSEQ+1         ; increment sequence number
- ;...W !,$J(ABMSEQ,3),?6,ABMINS,?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
- ;...; ABMER(#)=Insurer^Visit Type^Export mode^total count^total charge
- ;...S ABMER(ABMSEQ)=ABMINS("IEN")_U_ABMVTYPE_U_+ABMEXP_U_ABMCNT_U_ABMTAMT  ; data array by sequence number
- ;...I $Y+5>IOSL D  Q:+ABMEQUIT
- ;....D RETURN
- ;....Q:+ABMEQUIT
- ;....S ABMORE=1
- ;end old code start new code abm*2.6*6 5010
- D GETCHS^ABMCUTL
- S ABMSEQ=0,ABMNEXT=0
- K ABMCHT
- K ^TMP($J,"S-CH")
- I $D(ABMCHLST) D  ;clearinghouse exists; add another sort level
- .S ABMP("CHIEN")=0,ABMSVTYP=0,ABMSEXP=0
- .F  S ABMP("CHIEN")=$O(ABMCHLST(ABMP("CHIEN"))) Q:'ABMP("CHIEN")  D
- ..S ABMP("CHINS")=0
- ..F  S ABMP("CHINS")=$O(ABMCHLST(ABMP("CHIEN"),ABMP("CHINS"))) Q:'ABMP("CHINS")  D
- ...I $D(^TMP($J,"S",ABMP("CHINS"))) D
- ....S ABMVTYP=0
- ....F  S ABMVTYP=$O(^TMP($J,"S",ABMP("CHINS"),ABMVTYP)) Q:'ABMVTYP  D
- .....S ABMEXP=0
- .....F  S ABMEXP=$O(^TMP($J,"S",ABMP("CHINS"),ABMVTYP,ABMEXP)) Q:'ABMEXP  D
- ......I $D(ABMCHLST(ABMP("CHIEN"),ABMVTYP,ABMEXP)) S ABMSEQ=$G(ABMCHLST(ABMP("CHIEN"),ABMVTYP,ABMEXP))
- ......I '$D(ABMCHLST(ABMP("CHIEN"),ABMVTYP,ABMEXP)) S (ABMSEQ,ABMNEXT)=ABMNEXT+1,ABMCHLST(ABMP("CHIEN"),ABMVTYP,ABMEXP)=ABMSEQ
- ......M ^TMP($J,"S-CH",ABMSEQ,ABMP("CHIEN"),ABMP("CHINS"),ABMVTYP,ABMEXP)=^TMP($J,"S",ABMP("CHINS"),ABMVTYP,ABMEXP)
- ......S ABMCHT(ABMSEQ,"AMT")=+$G(ABMCHT(ABMSEQ,"AMT"))+$P(^TMP($J,"S-CH",ABMSEQ,ABMP("CHIEN"),ABMP("CHINS"),ABMVTYP,ABMEXP),U)
- ......S ABMCHT(ABMSEQ,"VTYP")=ABMVTYP
- ......S ABMCHT(ABMSEQ,"EXP")=ABMEXP
- ......S ABMCHT(ABMSEQ,"TOT")=+$G(ABMCHT(ABMSEQ,"TOT"))+$P(^TMP($J,"S",ABMP("CHINS"),ABMVTYP,ABMEXP),U,2)
- ......K ^TMP($J,"S",ABMP("CHINS"),ABMVTYP,ABMEXP)
- ......S ABMSINS=ABMP("CHINS"),ABMSVTYP=ABMVTYP,ABMSEXP=ABMEXP
- ;
- S ABMSEQ=0  ;Sequence number
- F  S ABMSEQ=$O(^TMP($J,"S-CH",ABMSEQ)) Q:'ABMSEQ  D  Q:+ABMEQUIT
- .S ABM("CHIEN")=0  ;clearinghouse IEN
- .F  S ABM("CHIEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"))) Q:'ABM("CHIEN")  D  Q:+ABMEQUIT
- ..W !,$J(ABMSEQ,3),?6,"+ "_$P($G(^ABMRECVR(ABM("CHIEN"),0)),U)
- ..W ?38,$J(ABMCHT(ABMSEQ,"VTYP"),3),?44,$P($G(^ABMDEXP(ABMCHT(ABMSEQ,"EXP"),0)),U)
- ..W ?60,$J(ABMCHT(ABMSEQ,"TOT"),4),?69,$J($FN(ABMCHT(ABMSEQ,"AMT"),",",2),10)
- ..S ABMINS("IEN")=0  ;Activer insurer IEN
- ..F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"))) Q:'ABMINS("IEN")  D  Q:+ABMEQUIT
- ...S ABMINS=$E($P($G(^AUTNINS(ABMINS("IEN"),0)),U),1,30)  ;Insurer
- ...S ABMVTYPE=0  ;Bill type
- ...F  S ABMVTYPE=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D  Q:+ABMEQUIT
- ....S ABMEXP=0  ;Mode of export
- ....F  S ABMEXP=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D  Q:+ABMEQUIT
- .....S ABMTAMT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U)  ;Total amount
- .....S ABMCNT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)  ;Total count
- .....S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)  ;Export mode desc
- .....I $G(ABMORE) D SUMPGHD  ;if more than one page do page hdr
- .....;W !
- .....;W ?6,ABMINS,?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
- .....; ABMER(#)=Insurer^Visit Type^Export mode^total count^total charge
- .....S ABMER(ABMSEQ)=ABM("CHIEN")_U_ABMVTYPE_U_+ABMEXP_U_ABMCNT_U_ABMTAMT  ; data array by sequence number
- .....I $Y+5>IOSL D  Q:+ABMEQUIT
- ......D RETURN
- ......Q:+ABMEQUIT
- ......S ABMORE=1
- ;
- S ABMINS("IEN")=0  ;Activer insurer IEN
- F  S ABMINS("IEN")=$O(^TMP($J,"S",ABMINS("IEN"))) Q:'ABMINS("IEN")  D  Q:+ABMEQUIT
- .S ABMINS=$E($P($G(^AUTNINS(ABMINS("IEN"),0)),U),1,30)  ;Insurer
- .S ABMVTYPE=0  ;Bill type
- .F  S ABMVTYPE=$O(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D  Q:+ABMEQUIT
- ..S ABMEXP=0  ;Mode of export
- ..F  S ABMEXP=$O(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D  Q:+ABMEQUIT
- ...S ABMTAMT=$P(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP),U)  ;Total amount
- ...S ABMCNT=$P(^TMP($J,"S",ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)  ;Total count
- ...S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)  ;Export mode description
- ...I $G(ABMORE) D SUMPGHD  ;if more than one page do page hdr
- ...S ABMNEXT=ABMNEXT+1  ;increment sequence number
- ...W !,$J(ABMNEXT,3),?6,ABMINS,?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
- ...; ABMER(#)=Insurer^Visit Type^Export mode^total count^total charge
- ...S ABMER(ABMNEXT)=ABMINS("IEN")_U_ABMVTYPE_U_+ABMEXP_U_ABMCNT_U_ABMTAMT  ; data array by sequence number
- ...I $Y+5>IOSL D  Q:+ABMEQUIT
- ....D RETURN
- ....Q:+ABMEQUIT
- ....S ABMORE=1
- ;end new code abm*2.6*6 5010
+ D DISP^ABMECDS2  ;abm*2.6*19 IHS/SD/DSR HEAT138428 split to ABMECDS2
  Q
 ASKDET ;  
  ; Ask user if they wish to see detail
@@ -202,15 +102,41 @@ ASKSEQ ;
  W !
  S ABMINS("IEN")=0
  F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"))) Q:'ABMINS("IEN")  D  Q:+ABMEQUIT
- .S ABMINS=$E($P($G(^AUTNINS(ABMINS("IEN"),0)),U),1,30)  ;Insurer
+ .;S ABMINS=$E($P($G(^AUTNINS(ABMINS("IEN"),0)),U),1,30)  ;Insurer  ;abm*2.6*19 IHS/SD/SDR HEAT138428
  .S ABMVTYPE=0  ;Bill type
  .F  S ABMVTYPE=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D  Q:+ABMEQUIT
  ..S ABMEXP=0  ;Mode of export
  ..F  S ABMEXP=$O(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D  Q:+ABMEQUIT
- ...S ABMTAMT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U)  ;Total amount
- ...S ABMCNT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)  ;Total count
- ...S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)  ;Export mode description
- ...I $G(ABMORE) D SUMPGHD  ;if more than one page do page hdr
+ ...;start old abm*2.6*19 IHS/SD/SDR HEAT138428
+ ...;S ABMTAMT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U)  ;Total amount
+ ...;S ABMCNT=$P(^TMP($J,"S-CH",ABMSEQ,ABM("CHIEN"),ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)  ;Total count
+ ...;S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)  ;Export mode description
+ ...;I $G(ABMORE) D SUMPGHD  ;if more than one page do page hdr
+ ...;W !
+ ...;W ?6,ABMINS,?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
+ ...;end old start new abm*2.6*19 IHS/SD/SDR HEAT138428
+ ...S ABMLOC=""
+ ...F  S ABMLOC=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC)) Q:ABMLOC=""  D
+ ....S ABMB=0
+ ....F  S ABMB=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,ABMB)) Q:'ABMB  D
+ .....S $P(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP),U,2)=+$P($G(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP)),U,2)+1
+ .....S $P(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP),U)=$P(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP),U)+$G(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,ABMB))
+ S ABMLOC=""
+ F  S ABMLOC=$O(^TMP($J,"FILE",ABMLOC)) Q:ABMLOC=""  D
+ .S ABMINS("IEN")=0
+ .F  S ABMINS("IEN")=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"))) Q:'ABMINS("IEN")  D
+ ..S ABMVTYPE=0
+ ..F  S ABMVTYPE=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D
+ ...S ABMEXP=0
+ ...F  S ABMEXP=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D
+ ....S ABMINS=$P($G(^AUTNINS(ABMINS("IEN"),0)),U)  ;Insurer
+ ....S ABMTAMT=$P($G(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP)),U)  ;Total amount
+ ....S ABMCNT=$P($G(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP)),U,2)  ;Total count
+ ....S ABMEXPD=$P($G(^ABMDEXP(+ABMEXP,0)),U)  ;Export mode description
+ ....I $G(ABMORE) D SUMPGHD  ;if more than one page do page hdr
+ ....W !
+ ....W ?2,$E(ABMLOC,1,16),?19,$E(ABMINS,1,18),?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
+ ;end new abm*2.6*19 IHS/SD/SDR HEAT138428
  ...W !
  ...W ?6,ABMINS,?38,$J(ABMVTYPE,3),?44,ABMEXPD,?60,$J(ABMCNT,4),?69,$J($FN(ABMTAMT,",",2),10)
  W !
@@ -294,7 +220,9 @@ SUMHEAD ;
  ; Column headings for summary report
  ;start new abm*2.6*6 5010
  I $D(ABMCHLST)'="" D  Q
- .W !,"SEQ",?6,"INSURER/CLEARINGHOUSE",?33,"BILL TYPE",?44,"EXPORT MODE",?57,"# OF BILLS",?71,"BILL AMT",!,ABME("-"),!
+ .;W !,"SEQ",?6,"INSURER/CLEARINGHOUSE",?33,"BILL TYPE",?44,"EXPORT MODE",?57,"# OF BILLS",?71,"BILL AMT",!,ABME("-"),!  ;abm*2.6*10 IHS/SD/AML 8/2/12 HEAT78833
+ .W !,?37,"VISIT",?61,"# OF"  ;abm*2.6*10 IHS/SD/AML 8/2/12  HEAT78833
+ .W !,"SEQ",?6,"INSURER/CLEARINGHOUSE",?37,"TYPE",?44,"EXPORT MODE",?61,"BILLS",?71,"BILL AMT",!,ABME("-"),!  ;abm*2.6*10 IHS/SD/AML 8/2/12 HEAT78833
  ;end new 5010
  W !,"SEQ",?6,"INSURER",?33,"BILL TYPE",?44,"EXPORT MODE",?57,"# OF BILLS",?71,"BILL AMT",!,ABME("-"),!
  Q

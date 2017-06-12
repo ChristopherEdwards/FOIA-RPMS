@@ -1,5 +1,5 @@
 ABSPOSIH ; IHS/FCS/DRS - NCPDP 5.1 DUR Overrides form ;   [ 06/03/2002  4:40 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**6**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**6**;JUN 21, 2001;Build 15
  ; Property of Indian Health Service
  ;
  Q

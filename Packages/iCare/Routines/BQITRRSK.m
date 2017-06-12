@@ -1,5 +1,5 @@
 BQITRRSK ;PRXM/HC/ALA-Treatment Prompts Risk Factors ; 23 May 2007  3:20 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,3,4**;Apr 18, 2012;Build 66
  ;
 RSK(BQDFN,BQRM) ;EP - CVD.TP-32 Missing Risk factors
  ; Input
@@ -78,7 +78,7 @@ HDL(BQDFN) ;EP - HDL Goal CVD.TP-35 HDL Not at Goal
  I 'X D
  . S MEET=0,DESC="Most recent HDL not at goal ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
  I X D
- . I SEX="M",$P(X,U,3)<40 S MEET=1,DESC="Most recent HDL at goal ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
+ . I SEX="M"!(SEX="U"),$P(X,U,3)<40 S MEET=1,DESC="Most recent HDL at goal ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
  . I SEX="F",$P(X,U,3)<45 S MEET=1,DESC="Most recent HDL at goal ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
  Q MEET_U_DESC
  ;

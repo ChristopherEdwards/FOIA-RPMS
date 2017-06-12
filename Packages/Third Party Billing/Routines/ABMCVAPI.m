@@ -1,7 +1,10 @@
 ABMCVAPI ; IHS/SD/SDR - 3PB CPT/ICD/MODIFIER API   
- ;;2.6;IHS 3P BILLING SYSTEM;**4,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,9,10,14**;NOV 12, 2009;Build 238
  ;
  ; New routine - v2.6
+ ;IHS/SD/SDR - 2.6*14 - 002F - replaced ICDDX^ICDCODE with ICDDX^ICDEX for ICD-10
+ ;IHS/SD/SDR - 2.6*14 - 009 - made it so API can be called without a date for reports
+ ;IHS/SD/SDR - 2.6*14 - HEAT165197 (CR3109) - Added NUM tag to return numeric, comparable value; also added COD tag to reverse NUM
  ;
 CPT(CODE,CDT,SRC,DFN) ;PEP - returns info about requested CPT entry
  I $$VERSION^XPDUTL("BCSV")>0 S A=$$CPT^ICPTCOD(CODE,CDT,"","") Q A
@@ -40,12 +43,22 @@ IHSCPT(CODE,CDT) ;EP - return IHS-numberspaced fields in string
  ;
  I $$VERSION^XPDUTL("BCSV")>0 D  Q ABMCPT
  .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.05,"E")  ;ASC payment group (p6)
- .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.06,"E")  ;date added (p7)
- .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.07,"E")  ;date deleted (p8)
+ .;start old code abm*2.6*10 HEAT59419
+ .;S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.06,"E")  ;date added (p7)
+ .;S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.07,"E")  ;date deleted (p8)
+ .;end old code start new code HEAT59419
+ .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.06,"I")  ;date added (p7)
+ .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",9999999.07,"I")  ;date deleted (p8)
+ .;end new code HEAT59419
  I $$VERSION^XPDUTL("BCSV")'>0 D
  .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",6,"E")  ;ASC payment group (p6)
- .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",7,"E")  ;date added (p7)
- .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",8,"E")  ;date deleted (p8)
+ .;start old code abm*2.6*10 HEAT59419
+ .;S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",7,"E")  ;date added (p7)
+ .;S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",8,"E")  ;date deleted (p8)
+ .;end old code start new code HEAT59419
+ .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",7,"I")  ;date added (p7)
+ .S ABMCPT=ABMCPT_"^"_$$GET1^DIQ(81,CODE_",",8,"I")  ;date deleted (p8)
+ .;end new code HEAT59419
  Q ABMCPT
 IHSCPTD(CODE,OUTARR,DFN,CDT) ;PEP - returns info about requested ICD entry
  I $$VERSION^XPDUTL("BCSV")>0 D CPTD^ICPTCOD(CODE,OUTARR,DFN,CDT) Q OUTARR
@@ -54,7 +67,9 @@ IHSCPTD(CODE,OUTARR,DFN,CDT) ;PEP - returns info about requested ICD entry
  ;****************************************************************
  ;
 DX(CODE,CDT,SRC,DFN) ;PEP - returns info about requested ICD DX entry
- I $$VERSION^XPDUTL("BCSV")>0 S A=$$ICDDX^ICDCODE(CODE,CDT,"","") Q A
+ I $D(^DIC(9.8,"B","ICDEX")) S A=$$ICDDX^ICDEX(CODE,$S($G(CDT):CDT,1:""),"","I") Q A  ;API call for ICD-10  ;abm*2.6*14 ICD10 002F and 009
+ ;I $$VERSION^XPDUTL("BCSV")>0 S A=$$ICDDX^ICDCODE(CODE,CDT,"","") Q A  ;abm*2.6*14 ICD10 002F
+ I $$VERSION^XPDUTL("BCSV")>0 S A=$$ICDDX^ICDCODE(CODE,$S($G(CDT):CDT,1:""),"","") Q A  ;abm*2.6*14 ICD10 009
  E  S A=$$PRCSVDX(CODE,CDT) Q A
  ;
 PRCSVDX(CODE,CDT) ;EP - build Pre-CSV IHS ICD DX string
@@ -86,6 +101,7 @@ ICDDX(IEN,CODE,CDT,SRC,DFN) ;PEP - returns info about requested ICD entry
  .S A=$$GET1^DIQ(80,IEN,10,"IE","","ABMZDX")
  ;************************************************************************
 ICDOP(CODE,CDT,SRC,DFN) ;PEP - returns info about requested ICD PX entry
+ I $D(^DIC(9.8,"B","ICDEX")) S A=$$ICDOP^ICDEX(CODE,CDT,"","I") Q A  ;API call for ICD-10  ;abm*2.6*14 ICD10 002H
  I $$VERSION^XPDUTL("BCSV")>0 S A=$$ICDOP^ICDCODE(CODE,CDT,"","") Q A
  E  S A=$$PRCSVOP(CODE,CDT) Q A
  ;****************************************************************
@@ -132,3 +148,14 @@ PRCSVMOD(MOD) ;EP - build pre-CSV Modifer array
  S ABMMOD=ABMMOD_"^"_$G(ABMZMOD(9999999.88,MOD_",",.01,"E"))  ;MOD code
  S ABMMOD=ABMMOD_"^"_$G(ABMZMOD(9999999.88,MOD_",",.02,"E"))  ;MOD name
  Q ABMMOD
+ ;start new abm*2.6*14 HEAT165197 (CR3109)
+NUM(CODE) ;EP - returns numeric value for ICD DX
+ I $D(^DIC(9.8,"B","ICDEX")) S A=$$NUM^ICDEX(CODE) Q A
+ S CODE=$G(CODE) Q:'$L($G(CODE)) 0
+ N PSN,OUT,CHR,ERR S ERR=0,OUT="" F PSN=1:1:9 D
+ .S CHR=$E(CODE,PSN) S CHR=$S($L(CHR):$A(CHR),1:32),CHR=CHR-30
+ .S:CHR'>0 ERR=1 F  Q:$L(CHR)>1  S CHR="0"_CHR
+ .S:$L(CHR)'=2 ERR=1 S OUT=OUT_CHR
+ Q:ERR -1  S:+OUT>0 OUT="1"_OUT
+ Q OUT
+ ;end new HEAT165197

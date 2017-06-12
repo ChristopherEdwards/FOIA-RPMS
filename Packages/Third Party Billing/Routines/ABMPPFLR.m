@@ -1,11 +1,12 @@
 ABMPPFLR ; IHS/SD/SDR - Prior Payments/Adjustments filer (CE) ;
- ;;2.6;IHS Third Party Billing;**1**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,19**;NOV 12, 2009;Build 300
  ;
  ; ABMPL(Insurer priority, Insurer IEN)=13 multiple IEN ^ Billing status
  ; ABMPP(Insurer IEN, "P" or "A", Counter)=Amount ^ Adj Category ^ Trans. Type ^ Std Adj. Reason
  ;
  ; IHS/SD/SDR - v2.5 p13 - IM25471 - Changes for CAS when SAR=A2
  ; IHS/SD/SDR - v2.6 p1 - HEAT414 - <UNDEF>EN+29^ABMPPFLR
+ ;IHS/SD/SDR - 2.6*19 - HEAT168248 - Removes payment multiple completely so residual entries from previous run don't mess up current transactions
  ;
 EN ;EP
  S ABMSTAT=""
@@ -16,6 +17,7 @@ EN ;EP
  .F  S ABMBIEN=$O(^ABMDBILL(DUZ(2),"AS",ABMP("CDFN"),ABMSTAT,ABMBIEN)) Q:+ABMBIEN=0  D
  ..S ABMAINS=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,8)  ;active insurer
  ..Q:'$D(ABMPP(ABMAINS))  ;quit if no data for insurer
+ ..K ^ABMDBILL(DUZ(2),ABMBIEN,3)  ;abm*2.6*19 HEAT168248
  ..K ABMBPIEN
  ..S ABMCAT=""
  ..F  S ABMCAT=$O(ABMPP(ABMAINS,ABMCAT)) Q:ABMCAT=""  D
@@ -31,14 +33,15 @@ EN ;EP
  ....S ABMADJC=$P($G(ABMPP(ABMAINS,ABMCAT,ABMLN)),U,2)  ;adj category
  ....S ABMADJT=$P($G(ABMPP(ABMAINS,ABMCAT,ABMLN)),U,3)  ;trans type
  ....S ABMSAR=$S($P($G(ABMPP(ABMAINS,ABMCAT,ABMLN)),U,4)'="":$P(ABMPP(ABMAINS,ABMCAT,ABMLN),U,4),1:"@")  ;std adj reason
- ....S ABMBPIEN=$P($G(ABMPP(ABMAINS,ABMCAT,ABMLN)),U,6)  ;IEN of entry
+ ....;S ABMBPIEN=$P($G(ABMPP(ABMAINS,ABMCAT,ABMLN)),U,6)  ;IEN of entry  ;abm*2.6*19 IHS/SD/SDR HEAT168248
+ ....S ABMBPIEN=0  ;treat like a new entry every time - was killed above, as well as entries could have been edited, merged  ;abm*2.6*19 IHS/SD/SDR HEAT168248
  ....I +ABMBPIEN=0 D  ;file as new entry
  .....D ^XBFMK
  .....S DA(1)=ABMBIEN
  .....;S X=ABMOPDT  ;abm*2.6*1 HEAT414
  .....S X=$S($G(ABMOPDT)'="":ABMOPDT,1:DT)  ;abm*2.6*1 HEAT414
  .....S DIC="^ABMDBILL(DUZ(2),"_DA(1)_",3,"
- .....S DIC(0)="L"
+ .....S DIC(0)="LI"
  .....S DIC("P")=$P(^DD(9002274.4,3,0),U,2)
  .....K DD,DO D FILE^DICN
  .....S ABMBPIEN=+Y

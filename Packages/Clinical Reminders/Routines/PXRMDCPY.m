@@ -1,16 +1,16 @@
-PXRMDCPY ; SLC/PJH - Copy dialog files. ;05/04/2001
- ;;1.5;CLINICAL REMINDERS;**2,5**;Jun 19, 2000
+PXRMDCPY ; SLC/PJH - Copy dialog files. ;06/12/2009
+ ;;2.0;CLINICAL REMINDERS;**4,12**;Feb 04, 2005;Build 73
  ;
  ;Called by label from PXRMDEDT
  ;
  ;Yes/No prompts
  ;--------------
-ASK(YESNO,TEXT,HLP) ;
+ASK(YESNO,TEXT,HLP,DEFAULT) ;
  N X,Y,DIR
  K DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="YA0"
  S DIR("A")=TEXT
- S DIR("B")="Y"
+ S DIR("B")=DEFAULT
  S DIR("?")="Enter Y or N. For detailed help type ??"
  S DIR("??")=U_"D HELP^PXRMDEDT(HLP)"
  D ^DIR K DIR
@@ -22,7 +22,7 @@ ASK(YESNO,TEXT,HLP) ;
  ;Copy any dialog
  ;---------------
 ANY W IORESET
- N DIC,DUOUT,DTOUT,DIROUT,DIRUT,SIEN,IENN,IENO,X,Y
+ N DIC,DUOUT,DTOUT,DIROUT,DIRUT,DTYP,LFIND,LOCK,SIEN,IENN,IENO,X,Y
  N PROMPT,ROOT,WHAT
  S WHAT="dialog",ROOT="^PXRMD(801.41,",PROMPT="Select the dialog to copy: "
  ;
@@ -32,6 +32,15 @@ ANY W IORESET
  D ^DIC
  I $D(DUOUT)!$D(DTOUT) S DIROUT="" Q
  S IENO=$P(Y,U,1) I IENO=-1 S DIROUT="" Q
+ ;
+ ;Check for Uneditable flag
+ S LOCK=$P($G(^PXRMD(801.41,IENO,100)),U,4)
+ S LFIND=$P($G(^PXRMD(801.41,IENO,1)),U,5)
+ S DTYP=$P($G(^PXRMD(801.41,IENO,0)),U,4)
+ I LOCK=1,'$G(PXRMINST),DTYP="G" D  Q
+ .W !,"This item cannot be copied." H 2
+ I LOCK=1,$G(LFIND)'="",$G(LFIND)'["ORD",'$G(PXRMINST),DTYP'="G" D  Q
+ .W !,"This item cannot be copied." H 2
  ;
  ;Copy the dialog
  D COPY(IENO,.IENN,0) Q:$D(DUOUT)
@@ -47,7 +56,7 @@ ANY W IORESET
  ..;Allow PXRM prompts to be changed into forced values
  ..N ANS,TEXT
  ..S TEXT="Change the new prompt into a forced value :"
- ..D ASK(.ANS,TEXT,4) Q:$D(DUOUT)!$D(DTOUT)  Q:ANS'="Y"
+ ..D ASK(.ANS,TEXT,4,"N") Q:$D(DUOUT)!$D(DTOUT)  Q:ANS'="Y"
  ..;Store the dialog type
  ..S DR="4///F",DIE=ROOT,DA=IENN
  ..D ^DIE
@@ -62,6 +71,7 @@ COPY(IENO,IENN,RDIEN) ;
  S IENN=$$GETFOIEN(ROOT)
  D MERGE(IENN,IENO,ROOT) Q:$D(DUOUT)
  ;
+ S DPOS=$G(SEQ)
  N DA,DIE,DIK,DIR,DR,NAME,ORGNAME,X
  S ORGNAME=$P(@(ROOT_IENO_",0)"),U,1),NAME=""
  ;Get the new name.
@@ -73,7 +83,7 @@ COPY(IENO,IENN,RDIEN) ;
  .D ^DIR Q:$D(DTOUT)!$D(DUOUT)
  .I Y["""" D EN^DDIOL(" name cannot contain quotes!") Q
  .I $E(Y,1,4)="PXRM" D EN^DDIOL(" name cannot begin with PXRM!") Q
- .I '$$VNAME^PXRMINTR(Y,801.41) Q
+ .I '$$VNAME^PXRMINTR(Y) Q
  .I $$UNIQNAME(Y,ROOT) S NAME=Y Q
  .D EN^DDIOL(" is not a unique name!")
  ;
@@ -156,25 +166,27 @@ NAME(IEN,ORG) ;
  ;-----------------------------------------------
 SEL(IENO,RDIEN) ;
  W IORESET S VALMBCK="R"
- N ANS,IENN,PROMPT,ROOT,TEXT,WHAT
+ N ANS,IENN,PROMPT,ROOT,TEXT,WHAT,DPOS
  S WHAT="dialog element"
  S ROOT="^PXRMD(801.41,"
  S PROMPT="Select the dialog to copy: "
  S TEXT=$P($G(^PXRMD(801.41,IENO,0)),U)
  ;
- I RDIEN S TEXT="COPY AND REPLACE '"_TEXT_"'  "
- I 'RDIEN S TEXT="COPY REMINDER DIALOG '"_TEXT_"'  "
- D ASK(.ANS,TEXT,2) Q:$D(DUOUT)!$D(DTOUT)  Q:ANS'="Y"
+ I RDIEN S TEXT="Copy and replace '"_TEXT_"'  "
+ I 'RDIEN S TEXT="Copy reminder dialog '"_TEXT_"'  "
+ D ASK(.ANS,TEXT,2,"Y") Q:$D(DUOUT)!$D(DTOUT)  Q:ANS'="Y"
  ;Copy
  D COPY(IENO,.IENN,RDIEN) Q:$D(DUOUT)!$D(DTOUT)
  ;Replace dialog element in reminder dialog
  I RDIEN D
  .N DR,DA,DIE
- .S DA=$O(^PXRMD(801.41,RDIEN,10,"D",IENO,"")) Q:'DA
- .S DA(1)=RDIEN
- .S DR="2///"_IENN
- .S DIE=ROOT_RDIEN_",10,"
- .D ^DIE
+ .S DA=0
+ .F  S DA=$O(^PXRMD(801.41,RDIEN,10,"D",IENO,DA)) Q:DA=""  D
+ . . I $P($G(^PXRMD(801.41,RDIEN,10,DA,0)),U)=$G(DPOS) D
+ . . . S DA(1)=RDIEN
+ . . . S DR="2///"_IENN
+ . . . S DIE=ROOT_RDIEN_",10,"
+ . . . D ^DIE
  .W !,"Replaced element'"_$P(@(ROOT_IENO_",0)"),U)_"'"
  .W !,"with '"_$P(@(ROOT_IENN_",0)"),U)_"'"
  .W !,"on this dialog.",!

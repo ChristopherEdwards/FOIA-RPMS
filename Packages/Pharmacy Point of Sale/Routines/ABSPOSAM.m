@@ -1,5 +1,5 @@
 ABSPOSAM ; IHS/FCS/DRS - JWS ;      [ 06/10/2002  7:19 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001;Build 15
  ;
  ;  ABSPOSAM is the main program for send/receive communications
  ;  with the Envoy or NDC switches.  Or certain insurance company

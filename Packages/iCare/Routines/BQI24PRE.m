@@ -1,0 +1,41 @@
+BQI24PRE ;GDIT/HS/ALA-Version 2.4 Preinstall ; 18 Dec 2013  9:52 AM
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
+ ;
+ ;
+EN ;EP
+ ; Delete DD for subfile
+ ; this will remove field 10 - ICD CODES
+ S DIU=90507.801,DIU(0)="S" D EN^DIU2
+ ;
+ NEW DA,DIK
+ S DIK="^BQI(90507.8,",DA=0
+ F  S DA=$O(^BQI(90507.8,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90507,",DA=0
+ F  S DA=$O(^BQI(90507,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90506,",DA=0
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90506.2,",DA=0
+ F  S DA=$O(^BQI(90506.2,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90506.3,",DA=0
+ F  S DA=$O(^BQI(90506.3,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90508.4,",DA=0
+ F  S DA=$O(^BQI(90508.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90508.5,",DA=0
+ F  S DA=$O(^BQI(90508.5,DA)) Q:'DA  D ^DIK
+ ;
+ S DIK="^BQI(90508.2,",DA=0
+ F  S DA=$O(^BQI(90508.2,DA)) Q:'DA  D ^DIK
+ ;
+TAX ;EP
+ NEW TAX,TIEN,BQUP
+ S TAX="BQI ROCKEY MTN FEVER DXS"
+ S TIEN=$O(^ATXAX("B",TAX,"")) I TIEN="" Q
+ S BQUP(9002226,TIEN_",",.01)="BQI ROCKY MTN FEVER DXS"
+ D FILE^DIE("","BQUP","ERROR")
+ Q

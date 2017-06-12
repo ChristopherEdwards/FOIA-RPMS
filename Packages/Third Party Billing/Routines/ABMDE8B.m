@@ -1,5 +1,5 @@
 ABMDE8B ; IHS/ASDST/DMJ - Edit Page 8 - WORKSHEET SURG PROC ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,14**;NOV 12, 2009;Build 238
  ;A few lines have been added in the ICD subrtn so that surgery page
  ;can accommodate surgical CPT's entered by claim generator
  ;
@@ -13,6 +13,7 @@ ABMDE8B ; IHS/ASDST/DMJ - Edit Page 8 - WORKSHEET SURG PROC ;
  ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - v2.6 p6 - HEAT28973 - If 55 modifier present use '1' as units for charges
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Changed to use $$GET1^DIQ for provider narrative so output transform will be executed.
  ; *********************************************************************
  ;
 DISP2 K ABMZ S ABMZ("TITL")="SURGICAL PROCEDURES",ABMZ("PG")="8B"
@@ -84,7 +85,9 @@ EOP I $Y>(IOSL-5) D PAUSE^ABMDE1,HD
  W !,?12,$$GETREV^ABMDUTL($P(ABM("X0"),U,3))
  W ?18,$P(ABM("X0"),U,4)
  W ?26,$P(ABMZ(ABM("I")),U) W:ABMZ("MOD")]"" ABMZ("MOD")
- S ABMU("TXT")=$S($P(ABM("X0"),U,6)]"":$P($G(^AUTNPOV($P(ABM("X0"),U,6),0)),U),1:"")
+ ;S ABMU("TXT")=$S($P(ABM("X0"),U,6)]"":$P($G(^AUTNPOV($P(ABM("X0"),U,6),0)),U),1:"")  ;abm*2.6*14 HEAT161263
+ S IENS=ABM("X")_","_ABMP("CDFN")_","  ;abm*2.6*14 HEAT161263
+ S ABMU("TXT")=$S($P(ABM("X0"),U,6)]"":$$GET1^DIQ(9002274.3021,IENS,".06","E"),1:"")  ;abm*2.6*14 HEAT161263
  S ABMU("LM")=32+$L(ABMZ("MOD"))
  S ABMU("RM")=70
  S ABMU("TAB")=$L(ABMZ("MOD"))

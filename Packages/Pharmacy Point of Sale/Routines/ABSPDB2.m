@@ -1,5 +1,5 @@
 ABSPDB2 ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of NCPDP Reversal "B2" Claims for D.0
- ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001;Build 15
  ;
  ;
  ;

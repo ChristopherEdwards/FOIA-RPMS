@@ -1,6 +1,6 @@
-LRSPSICP ; IHS/DIR/AAB - SEARCH BY ICD CODE PRINT 8/15/95 08:50 ;
- ;;5.2;LR;**1002**;JUN 01, 1998
- ;;5.2;LAB SERVICE;**72**;Sep 27, 1994
+LRSPSICP ; IHS/DIR/AAB - SEARCH BY ICD CODE PRINT ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LR;**1002,72,1034**;NOV 1, 1997;Build 88
+ ;
  S N=0 D H,H1 S LR("F")=1
  F A=0:1 S N=$O(^TMP($J,"B",N)) Q:N=""!(LR("Q"))  S V(2)=$O(^(N,0)),V(3)=$O(^(V(2),0)),V=^TMP($J,V(2),V(3)) D:$Y>(IOSL-6) H,H1 Q:LR("Q")  W !,$E(N,1,18),?19,$P(V,"^",5),?25,$P(V,"^",3) D A
  S H(2)=1 D H,H2 Q:LR("Q")  D L

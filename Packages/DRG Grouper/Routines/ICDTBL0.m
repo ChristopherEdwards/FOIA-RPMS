@@ -1,5 +1,5 @@
 ICDTBL0 ;ALB/EG/MRY - GROUPER UTILITY FUNCTIONS ; 10/30/07 3:36pm
- ;;18.0;DRG Grouper;**31,33,34**;Oct 20, 2000;Build 9
+ ;;18.0;DRG Grouper;**31,33,34**;Oct 20, 2000;Build 7
 DRG1 ;line tag for 001,002
 DRG2 ;
  S ICDRG=$S(ICDMCC=2:1,1:2) Q

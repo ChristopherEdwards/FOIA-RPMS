@@ -1,5 +1,5 @@
 BQIDCREG ;PRXM/HC/ALA-RPMS Register Patients ; 04 Nov 2005  11:04 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
  Q
  ;
@@ -56,7 +56,7 @@ FND ;  Determine where to find the patient cross-reference for the
  . ;I '$$VTHR^BQIUL1(DFN) Q
  . ;
  . I $G(SUBREG)'="" S QFL=0 D  Q:'QFL
- .. Q:FILE'=9002241
+ .. ;Q:FILE'=9002241
  .. S RIEN=""
  .. F  S RIEN=$O(@GLBREF@(DFN,RIEN)) Q:RIEN=""  D
  ... I $P($G(@GLBNOD@(RIEN,0)),U,5)=SUBREG S QFL=1,IENS=RIEN
@@ -65,7 +65,7 @@ FND ;  Determine where to find the patient cross-reference for the
  .. ;S IENS=$O(@GLBREF@(DFN,""))
  .. I $G(SUBREG)="" S IENS=$O(@GLBREF@(DFN,""))
  .. I STEX'="" X STEX Q:'$D(IENS)
- .. S PSTAT=$$GET1^DIQ(STFILE,IENS,STFLD,"I")
+ .. I STEX="" S PSTAT=$$GET1^DIQ(STFILE,IENS,STFLD,"I")
  .. I $D(PARMS("STAT")),PSTAT=PARMS("STAT") S QFL=1 Q
  .. S STAT=""
  .. F  S STAT=$O(MPARMS("STAT",STAT)) Q:STAT=""  I PSTAT=STAT S QFL=1 Q
@@ -77,6 +77,7 @@ HMS ; Set IENS for HMS Registry
  S DA(1)=$O(^BKM(90451,"B",DFN,"")) Q:'DA(1)
  S DA=$O(^BKM(90451,DA(1),1,0)) Q:'DA
  S IENS=$$IENS^DILF(.DA)
+ S PSTAT=$$GET1^DIQ(STFILE,IENS,STFLD,"I")
  Q
  ;
 ERR ;

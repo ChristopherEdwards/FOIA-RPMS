@@ -1,5 +1,5 @@
-BGOVEYE ; IHS/MSC/MGH - V EyeGlass Management ;09-Apr-2013 11:39;DU
- ;;1.1;BGO COMPONENTS;**11**;Mar 20, 2007;Build 2
+BGOVEYE ; IHS/MSC/MGH - V EyeGlass Management ;10-Jul-2014 12:07;MGH
+ ;;1.1;BGO COMPONENTS;**11,14**;Mar 20, 2007;Build 2
  ;----------------------------------------------------------------
  ; Return last eyeglass record for a patient
  ;  DFN = Patient IEN
@@ -183,7 +183,7 @@ SET(RET,DATA) ;EP
  S @FDA@(1919)=$P(PUPIL,U,4)
  I $P(PUPIL,U,5)="" S $P(PUPIL,U,5)="@"
  S @FDA@(1920)=$P(PUPIL,U,5)
- I PROV="" S PROV=DUZ
+ I PROV=""!(PROV=0) S PROV=DUZ
  S:PROV @FDA@(1204)="`"_PROV
  I EVNTDT="" S EVNTDT="N"
  S @FDA@(1201)="N"

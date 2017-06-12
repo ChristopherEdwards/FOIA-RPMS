@@ -1,5 +1,5 @@
 APCLAL4 ; IHS/CMI/LAB - list ALCOHOL ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -17,7 +17,7 @@ INFORM ;
  W !?5,"- Alcohol Screening Exam (Exam code 35)"
  W !?5,"- Measurements: AUDC, AUDT, CRFT"
  W !?5,"- Health Factor with Alcohol/Drug Category (CAGE)"
- W !?5,"- Diagnoses V79.1, 29.1 (Behavioral Health Problem Code"
+ W !?5,"- Diagnoses V79.1 (there are no ICD10 codes), 29.1 (Behavioral Hlth Code)"
  W !?5,"- Education Topics: AOD-SCR, CD-SCR"
  W !?5,"- CPT Codes: 99408, 99409, G0396, G0397, H0049"
  W !?5,"- refusal of exam code 35"

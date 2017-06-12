@@ -1,6 +1,6 @@
-LREPISRV ;VA/DALOI/RLM-EPI data server ;8/2/2000
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**260,281**;Sep 27, 1994
+LREPISRV ;VA/DALOI/RLM-EPI data server ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**260,281,1030,1034**;NOV 01, 1997;Build 88
+ ;
  ; Reference to $$SITE^VASITE supported by IA #10112
  ; Reference to ^%ZOSF supported by IA #10096
  ; Reference to ^ICD9( supported by IA #10082
@@ -53,10 +53,12 @@ ETIO  . S LRI=0 F  S LRI=$O(^LAB(69.5,LRA,2,LRI)) Q:'LRI  D
   . . S LRCOND=$P(LRTEST,"^",2),LRCOND=$S(LRCOND=1:"Ref. Range",LRCOND=2:"Contains",LRCOND=3:"Greater Than",LRCOND=4:"Less Than",LRCOND=5:"Equal To",1:"Unknown")
   . . S LRDATA=$P($G(^LAB(61.2,$P(LRTEST,"^"),0),0),"^")
   . . S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)=LRDATA
- .  S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="    ICD9"
+ .  ; S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="    ICD9"
+ . S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="    ICD"     ; IHS/MSC/MKK - LR*5.2*1034
 ICD9  . S LRI=0 F  S LRI=$O(^LAB(69.5,LRA,3,LRI)) Q:'LRI  D
   . . S LRICD9=$G(^LAB(69.5,LRA,3,LRI,0))
-  . . I $P(LRICD9,"^")="" S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="IEN # "_LRA_" damaged. (No ICD9)" Q
+  . . ; I $P(LRICD9,"^")="" S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="IEN # "_LRA_" damaged. (No ICD9)" Q
+  . . I $P(LRICD9,"^")="" S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="IEN # "_LRA_" damaged. (No ICD)" Q      ; IHS/MSC/MKK - LR*5.2*1034
   . . S LRDATA=$P($G(^ICD9($P(LRICD9,"^"),0),0),"^")
   . . S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)=LRDATA
   . S LREPLNT=$G(LREPLNT)+1,^TMP($J,"LREPDATA",LREPLNT)="      Microbial Susceptibility                      Indicator       Value"

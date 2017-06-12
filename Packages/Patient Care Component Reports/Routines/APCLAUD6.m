@@ -1,25 +1,23 @@
 APCLAUD6 ; IHS/CMI/LAB - EXTENSION OF ROUTINE APCLAUD5 ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
- ;cmi/anch/maw 9/10/2007 code set versioning in LOOK
  ;
 LOOK ; ENTRY POINT - LOOKUP USER RESPONSE; SET UTILITY NODES
- S DIC="^ICD9(",DIC(0)="EMF" D ^DIC K DIC,DR
+ S DIC="^ICD9(",DIC(0)="EMF",ICDSYS=APCLSYS D ^DIC K DIC,DR
  I Y<0 S APCLA=1 W $C(7),"  ?? Invalid ",$S(APCLTYP="LOW":"LOW",1:"HIGH")," code." S APCL("NO DISPLAY")=1 G X3
- ;S:APCLTYP="LOW" APCL("LOW")=$P(^ICD9(+Y,0),U)_" "  ;cmi/anch/maw 9/10/2007 orig line
- S:APCLTYP="LOW" APCL("LOW")=$P($$ICDDX^ICDCODE(+Y),U,2)_" "  ;cmi/anch/maw 9/10/2007 code set versioning
+ S:APCLTYP="LOW" APCL("LOW")=$P($$ICDDX^ICDEX(+Y),U,2)_" "
  I APCLTYP="LOW",APCLONE S APCL("HI")=APCL("LOW") D ^APCLAUD7
- ;I APCLTYP="HI" S APCL("HI")=$P(^ICD9(+Y,0),U)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLAUD5,^APCLAUD7  ;cmi/anch/maw 9/10/2007 orig line
- I APCLTYP="HI" S APCL("HI")=$P($$ICDDX^ICDCODE(+Y),U,2)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLAUD5,^APCLAUD7  ;cmi/anch/maw 9/10/2007 code set versioning
+ I APCLTYP="HI" S APCL("HI")=$P($$ICDDX^ICDEX(+Y),U,2)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLAUD5,^APCLAUD7
  . I $E(APCL("HI"))?1N&($E(APCL("LOW"))?1N)!($E(APCL("LOW"))'?1N&($E(APCL("HI"))'?1N))
  . E  W !,$C(7),"Low and high codes of range must both start either with a letter or a number.",! S APCL("NO DISPLAY")=1
  . I 'APCL("NO DISPLAY") I APCL("LOW")]APCL("HI") W !,$C(7),"Low code is higher than high code.",! S APCL("NO DISPLAY")=1
 X3 Q
  ;
 SETDIR ; ENTRY POINT - SETS HELP AND DIR FOR INIT SUBROUTINE OF APCLAUD5
- S DIR(0)="FO",DIR("?",1)="Enter ICD9 diagnosis code or narrative.  You may enter a range of",DIR("?",2)="codes by placing a ""-"" between two codes.  Codes in a range will"
- S DIR("?",3)="include the first and last codes indicated and all codes that fall",DIR("?",4)="between.  Only one code or one range of codes at a time."
- S DIR("?",5)="You can also ""de-select"" a code or range of codes by placing a ""-"" in",DIR("?",7)="front of it. (e.g. '-250.00' or '-250.01-250.91')  Enter ""??"" to see"
+ S DIR(0)="FO",DIR("?",1)="Enter ICD diagnosis code or narrative.  You may enter a range of",DIR("?",2)="codes by placing a ""-"" between two codes.  Codes in a range will"
+ S DIR("?",3)="include the first and last codes indicated and all codes that fall",DIR("?",4)="between.  Only one code or one range of codes at a time.  "
+ S DIR("?",5)="To select all codes in a set you can use a '*' wildcard.  E.g. E11*, 250*"
+ S DIR("?",6)="You can also ""de-select"" a code or range of codes by placing a ""-"" in",DIR("?",7)="front of it. (e.g. '-250.00' or '-250.01-250.91')  Enter ""??"" to see"
  S DIR("?")="code ranges selected so far."
  S DIR("??")="^D ASK2^APCLAUD6"
  Q

@@ -1,5 +1,5 @@
-LA7VHLU2 ;VA/DALOI/JMC - HL7 Segment Utility ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,61,64,1027**;NOV 01, 1997
+LA7VHLU2 ;VA/DALOI/JMC - HL7 Segment Utility ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,61,1018,64,1027,68,1033**;NOV 01, 1997
  ;
  Q
  ;
@@ -175,4 +175,33 @@ NVAF(LA7X) ; Set flag sending to non-VA facility.
  S LA7Y=""
  I LA7X S LA7Y=$$GET1^DIQ(4,LA7X_",",95,"I")
  S LA7Y=$S(LA7Y="N":1,LA7Y="AF":1,LA7Y="ARMY":1,LA7Y="I":2,LA7Y="O":3,1:0)
+ Q LA7Y
+ ;
+ ;
+FACDNS(LA74,LA7FS,LA7ECH,LA7LV) ; Build facility DNS identifer
+ ; Call with LA74 = pointer to entry in INSITUTION file (#4)
+ ;          LA7FS = HL field separator
+ ;         LA7ECH = HL encoding characters
+ ;          LA7LV = field (1)/ component (2) level in message
+ ;
+ ; Returns   LA7Y = STA#~STA-NAME~DNS
+ ;
+ N LA7DN,LA7FAC,LA7NVAF,LA7Y
+ S LA7Y=""
+ ;
+ ; Retrieve saved valued
+ I $D(^TMP($J,"LA7VHLU","INST-DNS",LA74,LA7FS_LA7ECH,LA7LV)) S LA7Y=^TMP($J,"LA7VHLU","INST-DNS",LA74,LA7FS_LA7ECH,LA7LV)
+ ;
+ ; Retrieve station# or DMIS code for VA/DoD facilities.
+ ; Others leave blank for now (Jun 2005)
+ ; Retrieve domain name for this institution.
+ ; Build component and save for other parts of message building
+ I LA7Y="" D
+ . S LA7FAC="",LA7NVAF=$$NVAF(LA74)
+ . I LA7NVAF<2 S LA7FAC=$$ID^XUAF4($S(LA7NVAF=1:"DMIS",1:"VASTANUM"),LA74)
+ . S LA7Y=LA7FAC
+ . S LA7DN=$$WHAT^XUAF4(LA74,60)
+ . I LA7DN'="" S LA7DN=$$CHKDATA^LA7VHLU3(LA7DN,LA7FS_LA7ECH),LA7Y=LA7FAC_$S(LA7LV=1:$E(LA7ECH),1:$E(LA7ECH,4))_LA7DN_$S(LA7LV=1:$E(LA7ECH),1:$E(LA7ECH,4))_"DNS"
+ . S ^TMP($J,"LA7VHLU","INST-DNS",LA74,LA7FS_LA7ECH,LA7LV)=LA7Y
+ ;
  Q LA7Y

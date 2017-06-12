@@ -1,5 +1,5 @@
 ABSP5B1F ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for 5.1 (Helper subroutines)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
 ADDSEG(SPECIAL,ADDSEG) ;EP CALLED FROM ABSP5B1,ABSP5B2 -- Add segment if we have a field in that segment to send
  N NCODE,SEG
  S SEG("COB")="^337^338^339^340^443^341^342^431^471^472^"

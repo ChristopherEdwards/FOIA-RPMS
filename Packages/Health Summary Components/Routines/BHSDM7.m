@@ -1,16 +1,18 @@
-BHSDM7 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;27-May-2008 14:17;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2**;March 17, 2006
+BHSDM7 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;30-Nov-2015 10:25;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,12**;March 17, 2006;Build 3
  ;===================================================================
  ;VA version of IHS components for supplemental summaries
  ;Taken from APCHS9B7
  ; IHS/TUCSON/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;  [ 02/19/03  7:23 AM ]
  ;;2.0;IHS RPMS/PCC Health Summary;**10**;JUN 24, 1997
  ;Patch 1 updates to patch 14 from IHS
+ ;Patch 12 updated for new API for taxonomies
  ;====================================================================
  ;
 EKG(P) ;  EP
- NEW APCHY,%,LEKG,E S LEKG="",%=P_"^LAST DIAGNOSTIC ECG SUMMARY",E=$$START1^APCLDF(%,"APCHY(")
- I $D(APCHY) S LEKG=$P(APCHY(1),U)
+ NEW APCHY,%,LEKG,E,TAXARR
+ S LEKG="",%=P_"^LAST DIAGNOSTIC ECG SUMMARY",E=$$START1^APCLDF(%,"APCHY(")
+ I $D(APCHY) S LEKG=$P(APCHY(1),U)_U_$$VAL^XBDIQ1(9000010.21,+$P(APCHY(1),U,4),.04)
  K APCHY S %=P_"^LAST PROCEDURE 89.51",E=$$START1^APCLDF(%,"APCHY(")
  I $D(APCHY(1)) D
  .Q:LEKG>$P(APCHY(1),U)
@@ -42,7 +44,7 @@ CPT(P,BDATE,EDATE,T,F) ;
  I '$G(T) Q ""
  I '$G(F) S F=1
  I $G(EDATE)="" S EDATE=DT
- I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)
  ;go through visits in a date range for this patient, check cpts
  NEW D,BD,ED,X,Y,D,G,V
  S ED=9999999-EDATE,BD=9999999-BDATE,G=0
@@ -51,7 +53,7 @@ CPT(P,BDATE,EDATE,T,F) ;
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^ATXAPI($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -66,7 +68,7 @@ RAD(P,BDATE,EDATE,T,F) ;return if a v rad entry in date range
  I '$G(T) Q ""
  I '$G(F) S F=1
  I $G(EDATE)="" S EDATE=DT
- I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
+ I $G(BDATE)="" S BDATE=$P(^DPT(P,0),U,3)
  ;go through visits in a date range for this patient, check cpts
  NEW D,BD,ED,X,Y,D,G,V
  S ED=9999999-EDATE,BD=9999999-BDATE,G=0

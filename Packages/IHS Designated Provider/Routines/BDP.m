@@ -1,5 +1,5 @@
 BDP ; IHS/CMI/TMJ - DESG SPECIALTY PROVIDER MGT SYSTEM ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ;
  I '$D(ZTQUEUED) W !!,*7,"NO ENTRY FROM THE TOP OF ^BDP.",!
@@ -80,7 +80,7 @@ DEV ; EP - SELECT OUTPUT DEVICE
  ;----------
 PAUSE ; EP - PAUSE FOR USER
  W !
- S DIR(0)="EO",DIR("A")="Press return to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ S DIR(0)="EO",DIR("A")="Press ENTER...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  W !
  Q
  ;----------

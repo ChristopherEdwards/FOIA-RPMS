@@ -1,5 +1,6 @@
-XQ75 ;SEA/AMF,LUKE,JLI - Lookup response for jumps ;09/17/2002  12:51 [ 07/29/2004   9:01 AM ]
- ;;8.0;KERNEL;**47,46,157,253**;Jul 10, 1995
+XQ75 ;SEA/AMF,LUKE,JLI,BT - Lookup response for jumps ;6/14/2011
+ ;;8.0;KERNEL;**47,46,157,253,553,570**;Jul 10, 1995;Build 6
+ ;;Per VHA Directive 2004-038, this routine should not be modified
  ;Enter at S with XQUR. Exit with XQY set to the chosen option #,
  ;with array of possibilities in XQ(XQ):XQY^menu txt [name]^XQPSM
  ;XQXT(XQXT) similarly built, holds exact matches
@@ -8,7 +9,7 @@ XQ75 ;SEA/AMF,LUKE,JLI - Lookup response for jumps ;09/17/2002  12:51 [ 07/29/20
 X ;Unless exact match is found, find all possibilities in any XQDIC
  S XQO=$O(^XUTL("XQO",XQDIC,XQO)) Q:'$S(XQO="":0,XQUR="?":XQO'="^",XQUR=0_$C(1):'$L($P(XQO,"0",1)),1:'$L($P(XQO,XQUR,1)))
  S XQYY=^XUTL("XQO",XQDIC,XQO) S XQY=+XQYY G:$D(XQ("X",+XQY)) X S %=$G(^XUTL("XQO",XQDIC,"^",+XQY)) G:%="" X S XQY0=$P(%,U,2,99)
- S XQCY=XQY,XQCY0=XQY0 D ^XQCHK I XQCY<0 S XQY=0 G X
+ S XQCY=XQY,XQCY0=XQY0 D ^XQCHK I (XQCY<0)!'$$CHCKTM(XQY) S XQY=0 G X
  S:'$P(XQYY,U,2) XQ("S",+XQY)=$P(XQO,U)
  I XQUR=$P(XQO,U),'XQS S XQXT=XQXT+1,XQXT(XQXT)=+XQY_U_$P(XQY0,U,2)_"  ["_$P(XQY0,U)_"] "_U_$S($D(XQUD):XQUD_",",1:"")_XQDIC,XQXT("X",XQY)="" S:'$P(XQYY,U,2) XQXT("S",+XQY)=$P(XQO,U)
  S XQ=XQ+1,XQ1=XQ1+1,XQ(XQ)=+XQY_U_$P(XQY0,U,2)_"  ["_$P(XQY0,U)_"] "_U_$S($D(XQUD):XQUD_",",1:"")_XQDIC,XQ("X",XQY)=""
@@ -175,3 +176,9 @@ P ;Entry point for '"' jump to XUCOMMAND options
  I XQ=1,XQS=0 S %=XQ(1),XQY=+%,XQPSM=$P(%,U,3),XQDIC=$S($L(XQPSM,",")>1:$P(XQPSM,",",$L(XQPSM,",")),1:XQPSM),XQY0=$P(^XUTL("XQO",XQDIC,U,XQY),U,2,99) G OUT
  D:XQ>0 C G:XQY<0 OUT I XQ=0&('XQXT) S XQY=-1 G OUT
  G OUT
+ ;
+CHCKTM(XQIEN) ;check Restriction time/date
+ N X,Y
+ S Y=+$G(XQIEN) I Y'>0 Q 0
+ D NEXT^XQ92 I X'<$$NOW^XLFDT,$G(%XQOP)=3.91 Q 0
+ Q 1

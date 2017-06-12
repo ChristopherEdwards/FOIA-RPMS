@@ -1,5 +1,5 @@
 LEX2I02E ;IHS/OIT/FCJ - LEX*2.0*1002 Env Check FOR IHS patch 1002 ;07/01/2011
- ;;2.0;LEXICON UTILITY;**1002**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**1002**;Sep 23, 1996;Build 10
  ;               
  ;
 ENV ;               

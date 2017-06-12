@@ -1,29 +1,16 @@
 BQITASK ;PRXM/HC/ALA-Scheduled Task Program ; 20 Dec 2006  4:56 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  Q
  ;
 EN ;EP - Entry point
  NEW UID
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  ;
- ;  Set the task
- ;NEW DA
- ;S DA=$O(^BQI(90508,0)) I 'DA Q
- ;S BQIUPD(90508,DA_",",.14)=1
- ;D FILE^DIE("","BQIUPD","ERROR")
- ;K BQIUPD
- ;
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQI1POJB"
  ;
  D DXC
  D GPR
  ;
- ;  Remove the running flag and task
- ;NEW DA
- ;S DA=$O(^BQI(90508,0)) I 'DA Q
- ;S BQIUPD(90508,DA_",",.1)="@"
- ;S BQIUPD(90508,DA_",",.14)="@"
- ;D FILE^DIE("","BQIUPD","ERROR")
  K BQIUPD,INSTALL,UID,STAT
  Q
  ;
@@ -56,17 +43,22 @@ DXC ;EP - Tag the diagnosis categories
  . S BQTN=0
  . F  S BQTN=$O(^BQI(90506.2,"AC",BQORD,BQTN)) Q:'BQTN  D
  .. ; If the category is marked as inactive, ignore it
- .. I $$GET1^DIQ(90506.2,BQTN_",",.03,"I") Q
+ .. ;I $$GET1^DIQ(90506.2,BQTN_",",.03,"I") Q
+ .. I $P($G(^BQI(90506.2,BQTN,0)),"^",3)'="" Q
  .. ; If the category is a subdefinition, ignore it
- .. I $$GET1^DIQ(90506.2,BQTN_",",.05,"I")=1 Q
- .. S BQDEF=$$GET1^DIQ(90506.2,BQTN_",",.01,"E")
- .. S BQEXEC=$$GET1^DIQ(90506.2,BQTN_",",1,"E")
- .. S BQPRG=$$GET1^DIQ(90506.2,BQTN_",",.04,"E")
+ .. ;I $$GET1^DIQ(90506.2,BQTN_",",.05,"I")=1 Q
+ .. I $P($G(^BQI(90506.2,BQTN,0)),"^",5)=1 Q
+ .. ;S BQDEF=$$GET1^DIQ(90506.2,BQTN_",",.01,"E")
+ .. S BQDEF=$P($G(^BQI(90506.2,BQTN,0)),"^",1)
+ .. ;S BQPRG=$$GET1^DIQ(90506.2,BQTN_",",.04,"E")
+ .. S BQPRG=$P($G(^BQI(90506.2,BQTN,0)),"^",4)
+ .. ;S BQEXEC=$$GET1^DIQ(90506.2,BQTN_",",1,"E")
+ .. S BQEXEC=$G(^BQI(90506.2,BQTN,1))
  .. ;
  .. ; Set the taxonomy array from the file definition
  .. S BQREF="BQIRY" K @BQREF
  .. D ARY^BQITUTL(BQDEF,BQREF)
- .. S BQGLB=$NA(^TMP("BQIPOP",UID))
+ .. S BQGLB=$NA(^TMP(UID,"BQIPOP"))
  .. K @BQGLB
  .. ;
  .. ; Call the populate category code
@@ -83,6 +75,7 @@ DXC ;EP - Tag the diagnosis categories
  .... NEW DA,DIK
  .... S DA(2)=DFN,DA(1)=BQTN,DA=0,DIK="^BQIPAT("_DA(2)_",20,"_DA(1)_",1,"
  .... F  S DA=$O(^BQIPAT(DFN,20,BQTN,1,DA)) Q:'DA  D ^DIK
+ .... K ^BQIPAT(DFN,20,BQTN,1,"B")
  .. ; File the patients who met criteria
  .. S DFN=0
  .. F  S DFN=$O(@BQGLB@(DFN)) Q:DFN=""  D FIL(BQGLB,DFN)
@@ -129,7 +122,7 @@ GPR ;EP - Entry point to get GPRA values for all users
  K BQIUPD
  ;
  NEW DFN
- S BQIGREF=$NA(^TMP("BQIGPRA",UID))
+ S BQIGREF=$NA(^TMP(UID,"BQIGPRA"))
  K @BQIGREF
  S BQIDATA=$NA(^BQIPAT)
  ;
@@ -163,6 +156,11 @@ GPR ;EP - Entry point to get GPRA values for all users
  S BGPP3YE=$$FMADD^XLFDT(BGPPED,-1096)
  S BGPB3YE=$$FMADD^XLFDT(BGPBED,-1096)
  ;
+ ; Setup taxonomies
+ I VER>14.1 D
+ . I $T(UNFOLDTX^BGP6UTL2)="" Q
+ . D UNFOLDTX^BGP6UTL2
+ ;
  ;  For every patient in the database, call the GPRA API
  S BQIDFN=0
  F  S BQIDFN=$O(^AUPNPAT(BQIDFN)) Q:'BQIDFN  D
@@ -175,6 +173,7 @@ GPR ;EP - Entry point to get GPRA values for all users
  . I '$$HRN^BQIUL1(BQIDFN) Q
  . ; If patient has no visits in past 3 years, quit
  . I '$$VTHR^BQIUL1(BQIDFN) Q
+ . ;I '$$VTWR^BQIUL1(BQIDFN) Q
  . I $P($G(^AUPNPAT(BQIDFN,0)),U,1)="" Q
  . ;
  . D @("BQI^"_BQIROU_"(BQIDFN,.BQIGREF)")
@@ -183,6 +182,7 @@ GPR ;EP - Entry point to get GPRA values for all users
  . ;
  . ;  if the patient doesn't already exist in the iCare Patient file, add them
  . I $G(^BQIPAT(BQIDFN,0))="" D NPT(BQIDFN)
+ . I $P($G(^BQIPAT(BQIDFN,0)),"^",1)="" S $P(^BQIPAT(BQIDFN,0),"^",1)=BQIDFN,^BQIPAT("B",BQIDFN,BQIDFN)=""
  . ;
  . S @BQIDATA@(BQIDFN,30,0)="^90507.53^^"
  . ;
@@ -216,6 +216,8 @@ GPR ;EP - Entry point to get GPRA values for all users
  . ;NEW DA,DIK
  . ;S DA=BQIDFN,DIK="^BQIPAT(" D IX1^DIK
  ;
+ K ^XTMP("BGP15TAX",$J)
+ ;
 EXIT ; Set the DATE/TIME GPRA STOPPED
  NEW DA
  S DA=$O(^BQI(90508,0)) I 'DA Q
@@ -228,12 +230,13 @@ EXIT ; Set the DATE/TIME GPRA STOPPED
  ;
 FIL(BQGLB,DFN) ;EP - File diagnosis category
  NEW DA,IENS,DIC,X,DLAYGO,DINUM,EVN,TXN,TYP,MEVN,TGDATA,CSTAT,RIEN,TXT,TXN,QFL
+ NEW THCFL
  ; Exclude deceased patients
  I $P($G(^DPT(DFN,.35)),U,1)'="" Q
  ; If patient has no active HRNs, quit
- I '$$HRN^BQIUL1(DFN) Q
+ ;I '$$HRN^BQIUL1(DFN) Q
  ; If patient has no visit in past 3 years, quit
- I '$$VTHR^BQIUL1(DFN) Q
+ ;I BQDEF'="ASCVD Known",'$$VTHR^BQIUL1(DFN) Q
  ;
  ; Check on status of current record
  S RIEN=$O(^BQIREG("C",DFN,BQTN,""))
@@ -306,8 +309,6 @@ FIL(BQGLB,DFN) ;EP - File diagnosis category
  S RIEN=$O(^BQIREG("C",DFN,BQTN,""))
  ; If no record found, then it's a new record
  I RIEN="" D  Q
- . ; Set up patient as proposed unless CVD At Risk (BQTN=9)
- . I BQTN=9 D EN^BQITDPRC(.TGDATA,DFN,BQTN,"A",,"SYSTEM UPDATE",5) Q
  . ; if patient is in a register, check status to determine "A" else "P"
  . I $$REG^BQITDUTL(DFN,BQTN)=1 D EN^BQITDPRC(.TGDATA,DFN,BQTN,"A",,"SYSTEM UPDATE",8) Q
  . I $$REG^BQITDUTL(DFN,BQTN)=2 D EN^BQITDPRC(.TGDATA,DFN,BQTN,"P",,"SYSTEM UPDATE",8) Q
@@ -334,6 +335,7 @@ DEL ;EP - Delete criteria
  NEW DA,DIK
  S DA(2)=DFN,DA(1)=BQTN,DA=0,DIK="^BQIPAT("_DA(2)_",20,"_DA(1)_",1,"
  F  S DA=$O(^BQIPAT(DFN,20,BQTN,1,DA)) Q:'DA  D ^DIK
+ K ^BQIPAT(DFN,20,BQTN,1,"B")
  Q
  ;
 RCHK ; Register check

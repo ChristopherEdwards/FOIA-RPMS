@@ -1,10 +1,11 @@
 ABMDE8B1 ; IHS/ASDST/DMJ - Edit Page 8 - SURG PROC ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - v2.6 p6 - HEAT28973 - if 55 modifier present use '1' for units when calculating charges
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Changed to use $$GET1^DIQ so output transform will execute for SNOMED/provider narrative
  ;
  D MODE^ABMDE8X
  I ^ABMDEXP(ABMMODE(2),0)["UB" S ABMZ("DR")=";W !;.03//960"_ABMZ("DR")
@@ -56,7 +57,9 @@ EOP I $Y>(IOSL-5) D PAUSE^ABMDE1,HD
  ..S ABMU("TXT")=ABMU("TXT")_ABMZCPTD(ABM("CP"))_" "
  ;end CSV-c
  S ABMU("RM")=44,ABMU("LM")=24+$L(ABMZ("MOD")),ABMU("TAB")=6+$L(ABMZ("MOD"))
- S ABMU("2TXT")=$S($P(ABM("X0"),U,6)]"":$P($G(^AUTNPOV($P(ABM("X0"),U,6),0)),U),1:""),ABMU("2LM")=46,ABMU("2RM")=70,ABMU("2TAB")=-2
+ ;S ABMU("2TXT")=$S($P(ABM("X0"),U,6)]"":$P($G(^AUTNPOV($P(ABM("X0"),U,6),0)),U),1:""),ABMU("2LM")=46,ABMU("2RM")=70,ABMU("2TAB")=-2  ;abm*2.6*14 HEAT161263
+ S IENS=ABM("X")_","_ABMP("CDFN")_","  ;abm*2.6*14 HEAT161263
+ S ABMU("2TXT")=$S($P(ABM("X0"),U,6)]"":$$GET1^DIQ(9002274.3021,IENS,".06","E"),1:""),ABMU("2LM")=46,ABMU("2RM")=70,ABMU("2TAB")=-2  ;abm*2.6*14 HEAT161263
  D ^ABMDWRAP
  Q
  ;

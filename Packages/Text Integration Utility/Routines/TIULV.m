@@ -1,5 +1,5 @@
-TIULV ; SLC/JER - Visit/Movement related library ;02-Mar-2012 08:43;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,30,55,45,52,148,156,152,113,1001,1007,1009**;Jun 20, 1997;Build 22
+TIULV ; SLC/JER - Visit/Movement related library ;29-Apr-2014 15:01;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,30,55,45,52,148,156,152,113,1001,1007,1009,200,1011,1012**;Jun 20, 1997;Build 45
  ;IHS/ITSC/LJF 02/26/2003 set chart #, visit and facility fields
  ;     used file DD to determine service category external format
  ;             04/08/2004 fixed code to prevent UNDEF if no ward
@@ -59,7 +59,7 @@ PATVADPT(TIUY,DFN,TIUMVN,TIUVSTR,TIUSDC) ; Extract MAS data
  . S VDT=+VAIP(3)
  . S VLOC=$G(^DIC(42,+$P($G(VAIP(13,4)),U),44))
  . S TIUY("VSTR")=VLOC_";"_+TIUY("EDT")_";H"
- . ;S TIUY("VLOC")=VLOC_U_$P($G(^SC(VLOC,0)),U)
+ . ;S TIUY("VLOC")=VLOC_U_$P($G(^SC(VLOC,0)),U)    ;IHS/ITSC/LJF
  . S TIUY("VLOC")=VLOC_U_$P($G(^SC(+VLOC,0)),U)   ;IHS/ITSC/LJF 4/8/2004 prevent UNDEF
  . S:'+$G(TIUY("LOC")) TIUY("LOC")=TIUY("VLOC")
  I $G(TIUVSTR)]"" S TIUY("VSTR")=TIUVSTR D VSIT(.TIUY,TIUVSTR)
@@ -74,15 +74,14 @@ PATVADPT(TIUY,DFN,TIUMVN,TIUVSTR,TIUSDC) ; Extract MAS data
  ;
  ;IHS/ITSC/LJF 02/26/2003 setting of variables from IHS data
  I '$G(BTIUVSIT),$G(TIUMVN) NEW BTIUVSIT S BTIUVSIT=$$GET1^DIQ(405,TIUMVN,.27,"I")  ;visit ien
- ;
  ;IHS/ITSC/LJF 11/05/2004 PATCH 1001 if called by EHR, BTIUVSIT may not be set
- ;S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))
  I $G(BTIUVSIT)<1,$G(TIUVSIT)>0 S TIUY("VISIT")=(+TIUVSIT)_U_+$G(^AUPNVSIT(+TIUVSIT,0))
  E  S TIUY("VISIT")=+$G(BTIUVSIT)_U_+$G(^AUPNVSIT(+$G(BTIUVSIT),0))
  ;end of PATCH 1001 change
  ;
- S TIUY("DIV")=+$O(^DG(40.8,"AD",DUZ(2),0))_U_$$GET1^DIQ(4,DUZ(2),.01)
- ;IHS/ITSC/LJF 02/26/2003 end of new code use AD cross-reference
+ I '$D(TIUY("DIV")) S TIUY("DIV")=+$O(^DG(40.8,"AD",DUZ(2),0))_U_$$GET1^DIQ(4,DUZ(2),.01)  ;IHS/MSC/MGH Patch 1012
+ ;IHS/ITSC/LJF 02/26/2003 end of new code
+ ;
  ; if pt an inpt + doc class is pn- default to current inpt loc
  S TIUTYPE=$S(+$P($G(TIUTYP(1)),U,2)>0:$P($G(TIUTYP(1)),U,2),1:+$G(TIUTYP))
  I +TIUTYPE'>0 S TIUY("INST")=$$DIVISION^TIULC1(+TIUY("LOC")) Q
@@ -145,6 +144,6 @@ CURRENT(TIUY,DFN) ; Get current INPATIENT data
  . N DIC,DIQ,DR,DA
  . S DIC=4,DR=".01",DA=+$G(DUZ(2)),DIQ="TIUDIV1"
  . D EN^DIQ1
- . ;TIU*1*152 changed TIUDIV1(4,DUZ(2),.01) to $G(TIUDIV1(4,$G(DUZ(2)),.01))
- . S TIUY("DIV")=+$G(DUZ(2))_U_$G(TIUDIV1(4,$G(DUZ(2)),.01))
+ . ;TIU*1*152 changed TIUDIV1(4,DUZ(2),.01) to $G(TIUDIV1(4,$G(DUZ(2)),.01)) ; TIU*1*200 Added + to 2nd piece and + to $G(DUZ(2))
+ . S TIUY("DIV")=+$G(DUZ(2))_U_+$G(TIUDIV1(4,+$G(DUZ(2)),.01))
  Q

@@ -1,5 +1,5 @@
 ABSPOSE1 ; IHS/SD/lwj - E1 gereration routine ; [ 10/24/2005 10:09:07 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**14,15,16**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**14,15,16**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/lwj 10/24/05  Medicare Part D E1 Transmission routine
  ;  This routine will:

@@ -1,5 +1,5 @@
 AMHRDSP ; IHS/CMI/LAB - display record in detail ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,5**;JUN 02, 2010;Build 18
  ;
  ;CALLER passes AMHR as record ien
 EN ;EP

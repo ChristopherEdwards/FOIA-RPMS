@@ -1,5 +1,5 @@
-LRWU5 ;SLC/RWF/BA - ADD A NEW DATA NAME TO FILE 63 ;JUL 06, 2010 3:14 PM;
- ;;5.2;LAB SERVICE;**140,171,177,206,316,1027,1032**;NOV 01, 1997
+LRWU5 ;SLC/RWF/BA - ADD A NEW DATA NAME TO FILE 63 ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**140,171,177,206,316,1027,1032,1033**;NOV 01, 1997
  ;
  ; Reference to ^DD supported by DBIA #29
  ; Reference to ^XMB(1 supported by DBIA #10091
@@ -40,7 +40,8 @@ IHSDNBAD(DNSTR) ; EP - Check to make sure new DataName only contains valid chara
  S OKAY=1,BADCHAR=""
  F I=1:1:$L(DNSTR) D
  . S CHAR=$E(DNSTR,I)
- . Q:CHAR?1N!(CHAR?1A)!(CHAR=" ")!(CHAR="_")     ; Only Numeric, Alphabetic, Space, and Underline Characters allowed
+ . ; Q:CHAR?1N!(CHAR?1A)!(CHAR=" ")!(CHAR="_")     ; Only Numeric, Alphabetic, Space, and Underline Characters allowed
+ . Q:CHAR?1N!(CHAR?1A)!(CHAR=" ")!(CHAR="_")!(CHAR="(")!(CHAR=")")     ; Only Numeric, Alphabetic, Space, Underline, (, and ) Characters allowed -- IHS/MSC/MKK - LR*5.2*1033
  . S OKAY=0
  . S BADCHAR=BADCHAR_CHAR
  ;

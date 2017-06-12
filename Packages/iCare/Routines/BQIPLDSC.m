@@ -1,5 +1,5 @@
 BQIPLDSC ;PRXM/HC/ALA-Panel Description Utility ; 19 Jan 2006  1:28 PM
- ;;2.2;ICARE MANAGEMENT SYSTEM;;Jul 28, 2011;Build 37
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;

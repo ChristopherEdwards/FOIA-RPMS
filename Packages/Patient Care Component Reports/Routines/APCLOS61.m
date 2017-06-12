@@ -1,5 +1,5 @@
 APCLOS61 ; IHS/CMI/LAB - ambulatory continued ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in APC
  ;
@@ -34,7 +34,7 @@ POV1 ;
 APC ;
  Q  ;1/6/200 - no longer do this.
  ;S APCLX=$P(^ICD9(APCLPOV,0),U),APCLAPC=APCLAPCD D ^APCLRAPC  ;cmi/anch/maw 9/10/2007 orig line
- S APCLX=$P($$ICDDX^ICDCODE(APCLPOV),U,2),APCLAPC=APCLAPCD D ^APCLRAPC  ;cmi/anch/maw 9/10/2007 csv
+ S APCLX=$P($$ICDDX^ICDEX(APCLPOV),U,2),APCLAPC=APCLAPCD D ^APCLRAPC  ;cmi/anch/maw 9/10/2007 csv
  S X=APCLH D COUNT
  Q
  ;

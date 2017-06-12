@@ -1,5 +1,5 @@
 ABSPOSI ; IHS/FCS/DRS - Data entry w/ScreenMan ;   [ 09/12/2002  10:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,6,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,6,23**;JUN 21, 2001;Build 15
  ; This calls ScreenMan for an entry in file 9002313.51
  ;------------------------------------------------
  ;IHS/SD/lwj  7/17/03  patch 6

@@ -1,5 +1,5 @@
 APCLW11 ; IHS/CMI/LAB - CALC WEIGHT REPORT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10,11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/12/2007 code set versioning PN
  ;
@@ -24,6 +24,7 @@ PROC ;
  .I APCLCMS,'$$ONREG(DFN,APCLCMS,APCLSTAT) Q
  .S Y=DFN D ^AUPNPAT
  .Q:AUPNSEX=""
+ .Q:AUPNSEX="U"  ;MU
  .Q:APCLSEX'="B"&(APCLSEX'=AUPNSEX)  ;quit if want only one sex and this patient isn't that sex
  .Q:AUPNDOB=""
  .S ^(AUPNSEX)=$S($D(^XTMP("APCLW1",APCLJOB,APCLBTH,"TOTAL RECORDS",AUPNSEX)):^(AUPNSEX)+1,1:1)
@@ -76,22 +77,12 @@ GETWTHT ;
  S X=0 F  S X=$O(APCLGHT(X)) Q:X'=+X  I '$P(APCLGHT(X),U,2) K APCLGHT(X)
 PN ;kill off those that have prenatal code as dx
  ;S X=0 F  S X=$O(APCLGWT(X)) Q:X'=+X  S V=$P(APCLGWT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P(^ICD9($P(^AUPNVPOV(P,0),U),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- S X=0 F  S X=$O(APCLGWT(X)) Q:X'=+X  S V=$P(APCLGWT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P($$ICDDX^ICDCODE($P(^AUPNVPOV(P,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
- .I $E(D,1,3)="V22" K APCLGWT(X) Q
- .I $E(D,1,3)="V23" K APCLGWT(X) Q
- .I $E(D,1,3)="V27" K APCLGWT(X) Q
- .I $E(D,1,3)="V28" K APCLGWT(X) Q
- .I D>629.9999&(D<676.95) K APCLGWT(X) Q
- .I D>61.49&(D<61.71) K APCLGWT(X) Q
+ S X=0 F  S X=$O(APCLGWT(X)) Q:X'=+X  S V=$P(APCLGWT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P($$ICDDX^ICDEX($P(^AUPNVPOV(P,0),U)),U,1) D  ;cmi/anch/maw 9/12/2007 csv
+ .I $$ICD^ATXAPI(D,$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0)),9) K APCLGWT(X) Q
  .Q
  ;S X=0 F  S X=$O(APCLGHT(X)) Q:X'=+X  S V=$P(APCLGHT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P(^ICD9($P(^AUPNVPOV(P,0),U),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- S X=0 F  S X=$O(APCLGHT(X)) Q:X'=+X  S V=$P(APCLGHT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P($$ICDDX^ICDCODE($P(^AUPNVPOV(P,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
- .I $E(D,1,3)="V22" K APCLGHT(X) Q
- .I $E(D,1,3)="V23" K APCLGHT(X) Q
- .I $E(D,1,3)="V27" K APCLGHT(X) Q
- .I $E(D,1,3)="V28" K APCLGHT(X) Q
- .I D>629.9999&(D<676.95) K APCLGHT(X) Q
- .I D>61.49&(D<61.71) K APCLGHT(X) Q
+ S X=0 F  S X=$O(APCLGHT(X)) Q:X'=+X  S V=$P(APCLGHT(X),U,5),P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P  S D=$P($$ICDDX^ICDEX($P(^AUPNVPOV(P,0),U)),U,1) D  ;cmi/anch/maw 9/12/2007 csv
+ .I $$ICD^ATXAPI(D,$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0)),9) K APCLGHT(X) Q
  .Q
 RO ;set up by date
  K APCLROWT,APCLROHT

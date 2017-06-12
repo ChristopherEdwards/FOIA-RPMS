@@ -1,12 +1,20 @@
 ABMDVST3 ; IHS/ASDST/DMJ - PCC VISIT STUFF - PART 4 (ICD PROCEDURE) ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**14,16**;NOV 12, 2009;Build 268
  ;;Y2K/OK - IHS/ADC/JLG 12-18-97
  ;Original;TMD;03/26/96 12:26 PM
  ;
+ ;IHS/SD/SDR - 2.6*14 - ICD10 - 002H - ICD10 changes, including 1st SNOMED code for V Procedure
+ ;IHS/SD/SDR - 2.6*16 - HEAT214025 - Dual-coding fields weren't being looked at for the transition from
+ ;   ICD9 to ICD10.
+ ;
  Q:ABMIDONE
  ; undinumed
-PRC S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_",19,",DIC(0)="LE"
- S ABMR("P")=2
+PRC ;
+ S DA(1)=ABMP("CDFN")
+ S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",19,"
+ S DIC(0)="LE"
+ ;S ABMR("P")=2  ;abm*2.6*14 ICD10 002H
+ S ABMR("P")=1  ;abm*2.6*14 ICD10 002H
  S ABMI=""
  F  S ABMI=$O(^AUPNVPRC("AD",ABMVDFN,ABMI)) Q:'ABMI  D
  .K DIC("DR"),DD,DO
@@ -14,11 +22,13 @@ PRC S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_",19,",DIC(0)="LE"
  K ABMR,ABMI,ABMSRC,DIC
  Q
  ;
-PRCCHK Q:'$D(^AUPNVPRC(ABMI,0))
+PRCCHK ;
+ Q:'$D(^AUPNVPRC(ABMI,0))
  N ABMOKNEW,ABMEDIT
  S ABMEDIT=0
  ;Set to 1 or 2, 7th piece is principle proc
  S ABMR("PX")=$S($P(^AUPNVPRC(ABMI,0),U,7)="Y":1,1:ABMR("P"))
+ S ABMTYP=$S($P($$ICDOP^ABMCVAPI($P(^AUPNVPRC(ABMI,0),U),ABMP("VDT")),U,15)=31:"ICD10",1:"ICD9")  ;abm*2.6*14 ICD10 002F
  ;Sets the 2 vars to the last value of the subscript+1
  I $D(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,"C",ABMR("PX")))=10 S ABMR="" F  S ABMR=$O(^(ABMR)) Q:ABMR=""  S (ABMR("PX"),ABMR("P"))=ABMR+1
  ;Sets var to procedure date if it exists or to visit date
@@ -27,23 +37,32 @@ PRCCHK Q:'$D(^AUPNVPRC(ABMI,0))
  ;S ABMR("CDX")=$S($P(^AUPNVPRC(X,0),U,5)]"":$P(^(0),U,5),1:"")
  S ABMSRC="08|"_ABMI_"|ICD"
  ; setting prov narrative
- S X=$P(^AUPNVPRC(ABMI,0),U),ABMR("NAR")=$P(^(0),U,4)
+ S X=$P(^AUPNVPRC(ABMI,0),U)
+ I +$P(^AUPNVPRC(ABMI,0),U,22)'=0&(ABMP("ICD10")>ABMP("VDT")) S X=+$P(^AUPNVPRC(ABMI,0),U,22),ABMTYP="ICD9"  ;abm*2.6*16 HEAT214025
+ S ABMR("NAR")=$P(^AUPNVPRC(ABMI,0),U,4)
  I '$D(@(DIC_"0)")) S @(DIC_"0)")="^9002274.3019P",ABMOKNEW=1
  E  D
  .S ABMOKNEW=1
  .S ABM=0
  .F  S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,ABM)) Q:'ABM  D  Q:'ABMOKNEW
  ..S Y=$G(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,ABM,0))
+ ..;S ABMTYP=$S($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),19,ABM,0)),U,6)=1:"ICD10",1:"ICD9")  ;abm*2.6*14 ICD10 002H
  ..Q:($P(Y,U,17)]"")&(ABMSRC'=$P(Y,U,17))
  ..I $P(Y,U,17)="",X'=$P(Y,U) Q
  ..S ABMOKNEW=0
  ..I (X'=$P(Y,U))!(ABMR("VDT")'=$P(Y,U,3))!(ABMR("NAR")'=$P(Y,U,4)) S ABMEDIT=1 Q
  ..I $P(Y,U,17)="",X=$P(Y,U) S ABMEDIT=1
  I ABMOKNEW D  Q
- .S DIC("DR")=".02////"_ABMR("PX")_";.03////"_ABMR("VDT")_";.04////"_ABMR("NAR")
+ .;S DIC("DR")=".02////"_ABMR("PX")_";.03////"_ABMR("VDT")_";.04////"_ABMR("NAR")  ;abm*2.6*14 ICD10 002H
+ .I (ABMP("ICD10")<ABMP("VDT")!(ABMP("ICD10")=ABMP("VDT")))&(ABMTYP="ICD10") S DIC("DR")=".02////"_ABMR("PX")  ;abm*2.6*14 ICD10 002H
+ .I (ABMP("ICD10")>ABMP("VDT")&(ABMTYP="ICD9")) S DIC("DR")=".02////"_ABMR("PX")  ;abm*2.6*14 ICD10 002H
+ .S DIC("DR")=$S($G(DIC("DR"))'="":DIC("DR")_";",1:"")_".03////"_ABMR("VDT")_";.04////"_ABMR("NAR")  ;abm*2.6*14 ICD10 002H
  .;S:ABMR("CDX")]"" DIC("DR")=DIC("DR")_";.05////"_ABMR("CDX")
+ .S:(ABMTYP="ICD10") DIC("DR")=DIC("DR")_";.06////1"  ;abm*2.6*14 ICD10 002H
+ .I ABMTYP="ICD10"&(+$P(^AUPNVPRC(ABMI,0),U,22)) S DIC("DR")=DIC("DR")_";21////"_+$P(^AUPNVPRC(ABMI,0),U,22)_";22////"_+$P(^AUPNVPRC(ABMI,0),U,23)  ;abm*2.6*16 IHS/SD/SDR HEAT214025
  .S DIC("DR")=DIC("DR")_";.17////"_ABMSRC
- .S:ABMR("PX")>1 ABMR("P")=ABMR("P")+1
+ .;S:ABMR("PX")>1 ABMR("P")=ABMR("P")+1  ;abm*2.6*14 ICD10 002H
+ .I ABMP("ICD10")<ABMP("VDT")!(ABMP("ICD10")=ABMP("VDT")),ABMR("PX")>1 S ABMR("P")=ABMR("P")+1  ;abm*2.6*14 ICD10 002H
  .K DD,DO D FILE^DICN
  I ABMEDIT D
  .N FILE,IENS,ABMFDA
@@ -52,6 +71,22 @@ PRCCHK Q:'$D(^AUPNVPRC(ABMI,0))
  .S ABMFDA(FILE,IENS,.01)=X
  .S ABMFDA(FILE,IENS,.03)=ABMR("VDT")
  .S ABMFDA(FILE,IENS,.04)=ABMR("NAR")
+ .I $P($$ICDOP^ABMCVAPI(X,ABMP("VDT")),U,15)=31 S ABMFDA(FILE,IENS,.06)=1  ;abm*2.6*14 ICD10 002H
  .S ABMFDA(FILE,IENS,.17)=ABMSRC
  .D FILE^DIE("K","ABMFDA")
+ D VPRCSNOM  ;abm*2.6*14 ICD10 SNOMED
  Q
+ ;start new abm*2.6*14 ICD10 SNOMED
+VPRCSNOM ;EP
+ S ABMII=+$O(^AUPNVPRC(ABMI,26,0))
+ I ABMII=0 Q
+ S IENS=ABMII_","_ABMI_","
+ S X=$$GET1^DIQ(9000010.0826,IENS,".01","I")
+ Q:X=""
+ S DA(1)=ABMP("CDFN")
+ S DA=ABM
+ S DIE="^ABMDCLM(DUZ(2),"_DA(1)_",19,"
+ S DR="11////"_X
+ D ^DIE
+ Q
+ ;end new ICD10 SNOMED

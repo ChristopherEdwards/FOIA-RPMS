@@ -1,5 +1,11 @@
 ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9,10**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20**;NOV 12, 2009;Build 317
+ ;IHS/SD/SDR - 2.6*14 - updated checker to look for patches after 8 (meaning 9 thru 13)
+ ;IHS/SD/SDR - 2.6*16 - Updated patches for patch 16
+ ;IHS/SD/SDR - 2.6*17 - Updated to check for patch 16
+ ;IHS/SD/SDR - 2.6*18 - Check for patch 17
+ ;IHS/SD/SDR - 2.6*19 - Check for patch 18
+ ;IHS/SD/SDR - 2.6*20 - Check for patch 19
  ;
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(2) Q
@@ -31,7 +37,12 @@ ABMENVCK ;IHS/SD/SDR - ENVIRONMENT CHECKER ;
  N X,ABM,I
  S ABM=1
  ;F I=1:1:6 D  ;abm*2.6*9
- F I=1:1:8 D  ;abm*2.6*9
+ ;F I=1:1:8 D  ;abm*2.6*9  ;ABM*2.6*14
+ ;F I=1:1:13 D  ;abm*2.6*14  ;abm*2.6*15
+ ;F I=1:1:14 D  ;abm*2.6*14  ;abm*2.6*15  ;abm*2.6*17
+ ;F I=1:1:16 D  ;abm*2.6*17  ;abm*2.6*18
+ ;F I=1:1:18 D  ;abm*2.6*17  ;abm*2.6*19
+ F I=1:1:19 D  ;abm*2.6*17  ;abm*2.6*18
  .S X=$$PATCH^XPDUTL("ABM*2.6*"_I)
  .I X'=1 S ABM=0 W !,$$CJ^XLFSTR("Need Third Party Billing v2.6 Patch "_I_"..... "_$S(ABM=0:"NOT ",1:"")_"Present",IOM)
  I ABM=0 S XPDQUIT=2

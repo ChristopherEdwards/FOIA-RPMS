@@ -1,7 +1,5 @@
-LR7OB63C ;VA/slc/dcm - Get SP,EM,CY data ;8/11/97
- ;;5.2;LAB SERVICE;**1003,1031**;NOV 01, 1997
- ;
- ;;VA LR Patche(s): 121,187,315
+LR7OB63C ;VA/slc/dcm - Get SP,EM,CY data ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1003,121,187,315,1031,1034**;NOV 01, 1997;Build 88
  ;
 SS(LRSS) ;Process SP,CY,EM data
  N IFN,IFN1,IFN2,X0,X1,X2,X3,X4,X5,Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y18,CTR1,PATH,SUB,NNN,NN1
@@ -42,7 +40,8 @@ SS(LRSS) ;Process SP,CY,EM data
  .. S CTR1=CTR1+1,^TMP("LRX",$J,69,CTR,3,CTR1)="SPECIAL STUDIES "_$$SET^LR7OB63(NN1,.01,$P(X,"^"))_"~"_$P(X,"^",2)_"^"_X1_"^^^^^^TX^^^^^^^SPEC STUDIES"_$$SET^LR7OB63(NN1,.01,$P(X,"^"))_"~"_$P(X,"^",2)_"^^^"_Y18
  S IFN=0 F  S IFN=$O(^LR(LRDFN,LRSS,IVDT,3,IFN)) Q:IFN<1  D
  . N LRX,LRTMP
- . S LRX=^(IFN,0),LRX=$$ICDDX^ICDCODE(+LRX,,,1)
+ . ; S LRX=^(IFN,0),LRX=$$ICDDX^ICDCODE(+LRX,,,1)
+ . S LRX=^(IFN,0),LRX=$$ICDDX^ICDEX(+LRX,,,"I")  ; IHS/MSC/MKK - LR*5.2*1034
  . S CTR1=CTR1+1,LRTMP="ICD DIAGNOSIS^"
  . S LRTMP=LRTMP_$P(LRX,"^",4)_"^^^^"_Y6_"^^CE^"_$P(LRX,"^",2)
  . S LRTMP=LRTMP_"^ICD9^&IMP^^^^^ICD DIAG^^^"_Y18
@@ -59,7 +58,7 @@ WP(I,NAME,ID,VALTYP) ;Store word processing fields
  S IFN=0 F  S IFN=$O(^LR(LRDFN,LRSS,IVDT,I,IFN)) Q:IFN<1  S X=^(IFN,0) D SPLIT^LR7OU1(X,"^TMP(""LRX"",$J,69,CTR,63)",.CTR1,80,NAME_"^","^^^^"_Y6_"^^"_VALTYP_"^^^"_ID_"^^^^"_NAME_"^^^"_Y18)
  Q
 PTR(I,NAME,FILE,FIELD,SNMFILE,ID) ;Store ptr fields for ORGAN/TISSUE multiple
- ;I=Node at ^LR(LRDFN,LRSS,ICDT,2,IFN,I)
+ ;I=Node at ^LR(LRDFN,LRSS,IVDT,2,IFN,I)
  ;NAME=Field name
  ;FILE=File #
  ;FIELD=Field #

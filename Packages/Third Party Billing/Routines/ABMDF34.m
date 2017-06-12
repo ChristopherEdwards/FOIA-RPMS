@@ -1,5 +1,9 @@
 ABMDF34 ; IHS/SD/SDR - ADA-2012 Dental Export Routine ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**14,16,19**;NOV 12, 2009;Build 300
+ ;IHS/SD/SDR - 2.6*14 - HEAT136149 - Fixed box 34 to print 'B' for ICD9 codes.
+ ;IHS/SD/SDR - 2.6*14 Updated DX^ABMCVAPI call to be numeric
+ ;IHS/SD/SDR - 2.6*16 HEAT231506 - Added code for 'AB' to print for ICD10.
+ ;IHS/SD/AML - 2.6*19 - HEAT181886 - Change coor. dx from numeric to alpha
  ;
  ;************************************************************************************
  K ABM
@@ -38,12 +42,15 @@ BODY ;
  D FRATE^ABMDE2X1                ; find Flat Rate
  S (ABM("C"),ABM,ABM("TCHRG"),ABM("I"),ABM("YTOT"))=0
  ;
- S $P(ABMF(36),U)="09"  ;(34)
+ ;S $P(ABMF(36),U)="09"  ;(34)  ;abm*2.6*14 HEAT136149
+ ;S $P(ABMF(36),U)="B"  ;(34)  ;abm*2.6*14 HEAT136149  ;abm*2.6*16 IHS/SD/SDR HEAT231506
+ S $P(ABMF(36),U)=$S($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),0)),U,21)=10:"AB",1:"B")  ;(34)  ;abm*2.6*14 HEAT136149  ;abm*2.6*16 IHS/SD/SDR HEAT231506
  ;(34a)
  F  S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D  Q:(ABM("C")=4)
  .S ABM("C")=+$G(ABM("C"))+1
  .S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM,""))
- .S ABM("DX")=$P($$DX^ABMCVAPI($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U),ABMP("VDT")),U,2)
+ .;S ABM("DX")=$P($$DX^ABMCVAPI($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U),ABMP("VDT")),U,2)  ;abm*2.6*14 updated API call
+ .S ABM("DX")=$P($$DX^ABMCVAPI(+$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U),ABMP("VDT")),U,2)  ;abm*2.6*14 updated API call
  .I ABM=1 S $P(ABMF(37),U)=ABM("DX")
  .I ABM=2 S $P(ABMF(38),U)=ABM("DX")
  .I ABM=3 S $P(ABMF(37),U,2)=ABM("DX")
@@ -65,7 +72,14 @@ BODY ;
  .S $P(ABMF(ABM("F")),U,5)=$P(ABM(0),U,6)                 ; Tooth surface (28)
  .S $P(ABMF(ABM("F")),U,9)=$P(^AUTTADA(+ABM(0),0),U,2)    ; Svc desc (30)
  .S $P(ABMF(ABM("F")),U,6)=$P(^AUTTADA(+ABM(0),0),U)      ; Procedure # (29)
- .S $P(ABMF(ABM("F")),U,7)=$P(ABM(0),U,4)      ;Coor. DX (29a)
+ .;S $P(ABMF(ABM("F")),U,7)=$P(ABM(0),U,4)      ;Coor. DX (29a)  ;abm*2.6*19 IHS/SD/AML HEAT181886 Translate numeric corres DX to alpha
+ .;start new abm*2.6*19 IHS/SD/AML HEAT181886 translate numeric corres DX to alpha
+ .S ABMCORDX=$P(ABM(0),U,4)
+ .S ABMCORDX=$P(ABMCORDX,",",1,4)
+ .F ABMTMP=1:1:$L(ABMCORDX,",") D
+ ..S $P(ABMCORDX,",",ABMTMP)=$P("A^B^C^D^","^",$P(ABMCORDX,",",ABMTMP))
+ .S $P(ABMF(ABM("F")),U,7)=$TR(ABMCORDX,",")     ;Coor. DX (29a)
+ .;end new abm*2.6*19 HEAT181886
  .S $P(ABMF(ABM("F")),U,8)=$P(ABM(0),U,9)      ;Qty(29b)
  .;
  .S ABMDENP=$P($G(^ABMDREC(ABMP("INS"),0)),U,2)           ; Dent remap

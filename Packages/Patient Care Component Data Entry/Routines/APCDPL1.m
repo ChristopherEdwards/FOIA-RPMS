@@ -1,10 +1,10 @@
-APCDPL1 ; IHS/CMI/LAB - problem list update from list manager ; 18 Jul 2011  7:37 AM
- ;;2.0;IHS PCC SUITE;**5,6,7**;MAY 14, 2009;Build 11
+APCDPL1 ; IHS/CMI/LAB - problem list update ;
+ ;;2.0;IHS PCC SUITE;**5,6,7,10,15**;MAY 14, 2009;Build 11
  ;
  ;
 DIE ;
  S DA=APCDPIEN,DIE="^AUPNPROB(",DR=APCDTEMP D ^DIE
-KDIE ;kill all vars used by DIE
+KDIE ;
  K DIE,DR,DA,DIU,DIV,DQ,D0,DO,DI,DIW,DIY,%,DQ,DLAYGO
  Q
 GETPROB ;get record
@@ -14,11 +14,11 @@ GETPROB ;get record
  S APCDP=Y
  S (X,Y)=0 F  S X=$O(^TMP($J,"APCDPL","IDX",X)) Q:X'=+X!(APCDPIEN)  I $O(^TMP($J,"APCDPL","IDX",X,0))=APCDP S Y=$O(^TMP($J,"APCDPL","IDX",X,0)),APCDPIEN=^TMP($J,"APCDPL","IDX",X,Y)
  I '$D(^AUPNPROB(APCDPIEN,0)) W !,"Not a valid PCC PROBLEM." K APCDP S APCDPIEN=0 Q
- D FULL^VALM1 ;give me full control of screen
+ D FULL^VALM1
  Q
-ADD ;EP - called from protocol to add a problem to problem list
- D FULL^VALM1 ; this gives me back all screen control
- Q:'$G(APCDPLPT)  ; just want to be sure I have a patient
+ADD ;EP - add prob
+ D FULL^VALM1
+ Q:'$G(APCDPLPT)
  S APCDPAT=APCDPLPT
  S:'$G(APCDLOC) APCDLOC=DUZ(2)
  S:$G(APCDDATE)="" APCDDATE=APCDNDT
@@ -26,22 +26,37 @@ ADD ;EP - called from protocol to add a problem to problem list
  D KDIE S DIE("NO^")=1,DLAYGO=9000011,DIE="^AUPNPAT(",DR="[APCD PO (ADD)]",DA=APCDPLPT D ^DIE D KDIE
  K DLAYGO D EXIT
  Q
-EDIT ;EP - called from protocol to modify a problem on problem list
- NEW APCDPIEN,APCDPAT
+EDIT ;EP - edit prob
+ NEW APCDPIEN,APCDPAT,APCDIAIEP
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
  S APCDPAT=APCDPLPT
  S:'$G(APCDLOC) APCDLOC=DUZ(2)
  S:$G(APCDDATE)="" APCDDATE=APCDNDT
  S APCDTEMP="[APCD MODIFY PROBLEM]"
- W:$D(IOF) @IOF W !,"Editing Problem ... "
+ W:$D(IOF) @IOF W !!,"Editing Problem Number: ",$$GETNUM^APCDPL1(APCDPIEN),!
+ I $P($G(^AUPNPROB(APCDPIEN,800)),U,1)]"" D  G ACT1
+ .W !!,"This problem has been SNOMED coded, you can only edit the Status and",!,"Date of Onset fields."
+ .S APCDIAEP=1
+ K DIR
+ S DIR(0)="9000011,.01",DIR("A")="Diagnosis",DIR("B")=$$GET1^DIQ(9000011,APCDPIEN,.01) KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D EXIT Q
+ I +Y'=$$GET1^DIQ(9000011,APCDPIEN,.01) D
+ .S DIE="^AUPNPROB(",DR=".01////"_+Y,DA=APCDPIEN D ^DIE K DA,DR,DIE
  D DIE
  S DA=APCDPIEN
  S APCDVSIT=$G(APCDPLV)
  D PLUDE^APCDAPRB
  D EXIT
  Q
-DEL ;EP - called from protocol to delete a problem on problem list
+GETDX ;
+ NEW DA,DIR,DIRUT,Y,X
+ S APCDTNDX=$$GET1^DIQ(9000011,APCDTDA,.01,"I")
+ S DIR(0)="9000011,.01",DIR("A")="Diagnosis",DIR("B")=$$GET1^DIQ(9000011,APCDTDA,.01) KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ S APCDTNDX=+Y
+ Q
+DEL ;EP - delete prob
  NEW APCDPIEN,APCDPAT
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
@@ -55,50 +70,55 @@ DEL ;EP - called from protocol to delete a problem on problem list
  I 'Y W !,"Okay, not deleted." D PAUSE,EXIT Q
  S DA=APCDPIEN,DR="[APCD DELETE PROBLEM]",DIE="^AUPNPROB(" D ^DIE K DA,DIE,DR
  S APCDPAT=APCDPLPT
- ;S:'$G(APCDLOC) APCDLOC=DUZ(2)
- S:$G(APCDDATE)="" APCDDATE=APCDNDT ; set up vars needed by pcc data entry template
+ S:$G(APCDDATE)="" APCDDATE=APCDNDT
  W !
  S APCDVSIT=$G(APCDPLV)
  S DA=APCDPIEN
  D PLUDE^APCDAPRB
  D PAUSE,EXIT,^XBFMK
  Q
-AN ;EP - add a note, called from protocol
+AN ;EP - add a note
  NEW APCDPIEN
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
  D NO1^APCDPL2
  D EXIT
  Q
-MN ;EP - called from protocol to modify a note
+MN ;EP -  modify a note
  NEW APCDPIEN
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
  D MN1^APCDPL2
  D PAUSE,EXIT
  Q
-RNO ;EP - called from protocol to remove a note
+RNO ;EP - remove a note
  NEW APCDPIEN
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
  D RNO1^APCDPL2
  D PAUSE,EXIT
  Q
-ACT ;EP - called from protocol to activate an inactive problem
+ACT ;EP - called from protocol
  NEW APCDPIEN,APCDNDT,APCDPAT
  S APCDNDT=$P(APCDDATE,".")
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
- I $P(^AUPNPROB(APCDPIEN,0),U,12)="A" W !!,"That problem is already ACTIVE!!" D PAUSE,EXIT Q
- S APCDTEMP=".12///A;.03////^S X=APCDNDT;.14////^S X=DUZ"
- W:$D(IOF) @IOF W !,"Activating Problem ... "
- D DIE
+ ;
+ACT1 ;D DIE
+ S DA=APCDPIEN,APCDTOLD=$P(^AUPNPROB(APCDPIEN,0),U,12)
+ D CPS^APCDAPRB
+ ;I $P(^AUPNPROB(APCDPIEN,0),U,12)=APCDTOLD G ACTE
+ I $G(APCDIAEP) NEW DIE S DIE="^AUPNPROB(",DA=APCDPIEN,DR=".13" D ^DIE K DIE,DA,DR
+ I '$G(APCDIAEP),$P(^AUPNPROB(APCDPIEN,0),U,12)=APCDTOLD G ACTE
  S APCDPAT=APCDPLPT
  S:'$G(APCDLOC) APCDLOC=DUZ(2)
  S:$G(APCDDATE)="" APCDDATE=APCDNDT
  S APCDVSIT=$G(APCDPLV)
  S DA=APCDPIEN
  D PLUDE^APCDAPRB
+ACTE ;
+ ;I $G(APCDIAEP) NEW DIE S DIE="^AUPNPROB(",DA=APCDPIEN,DR=".13" D ^DIE K DIE,DA,DR,APCDIAEP
+ K APCDTOLD,APCDIAEP
  D EXIT
  Q
 INACT ;EP - called from protocol to inactivate an active problem
@@ -112,13 +132,13 @@ INACT ;EP - called from protocol to inactivate an active problem
  D DIE
  S APCDPAT=APCDPLPT
  ;S:'$G(APCDLOC) APCDLOC=DUZ(2)
- S:$G(APCDDATE)="" APCDDATE=APCDNDT ; set up vars needed by pcc data entry template
+ S:$G(APCDDATE)="" APCDDATE=APCDNDT
  S APCDPLV=$G(APCDVSIT)
  S DA=APCDPIEN
  D PLUDE^APCDAPRB
  D EXIT
  Q
-HS ;EP - called from protocol to display health summary
+HS ;EP - health summary
  D FULL^VALM1
  S X="" I DUZ(2),$D(^APCCCTRL(DUZ(2),0))#2 S X=$P(^(0),U,3) I X,$D(^APCHSCTL(X,0)) S X=$P(^APCHSCTL(X,0),U)
  I $D(^DISV(DUZ,"^APCHSCTL(")) S Y=^("^APCHSCTL(") I $D(^APCHSCTL(Y,0)) S X=$P(^(0),U,1)
@@ -132,14 +152,14 @@ HS ;EP - called from protocol to display health summary
  K APCHSPAT,APCHSTYP,APCHSTAT,APCHSMTY,AMCHDAYS,AMCHDOB,APCDHDR
  D EXIT
  Q
-DD ;EP - called from protocol to display (DIQ) a problem in detail
+DD ;EP - called from protocol detail
  NEW APCDPIEN
  D GETPROB
  I 'APCDPIEN D PAUSE,EXIT Q
  D DIQ^XBLM(9000011,APCDPIEN)
  D EXIT
  Q
-FS ;EP -called from protcol to display face sheet
+FS ;EP -FACE SHEET
  D FULL^VALM1
  S APCDHDR="Demographic Face Sheet For "_$P(^DPT(APCDPLPT,0),U)
  D VIEWR^XBLM("START^AGFACE",APCDHDR)
@@ -149,7 +169,7 @@ FS ;EP -called from protcol to display face sheet
 PAUSE ;EP
  S DIR(0)="EO",DIR("A")="Press return to continue...." D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q
-GETNUM(P) ;EP - get problem number given ien of problem entry
+GETNUM(P) ;EP - get problem number 
  NEW N,F
  S N=""
  I 'P Q N
@@ -166,7 +186,7 @@ EXIT ;
  K APCDTEMP,APCDPRMT,APCDP,APCDPIEN,APCDAF,APCDF,APCDP0,APCDPRB
  D KDIE
  Q
-NAP ;EP - called from protocol to add a problem to problem list
+NAP ;EP - called from protocol
  D FULL^VALM1
  Q:'$G(APCDPLPT)
  I $$ANYACTP^APCDAPRB(APCDPLPT) D  Q
@@ -269,7 +289,7 @@ BSD ;
  D GETVISIT^APCDAPI4(.APCDIN,.APCDBSDV)
  ;S Y=APCDP D ^AUPNPAT
  S T=$P(APCDBSDV(0),U,2)
- I T]"" S RETVAL="0^could not create event visit" Q   ;errored
+ I T]"" S RETVAL="0^could not create event visit" Q
  S V=$O(APCDBSDV(0)) S APCDV=V
  I $G(APCDBSDV(V))="ADD" D DEDT^APCDEA2(APCDV)
  Q
@@ -289,7 +309,7 @@ EVSIT ;EP - get/create event visit
  I $G(APCDALVR("APCDVSIT","NEW")) D DEDT^APCDEA2(APCDVSIT)
  K APCDALVR
  Q
-PLR ;EP - called from protocol to add a problem to problem list
+PLR ;EP - called from protocol
  NEW APCDPIEN,APCDNDT,APCDPAT
  S APCDNDT=$P(APCDDATE,".")
  D FULL^VALM1
@@ -372,7 +392,7 @@ PLRV ;have a visit so create a v updated/reviewed for provider APCDPRV if one do
  I $D(APCDALVR("APCDAFLG")) S RETVAL=0_"^Error creating V UPDATED/REVIEWED entry.  PCC not updated."
  K APCDALVR
  Q
-RESOLVE ;EP - called from protocol to inactivate an active problem
+RESOLVE ;EP - called from protocol
  NEW APCDPIEN,APCDNDT,APCDPAT
  S APCDNDT=$P(APCDDATE,".")
  D GETPROB

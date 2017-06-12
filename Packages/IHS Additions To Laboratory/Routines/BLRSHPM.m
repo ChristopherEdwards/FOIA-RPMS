@@ -1,5 +1,5 @@
-BLRSHPM ;cmi/anch/maw - BLR Reference Lab Shipping Manifest Others 11:46 ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027,1031**;NOV 01, 1997;Build 185
+BLRSHPM ;cmi/anch/maw - BLR Reference Lab Shipping Manifest Others ; 17-Dec-2014 10:23 ; MAW
+ ;;5.2;IHS LABORATORY;**1027,1031,1033,1034,1036**;NOV 01, 1997;Build 10
  ;
  ;
  ;
@@ -14,10 +14,14 @@ BLRSHPM ;cmi/anch/maw - BLR Reference Lab Shipping Manifest Others 11:46 ;JUL 06
  ;7/29/2008 cmi/anch/maw added lab shipping instructions
  ;8/28/2008 cmi/anch/maw added call to go to quest manifest
  ;10/1/2008 cmi/anch/maw masked all but 4 digits on SSN at labcorp request
+ ;09/19/2013 msc/mkk - missing variables reset subroutine P1031FIX.
  ;
  ;
-PRT ;EP - print shipping manifest
- G:$D(^BLRSHPM("B",LRUID)) EOJ      ; Quit if Accession exists in ^BLRSHPM because it's already been printed
+PRT(RE) ;EP - print shipping manifest
+ ;ihs/cmi/maw PATCH 1033 10/24/2013 added since LRUID is not there sometimes after patch 1031
+ I $G(LRUID),'$G(RE) G:$D(^BLRSHPM("B",LRUID)) EOJ      ; Quit if Accession exists in ^BLRSHPM because it's already been printed
+ ;
+ I $G(LRUID) D P1031FIX   ; IHS/MSC/MKK - LR*5.2*1033/1034
  ;
  ; I $P($G(^BLRRL($P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U),0)),U)["QUEST" D  Q  ;go to the Quest Manifest
  ; . D ^BLRSHPMQ
@@ -53,7 +57,6 @@ ALL ;-- run all sub routines after initial vars
  Q
  ;
 STOR(BLRSHIEN,ACC) ;-- this will store the shipping manifest
- D ENTRYAUD^BLRUTIL("STOR^BLRSHPM 0.0")
  Q:$D(^BLRSHPM("B",ACC))  ; Skip if already stored
  ;accession number gets passed in
  N BLRFDA,BLRIENS,BLRERR
@@ -94,6 +97,40 @@ PHDR ;-- write the common stuff to the device
  W !,"LAB ARRIVAL (COLLECTION DATE/TIME): "_$$FMTE^XLFDT(^TMP("BLRRL",$J,"COMMON","CDT"))
  Q
  ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+P1031FIX ; EP - Forcefully reset AGE, DOB, ORDNUM, and SEX variables
+ NEW ALLGOOD,DFN,LRAA,LRAD,LRAN,LRAS,LRDFN,LRIDT,LRSS,ORDNUM
+ ;
+ ; Check to see if all variables okay
+ S ALLGOOD=1
+ S:$G(SEX)="" ALLGOOD=0
+ S:+$G(DOB)<1 ALLGOOD=0
+ S:+$G(AGE)<1 ALLGOOD=0
+ S:+$G(BLRRL("ORD"))<1 ALLGOOD=0
+ S:+$G(^TMP("BLRRL",$J,"COMMON","ORD"))<1 ALLGOOD=0
+ Q:ALLGOOD    ; All variables set - just return
+ ; 
+ D RETACCV^BLRUTIL4(LRUID,.LRAA,.LRAD,.LRAN,.LRDFN,.LRSS,.LRIDT,.LRAS)
+ Q:LRAA<1!(LRAD<1)!(LRAN<1)!(LRDFN<1)            ; If any Accession variables null, then exit
+ ;
+ Q:$$GET1^DIQ(63,LRDFN,"PARENT FILE","I")'=2     ; If data not from VA PATIENT file, then exit
+ ;
+ S DFN=$$GET1^DIQ(63,LRDFN,"NAME","I")           ; Get Patient IEN from Lab Data (#63) File
+ ; Set AGE, DOB & SEX (if missing) from VA Patient (#2) File
+ S:$G(SEX)="" SEX=$$SEX^AUPNPAT(DFN)
+ S:+$G(DOB)<1 DOB=$$DOB^AUPNPAT(DFN)
+ S:+$G(AGE)<1 AGE=$$AGE^AUPNPAT(DFN)
+ ;
+ ; Get Order # from Accession (#68) File
+ S ORDNUM=+$$GET1^DIQ(68.02,LRAN_","_LRAD_","_LRAA_",","ORDER #")
+ Q:ORDNUM<1   ; If order # is zero, can't reset, so just return
+ ;
+ ; Set Order number (if missing)
+ S:+$G(BLRRL("ORD"))<1 BLRRL("ORD")=ORDNUM
+ S:+$G(^TMP("BLRRL",$J,"COMMON","ORD"))<1 ^TMP("BLRRL",$J,"COMMON","ORD")=ORDNUM
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
+ ;
 WRTS ;-- write the output to the device
  N BLRDA,BLRIEN
  ;cmi/anch/maw 7/23/2007 here is where you could sort by order if BLRDA was the order num
@@ -131,9 +168,18 @@ DX(BDA) ;-- if insurance info print DX
  W !,"DIAGNOSIS"
  ;W !,"Diagnosis: "_$G(^TMP("BLRRL",$J,BDA,"DX")),?25,"DX Description: "_$G(^TMP("BLRRL",$J,BDA,"DXE"))
  W !,"Diagnosis: ",?25,"DX Description: "
- N DXDA
- S DXDA=0 F  S DXDA=$O(^TMP("BLRRL",$J,BDA,"DX",DXDA)) Q:'DXDA  D
- . W !,$G(^TMP("BLRRL",$J,BDA,"DX",DXDA)),?25,$G(^TMP("BLRRL",$J,BDA,"DXE",DXDA))
+ ;N DXDA
+ ;S DXDA=0 F  S DXDA=$O(^TMP("BLRRL",$J,BDA,"DX",DXDA)) Q:'DXDA  D
+ ;. W !,$G(^TMP("BLRRL",$J,BDA,"DX",DXDA)),?25,$G(^TMP("BLRRL",$J,BDA,"DXE",DXDA))
+ ;ihs/cmi/maw 12/10/2014 patch 1034 for new dx storage
+ N DXDA,ORD,ORDI,DXDATA,DXSTR,UID
+ S UID=^TMP("BLRRL",$J,BLRDA,"UID")
+ I '$G(UID) S UID=LRUID
+ S ORD=$O(^BLRRLO("ACC",UID,0))
+ S ORDI=0 F  S ORDI=$O(^BLRRLO(ORD,1,ORDI)) Q:'ORDI  D
+ . S DXDATA=$P($G(^BLRRLO(ORD,1,ORDI,0)),U)
+ . S DXSTR=$S($D(^ICDS(0)):$$ICDDX^ICDEX(DXDATA,DT),1:$$ICDDX^ICDCODE(DXDATA,DT))
+ . W !,$P(DXSTR,U,2),?25,$P(DXSTR,U,4)
  Q
  ;
 INS(BDA) ;-- if insurance info print insurance
@@ -288,3 +334,17 @@ RPRT(RIEN) ;-- reprint
  . W !,$G(^BLRSHPM(RIEN,11,BLRDA,0))
  Q
  ;
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+TOSCREEN ; EP - Reprint to the screen
+ N BLRDA,BLRRIEN,RIEN
+ D ASKS
+ I '$G(BLRRIEN) K BLRRIEN Q
+ ;
+ D ^XBCLS
+ S BLRDA=0 F  S BLRDA=$O(^BLRSHPM(BLRRIEN,11,BLRDA)) Q:BLRDA<1  D
+ . W !,$G(^BLRSHPM(BLRRIEN,11,BLRDA,0))
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034

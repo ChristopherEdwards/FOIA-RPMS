@@ -1,18 +1,18 @@
-USRULST ; SLC/JER - List Class Membership by user       ;05-Dec-2012 10:26;DU
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,4,9,10,16,17,21,22,28,1004**;Jun 20, 1997;Build 15
+USRULST ; SLC/JER - List Class Membership by user       ;3/23/10
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,4,9,10,16,17,21,22,28,33**;Jun 20, 1997;Build 5
  ; 30 Jun 00 MA - Added MAIN2 to prevent stack overflow
  ; 20 Sep 00 MA - Removed MAIN2 and added GETUSER and chg protocol to
  ; avoid looping through MAIN when doing a "CHANGE VIEW".
  ;  7 Aug 01 MA - Removed line "S USRDUZ=+Y" from line tag GETUSER()
  ;  6 Sep 01 MA - Added line "I +Y>0 S USRDUZ=Y" in GETUSER
  ;  to avoid adding USER Classes to the wrong person.
- ; IHS/MSC/MGH Patch 1004 put back in IHS mods
 MAIN ; Control Branching
  N DIC,X,Y,USRDUZ
  S DIC=200,DIC(0)="AEMQ",DIC("A")="Select USER: "
  D ^DIC Q:+Y'>0
  S USRDUZ=+Y
  D EN^VALM(USRLTMPL)
+ K USRLTMPL
  Q
 GETUSER() ; Get a new user
  N DIC,X,Y
@@ -28,9 +28,10 @@ BUILD(USRDUZ) ; Build List
  ; DBIA 872 ^ORD(101)
  N USRCNT,USRNAME,USRPICK
  S (USRCNT,VALMCNT)=0
- S USRPICK=+$O(^ORD(101,"B","USR ACTION SELECT LIST ELEMENT",0))
+ S USRPICK=+$O(^ORD(101,"B","USR ACTION SELECT LIST ELEMENT",0)) ;ICR 87
  K ^TMP("USRUSER",$J),^TMP("USRUSERIDX",$J),^TMP("USRU",$J)
- D WHATIS^USRLM(USRDUZ,"^TMP(""USRU"",$J)")
+ ;D WHATIS^USRLM(USRDUZ,"^TMP(""USRU"",$J)")
+ D WHATIS^USRLM(USRDUZ,"^TMP(""USRU"",$J)",1) ; Use .01 class name 
  S USRNAME=""
  F  S USRNAME=$O(^TMP("USRU",$J,USRNAME),-1) Q:USRNAME=""  Q:USRNAME=0  D
  . N USRDA,USREFF,USREXP,USRMEM,USRREC,USRCLNM
@@ -42,8 +43,6 @@ BUILD(USRDUZ) ; Build List
  . S USRCNT=+$G(USRCNT)+1
  . S USRREC=$$SETFLD^VALM1(USRCNT,"","NUMBER")
  . S USRREC=$$SETFLD^VALM1(USRCLNM,USRREC,"CLASS")
- . N TITLE S TITLE=$P(USRMEM,U,6)                     ;IHS/ITSC/LJF 02/21/2003
- . S USRREC=$$SETFLD^VALM1(TITLE,USRREC,"TITLE")     ;IHS/ITSC/LJF 02/21/2003
  . S USRREC=$$SETFLD^VALM1(USREFF,USRREC,"EFFECTIVE")
  . S USRREC=$$SETFLD^VALM1(USREXP,USRREC,"EXPIRES")
  . S VALMCNT=+$G(VALMCNT)+1

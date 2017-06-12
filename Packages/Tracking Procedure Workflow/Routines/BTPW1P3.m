@@ -1,0 +1,14 @@
+BTPW1P3 ;GDIT/HS/ALA-Patch 3 pre/post install program ; 23 Oct 2012  8:51 AM
+ ;;1.0;CARE MANAGEMENT EVENT TRACKING;**3**;Feb 07, 2011;Build 63
+ ;
+PRE ;EP
+ Q
+ ;
+EN ;EP
+ ; Set BTPWRPC into BQIRPC
+ NEW IEN,DA,X,DIC,Y
+ S DA(1)=$$FIND1^DIC(19,"","B","BQIRPC","","","ERROR"),DIC="^DIC(19,"_DA(1)_",10,",DIC(0)="LMNZ"
+ I $G(^DIC(19,DA(1),10,0))="" S ^DIC(19,DA(1),10,0)="^19.01IP^^"
+ S X="BTPWRPC"
+ D ^DIC I +Y<1 K DO,DD D FILE^DICN
+ Q

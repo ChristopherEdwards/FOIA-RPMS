@@ -1,5 +1,5 @@
-BPXRMIM2 ; IHS/CIA/MGH - Handle Computed findings for immunizations. ;09-Jan-2012 10:47;DU
- ;;1.5;CLINICAL REMINDERS;**1002,1004,1005,1006,1008**;Jun 19, 2000;Build 25
+BPXRMIM2 ; IHS/MSC/MGH - Handle Computed findings for immunizations. ;18-Apr-2014 15:24;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,1002**;Feb 04, 2005;Build 15
  ;=================================================================
  ;This routine is designed to search  the immunication forcast
  ;data to determine if an immunization is due for a child requiring a
@@ -16,7 +16,7 @@ GETVAR(BPXTRM) ;EP
  S TSTRING=""
  K ^TMP("BPXIMM",$J)
  S BPXCNT=0,BPXHI=0,BPXRESLT=0
- S X="TODAY" D ^%DT S TODAY=Y,LATE=Y
+ S TODAY=$$DT^XLFDT()
  S TARGET="^TMP(""BPXIMM"",$J)"
  S BPXFIND=0 F  S BPXFIND=$O(^PXRMD(811.5,BPXTRM,20,BPXFIND)) Q:BPXFIND=""!(BPXFIND?1A.A)!(BPXRESLT=1)  D
  .S BPXTYPE=$P($G(^PXRMD(811.5,BPXTRM,20,BPXFIND,0)),U,1)

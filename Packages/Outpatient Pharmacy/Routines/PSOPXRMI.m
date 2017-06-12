@@ -1,10 +1,11 @@
-PSOPXRMI ; ISC/MFR - Build Reminders Indexes for PSRX ;03-Oct-2012 13:06;DU
- ;;7.0;OUTPATIENT PHARMACY;**118,1015**;DEC 1997;Build 62
+PSOPXRMI ; ISC/MFR - Build Reminders Indexes for PSRX ;14-Jul-2015 14:26;DU
+ ;;7.0;OUTPATIENT PHARMACY;**118,1015,1019**;DEC 1997;Build 4
  ;External reference to PXRMSXRM is supported by DBIA 4113
  ;External reference to File ^PXRMINDX( supported by DBIA 4114
- ;Modified - IHS/MSC/MGH - 10/03/2012 - patch 1015 to just quit if pt or drug not there and to
+ ;Modified - IHS/MSC/nMGH - 10/03/2012 - patch 1015 to just quit if pt or drug not there and to
  ;only send error on misisng days supply if its less than 1 year old
  ;IHS/MSC/MGH patch 1015 quit without error message if RX is over 1 year old
+ ;IHS/MSC/MGH patch 1019 fix for index rebuild and erx meds
  ;
 PSRX ;Build the index for the Prescription File.
  N DA,DA1,DAS,DATE,DSUP,DFN,DRUG,END,ENTRIES,GLOBAL,IDEN,IND,INS
@@ -46,6 +47,8 @@ PSRX ;Build the index for the Prescription File.
  ... S IDEN=DA1_" missing days supply"
  ... D ADDERROR^PXRMSXRM(GLOBAL,IDEN,.NERROR)
  . S RDATE=+$P($G(^PSRX(DA1,2)),U,13)
+ . S FDATE=+$P($G(^PSRX(DA1,2)),U,2)  ;Patch 1019
+ . I RDATE=0&($P($G(^PSRX(DA1,999999921)),U,3)'="") S RDATE=FDATE ;Patch 1019
  . I RDATE>0 D
  .. S SDATE=+$$FMADD^XLFDT(RDATE,DSUP)
  .. S DAS=DA1_";2"

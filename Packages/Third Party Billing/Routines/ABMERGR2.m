@@ -1,5 +1,5 @@
 ABMERGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ; 
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11,19,20**;NOV 12, 2009;Build 317
  ;
  ; IHS/SD/LSL - 08/30/02 - V2.5 Patch 1 - HIPAA
  ;            Added prescription number as 14th piece of ABMRV array
@@ -22,6 +22,8 @@ ABMERGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added date written
  ; IHS/SD/SDR - abm*2.6*6 - HEAT28973 - if 55 modifier present use '1' for units to calculate charges
  ; IHS/SD/SDR - 2.6*9 - HEAT18507 - Fixed where RX number was coming from (p14, not p6)
+ ;IHS/SD/SDR - 2.6*19 - HEAT173117 - Correction to CPT Narrative for 23 multiple.
+ ;IHS/SD/AML - 2.6*20 - HEAT262141 - Made changes for AHCCCS RX billing.
  ;
  ; ********************************************************************
  ; All line tags adhere to the following description unless specified
@@ -81,13 +83,15 @@ ABMERGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S ABM(6)=ABM(3)*ABM(4)+ABM(5)  ;units * units cost + dispense fee
  .S ABM(6)=$J(ABM(6),1,2)
  .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,6)=ABM(6)  ;charges
+ .I $$RCID^ABMERUTL(ABMP("INS"))=99999 S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,6)=0  ;abm*2.6*20 IHS/SD/AML HEAT262141 1/4/2016 - AHCCCS RX REQUIREMENT
  .;S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^PSDRUG(ABM(1),0)),U)  ;NDC generic name  ;abm*2.6*11
  .I ABM(24)'="" S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,9)=ABM(24)_" "_$P($G(^PSDRUG(ABM(1),0)),U)  ;NDC generic name  ;abm*2.6*11
  .I ABM(24)="" S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^PSDRUG(ABM(1),0)),U)  ;NDC generic name  ;abm*2.6*11
  .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,10)=ABM(10)  ;Date/Time
  .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,32)=ABM(25)  ;date written  ;abm*2.6*6 5010
  .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,38)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U)  ;abm*2.6*8 5010 line item control number
- .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U,2)  ;abm*2.6*9 NARR
+ .;S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U,2)  ;abm*2.6*9 NARR  ;abm*2.6*19 IHS/SD/SDR HEAT173117
+ .S $P(ABMRV(+ABM(2),ABM(1),ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,3)),U,2)  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  Q
  ;
 25 ;EP - Revenue Code

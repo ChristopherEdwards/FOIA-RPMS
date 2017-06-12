@@ -1,6 +1,6 @@
-LR7OSMZ0 ;slc/dcm - Silent Micro rpt ;8/11/97
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**121,244**;Sep 27, 1994
+LR7OSMZ0 ;slc/dcm - Silent Micro rpt ; 23-Jun-2014 09:29 ; MKK
+ ;;5.2;LR;**121,244,1018,1033**;Nov 17, 2004
+ ;
 EN1 ;from 
  S LRLLT=$G(^LR(LRDFN,"MI",LRIDT,0)),LRACC=$P(LRLLT,U,6),LRAD=$E(LRLLT)_$P(LRACC," ",2)_"0000",X=$P(LRACC," "),DIC=68,DIC(0)="M"
  I $L(X) D ^DIC S LRAA=+Y,LRAN=+$P(LRACC," ",3),LRCMNT=$S($D(^LR(LRDFN,"MI",LRIDT,99)):^(99),1:""),LRPG=0 D EN^LR7OSMZ1 Q:LREND

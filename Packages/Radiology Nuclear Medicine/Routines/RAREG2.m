@@ -1,5 +1,5 @@
-RAREG2 ;HISC/CAH,FPT,DAD,SS AISC/MJK,RMO-Register Patient ; 17 Aug 2011  9:39 AM
- ;;5.0;Radiology/Nuclear Medicine;**13,18,93,99,1003**;Nov 01, 2010;Build 3
+RAREG2 ;HISC/CAH,FPT,DAD,SS AISC/MJK,RMO-Register Patient ; 06 Oct 2013  11:04 AM
+ ;;5.0;Radiology/Nuclear Medicine;**13,18,93,99,1003,1005**;Nov 01, 2010;Build 13
  ;last modif. JULY 5,00 by SS 
  ; 07/15/2008 BAY/KAM rem call 249750 RA*5*93 Correct DIK Calls
  ; 06/04/09 rvd - display pregnancy screen and pregnancy screen comment only in Add Exams to Last visit option.
@@ -21,15 +21,22 @@ ORDER ; Get data from ordered procedure for registration
 EXAMLOOP ; register the exam
  N REM ;this is used by the edit template
  ;P99; keep previous pregnancy screen data before adding new exam
- I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)="F" S RA703DAT=$$PRCEXA^RAUTL8(RADFN)  ;ra703dat holds the previous entry
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)="F" S RA703DAT=$$PRCEXA^RAUTL8(RADFN)  ;ra703dat holds the previous entry
+ I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)'="M" S RA703DAT=$$PRCEXA^RAUTL8(RADFN)  ;ra703dat holds the previous entry
+ ;
  S DA=RADFN,RACN="N",DIE("NO^")="OUTOK",DR="[RA REGISTER]",DIE="^RADPT(" D ^DIE K DIE("NO^"),DE,DQ
  ;
- ;IHS/BJI/DAY - Patch 1003 - Default Pregnancy Status to Unknown
+ ;IHS/BJI/DAY - Patch 1005 - Default Pregnancy Status to Unknown
  ;Controlled by site parameter
  I +$G(RAMDIV),$P($G(^RA(79,+RAMDIV,9999999)),"^",2)=1 D
  .I $G(RADFN)="" Q
  .I $G(RADTI)="" Q
  .I $G(RACNI)="" Q
+ .I $$PTSEX^RAUTL8(RADFN)="M" Q
+ .I $$PTAGE^RAUTL8(RADFN,"")>55 Q
+ .I $$PTAGE^RAUTL8(RADFN,"")<12 Q
  .I '$D(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)) Q
  .I $P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,32)]"" Q
  .S $P(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0),U,32)="u"
@@ -48,7 +55,11 @@ EXAMLOOP ; register the exam
  . Q
  ;start of p99, display and SET pregnancy screen and pregnancy screen comment
  ;value defaulted from previous case exam (regardless of case exam status)
- I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)="F" D
+ I $D(RAOPT("ADDEXAM")),$$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .Q:'$D(RA703DAT)
  .N RA3,RADTIEN,RACNIEN,RAPCOMM
  .S RADTIEN=$P(RA703DAT,U),RACNIEN=$P(RA703DAT,U,2)

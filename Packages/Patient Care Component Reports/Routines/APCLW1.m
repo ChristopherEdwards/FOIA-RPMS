@@ -1,5 +1,5 @@
 APCLW1 ; IHS/CMI/LAB - AGE BUCKET/DIAGNOSIS REPORT ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10**;MAY 14, 2009;Build 88
  ;
 START ;
  W !!?15,"*****  OVERWEIGHT/OBESITY PREVALENCE REPORT  *****",!!
@@ -113,7 +113,7 @@ EXIT ;
 TEMPLATE ;If Template was selected
  S APCLSEAT=""
  ;
- W ! S DIC("S")="I $P(^(0),U,4)=9000001" S DIC="^DIBT(",DIC("A")="Enter Patient SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ W ! S DIC("S")="I $P(^(0),U,4)=9000001!($P(^(0),U,4)=2)" S DIC="^DIBT(",DIC("A")="Enter Patient SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
  I Y=-1 K APCLTYPE Q
  S APCLSEAT=+Y
  Q

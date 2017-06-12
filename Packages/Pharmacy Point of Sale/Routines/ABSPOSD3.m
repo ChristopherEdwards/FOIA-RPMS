@@ -1,5 +1,5 @@
 ABSPOSD3 ; IHS/SD/RLT - DIAGNOSIS CODE ;  [ 06/21/2007  11:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**23**;JUN 21, 2007
+ ;;1.0;PHARMACY POINT OF SALE;**23**;JUN 21, 2007;Build 15
  Q
  ; EDIT is called from the menu in ABSPOSO1,
  ;   typically reached from the pharmacy package's call

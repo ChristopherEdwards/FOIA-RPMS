@@ -1,5 +1,5 @@
-BGOTRG ; IHS/BAO/TMD - Triage Summary ;28-Jun-2012 17:17;DU
- ;;1.1;BGO COMPONENTS;**1,3,5,6,7,8,11**;Mar 20, 2007
+BGOTRG ; IHS/BAO/TMD - Triage Summary ;06-Nov-2014 10:33;DU
+ ;;1.1;BGO COMPONENTS;**1,3,5,6,7,8,11,14**;Mar 20, 2007
  ; RPC: Returns triage summary information
  ;  INP = Visit IEN ^ Provider ^ Report List ^ Include CC Author
 GETSUM(RET,INP) ;EP
@@ -119,10 +119,22 @@ GET6 ;;Skin Tests^;
  .D:SK APPEND($P($G(^AUTTSK(SK,0)),U))
  Q
 GET7 ;;Education^;
- N EDT
+ N EDT,TXT,SNO,X
  F  S LP=$O(^AUPNVPED("AD",VIEN,LP)) Q:'LP  D
  .S EDT=$P($G(^AUPNVPED(LP,0)),U)
- .D:EDT APPEND($P($G(^AUTTEDT(EDT,0)),U))
+ .Q:'EDT
+ .I $P($G(^AUTTEDT(EDT,0)),U,12)'="" D
+ ..S TXT=""
+ ..S SNO=$P($G(^AUTTEDT(EDT,0)),U,12)
+ ..;IHS/MSC/MGH changed to use new api
+ ..;S IN=SNO_U_36_U_U_1
+ ..;S X=$$CONC^BSTSAPI(IN)
+ ..S IN=SNO_"^^^1"
+ ..S X=$$CONC^AUPNSICD(IN)
+ ..S TXT=$P(X,U,4)
+ ..I $L(TXT) D APPEND(TXT_"-"_$P($P($G(^AUTTEDT(EDT,0)),U,1),"-",2))
+ .E  D APPEND($P($G(^AUTTEDT(EDT,0)),U))
+ .;D:EDT APPEND($P($G(^AUTTEDT(EDT,0)),U))
  Q
 GET8 ;;Exams^;
  N XAM

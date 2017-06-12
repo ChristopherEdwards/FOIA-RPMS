@@ -1,5 +1,5 @@
 ABSPOSA ; IHS/FCS/DRS - NO DESCRIPTION PROVIDED ;   [ 06/10/2002  10:12 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001;Build 15
  ;
  ;  ABSPOSA contains a lot of one-liner utility routines
  ;  available for general use in the ABSPOSA* family.

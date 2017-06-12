@@ -1,5 +1,5 @@
 AUPNCPT ; IHS/CMI/LAB - CALCULATE CPT CODE ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**,11**;MAY 14, 2009;Build 58
  ;
  ;
  ;
@@ -76,7 +76,7 @@ V ;visit cpt - eval&man
  Q
 22 ;
  ;S E=0,(M,O)="" F  S E=$O(^AUPNVRAD("AD",V,E)) Q:E'=+E  I $$VAL^XBDIQ1(9000010.22,E,.019)]"" S C=$$VAL^XBDIQ1(9000010.22,E,.019),I=$O(^ICPT("B",C,0)),N=$S(I:$P(^ICPT(I,0),"^",2),1:""),(M,O)="" D SET
- S E=0,(M,O)="" F  S E=$O(^AUPNVRAD("AD",V,E)) Q:E'=+E  I $$VAL^XBDIQ1(9000010.22,E,.019)]"" S C=$$VAL^XBDIQ1(9000010.22,E,.019),I=$P($$CPT^ICPTCOD(C,D),U,1),N=$P($$CPT^ICPTCOD(I,D),"^",3),(M,O)="" D SET
+ S E=0,(M,O)="" F  S E=$O(^AUPNVRAD("AD",V,E)) Q:E'=+E  I $$VAL^XBDIQ1(9000010.22,E,.019)]"" S C=$$VAL^XBDIQ1(9000010.22,E,.019),I=$P($$CPT^ICPTCOD(C,D),U,1),N=$P($$CPT^ICPTCOD(I,D),"^",3),M=$P(^AUPNVRAD(E,0),U,7),O=$P(^AUPNVRAD(E,0),U,8) D SET
  Q
 EXAMCPT(E) ;EP called from .011 field of V EXAM
  Q:'$G(E)

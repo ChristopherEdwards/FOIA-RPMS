@@ -1,5 +1,5 @@
 BQISYSIT ;APTIV/HC/ALA-System Site Parameters for iCare ; 11 Apr 2008  3:43 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
 GET(DATA,FAKE) ;EP -- BQI GET SYSTEM PARAMETERS
  ; Get specific iCare system parameters from the Site Parameter file
@@ -56,11 +56,9 @@ JOB(DATA,FAKE) ; EP - BQI GET SYSTEM JOB DATA
  S OPTN=$$FIND^BQISCHED("BQI UPDATE TASK")
  I $O(^DIC(19.2,"B",OPTN,""))="" S BQSCHED="Not scheduled"
  S JOB="WEEKLY",FLDS="Diagnostic Tags;4.01;4.02;4.03;24.04^Natl Measures;4.04;4.05;4.06;24.05^Reminders;4.07;4.08;4.09;24.06^Best Practice Prompts;4.1;4.11;4.12;24.02" D RET
- S JOB="WEEKLY",FLDS="Care Mgmt Update;4.13;4.14;4.15;24.03^MU Performance Update (90 Days);4.16;4.17;4.18;24.09" D RET
+ S JOB="WEEKLY",FLDS="Care Mgmt Update;4.13;4.14;4.15;24.03" D RET
  ;
- S JOB="",FLDS="MU Performance Update (1 Year);8.04;8.05;8.06;24.1" D RET
- ;
- S JOB="MONTHLY",FLDS="MU Clinical Quality;4.19;4.2;4.21;24.07^IPC Update;8.1;8.11;8.12;24.08" D RET
+ S JOB="MONTHLY",FLDS="IPC Update;8.1;8.11;8.12;24.08" D RET
  ;
  S II=II+1,@DATA@(II)=$C(31)
  Q
@@ -90,16 +88,16 @@ RET ; Retrieve data
  .. I TYP="Reminders" D OPRET("BQI UPDATE ALL REMINDERS")
  .. I TYP="Best Practice Prompts" D OPRET("BQI UPDATE TREATMENT")
  .. I TYP="Care Mgmt Update" D OPRET("BQI UPDATE CARE MGMT")
- .. I TYP="MU Performance Update (90 Days)" D OPRET("BQI UPDATE MEAN USE 90 DAYS")
- .. I TYP="MU Clinical Quality Update (90 Days)" D OPRET("BQI UPDATE MU CQM 90 DAYS")
- . I JOB="" D
- .. I TYP="MU Performance Update (1 Year)" D OPRET("BQI UPDATE MEAN USE 1 YEAR")
- .. ;I TYP="MU Clinical Quality Update (1 Year)" D OPRET("BQI UPDATE MU CQM 1 YEAR")
+ . ;
  . I JOB="MONTHLY" D
  .. I TYP="MU Clinical Quality" D
  ... NEW ZTSK
- ... S ZTSK=$P(^BQI(90508,1,12),U,5)
+ ... S ZTSK=$P(^BQI(90508,1,12),U,5) I ZTSK'="" D QTSK(ZTSK) Q
  ... I ZTSK="" D NXRUN("01") Q
+ .. I TYP="MU Performance" D
+ ... NEW ZTSK
+ ... S ZTSK=$P(^BQI(90508,1,12),U,6) I ZTSK'="" D QTSK(ZTSK) Q
+ ... I ZTSK="" D NXRUN("01")
  .. I TYP="IPC Update" D
  ... NEW DY
  ... S DY=$P(^BQI(90508,1,11),U,2)
@@ -180,6 +178,7 @@ OPRET(RPC) ;EP
  Q
  ;
 NXRUN(DAY) ;EP
+ NEW CIPC
  S CIPC=$P($G(^BQI(90508,1,8)),U,10)
  S BQMON=$E(CIPC,4,5),CYR=$E(CIPC,1,3)
  ;S BQMON=$E(DT,4,5),CYR=$E(DT,1,3)
@@ -194,3 +193,9 @@ TSK(ZTSK) ;EP
  I $G(ZTSK)="" Q ""
  D STAT^%ZTLOAD
  Q $G(ZTSK(2))
+ ;
+QTSK(ZTSK) ;EP
+ NEW STRT
+ S STRT=$P($G(^%ZTSK(ZTSK,0)),U,6),STRT=$$HTFM^XLFDT(STRT)
+ S BQSCHED=$$FMTE^BQIUL1(STRT)
+ Q

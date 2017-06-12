@@ -1,9 +1,10 @@
-PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;01-May-2013 11:10;PLS
- ;;2.0;CMOP;**7,12,25,33,40,41,1013,54,1015**;11 Apr 97;Build 62
+PSXRXQU ;BIR/BAB,WPB-CMOP RX QUEUE File Utility ;15-Nov-2013 13:10;DU
+ ;;2.0;CMOP;**7,12,25,33,40,41,1013,54,1015,1018**;11 Apr 97;Build 21
  ;
  ;Reference to ^PS(55, supported by DBIA #2228
  ;Modified - IHS/MSC/PLS - 09/23/2011 - Line PID+9
  ;                       - 04/29/2013 - Line PID+13
+ ;                       - 10/24/2013 - Line PID+18
 PURGE ;Purge 550.1 of any entries w/Message Status "IN TRANSITION"
  Q:'$D(^PSX(550.1,"AB"))  S MSG="" F  S MSG=$O(^PSX(550.1,"AB",MSG)) Q:'MSG  S DIK=550.1,DA=MSG D ^DIK
  K DIK,MSG,DA
@@ -34,12 +35,12 @@ PID ; build patients PID HL7 segment
  S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",15)=$G(PSXLANG) K PSXLANG
  S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=VA("PID")  ;IHS/MSC/PLS 7/29/10
  ; GET PATIENT ICN - DON'T SEND IF LOCAL ICN ONLY
- ;IHS/MSC/PLS - 04/29/2013 - Next four lines commented out
+ ;IHS/MSC/PLS - 04/29/2013,10/24/2013 - Next five lines commented out
  ;S PSXICN=$$MPINODE^MPIFAPI(DFN) D
  ;.I PSXICN<0 S PSXICN="" Q
  ;.I $P(PSXICN,"^",4)=1 S PSXICN="" Q
  ;.S PSXICN=$P(PSXICN,"^")_"V"_$P(PSXICN,"^",2)
- S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=$G(PSXICN) K PSXICN
+ ;S $P(^PSX(550.1,PSXMSG,"T",2,0),"|",18)=$G(PSXICN) K PSXICN
  S TDT=$P(VAPA(10),"^")
  I $G(VAPA(3))]""!($G(TDT)]"") D
  .I $G(TDT)>1 S TDT=TDT+17000000,TDT1=$E(TDT,1,4),TDT2=$E(TDT,5,6),TDT3=$E(TDT,7,8) S:TDT2'>0 TDT2="01" S:TDT3'>0 TDT3="01" S TDT=$G(TDT1)_$G(TDT2)_$G(TDT3)

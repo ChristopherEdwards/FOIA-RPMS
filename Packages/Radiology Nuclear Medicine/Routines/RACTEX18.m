@@ -1,4 +1,4 @@
-RACTEX18 ; ;07/06/13
+RACTEX18 ; ;05/20/15
  D DE G BEGIN
 DE S DIE="^RADPTN(D0,""NUC"",",DIC=DIE,DP=70.21,DL=5,DIEL=1,DU="" K DG,DE,DB Q:$O(^RADPTN(D0,"NUC",DA,""))=""
  I $D(^(0)) S %Z=^(0) S %=$P(%Z,U,2) S:%]"" DE(2)=% S %=$P(%Z,U,3) S:%]"" DE(1)=% S %=$P(%Z,U,6) S:%]"" DE(8)=% S %=$P(%Z,U,8) S:%]"" DE(4)=% S %=$P(%Z,U,9) S:%]"" DE(5)=% S %=$P(%Z,U,10) S:%]"" DE(12)=% S %=$P(%Z,U,11) S:%]"" DE(15)=%

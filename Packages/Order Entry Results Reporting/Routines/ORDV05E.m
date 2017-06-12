@@ -1,7 +1,8 @@
-ORDV05E ; slc/jdl - Microbiology Extract Routine ;6/13/01  11:49
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,208**;Dec 17, 1997
+ORDV05E ; slc/jdl - Microbiology Extract Routine ;22-Jul-2013 22:35;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**109,208,1012**;Dec 17, 1997
  ;;Called from ORDV05, return ^TMP("ORM",$J in GCPR format
  ;;For Bacteriology,Sterility,Gram stain
+ ; Modified - IHS/MSC/PLS - 07/22/2013 - Line ANTIBX+1
 GET ;Extract data from LR global
  N I,IX,IXO,PNM,AGE,SEX,LRDFN,ALL,FORMAT,DONE,OUTCNT
  S LRDFN="",ALL=1,FORMAT=0,DONE=0,OUTCNT=1 ;Parameters required by MI^LR7OGMM
@@ -52,8 +53,11 @@ ORGNSM N QTY
  S ORG=ORG_U_QTY
  Q
 ANTIBX ; Get Antibitiotic susceptibility results on demand
- N ABX S ABX=1
- F  S ABX=$O(^LR(LRDFN,"MI",IX,3,ISO,ABX)) Q:ABX=""!(ABX'<3)  D ABXSET
+ ;IHS/MSC/MK - 07/22/2013
+ ;N ABX S ABX=1
+ ;F  S ABX=$O(^LR(LRDFN,"MI",IX,3,ISO,ABX)) Q:ABX=""!(ABX'<3)  D ABXSET
+ N ABX S ABX=2
+ F  S ABX=$O(^LR(LRDFN,"MI",IX,3,ISO,ABX)) Q:'ABX!(ABX'<3)  D ABXSET
  Q
 ABXSET ; Set Antibiotic Susceptability data, when appropriate
  ; Separate out by Susceptable, Intermediate, and Resistant

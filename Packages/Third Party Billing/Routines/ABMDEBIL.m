@@ -1,5 +1,5 @@
-ABMDEBIL ; IHS/ASDST/DMJ - Move Claim Data to Bill File ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8**;NOV 12, 2009
+ABMDEBIL ; IHS/SD/SDR - Move Claim Data to Bill File ;   
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,10,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/ASDS/DMJ - 06/11/01 v2.4 p5 - NOIS NEA-0601-180026
  ;     Modified to correct problem with lock table filling up
@@ -16,6 +16,7 @@ ABMDEBIL ; IHS/ASDST/DMJ - Move Claim Data to Bill File ;
  ;
  ; IHS/SD/SDR - abm*2.6*6 - Added code to populate LINE ITEM CONTROL NUMBER
  ; IHS/SD/SDR - abm*2.6*6 - Added code to populate OTHER BILL IDENTIFIER
+ ;IHS/SD/SDR - 2.6*14 ICD10 006 - Added code to populated ICD INDICATOR on bill
  ; *********************************************************************
  K ^ABMDCLM(DUZ(2),ABMP("CDFN"),65),ABMFORM
  N I F I=1:1:10 D
@@ -73,13 +74,15 @@ BIL ;
  S ABMAPOK=1
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U,2)=$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),0),U,12)
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U,10)=$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),0),U,6)
+ S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),0),U,21)=$S(ABMP("VDT")>ABMP("ICD10"):"10",1:"9")  ;abm*2.6*14 ICD10 006
  D NOW^%DTC
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,4)=DUZ
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),1),U,5)=%
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U)=+ABMP("EXP",ABMB("EXP"))
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,3)=ABMP("TOT")
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,5)=+$FN(+^ABMDBILL(DUZ(2),ABMP("BDFN"),2),"",2)
- S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,2)=$P($G(^AUTNINS(ABMP("INS"),2)),U)
+ ;S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,2)=$P($G(^AUTNINS(ABMP("INS"),2)),U)  ;abm*2.6*10 HEAT73780
+ S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,2)=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
  S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,7)=(+$G(ABMP("OBAMT")))
  S:+$G(ABMP("FLAT"))'=0 $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U,8)=$P(+ABMP("FLAT"),U)
  I "FHM"[$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),2)),U,2) S $P(^(2),U,2)="P"
@@ -116,7 +119,8 @@ BIL ;
  S DA=ABMP("BDFN")
  S DIK="^ABMDBILL(DUZ(2),"
  D IX1^DIK
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="I" D
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="I" D  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="I" D  ;abm*2.6*10 HEAT73780
  .S DIE="^ABMDBILL(DUZ(2),"
  .S DR=".04////C"
  .D ^DIE
@@ -126,6 +130,7 @@ BIL ;
  .S DR=".22////"_$S($D(^ABMNINS(DUZ(2),DA,1,ABMP("VTYP"),11)):"Y",1:"")
  .D ^DIE
  I $G(ABMMSPRS)'="" D  ;MSP reason
+ .Q:ABMMSPRS="NO REASON ENTERED"  ;abm*2.6*10 HEAT68467
  .S ABMMSPR=$S(ABMMSPRS="E":12,ABMMSPRS="L":43,ABMMSPRS="V":42,ABMMSPRS="W":15,ABMMSPRS="B":41,1:"14")
  .S $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),12),U)=ABMMSPR
  S (DINUM,X)=ABMP("BDFN")

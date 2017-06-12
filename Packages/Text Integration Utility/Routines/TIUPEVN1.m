@@ -1,14 +1,18 @@
-TIUPEVN1 ; SLC/JER - Event logger Cont'd ;21-OCT-1999 10:47:05
- ;;1.0;TEXT INTEGRATION UTILITIES;**81**;Jun 20, 1997
- ;IHS/ITSC/LJF 02/26/2003 added code to stuf cosig req if needed
- ;                        added ability to delete filing errors
+TIUPEVN1 ; SLC/JER - Event logger Cont'd ;05/20/10  14:09
+ ;;1.0;TEXT INTEGRATION UTILITIES;**81,250**;Jun 20, 1997;Build 14
+ ;
+ ; ICR #10006    - ^DIC Routine & DIC, DLAYGO, X, & Y local vars
+ ;     #10018    - ^DIE Routine & DIE, DA, DR, DTOUT, & DUOUT local vars
+ ;     #10004    - EN^DIQ Routine & DIC, DA, X, & Y local vars
+ ;     #10015    - EN^DIQ1 Routine & DIC, DIQ, DA, & DR local vars
+ ;     #10081    - SETUP^XQALERT Routine & XQADATA, XQAID, XQAMSG, & XQAROU  local vars
  ;
 FIELDS(EVNTDA,MSG) ; ---- Log missing/incorrect field errors for
  ;                      specific fields in UPLOAD LOG file (#8925.4),
  ;                      in multiple fl. TIU*1*81 moved from TIUPEVNT
  N TIUI S TIUI=0
  F  S TIUI=$O(MSG("DIERR",TIUI)) Q:+TIUI'>0  D
- . N DA,DR,DIC,DIE,DLAYGO S DIC="^TIU(8925.4,"_EVNTDA_",1,",DIC(0)="L"
+ . N DA,DR,DIC,DIE,DLAYGO,X,Y S DIC="^TIU(8925.4,"_EVNTDA_",1,",DIC(0)="L"
  . I '$D(MSG("DIERR",TIUI,"PARAM","FILE")) Q
  . S ^TIU(8925.4,EVNTDA,1,0)="^8925.42^^",DA(1)=EVNTDA
  . S DLAYGO=8925.42,X=""""_MSG("DIERR",TIUI,"PARAM","FILE")_""""
@@ -20,7 +24,7 @@ FIELDS(EVNTDA,MSG) ; ---- Log missing/incorrect field errors for
 FLDALRT(EVNTDA,EVNTDA1,ERRMSG) ; ---- Send alerts for missing field errors
  ;                              TIU*1*81 moved from TIUPEVNT
  N XQA,XQAID,XQADATA,XQAMSG,XQAKILL,XQAROU,TIUI,TIUSUB,TYPE,EVNTDA10
- N NOTEDA
+ N NOTEDA,NOTE0
  ; ---- TIU*1*81 If this is a TIU docmt, get its title for TYPE
  S EVNTDA10=$G(^TIU(8925.4,EVNTDA,1,EVNTDA1,0))
  I $P(EVNTDA10,U)=8925 D
@@ -50,14 +54,6 @@ FLDISP ; ---- Alert follow-up action for missing field errors
  S EVNTREC=$G(^TIU(8925.4,EVNTDA,1,EVNTDA1,0)) Q:+EVNTREC'>0
  S DIE=$P(EVNTREC,U),DA=$P(EVNTREC,U,2)
  S DR=$P(EVNTREC,U,3)_"//"_$P(EVNTREC,U,4)
- ;
- ;IHS/ITSC/LJF 02/26/2003 added ability to delete record completely
- I '$$GET1^DIQ(DIE,+DA,.01,"I") NEW DELETE D  Q
- . D MSG^BTIUU("ENTRY DOES NOT EXIST",2,0,1)
- . S DELETE=$$READ^TIUU("YO","Would you like to DELETE this record completely","NO","^D DELHELP^BTIUH2")
- . I +DELETE D ALERTDEL^TIUPEVNT(+XQADATA),BUFPURGE^TIUPUTC(+XQADATA)
- ;IHS/ITSC/LJF 02/26/2003 end of new code
- ;
  S TIUFIX=$$FIXED(DIE,+DA,+DR)
  I +TIUFIX>0 D  Q
  . W:TIUFIX=1 !!,"Missing field already filled in by another method..."
@@ -73,23 +69,17 @@ FLDISP ; ---- Alert follow-up action for missing field errors
  . S TIUREASX=$$REASSIGN^TIULC1(+$G(^TIU(8925,+TIUDA,0)))
  . I TIUREASX]"" X TIUREASX S TIULINK=1
  I '+$G(TIULINK) D ^DIE
- ;
- ;IHS/ITSC/LJF 02/26/2003 stuff cosig needed if not there
- NEW COSIG S COSIG=$$WHOCOSIG^TIULC1(+DA)
- I COSIG]"" S DR="1208////"_COSIG D ^DIE
- I +$P($G(^TIU(8925,+DA,12)),U,8),(+$P($G(^TIU(8925,+DA,12)),U,4)'=+$P($G(^(12)),U,8)) D
- . K TIUDPRM
- . I '$$REQCOSIG^TIULP(+$P($G(^TIU(8925,+DA,0)),U),+DA,+$P($G(^(12)),U,4)) Q
- . S DR="1506////1" D ^DIE
- ;IHS/ITSC/LJF 02/26/2003 end of new code
- ;
  ; ---- If TIU Document, do post-filing action send signature alerts
  I DIE="^TIU(8925," D
- . N TIUREC,TIUPOST,DR,DIE,TYPE
+ . N TIUREC,TIUPOST,DR,DIE,TYPE,TIUD12,TIUD13,TIUEBY,TIUAU,TIUEC
  . S TYPE=$S(+$$ISADDNDM^TIULC1(DA):+$G(^TIU(8925,+$P(^TIU(8925,DA,0),U,6),0)),1:+$G(^TIU(8925,DA,0)))
  . S TIUPOST=$$POSTFILE^TIULC1(TYPE)
  . S TIUREC("#")=DA
  . I TIUPOST]"" X TIUPOST I 1
+ . ;if not entered by the author or expected cosigner record VBC Line Count
+ . S TIUD12=$G(^TIU(8925,DA,12)),TIUD13=$G(^(13))
+ . S TIUEBY=$P(TIUD13,U,2),TIUAU=$P(TIUD12,U,2),TIUEC=$P(TIUD13,U,8)
+ . I ((+TIUEBY>0)&(+TIUAU>0))&((TIUEBY'=TIUAU)&(TIUEBY'=TIUEC)) D LINES^TIUSRVPT(DA)
  . D SEND^TIUALRT(DA)
  S TIUFIX=$$FIXED(DIE,+DA,+DR)
  I +$G(TIUFIX)'>0 K XQAKILL Q

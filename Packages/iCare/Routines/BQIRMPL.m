@@ -1,5 +1,5 @@
 BQIRMPL ;PRXM/HC/ALA-Reminders By Panel ; 20 Feb 2007  4:04 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -189,7 +189,7 @@ RMVL ;  Reminder value
  NEW RDATA,CT,I,RIEN,BQIDOD,CMIEN,REG,DUE
  S CMIEN=""
  I DFN="" S VAL="",HDR="T00025"_STVW Q
- ; If paitnet is deceased
+ ; If patient is deceased
  S BQIDOD=$$GET1^DIQ(2,DFN_",",.351,"I") I BQIDOD'="" S VAL="1/1/0001 12:00:00 AM" Q
  ; if patient has no reminders, then No Data Available (NDA)
  I $O(^BQIPAT(DFN,40,0))="" S VAL="1/1/0001 12:00:00 AM" Q
@@ -202,20 +202,12 @@ RMVL ;  Reminder value
  S RIEN=$O(^BQIPAT(DFN,40,"B",STVW,"")) I RIEN="" S VAL="1/1/0001 12:01:00 AM" Q
  S RDATA=$G(^BQIPAT(DFN,40,RIEN,0))
  S CT=0
- I $P(STVW,"_",1)="EHR",$P(RDATA,U,3)="N/A" S VAL="1/1/0001 12:01:00 AM" Q
+ I $P(STVW,"_",1)="EHR",$P(RDATA,U,3)="N/A"!($P(RDATA,U,3)="DONE") S VAL="1/1/0001 12:01:00 AM" Q
  F I=2:1:4 S:$P(RDATA,U,I)'=""&($P(RDATA,U,I)'="N/A") CT=CT+1
  S HDR="T00030"_STVW
- ;S HDR="D00030"_STVW
- ;I CT=0 S VAL="N/A" Q
  I CT=0 S VAL="1/1/0001 12:01:00 AM" Q
  S DUE=$P(RDATA,U,4)
  I $P(RDATA,U,3)'="",DUE="" S DUE=DT
- ;I DUE>DT S VAL="F" Q
- ;S ODT=$$FMADD^XLFDT(DT,-30)
- ;I DUE<ODT S VAL="O" Q
- ;S VAL="C"
- ;S VAL=$$FMTE^BQIUL1(DUE)
- ;I VAL[",",VAL'[", " S VAL=$P(VAL,",")_", "_$P(VAL,",",2,99)
  S VAL=$$FMTMDY^BQIUL1(DUE)
  Q
  ;

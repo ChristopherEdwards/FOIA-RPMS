@@ -1,5 +1,5 @@
 BQICAVW ;PRXM/HC/ALA-Community Alerts View ; 12 Nov 2007  4:44 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
 EN(DATA,FAKE) ;EP -- BQI GET COMM ALERTS VIEW
  ;Description
@@ -137,7 +137,7 @@ DEL ;  Delete the previous community alert definitions
  Q
  ;
 DFLT ; Get default values
- NEW LIEN,GRP,LBL,GROUP,GRPP,STATUS,TMFRAME,TYP
+ NEW LIEN,GRP,LBL,GROUP,GRPP,STATUS,TMFRAME,TYP,INAC
  ; For the display group of mandatory, recommended, and optional
  F GRP="M","R","O" D
  . S LIEN=""
@@ -148,6 +148,8 @@ DFLT ; Get default values
  .. S GRPP=GROUP
  .. S:GROUP="OPTIONAL" GRPP="Z"_GROUP
  .. S STATUS=$S(GRP="O":"OFF",1:"ON")
+ .. S INAC=$P(^BQI(90507.8,LIEN,0),U,5)
+ .. I INAC=1 K SORT(GRPP,TYP,LBL) Q
  .. I $G(SORT(GRPP,TYP,LBL))="" S SORT(GRPP,TYP,LBL)=LIEN_U_TMFRAME_U_STATUS_U_GROUP
  ;
  Q

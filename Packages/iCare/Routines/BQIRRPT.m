@@ -1,5 +1,5 @@
 BQIRRPT ;PRXM/HC/ALA-Reports List ; 17 Oct 2007  6:24 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
 EN(DATA,REG) ;EP -- BQI REPORT LIST
  ;
@@ -38,7 +38,7 @@ EN(DATA,REG) ;EP -- BQI REPORT LIST
  ;
  ; ** If including a register, pull those reports **
  I REG'="" D
- . S RGIEN=$O(^BQI(90507,"B",REG,""))
+ . S RGIEN=$O(^BQI(90507,"B",REG,"")) I RGIEN="" Q
  . S IEN=0
  . F  S IEN=$O(^BQI(90507,RGIEN,20,IEN)) Q:'IEN  D
  .. I $P(^BQI(90507,RGIEN,20,IEN,0),U,4)=1 Q

@@ -1,16 +1,17 @@
-BTIUPCC3 ;IHS/CIA/MGH - TIU Object Support ;28-May-2010 09:53;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1003,1004,1005,1006**;NOV 04,2004
+BTIUPCC3 ;IHS/CIA/MGH - TIU Object Support ;25-Nov-2015 10:33;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1003,1004,1005,1006,1012,1013,1015**;NOV 04,2004;Build 3
  ;IHS/CIA/MGH New routine for objects added for TIU use
  ;Patch 1006 incorporated reproductive history field changes
-REPRO(DFN,TARGET) ;EP Return reproductive history
+REPRO(DFN,TARGET,MODE) ;EP Return reproductive history
  N TOT,GRAV,CNT,PARA,LC,SA,TA,X,OTHER,BTIUN,BTIUM,G,MB,FT,PRE,EC
  K @TARGET
  I $P(^DPT(DFN,0),U,2)="M" S @TARGET@(1,0)="Patient is male" G END
  I '$D(^AUPNREP(DFN,0)) S @TARGET@(1,0)="No history on file" G END
  S BTIUN=$G(^AUPNREP(DFN,0))
  S G=$$GET1^DIQ(9000017,+$G(DFN),1103)
- I G="" D OLD
- E  D NEW
+ ;I G="" D OLD
+ ;E  D NEW
+ D NEW
 END Q "~@"_$NA(@TARGET)
 NEW ;Get the reproductive history using the new fields
  S MB=$$GET1^DIQ(9000017,+$G(DFN),1105)
@@ -36,7 +37,7 @@ NEW ;Get the reproductive history using the new fields
  S @TARGET@(CNT,0)="Theraputic Abortions: "_TA
  S CNT=CNT+1
  S @TARGET@(CNT,0)="Spontaneous Abortions: "_SA
- D LMP
+ D CONT(MODE)
  Q
 OLD ;Get the reproductive history using the old fields
  S X=$P(BTIUN,U,2)
@@ -101,11 +102,15 @@ SURG(DFN,DATE) ;EP
  Q "~@^TMP(""BTIUPCC3"",$J)"
 HOSCHK ;
  ;Check for real surgical codes
- I TIUA(.01)>85 S BHSICD="" Q
- I TIUA(.01)=69.7 S BHSICD="" Q
- I TIUA(.01)\1=23 S BHSICD="" Q
- I TIUA(.01)\1=24 S BHSICD="" Q
- I $E(TIUA(.01),1,4)="38.9" S BHSICD="" Q
+ ;Patch 1013 changed to check icd9 and icd-10 in taxonomy
+ N TAXIEN,ARRAY
+ ;Patch 1015 Find minor procedure using API
+ I $$ICD^ATXAPI(TIUA(.01),$O(^ATXAX("B","APCH MINOR SURGICAL PROCS",0)),0) S BHSICD="" Q
+ ;I TIUA(.01)>85 S BHSICD="" Q
+ ;I TIUA(.01)=69.7 S BHSICD="" Q
+ ;I TIUA(.01)\1=23 S BHSICD="" Q
+ ;I TIUA(.01)\1=24 S BHSICD="" Q
+ ;I $E(TIUA(.01),1,4)="38.9" S BHSICD="" Q
  E  S BHSICD=1
  Q
 CHKCPT ;Check for surgical CPT codes
@@ -114,9 +119,37 @@ CHKCPT ;Check for surgical CPT codes
  S CPTIEN=$P(REC,U) Q:CPTIEN=""
  S CODE=$P($G(^ICPT(CPTIEN,0)),U) Q:CODE=""
  I ((CODE<10000)&(CODE'="00099"))!(CODE>69999) Q
- K TIUA D ENP^XBDIQ1(9000010.18,BTIUIVD,".01:.04","TIUA(")
- ;I TIUA(.04)="" Q
- S LINE=TIUA(.04)_" ["_TIUA(.019)_"]"     ;prov narrative [ICD dx cod
- I $G(DATE) S LINE=LINE_" - "_TIUA(.03)   ;date noted
- S COUNT=$G(COUNT)+1 S ^TMP("BTIUPCC3",$J,COUNT,0)=LINE
+ N TAXIEN,ARRAY2
+ ;Patch 1015 added call to API to check
+ I $$ICD^ATXAPI(CPTIEN,$O(^ATXAX("B","APCH HS MAJOR PROCEDURE CPTS",0)),1) D
+ .K TIUA D ENP^XBDIQ1(9000010.18,BTIUIVD,".01:.04","TIUA(")
+ .;I TIUA(.04)="" Q
+ .S LINE=TIUA(.04)_" ["_TIUA(.019)_"]"     ;prov narrative [ICD dx cod
+ .I $G(DATE) S LINE=LINE_" - "_TIUA(.03)   ;date noted
+ .S COUNT=$G(COUNT)+1 S ^TMP("BTIUPCC3",$J,COUNT,0)=LINE
+ Q
+CONT(MODE) ;Get contraception data
+ N BHX,BHC,TYP,START,END,LINE,CCNT,LIN1
+ S CCNT=0
+ S CNT=CNT+1 S @TARGET@(CNT,0)="FP METHOD: "
+ S BHX=0 F  S BHX=$O(^AUPNREP(DFN,2101,BHX)) Q:BHX'=+BHX  D
+ .Q:$D(^AUPNREP(DFN,2101,BHX,1))>0
+ .S BHC=$P(^AUPNREP(DFN,2101,BHX,0),U,1) I BHC D
+ ..S TYP=$P(^AUTTCM(BHC,0),U)
+ ..S START=$P(^AUPNREP(DFN,2101,BHX,0),U,2) I START]"" S START=$$FIXDT^BHSFAM1(START)
+ ..S END=$P(^AUPNREP(DFN,2101,BHX,0),U,3) I END]"" S END=$$FIXDT^BHSFAM1(END)
+ ..S LINE=$S(TYP="":"None Recorded",1:TYP)
+ ..I MODE="A"&(END="") D
+ ...S CNT=CNT+1,CCNT=CCNT+1
+ ...S LINE="   "_LINE_" Start Dt: "_START
+ ...S @TARGET@(CNT,0)=LINE
+ ..I MODE="C" D
+ ...S CNT=CNT+1,CCNT=CCNT+1
+ ...S LINE="   "_LINE_" Start Dt: "_START
+ ...S @TARGET@(CNT,0)=LINE
+ ...I END'="" D
+ ....S CNT=CNT+1,CCNT=CCNT+1
+ ....S LIN1=""
+ ....I $P(^AUPNREP(DFN,2101,BHX,0),U,5)]"" S LIN1=" Reason Discontinued: "_$P(^AUPNREP(DFN,2101,BHX,0),U,5)
+ ....S @TARGET@(CNT,0)="             End Dt: "_END_LIN1
  Q

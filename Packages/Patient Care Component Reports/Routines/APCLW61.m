@@ -1,5 +1,5 @@
 APCLW61 ; IHS/CMI/LAB - CALC WEIGHT REPORT ;
- ;;2.0;IHS PCC SUITE;**4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**4,10,11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/12/2007 code set versioning PREGDX
  ;
@@ -20,6 +20,7 @@ PROC ;
  .I APCLTYPE="P" Q:APCLAGE<APCLLOWA  Q:APCLAGE>APCLHGHA
  .S Y=DFN D ^AUPNPAT
  .Q:AUPNSEX=""
+ .Q:AUPNSEX="U"
  .Q:APCLSEX'="B"&(APCLSEX'=AUPNSEX)
  .D GETBMI1
  .I APCLBMI1="" Q  ;no beginning BMI
@@ -129,14 +130,8 @@ HT(P,V,AGE,DATE) ;return wt on this visit
 PREGDX(V) ;
  NEW P,D,G
  S G=0
- ;S P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P!(G)  S D=$P(^ICD9($P(^AUPNVPOV(P,0),U),0),U) D  ;cmi/anch/maw 9/12/2007 orig line
- S P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P!(G)  S D=$P($$ICDDX^ICDCODE($P(^AUPNVPOV(P,0),U)),U,2) D  ;cmi/anch/maw 9/12/2007 csv
- .I $E(D,1,3)="V22" S G=1 Q
- .I $E(D,1,3)="V23" S G=1 Q
- .I $E(D,1,3)="V27" S G=1 Q
- .I $E(D,1,3)="V28" S G=1 Q
- .I D>629.9999&(D<676.95) S G=1 Q
- .I D>61.49&(D<61.71) S G=1 Q
+ S P=0 F  S P=$O(^AUPNVPOV("AD",V,P)) Q:P'=+P!(G)  S D=$P(^AUPNVPOV(P,0),U) D  ;cmi/anch/maw 9/12/2007 csv
+ .I $$ICD^AUPNVUTL(D,$O(^ATXAX("B","BGP PREGNANCY DIAGNOSES 2",0)),9) S G=1
  .Q
  Q G
 CALCBMI ;calculate BMI value

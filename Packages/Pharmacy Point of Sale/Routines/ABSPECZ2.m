@@ -1,5 +1,5 @@
 ABSPECZ2 ; IHS/FCS/DRS - JWS 10:08 AM 22 Jun 1995 ;     [ 09/12/2002  10:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;DISPLAY NDC Electronic Claims (by PCN/Patient)

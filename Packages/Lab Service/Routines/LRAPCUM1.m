@@ -1,5 +1,5 @@
-LRAPCUM1 ;VA/AVAMC/REG - AP PATIENT CUM ;7/15/93  10:36 ;
- ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+LRAPCUM1 ;VA/AVAMC/REG - AP PATIENT CUM ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1031,1034**;NOV 1, 1997;Build 88
  ;
  ;;VA LR Patche(s): 315
  ;
@@ -9,15 +9,21 @@ EP ; EP
  W !,LR("%"),!,"SNOMED/ICD codes:" F C=0:0 S C=$O(^LR(LRDFN,LRSS,LRI,2,C)) Q:'C  S T=+^(C,0),T=^LAB(61,T,0) D:$Y>LRA(1)!'$Y MORE Q:LRA(2)?1P  W !,"T-",$P(T,"^",2),": " S X=$P(T,"^") D:LR(69.2,.05) C^LRUA W X D M
  Q:LRA(2)?1P
  W !
- N LRX
+ ; N LRX
+ NEW LRX,BLRTAB,BLREDT                                          ; IHS/MSC/MKK - LR*5.2*1034
  F C=0:0 S C=$O(^LR(LRDFN,LRSS,LRI,3,C)) Q:'C  D  Q:LRA(2)?1P
  . D:$Y>LRA(1)!'$T MORE
  . Q:LRA(2)?1P
- . S LRX=+^LR(LRDFN,LRSS,LRI,3,C,0),LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ . ; S LRX=+^LR(LRDFN,LRSS,LRI,3,C,0),LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ . ;
+ . S LRX=+$G(^LR(LRDFN,LRSS,LRI,3,C,0)),LRX=$$ICDDX^ICDEX(LRX,,,"I")    ; IHS/MSC/MKK - LR*5.2*1034
+ . ;
  . S X=$P(LRX,"^",4)
- . W !,"ICD code: ",$P(LRX,"^",2),?20
+ . ; W !,"ICD code: ",$P(LRX,"^",2),?20
+ . W !,"ICD Code: ",$P(LRX,"^",2),"  " S BLRTAB=$X              ; IHS/MSC/MKK - LR*5.2*1034
  . D:LR(69.2,.05) C^LRUA
- . W X
+ . ; W X
+ . D LINEWRAP^BLRGMENU(BLRTAB,X,(IOM-BLRTAB)-1)  W !            ; IHS/MSC/MKK - LR*5.2*1034
  . Q
  Q
  ;

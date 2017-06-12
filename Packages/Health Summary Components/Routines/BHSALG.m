@@ -1,5 +1,5 @@
-BHSALG ; IHS/MSC/MGH - ALL Health Summary Allergies ;04-Aug-2011 14:20;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**5,6**;March 17, 2006;Build 5
+BHSALG ; IHS/MSC/MGH - ALL Health Summary Allergies ;10-Jun-2013 16:43;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**5,6,8**;March 17, 2006;Build 22
  ;
  ;Patch 6 updated for allergy review
  ; External References
@@ -74,6 +74,7 @@ ALLRGP ; Allergy Print
  ....D SIGBLK($P(GMTSAFN,U,5))
  ....D CKP^GMTSUP Q:$D(GMTSQIT)  W !,?10,"Date/Time:  " S ODT=$P(GMTSAFN,U,4) S X=ODT D REGDTM4^GMTSU W X,!
  ....D DATES
+ ....D RECON(ADR)
  ....S CC="" F  S CC=$O(^GMR(120.8,GMTSALNM,26,"B",CC)) Q:CC=""  D CKP^GMTSUP Q:$D(GMTSQIT)  W !,?15,"Comments at: " S X=CC D REGDTM4^GMTSU S CD=X S CCC=0 F  S CCC=$O(^GMR(120.8,GMTSALNM,26,"B",CC,CCC)) Q:'CCC  D TEXT
 COMMON1 ;additional stuff for CHHIT bjpc 2.0 patch 5
  ;get date last reviewed and display
@@ -214,4 +215,14 @@ DATES ;Get verification data and last edited
  .S X=X_" by "_Y
  .D CKP^GMTSUP Q:$D(GMTSQIT)  W ?10,"Last Modified: "_X,!
  W !
+RECON(ADR) ;Get dates reconciled
+ N REC,IEN,AIEN,WHEN,BY
+ I $D(^BEHOCIR("G","A",ADR))>0 W !,?10,"Reconciliation Data",!
+ S REC=""
+ F  S REC=$O(^BEHOCIR("G","A",ADR,REC)) Q:REC=""  D
+ .S IEN="" F  S IEN=$O(^BEHOCIR("G","A",ADR,REC,IEN)) Q:IEN=""  D
+ ..S AIEN=IEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..W ?10,"When: "_WHEN_" By "_BY,!
  Q

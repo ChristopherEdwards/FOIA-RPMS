@@ -1,5 +1,5 @@
 ABSPOSAW ; IHS/FCS/DRS - Modem - wait for char,str ;     [ 09/12/2002  10:06 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ;
  ; Utilities for waiting for certain characters or strings

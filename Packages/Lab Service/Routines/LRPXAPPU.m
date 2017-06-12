@@ -1,5 +1,5 @@
-LRPXAPPU ;VA/SLC/STAFF - Test Lab APIs Utilities ;1/29/04  14:35
- ;;5.2;LAB SERVICE;**1030**;NOV 01, 1997
+LRPXAPPU ;VA/SLC/STAFF - Test Lab APIs Utilities ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1030,1034**;NOV 01, 1997;Build 88
  ;;5.2;LAB SERVICE;**295**;Sep 27, 1994;Build 5
  ;
  ; This routine is used along with LRPXAPP for testing Lab APIs.

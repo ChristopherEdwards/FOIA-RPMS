@@ -1,5 +1,5 @@
 BQITDVAL ;APTIV/HC/ALA-Dx Tag Validation Program ; 09 Apr 2008  6:58 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
 VAL(DATA,DFN,TAG,STAT) ;EP -- BQI DX TAG VALIDATION
  ; Input
@@ -29,26 +29,11 @@ VAL(DATA,DFN,TAG,STAT) ;EP -- BQI DX TAG VALIDATION
  ; If there is no hierachy, then no further checks need to be performed
  ; Status can change to any other status
  I 'THCFL S RESULT="1^^" G DONE
- ; If it's 'CVD At Risk', need to check whether DOB falls within the criteria or not
- I $$GET1^DIQ(90506.2,TAG_",",.01,"E")="CVD At Risk" D  I $P(RESULT,U,1,2)="-1^W" G DONE
- . S SEX=$$GET1^DIQ(2,DFN,.02,"I")
- . S AGE=$$AGE^BQIAGE(DFN)
- . I SEX="M"&(AGE'<45)&(STAT="A") S RESULT="1^^" Q
- . I SEX="F"&(AGE'<55)&(STAT="A") S RESULT="1^^" Q
- . ;I SEX="M"&(AGE'<45)&((STAT="N")!(STAT="A")) S RESULT="1^^" Q
- . ;I SEX="F"&(AGE'<55)&((STAT="N")!(STAT="A")) S RESULT="1^^" Q
- . I SEX="M"&(AGE<45)&((STAT="N")!(STAT="A")) S RESULT="-1^O^Patient is under the CVD At Risk target DOB" Q
- . I SEX="F"&(AGE<55)&((STAT="N")!(STAT="A")) S RESULT="-1^O^Patient is under the CVD At Risk target DOB" Q
- . I SEX="M"&(AGE<45)&(STAT="P") S RESULT="-1^W^Patient is under the CVD At Risk target DOB. Only valid statuses are 'Accepted' and 'Not Accepted'" Q
- . I SEX="F"&(AGE<55)&(STAT="P") S RESULT="-1^W^Patient is under the CVD At Risk target DOB. Only valid statuses are 'Accepted' and 'Not Accepted'" Q
- . I SEX="M"&(AGE'<45)&(STAT'="A") S RESULT="-1^W^Patient meets CVD At Risk target DOB. Only valid status is 'Accepted'."
- . I SEX="F"&(AGE'<55)&(STAT'="A") S RESULT="-1^W^Patient meets CVD At Risk target DOB. Only valid status is 'Accepted'."
  ; Check status of hierarchy
  S HIEN=$O(^BQI(90506.2,TAG,4,"B",TAG,""))
  S HORD=$P(^BQI(90506.2,TAG,4,HIEN,0),U,2),ORD=HORD,ACT=0
  ; if nothing after this order, then check for higher
  I $O(^BQI(90506.2,TAG,4,"AC",ORD),-1)'="" D HG
- ;I $O(^BQI(90506.2,TAG,4,"AC",ORD))="" D HG
  I ACT G DONE
  S ORD=HORD
  I $O(^BQI(90506.2,TAG,4,"AC",ORD))'="" D LW

@@ -1,5 +1,5 @@
 AUPNDWXR ;IHS/SD/SDR - Routine to populate DW Audit file - [ 04/15/2004  9:49 AM ]
- ;;99.1;IHS DICTIONARIES (PATIENT);**13**;APR 14, 2004
+ ;;99.1;IHS DICTIONARIES (PATIENT);**13**;APR 14, 2004;Build 9
  ;
  ; This routine will be used to populate the DW Audit file
  ; (^AUPNDWAF) for exporting edited patients to the Data

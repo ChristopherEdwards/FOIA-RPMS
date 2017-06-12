@@ -1,5 +1,5 @@
 BGP5DSL ; IHS/CMI/LAB - IHS 2015 DISPLAY IND LISTS ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;; ;
 RT ;EP
  ;for each measure list, choose report type

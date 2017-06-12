@@ -1,5 +1,5 @@
 BMCREF ; IHS/PHXAO/TMJ - SET REFERRAL VARIABLES ; 
- ;;4.0;REFERRED CARE INFO SYSTEM;**7**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**7**;JAN 09, 2006;Build 51
  ;
  ;   BMCRIEN=referral ien
  ;   BMCRDATE=referral date in internal FileMan form (.01 field)

@@ -1,5 +1,5 @@
 ATXTXCHK ; IHS/OHPRD/TMJ - CHECK CODE AGAINST TAXONOMY ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ;
  ; This routine checks to see if a specific code is in a specific
  ; taxonomy.

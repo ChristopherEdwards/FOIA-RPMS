@@ -1,5 +1,5 @@
 APCLDR1 ; IHS/CMI/LAB - patients w/o dm on problem list ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
 START ;
@@ -132,7 +132,7 @@ DMPROB(P) ;is DM on problem list 1=yes 0=no
  I 'T Q ""
  NEW G,D,Y,I S D="",(Y,G)=0 F  S Y=$O(^AUPNPROB("AC",P,Y)) Q:Y'=+Y!(G)  D
  .S I=$P(^AUPNPROB(Y,0),U)
- .I $$ICD^ATXCHK(I,T,9) S G=1
+ .I $$ICD^ATXAPI(I,T,9) S G=1
  .Q
  Q G
 PRINT ;EP - called from xbdbque

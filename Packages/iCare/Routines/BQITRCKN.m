@@ -1,5 +1,5 @@
 BQITRCKN ;VNGT/HS/ALA-CVD Known Treatment Prompts ; 02 Sep 2008  11:51 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
  ;
 ASA(BQDFN) ; EP  CVD.TP-1 No ASA/Antiplatelet
@@ -261,8 +261,9 @@ HTG(BQDFN,TMFRAME) ;EP  CVD.TP-9  High TG
  S TREF=$NA(^TMP("BQITAX",UID)) K @TREF
  F TAX="DM AUDIT TRIGLYCERIDE TAX","BGP TRIGLYCERIDE LOINC CODES" D BLD^BQITUTL(TAX,TREF)
  S X=$$LAB^BQITRUTL(TMFRAME,1,BQDFN,"",150,">","","",.TREF)
- I $P(X,U,1)=1 S MEET=1,DESC="Most recent Triglyceride in past year greater than 150 ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
- I $P(X,U,1)=0 S MEET=0,DESC="Most recent Triglyceride in past year is not greater than 150 ("_$$FMTE^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$P(X,U,2,5)
+ I $P(X,U,2)'="" S $P(X,U,2)=$$DATE^BQIUL1($P(X,U,2))
+ I $P(X,U,1)=1 S MEET=1,DESC="Most recent Triglyceride in past year greater than 150 ("_$$FMTMDY^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$$FMTMDY^BQIUL1($P(X,U,2))_U_$P(X,U,3,5)
+ I $P(X,U,1)=0 S MEET=0,DESC="Most recent Triglyceride in past year is not greater than 150 ("_$$FMTMDY^BQIUL1($P(X,U,2))_" "_$P(X,U,3)_")"_U_$$FMTMDY^BQIUL1($P(X,U,2))_U_$P(X,U,3,5)
  K @TREF
  Q MEET_U_DESC
  ;

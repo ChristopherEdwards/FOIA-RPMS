@@ -1,24 +1,32 @@
-PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
- ;;1.5;CLINICAL REMINDERS;**15,19**;Jun 19, 2000
+PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;05/15/2007
+ ;;2.0;CLINICAL REMINDERS;**6**;Feb 04, 2005;Build 123
  ;
  ;Build score related P/N text from score and result group
  ; 
  ;If not found
+START(ORY,RESULT,ORES) ;
  I '$G(RESULT) S ORY(1)="-1^no results for this test" Q
  ;
- N ARRAY,DFN,ERROR,INSERT,OK,SCORE,SUB,YT
+ N ARRAY,ERROR,INSERT,OK,SCORE,SUB,YT,X
  ;
+ I RESULT["~" S RESULT=$P(RESULT,"~")
  S ERROR=0
  ;
  ;Get score using API
- S DFN=$G(ORES("DFN"))
+ K ^TMP($J,"YSCOR")
  I ORES("CODE")'="DOM80" D  Q:ERROR
  .M YT=ORES
- .D PREVIEW^YTAPI4(.ARRAY,.YT)
- .I ARRAY(1)'="[DATA]" S ORY(1)="-1^"_ARRAY(1)_ARRAY(2),ERROR=1 Q
- .S SUB=0,OK=0
- .F  S SUB=$O(ARRAY(SUB)) Q:'SUB  D  Q:OK
- ..I $P(ARRAY(SUB),U)="S1" S SCORE=$P(ARRAY(SUB),U,3),OK=1
+ .F X=1:1:$L(YT("R1")) I $E(YT("R1"),X)'="X" S YT(X)=X_U_$E(YT("R1"),X)
+ .K YT("R1")
+ .D CHECKCR^YTQPXRM4(.ARRAY,.YT)
+ .S OK=0
+ .;D PREVIEW^YTAPI4(.ARRAY,.YT)
+ .I ^TMP($J,"YSCOR",1)'="[DATA]" S ORY(1)="-1^"_^TMP($J,"YSCOR",1)_^TMP($J,"YSCOD",2),ERROR=1 Q 
+ .;I ARRAY(1)'="[DATA]" S ORY(1)="-1^"_ARRAY(1)_ARRAY(2),ERROR=1 Q
+ .I $P($G(^TMP($J,"YSCOR",2)),"=",2)'="" S SCORE=$P($G(^TMP($J,"YSCOR",2)),"=",2),OK=1
+ .;S SUB=0,OK=0
+ .;F  S SUB=$O(ARRAY(SUB)) Q:'SUB  D  Q:OK
+ .;.I $P(ARRAY(SUB),U)="S1" S SCORE=$P(ARRAY(SUB),U,3),OK=1
  .I 'OK S ORY(1)="-1^[ERROR] no score returned",ERROR=1 Q
  ;
  ;Except for DOM80
@@ -27,6 +35,7 @@ PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
  .I $E(ORES("R1"),2,3)="YY",($E(ORES("R1"),4)>1) S SCORE=1 Q
  .S SCORE=0
  ;
+ S DFN=$G(ORES("DFN"))
  S INSERT("SCORE")=SCORE
  ;
  ;For AIMS special formatting is required 
@@ -39,6 +48,8 @@ PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
  ..I (CNT<8),(234[RESP) S SUM(RESP)=SUM(RESP)+1
  .F CNT=2,3,4 S INSERT("SUM"_CNT)=SUM(CNT)
  ;
+TEXT ;
+ I RESULT["~" S RESULT=$P(RESULT,"~")
  ;Load dialog results into ORY array
  N DATA,DCON,DITEM,DSEQ,DSUB,DTYP,INS,SEP,TEXT
  ;Get the result elements
@@ -51,7 +62,6 @@ PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
  .;Get the result element condition
  .S DCON=$P($G(^PXRMD(801.41,DITEM,0)),U,13)
  .;Skip if condition not satisfied
- .Q:$G(DFN)=""
  .I DCON'="" S DCON=$TR(DCON,"~"," ") Q:'$$TRUE(SCORE,DCON,DFN)
  .;Get progress note text if defined
  .N LAST,NULL,SUB,TEXT S SUB=0,LAST=0
@@ -61,6 +71,7 @@ PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
  ..S NULL=0 I ($E(TEXT)=" ")!(TEXT="") S NULL=1
  ..;Add line breaks if is or preceded by blank line or starts with space
  ..I ('NULL),LAST S TEXT="<br>"_TEXT
+ ..S TEXT=$$STRREP^PXRMUTIL(TEXT,"\\","<br>")
  ..S LAST=0 I NULL S TEXT="<br>"_TEXT,LAST=1
  ..;Check for inserts - note there may be embedded TIU markers too
  ..N INS
@@ -71,6 +82,10 @@ PXRMDLR ;SLC/PJH - DIALOG RESULTS LOADER ;06/19/2003
  ..S OCNT=OCNT+1,ORY(OCNT)=7_U_TEXT
  Q
  ;
+MHDLL(ORES,RESULT,SCORE,DFN) ;
+ S INSERT("SCORE")=SCORE
+ D TEXT
+ Q
 OUT(DATA) ;Display element details
  N DITEM S DITEM=$P(DATA,U,2) Q:'DITEM
  W $P($G(^PXRMD(801.41,DITEM,0)),U)

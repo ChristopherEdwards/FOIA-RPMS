@@ -1,5 +1,5 @@
 ABSPOS03 ; IHS/FCS/DRS - 9002313.03 utilities ;     [ 09/17/2002  10:04 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,42,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,42,43**;JUN 21, 2001;Build 15
  ;-----------------------------------------------------------
  ;IHS/SD/lwj  9/11/02  When running this report, the sites 
  ; were encountering an undefined error.  The error was caused

@@ -1,5 +1,5 @@
 ABSPOSSC ;IHS/SD/lwj  - Set Cache device type in ABSP Dial out file [ 09/16/2002  9:37 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/lwj 6/13/02
  ; This routine is a post-init routine called from the Kids 

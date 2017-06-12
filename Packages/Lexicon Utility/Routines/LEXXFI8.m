@@ -1,20 +1,24 @@
-LEXXFI8 ; ISL/KER - File Info - Miscellaneous      ; 07/28/2004
- ;;2.0;LEXICON UTILITY;**32**;Sep 23, 1996;Build 15
- Q
- ;                    
+LEXXFI8 ;ISL/KER - File Info - Miscellaneous ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**32,80**;Sep 23, 1996;Build 10
+ ;               
  ; Global Variables
- ;   ^TMP("LEXCS",$J     SACC 2.3.2.5.1
- ;   ^TMP("LEXINS",$J    SACC 2.3.2.5.1
- ;                      
+ ;    ^TMP("LEXCS")       SACC 2.3.2.5.1
+ ;    ^TMP("LEXCS",$J)    SACC 2.3.2.5.1
+ ;    ^TMP("LEXINS")      SACC 2.3.2.5.1
+ ;    ^TMP("LEXINS",$J)   SACC 2.3.2.5.1
+ ;               
  ; External References
- ;   DBIA 10003  ^%DT
- ;   DBIA 10022  %XY^%RCR
- ;   DBIA 10006  ^DIC (file 4.2 and 9.4)
- ;   DBIA 10006  IX^DIC
- ;   DBIA  2052  FILE^DID
- ;   DBIA  2056  $$GET1^DIQ (file 81.2)
- ;   DBIA 10103  $$FMTE^XLFDT
- ;                          
+ ;    $$FMDIFF^XLFDT      ICR  10103
+ ;    $$FMTE^XLFDT        ICR  10103
+ ;    $$GET1^DIQ          ICR   2056
+ ;    $$NOW^XLFDT         ICR  10103
+ ;    %XY^%RCR            ICR  10022
+ ;    FILE^DID            ICR   2052
+ ;    IX^DIC              ICR  10006
+ ;    ^%DT                ICR  10003
+ ;    ^DIC                ICR  10006
+ ;               
+ Q
 LEX(X) ; LEX* File
  N LEXN S X=$G(X) Q:+X=0 0  S LEXN=$$GL(X) Q:$E(LEXN,1,4)="^LEX" 1
  Q 0

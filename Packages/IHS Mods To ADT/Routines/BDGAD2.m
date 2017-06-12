@@ -1,5 +1,5 @@
 BDGAD2 ; IHS/ANMC/LJF - A&D WARD TRANSFERS ;  [ 02/10/2005  4:05 PM ]
- ;;5.3;PIMS;**1001,1002,1012**;APR 26, 2002
+ ;;5.3;PIMS;**1001,1002,1012,1019**;APR 26, 2002;Build 3
  ;
 LOOP ;--loop ward transfers
  NEW DGDT,DFN,IFN
@@ -33,6 +33,7 @@ GATHER ; gather info on ward transfers and put counts into arrays
  ;
  ;  collect patient data for report
  S NAME=$$GET1^DIQ(2,DFN,.01)
+ Q:$$DEMO^APCLUTL(DFN,"E")  ;ihs/cmi/maw patch 1019
  S ^TMP("BDGAD",$J,"WARD",NAME,DFN,IFN)=OLDWD_U_NEWWD
  I OLDSV'=NEWSV S ^TMP("BDGAD",$J,"SERV",NAME,DFN,IFN)=OLDSV_U_NEWSV   ;IHS/ITSC/LJF 7/7/2004 PATCH #1001
  Q:$G(BDGREP)                              ;reprint, not recalculating

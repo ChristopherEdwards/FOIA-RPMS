@@ -1,5 +1,5 @@
-BHSDM4 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;06-Apr-2009 10:30;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2**;March 17, 2006
+BHSDM4 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;30-Nov-2015 10:24;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,9,12**;March 17, 2006;Build 3
  ;===================================================================
  ;VA version of IHS components for supplemental summaries
  ;Taken from APCHS9B4
@@ -7,6 +7,7 @@ BHSDM4 ;IHS/CIA/MGH - Health Summary for Diabetic Supplement ;06-Apr-2009 10:30;
  ;;2.0;IHS RPMS/PCC Health Summary;**3,5,6,7,8,10,11,12**;JUN 24, 1997
  ;Patch 1001 to bring up to patch 15
  ;Patch 2, code set versioning
+ ;Patch 12, use new API for taxonomies
  ;===================================================================
 FRSTDMDX(P,F) ;EP return date of first dm dx
  I $G(F)="" S F="E"
@@ -27,11 +28,14 @@ CMSFDX(P,F) ;EP - return date/dx of dm in register
 PLDMDOO(P,F) ;EP get first dm dx from case management
  I '$G(P) Q ""
  I $G(F)="" S F="E"
- NEW T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
+ NEW T,TAXARR
+ ;IHS/MSC/MGH Moved taxonomy lookup out of loop
+ S TAXARR=""
+ S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^ATXCHK(I,T,9) D
+ .I $$ICD^ATXAPI(I,T,9) D
  ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
  ..Q
  .Q
@@ -283,7 +287,8 @@ HYSTER(P,EDATE) ;EP
  N C,F,G,S,T
  N BHSVDT
  ;S F=0,S="" F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S C=$P(^ICD0(+^AUPNVPRC(F,0),0),U) D
- S F=0,S="" F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S BHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),"."),C=$P($$ICDOP^ICDCODE(+^AUPNVPRC(F,0),BHSVDT),U,2) D
+ ;changed call to ICDEX for ICD-10s
+ S F=0,S="" F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F!(S)  S BHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),"."),C=$P($$ICDOP^ICDEX(+^AUPNVPRC(F,0),BHSVDT,"","I"),U,2) D
  .;cmi/anch/maw 8/27/2007 end of mods
  .S G=0 S:(C=68.4)!(C=68.5)!(C=68.6)!(C=68.7)!(C=68.9) G=C
  .Q:G=0

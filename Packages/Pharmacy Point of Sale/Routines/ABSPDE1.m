@@ -1,5 +1,5 @@
 ABSPDE1 ; IHS/OIT/CASSevern/Pieran ran 2/23/2011 - Handling of outgoing NCPDP Eligibility "E1" transactions for D.0
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
  ;
  ;IHS/OIT/CASSevern/Pieran ran - Started with copy of ABSPOSE2 and modified for D.0
  Q

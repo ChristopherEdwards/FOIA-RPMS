@@ -1,5 +1,5 @@
 ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8,10,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,10,13,14**;NOV 12, 2009;Build 238
  ;
  ; 03/10/04 V2.5 Patch 5 - 837 Modifications - Added errror code 192 for imprecise accident dates
  ; IHS/SD/SDR - v2.5 p5 - 5/17/2004 - Added code to check for error 193
@@ -13,11 +13,18 @@ ABMDE3X ; IHS/ASDST/DMJ - Edit Page 3 - ERROR CHK ;
  ; IHS/SD/SDR -v2.5 p12 - IM23474 - Added warning if clinic is ER and admitting DX is missing
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added warning 238 if both disability dates aren't populated
  ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
+ ;IHS/SD/SDR - 2.6*14 - ICD10 - admit dx error checks (245 and 246) if wrong code set is used.
  ;
  ; Rel of info, Assign of Benefits
  D QUES^ABMDE3:'$D(ABM("QU"))
  I $D(ABM("QU",1)),$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),$P(^(7),U,4)'="Y" S ABME(58)=""
  I $D(ABM("QU",2)),$D(^ABMDCLM(DUZ(2),ABMP("CDFN"),7)),$P(^(7),U,5)'="Y" S ABME(59)=""
+ ;start new abm*2.6*14 ICD10 admit dx
+ I $D(ABM("QU",24)) D
+ .Q:(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,9)=0)  ;no admit dx
+ .I ((ABMP("ICD10")>ABMP("VDT"))&($P($$DX^ABMCVAPI($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,9),ABMP("VDT")),U,20)=30)) S ABME(245)=""  ;should be ICD9, but is ICD10
+ .I ((ABMP("ICD10")<ABMP("VDT"))&($P($$DX^ABMCVAPI($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,9),ABMP("VDT")),U,20)'=30)) S ABME(246)=""  ;should be ICD10, but is ICD9
+ ;end new ICD10 admit dx
  ; Having a date of accident and accident type determine Accident Related
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3) D
  .I ($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,3)=5)&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,2)=""!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,4)="")!($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,16)="")) S ABME(19)=""  ;abm*2.6*10 HEAT72979

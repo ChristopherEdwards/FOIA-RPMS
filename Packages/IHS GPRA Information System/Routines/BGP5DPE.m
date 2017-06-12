@@ -1,5 +1,5 @@
 BGP5DPE ; IHS/CMI/LAB - IHS GPRA 10 REPORT DRIVER ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  W:$D(IOF) @IOF
@@ -71,7 +71,7 @@ BY ;get baseline year
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  I BGPPBD=BGPBBD,BGPPED=BGPBED K Y D CHKY I Y K BGPBBD,BGPBED,BGPPBD,BGPPED G BY
 COMM ;
- I $G(BGPEDPP) G MFIC
+ I $G(BGPEDPP) G C
  W !!,"Specify the community taxonomy to determine which patients will be",!,"included in the report.  You should have created this taxonomy using QMAN.",!
  K BGPTAX
  S BGPTAXI=""
@@ -102,20 +102,7 @@ COM1 ;
  .I $D(DIRUT) S BGPQUIT=1
  .I Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+C K BGPQUIT
  D LISTS
 BEN ;
  I $G(BGPEDPP) S BGPBEN=3,BGPPEEXP=0 G SUM
@@ -131,8 +118,6 @@ EXPORT ;export to area or not?
  S BGPPEEXP=Y
 SUM ;display summary of this report
  S BGPUF=$$GETDIR^BGP5UTL2()
- ;I ^%ZOSF("OS")["PC"!(^%ZOSF("OS")["NT")!($P($G(^AUTTSITE(1,0)),U,21)=2) S BGPUF=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:"C:\EXPORT")
- ;I $P(^AUTTSITE(1,0),U,21)=1 S BGPUF="/usr/spool/uucppublic/"
  I BGPPEEXP,BGPUF="" W:'$D(ZTQUEUED) !!,"Cannot continue.....can't find export directory name. EXCEL file",!,"not written." D PAUSE^BGP5DU,XIT Q
  W:$D(IOF) @IOF
  W !,$$CTR("SUMMARY OF IHS 2015 PATIENT EDUCATION REPORT TO BE GENERATED")
@@ -141,7 +126,6 @@ SUM ;display summary of this report
  W !?5,"Previous Year Period: ",?31,$$FMTE^XLFDT(BGPPBD)," to ",?31,$$FMTE^XLFDT(BGPPED)
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  I '$G(BGPEDPP) W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
- I $G(BGPMFITI) W !!,"The MFI Location Taxonomy to be used is: ",$P(^ATXAX(BGPMFITI,0),U)
  I $G(BGPSEAT) W !!,"The Patient Panel Population:  ",$P(^DIBT(BGPSEAT,0),U)
  D TEXT^BGP5DSL
  I $D(DIRUT) G BEN
@@ -152,7 +136,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPPEEXP D
- .W !!,"A file will be created called BG150",$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG151",$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, this file may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
@@ -172,7 +156,6 @@ DRIVER ;
 NODEV ;
  S XBRP="",XBRC="NODEV1^BGP5DPE",XBRX="XIT^BGP5DPE",XBNS="BGP"
  D ^XBDBQUE
- ;D XIT
  Q
  ;
 NODEV1 ;

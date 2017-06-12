@@ -1,5 +1,5 @@
 ATXEMP ; IHS/OHPRD/TMJ -  ICD CODES FOR A GIVEN TAXONOMY BEFORE MODIFICATION ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ;
  D INIT
  F ATXL=0:0 D START W ! Q:ATXSTP
@@ -21,13 +21,13 @@ ASK ;
  S ATXSTP=0
  S DIC="^ATXAX(",DIC(0)="AEMQ",DIC("S")="I $P(^(0),U,5)=DUZ,$P(^(0),U,8)" D ^DIC K DIC
  I Y<1 S ATXSTP=1 Q
- I $D(^TMP("ATXTAX",+Y)) W !,$C(7),"Taxonomy currently",^(+Y)," Try later.",! G ASK
+ I $D(^TMP($J,"ATXTAX",+Y)) W !,$C(7),"Taxonomy currently",^(+Y)," Try later.",! G ASK
  I '$O(^ATXAX(+Y,21,0)) W !,$C(7),"This option for modifying existing ICD codes in taxonomies only!",!,"If you want to enter ICD codes for a taxonomy where none existed",!,"before, use the create taxonomy option.",! G ASK
- S ATXX=+Y,^TMP("ATXTAX",+Y)=" being modified."
- K ^TMP("ATXEMP",ATXX)
+ S ATXX=+Y,^TMP($J,"ATXTAX",+Y)=" being modified."
+ K ^TMP($J,"ATXEMP",ATXX)
  D DFNS
  S DIE="^ATXAX(",DR=".01;.02;1101",DA=ATXX D ^DIE K DIE,DR
- I $D(Y) S ATXSTP=1 K ^TMP("ATXTAX",ATXX),^TMP("ATXEMP",ATXX) Q
+ I $D(Y) S ATXSTP=1 K ^TMP($J,"ATXTAX",ATXX),^TMP($J,"ATXEMP",ATXX) Q
  D BUILD,^ATXCODE
  I ATXSTP=1 Q
  Q
@@ -39,9 +39,9 @@ DFNS ;GET LO AND HIGH DFNS FOR THIS TAXONOMY
  Q
  ;
 GETVAL ;GET RANGE OF DFNS
- S ^TMP("ATXEMP",ATXX,$O(^ICD9("BA",ATXLOV,"")))=""
+ S ^TMP($J,"ATXEMP",ATXX,$O(^ICD9("BA",ATXLOV,"")))=""
  Q:ATXLOV=ATXHIV
- F ATXL=0:0 S ATXLOV=$O(^ICD9("BA",ATXLOV)) Q:ATXLOV](ATXHIV)!(ATXLOV="")  S ATXDFN=$O(^ICD9("BA",ATXLOV,"")),^TMP("ATXEMP",ATXX,ATXDFN)=""
+ F ATXL=0:0 S ATXLOV=$O(^ICD9("BA",ATXLOV)) Q:ATXLOV](ATXHIV)!(ATXLOV="")  S ATXDFN=$O(^ICD9("BA",ATXLOV,"")),^TMP($J,"ATXEMP",ATXX,ATXDFN)=""
  Q
  ;
 BUILD ;BUILD ATXTABLE FOR ROUTINE ATXCODE

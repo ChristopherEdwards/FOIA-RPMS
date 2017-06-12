@@ -1,5 +1,5 @@
 BGP5CU1 ; IHS/CMI/LAB - calc CMS measures 26 Sep 2004 11:28 AM 04 May 2010 2:38 PM 30 Oct 2009 11:26 AM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 ASAALLEG(P,BDATE,EDATE) ;EP does patient have an aspirin allergy documented on or before EDATE
  NEW BGPG,G,X,N,Z,Y,T,I

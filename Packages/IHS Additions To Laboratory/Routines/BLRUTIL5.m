@@ -1,0 +1,310 @@
+BLRUTIL5 ;IHS/ITSC/TPF - MISC IHS LAB UTILITIES (Cont) ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 01, 1997
+ ;
+ ; Following subroutines pulled from BLRUTIL routine because BLRUTIL was becoming too large.
+ ;
+ ; Original code follows:
+ ;
+ ;THE FOLLOWING IS A FIX FOR PATCH 10 THAT LEFT PARENTS
+ ;WITH 'STATUS FLAG' NOT SET PROPERLY
+PAT10FIX(BORDDATE,EORDDATE) ; EP
+ ;^BLRTXLOG("AOT",3010227.085637,1,9999044,6150)=""
+ N BLR
+ S BLR="^BLRPAR"
+ I $$KILLOK^ZIBGCHAR($P(BLR,U,2)) W !,$$ERR^ZIBGCHAR($$KILLOK^ZIBGCHAR($P(BLR,U,2)))_"    "_BLR
+ K @BLR
+ S U="^"
+ S ORDDATE=BORDDATE-1
+ F  S ORDDATE=$O(^BLRTXLOG("AOT",ORDDATE)) Q:ORDDATE=""!(ORDDATE>EORDDATE)  D
+ .S PANEL=""
+ .F  S PANEL=$O(^BLRTXLOG("AOT",ORDDATE,PANEL)) Q:PANEL=""  D
+ ..S TESTPTR=""
+ ..F  S TESTPTR=$O(^BLRTXLOG("AOT",ORDDATE,PANEL,TESTPTR)) Q:TESTPTR=""  D
+ ...S SEQNUM=""
+ ...F  S SEQNUM=$O(^BLRTXLOG("AOT",ORDDATE,PANEL,TESTPTR,SEQNUM)) Q:SEQNUM=""  D
+ ....;
+ ....S LOGREC0=$G(^BLRTXLOG(SEQNUM,0))
+ ....S LOGREC1=$G(^BLRTXLOG(SEQNUM,1))
+ ....S NOPARENT=$P(LOGREC1,U)
+ ....W !,LOGREC1
+ ....I 'NOPARENT W !,"PARENT: ",SEQNUM S ^BLRPAR(SEQNUM)="" Q
+ ....W !,"CHILD: ",SEQNUM
+ ....S STATUS=$P(LOGREC0,U,2)
+ ....S CPTCODE=$P(LOGREC1,U,11)
+ ....S ^BLRPAR(NOPARENT,SEQNUM)=""
+ ....;
+ Q
+ ;
+ ;FIND BAD CH or mi ZERO NODES
+FIXCH S U="^",COUNT=0
+ S LRDFN=0,TARDATE=6959869.8   ;1/29 AT 12:00
+ F  S LRDFN=$O(^LR(LRDFN)) Q:'LRDFN  D
+ .S LRIDT=0
+ .F  S LRIDT=$O(^LR(LRDFN,"CH",LRIDT)) Q:(LRIDT="")  D
+ ..;W !,9999999-LRIDT
+ ..;NOTE: NOTE P^7 should be p10 when doing ch 
+ ..Q:($P(^LR(LRDFN,"CH",LRIDT,0),U,5)'=""&($P(^LR(LRDFN,"CH",LRIDT,0),U,10)'=""))
+ ..S COUNT=COUNT+1
+ ..;W !,"^LR("_LRDFN_",""CH"","_LRIDT_",0)="_$G(^LR(LRDFN,"CH",LRIDT,0))
+ ..S LRNODE="^LR("_LRDFN_",""CH"","_LRIDT_",0)"
+ ..S LRUID=$G(^LR(LRDFN,"CH",LRIDT,"ORU"))
+ ..I 'LRUID W !,"MISSING ""ORU"" NODE IN FILE 63"_"^LR("_LRDFN_",""CH"","_LRIDT_",0)" Q
+ ..S LRPROV=$P(^LR(LRDFN,"CH",LRIDT,0),U,10)  ;FOR CH SUBSCRIPT ONLY
+ ..S LRSPEC=$P(^LR(LRDFN,"CH",LRIDT,0),U,5)
+ ..;
+ ..S FLAG=0
+ ..D GETMISS(LRUID,.FLAG)  ;GO TO LRO(68 AND FIND MISSING DATA
+ ..I FLAG W !,"PROBLEM WITH UID ",LRUID," ""C"" X-REF IN LRO(68" Q
+ ..W !!,"^LR("_LRDFN_",""CH"","_LRIDT_",0)="_$G(^LR(LRDFN,"CH",LRIDT,0))
+ ..W !,"FOUND ACCESSION: ",ACCESSN," AT ",NODE
+ ..W !,"FILE 63 PROV ENTRY IS: ",LRPROV,"  SHOULD BE: ",GPROV
+ ..W !,"FILE 63 SPEC ENTRY IS: ",LRSPEC,"  SHOULD BE: ",GSPEC
+ ..W !,"FIX MADE TO LR NODE: ",LRNODE
+ ..;UNCOMMENT FOLLOWING LINES TO DO FIX
+ ..;I LRPROV="" S $P(@LRNODE,U,10)=GPROV  ;FOR CH
+ ..;I LRSPEC="" S $P(@LRNODE,U,5)=GSPEC
+ Q
+ ;
+GETMISS(UID,FLAG) ; EP
+ S ACCAREA=$O(^LRO(68,"C",UID,"")) I ACCAREA="" S FLAG=1 Q
+ S ACCDAT=$O(^LRO(68,"C",UID,ACCAREA,"")) I ACCAREA="" S FLAG=1 Q
+ S ACCNUM=$O(^LRO(68,"C",UID,ACCAREA,ACCDAT,"")) I ACCAREA="" S FLAG=1 Q
+ ;
+ S GPROV=$P($G(^LRO(68,ACCAREA,1,ACCDAT,1,ACCNUM,0)),U,8)  ;GOOD PROV ENTRY
+ S GSPEC=$P($G(^LRO(68,ACCAREA,1,ACCDAT,1,ACCNUM,5,1,0)),U)  ;GOOD SPEC ENTRY
+ S ACCESSN=$P($G(^LRO(68,ACCAREA,1,ACCDAT,1,ACCNUM,.2)),U)    ;ACCESSION
+ S NODE="LRO(68,"_ACCAREA_",1,"_ACCDAT_",1,"_ACCNUM_",0)"      ;ACCESSION NODE
+ Q
+ ;
+FIXMI ; EP
+ S U="^",COUNT=0
+ S LRDFN=0,TARDATE=6959869.8   ;1/29 AT 12:00
+ S TARDATE=0
+ F  S LRDFN=$O(^LR(LRDFN)) Q:'LRDFN  D
+ .S LRIDT=0
+ .F  S LRIDT=$O(^LR(LRDFN,"MI",LRIDT)) Q:(LRIDT="")  D
+ ..;W !,9999999-LRIDT    
+ ..;Q:($P(^LR(LRDFN,"MI",LRIDT,0),U,5)'=""&($P(^LR(LRDFN,"MI",LRIDT,0),U,7)'="")&
+ ..Q:$P(^LR(LRDFN,"MI",LRIDT,0),U,11)'=0&($P(^LR(LRDFN,"MI",LRIDT,0),U,7)'="")
+ ..S COUNT=COUNT+1
+ ..;W !,"^LR("_LRDFN_",""MI"","_LRIDT_",0)="_$G(^LR(LRDFN,"MI",LRIDT,0))
+ ..S LRNODE="^LR("_LRDFN_",""MI"","_LRIDT_",0)"
+ ..S LRPROV=$P(^LR(LRDFN,"MI",LRIDT,0),U,7)  ;FOR MI SUBSCRIPT ONLY
+ ..S LRSPEC=$P(^LR(LRDFN,"MI",LRIDT,0),U,5)
+ ..S LRCOL=$P(^LR(LRDFN,"MI",LRIDT,0),U,11)
+ ..;
+ ..S ACCESSN=$P(^LR(LRDFN,"MI",LRIDT,0),U,6)
+ ..S ACCNUM=$P(ACCESSN," ",3)
+ ..S ACCYR=$P(ACCESSN," ",2)
+ ..S ACCDT="3"_ACCYR_"0000"
+ ..S ACCAREA=5
+ ..;
+ ..W !!,LRNODE_"="_@LRNODE
+ ..S NODE="^LRO(68,"_ACCAREA_",1,"_ACCDT_",1,"_ACCNUM_",0)"
+ ..;W !,"MATCHES TO: ",NODE_"="_@NODE
+ ..;
+ ..W !,"FOUND ACCESSION: ",ACCESSN," AT ",NODE
+ ..S GPROV=$P(@NODE,U,8)
+ ..S GSPEC=$P($G(^LRO(68,ACCAREA,1,ACCDT,1,ACCNUM,5,1,0)),U)
+ ..W !,"FILE 63 PROV ENTRY IS: ",LRPROV,"  SHOULD BE: ",GPROV
+ ..W !,"FILE 63 SPEC ENTRY IS: ",LRSPEC,"  SHOULD BE: ",GSPEC
+ ..W !,"FIX MADE TO LR NODE: ",LRNODE
+ ..W !,"TESTS FOUND:"
+ ..D GETTESTS
+ ..;B "S+"
+ ..I CNT=1 D
+ ...S $P(@LRNODE,U,11)=GCOLSAMP
+ ...S $P(^LRO(68,ACCAREA,1,ACCDT,1,ACCNUM,5,1,0),U,2)=GCOLSAMP
+ ..;I LRPROV="" S $P(@LRNODE,U,7)=GPROV   ;FOR MI
+ ..;I LRSPEC="" S $P(@LRNODE,U,5)=GSPEC
+ Q
+ ;
+GETTESTS ; EP
+ S LRTST=0
+ F  S LRTST=$O(^LRO(68,ACCAREA,1,ACCDT,1,ACCNUM,4,LRTST)) Q:'LRTST  D
+ .S TSTNAME=$P($G(^LAB(60,LRTST,0)),U)
+ .W !?5,LRTST_":"_$P($G(^LAB(60,LRTST,0)),U)
+ .W !,"COLLECTION SAMPLES FOUND FOR TEST ",LRTST
+ .D COLSAMP
+ .W !,"COLLECTION SAMPLES FOUND ",CNT
+ Q
+ ;
+COLSAMP ;^LAB(60,1,3,1,0)=3^SUPERBILL^LAVENDER^
+ S GCOLSAMP=0
+ S COLSAMP=0
+ F CNT=0:1 S COLSAMP=$O(^LAB(60,LRTST,3,COLSAMP)) Q:'COLSAMP  D
+ .S COLIEN=$P($G(^LAB(60,LRTST,3,COLSAMP,0)),U)
+ .W !?5,"COLLECTION SAMPLE: ",COLIEN,":",$P($G(^LAB(62,COLIEN,0)),U)
+ I CNT=1 S GCOLSAMP=$P($G(^LAB(60,LRTST,3,1,0)),U)
+ W CNT
+ Q
+ ;
+ ; =========================================================================================
+ ; Following code moved here from BLRUTIL3
+ ; =========================================================================================
+ ;
+INSTLRPT ; EP -- Report of ^BLRINSTL global
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D INSTLRPI
+ ;
+ F  S CP=$O(^BLRINSTL("LAB PATCH",CP),-1)  Q:CP<1!(QFLG="Q")  D
+ . F  S CNT=$O(^BLRINSTL("LAB PATCH",CP,"INSTALLED BY",CNT))  Q:CNT<1!(QFLG="Q")  D
+ .. D INSTLRPL
+ Q
+ ;
+INSTLRPI ; EP -- Initialize variables
+ S BLRVERN=$P($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="IHS LAB Patches Report"
+ ;
+ S FRSTPTCH=$O(^BLRINSTL("LAB PATCH",0))
+ S FIRST=$O(^BLRINSTL("LAB PATCH",FRSTPTCH,"INSTALLED BY",0))
+ S FIRSTDT=$P($G(^BLRINSTL("LAB PATCH",FRSTPTCH,"INSTALLED BY",FIRST,"DATE/TIME")),"@")
+ ;
+ S LASTPTCH=$O(^BLRINSTL("LAB PATCH","A"),-1)
+ S LAST=$O(^BLRINSTL("LAB PATCH",LASTPTCH,"INSTALLED BY","A"),-1)
+ S LASTDT=$P($G(^BLRINSTL("LAB PATCH",LASTPTCH,"INSTALLED BY",LAST,"DATE/TIME")),"@")
+ ;
+ S HEADER(2)="Patches Installed From "_FIRSTDT_" thru "_LASTDT
+ S HEADER(3)=" "
+ S $E(HEADER(4),5)="Patch"
+ S $E(HEADER(4),15)="Who"
+ S $E(HEADER(4),45)="When"
+ ;
+ S MAXLINES=20,LINES=MAXLINES+10,PG=0,(HD1,QFLG)="NO"
+ S CNT=0
+ S CP="A"
+ Q
+ ;
+INSTLRPL ; EP -- Line of Data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HD1)  Q:QFLG="Q"
+ ;
+ W ?4,CP
+ W ?14,$G(^BLRINSTL("LAB PATCH",CP,"INSTALLED BY",CNT))
+ W ?44,$TR($P($G(^BLRINSTL("LAB PATCH",CP,"INSTALLED BY",CNT,"DATE/TIME")),":",1,2),"@"," ")
+ W !
+ S LINES=LINES+1
+ Q
+ ;
+ESIGINFO ; EP -- Rework of BLRUTIL ESIGINFO subroutine.
+ NEW DOCDUZ,DOCIEN,ESIGDSTR,REVIEWDV,TAB
+ NEW REVSTS
+ ;
+ ; If E-SIG not turned on, Quit
+ I '$$ADDON^BLRUTIL("LR*5.2*1013","BLRALAF",+$G(DUZ(2))) Q
+ ;
+ S DOCIEN=$O(^VA(200,"B",LRDOC,""))      ; LRDOC = Ordering Provider
+ ;
+ ; If no IEN, Quit. Usually happens when LRDOC="Unknown"
+ Q:$G(DOCIEN)=""
+ ;
+ I '($D(^BLRALAB(9009027.1,DOCIEN,0))#2) W ?56,"NOT E-SIG PARTICIPATING"  Q
+ I $P(^BLRALAB(9009027.1,DOCIEN,0),U,7)'="A" W ?53,"INACTIVE E-SIG PARTICIPANT"  Q
+ ;
+ ;LRSS doesn't exist when doing option 'BLRTASK CUM', so set it.
+ S:$G(LRSS)="" LRSS=$P($G(^LRO(68,LRAA,0)),"^",2)
+ ;
+ S ESIGDSTR=$G(^LR(LRDFN,LRSS,LRIDT,9009027))           ; E-SIG string Data
+ ;
+ Q:$P(ESIGDSTR,U,2)=""                                  ; NO Signing Physician
+ Q:$P(^BLRALAB(9009027.1,$P(ESIGDSTR,U,2),0),U,7)'="A"  ; NOT Active
+ ;
+ ; REVIEW status Data Values
+ S REVIEWDV=$$UP^XLFSTR($P($G(^DD(63.04,.9009025,0)),U,3))
+ S REVSTS=$P($P(REVIEWDV,$P(ESIGDSTR,U)_":",2),";")
+ ;
+ ; Make sure E-SIG STATUS is flush right
+ S TAB=IOM-(16+$L(REVSTS))
+ W ?TAB,"E-SIG STATUS: ",REVSTS
+ ;
+ Q:'$P(ESIGDSTR,U,5)                                    ; NO Signed Date
+ ;
+ Q:REVSTS["NOT REV"                                     ; NOT Reviewed
+ ;
+ W !?5,"SIGNING PHYSICIAN: "
+ W $P($G(^VA(200,$P(ESIGDSTR,U,2),0)),U)
+ W !?5,"DATE/TIME RESULT SIGNED: "
+ W $TR($$FMTE^XLFDT($P(ESIGDSTR,U,5),"2MZ"),"@"," ")
+ ;
+ Q
+ ;
+NOCOLLDT ; EP - "Quick & Dirty" Routine to determine if Accession file has no DRAW DATE but an Accession Number
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ K ^TMP("BLRUTIL4",$J,"NOCOLLDT")
+ ;
+ W !!,?4,"Compilation Begins"
+ S LRAA=.9999999,(BADCNT,CNT)=0
+ F  S LRAA=$O(^LRO(68,LRAA))  Q:LRAA<1  D
+ . S LRAD=0
+ . F  S LRAD=$O(^LRO(68,LRAA,1,LRAD))  Q:LRAD<1  D
+ .. S LRAN=0
+ .. F  S LRAN=$O(^LRO(68,LRAA,1,LRAD,1,LRAN))  Q:LRAN<1  D
+ ... Q:+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0))<1        ; No Zero Node Data, skip
+ ... ;
+ ... S UID=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.3))
+ ... Q:UID<1                                       ; No UID, skip
+ ... ;
+ ... S CNT=CNT+1
+ ... W:(CNT#100)=0 "."  W:$X>74 !,?4
+ ... ;
+ ... Q:+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,3))          ; Draw Date Exists
+ ... ;
+ ... W:($L(UID)+$X)>74 !,?3
+ ... W " >",UID,"< "
+ ... W:$X>74 !,?4
+ ... S ^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN)=UID
+ ... S BADCNT=BADCNT+1
+ ;
+ S WOTCOL=$X
+ W:WOTCOL<(IOM-17) "Compilation Ends"
+ W:WOTCOL>(IOM-18) !,?4,"Compilation Ends"
+ ;
+ W !!,?4,"Number of Accessions Analyzed = ",CNT,!
+ W:BADCNT<1 !,?9,"All Accessions have Draw Dates",!
+ W:BADCNT !,?9,"# of Accessions with No Draw Date = ",BADCNT,!
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ ;
+ D:BADCNT NOCOLRPT
+ ;
+ K ^TMP("BLRUTIL4",$J,"NOCOLLDT")
+ Q
+ ;
+NOCOLRPT ; EP - Report on ^TMP("BLRUTIL4",$J,"NOCOLLDT"
+ S HEADER(1)="Accessions With No Draw Date"
+ S HEADER(2)=" "
+ S HEADER(3)="LRAA"
+ S $E(HEADER(3),6)="LRAD"
+ S $E(HEADER(3),15)="LRAN"
+ S $E(HEADER(3),25)="UID"
+ S $E(HEADER(3),40)="ARRIVAL TIME"
+ S $E(HEADER(3),55)="LRDFN"
+ S $E(HEADER(3),65)="INVERSE DATE"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ S LRAA=0
+ F  S LRAA=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA))  Q:LRAA<1  D
+ . S LRAD=0
+ . F  S LRAD=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD))  Q:LRAD<1  D
+ .. S LRAN=0
+ .. F  S LRAN=$O(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN))  Q:LRAN<1  D
+ ... S UID=+$G(^TMP("BLRUTIL4",$J,"NOCOLLDT",LRAA,LRAD,LRAN))
+ ... S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),STR3=$G(^(3))
+ ... S LABARRT=$P(STR3,"^",3)
+ ... S LRIDT=$P(STR3,"^",5)
+ ... ;
+ ... W LRAA
+ ... W ?5,LRAD
+ ... W ?14,LRAN
+ ... W ?24,UID
+ ... W ?39,LABARRT
+ ... W ?54,LRDFN
+ ... W ?64,LRIDT
+ ... W !
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q

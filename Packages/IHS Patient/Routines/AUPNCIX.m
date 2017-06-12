@@ -1,5 +1,5 @@
-AUPNCIX ; IHS/CMI/LAB - CREATE COMPOUND "AQ" INDICIES LAB&MEAS ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+AUPNCIX ; IHS/CMI/LAB - CREATE COMPOUND "AQ" INDICIES LAB&MEAS ; 08 May 2014  5:24 PM
+ ;;2.0;IHS PCC SUITE;**2,10,11**;MAY 14, 2009;Build 58
  ;; MODIFIED TO SUPPORT Q-MAN 1.3 BY GIS/OHPRD MAY 24,1991
  ; The old compound index "BA" is no longer created and will be killed
  ;
@@ -86,25 +86,48 @@ VLAB04 ;EP - called from input transform on .04 of vlab
  I $D(BLRKILL) D EN^DDIOL($C(7)_"Results can not be entered for this test!") K BLRKILL
  Q
  ;
+VXAMR(V,RETVAL) ;PEP - send back list of allowable result values
+ I $G(V)="" Q ""
+ NEW C,Y,S
+ K @RETVAL
+ I $E(V)'?.N S V=$O(^AUTTEXAM("B",V,0))
+ I 'V Q ""
+ S C=$P($G(^AUTTEXAM(V,0)),U,2)
+ I C="" Q ""
+ S S=0
+ F Y="A","N","PR","PAP","PA","PO","L","M","H","RF","PS" S X=Y D VXAM04C I $D(X) S S=S+1,@RETVAL@(S)=X_U_$$EXTSET^XBFUNC(9000010.13,.04,X)
+ Q C
+ ;
 VXAM04 ;EP - called from input tx on .04 field of V EXAM
  Q:'$D(X)
  Q:'$G(DA)
  NEW C S C=$P(^AUTTEXAM($P(^AUPNVXAM(DA,0),U),0),U,2)
+VXAM04C ;
+ I X="RF" Q  ;referral good for all exam types
+ I X="PS",(C'=38&(C'=39)) K X Q
+ I C=38!(C=39),X'="PS" K X Q
  I X="PA",C'=34 K X Q
  I X="PR",C'=34 K X Q
  I X="PAP",C'=34 K X Q
  I X="A",C=34 K X Q
  I X="A",C=35 K X Q
  I X="A",C=36 K X Q
- I X="PO",(C'=35&(C'=36)) K X Q
+ I X="PO",(C'=35&(C'=36)&(C'=99)) K X Q  ;TAKE OUT 99
+ I X="L",(C'=42&(C'=43)) K X Q
+ I X="M",(C'=42&(C'=43)) K X Q
+ I X="H",(C'=42&(C'=43)) K X Q
+ I C=42!(C=43),X'="L",X'="M",X'="H" K X Q
  Q
 VXAM04H ;EP
- D EN^DDIOL("N is a valid choice for all exam types","","!")
+ D EN^DDIOL("RF (Referral Needed) is a valid choice for all exam types","","!")
+ D EN^DDIOL("N is a valid for all exam types, except VTE/Newborn Hearing/Suicide Assmt ","","!")
+ ;D EN^DDIOL("and Suicide Assessment","","!")
  D EN^DDIOL("PR, PAP, PA are only valid for Intimate Partner Violence exam type","","!")
  D EN^DDIOL("A is not valid for Intimate Partner Violence/Alcohol Screening/Depression ","","!")
- D EN^DDIOL("Screening exam types","","!")
- D EN^DDIOL("PO is valid for Depression Screening and Alcohol Screening exam types","","!")
- ;D EN^DDIOL("L, M and H are only valid for Autism in Toddlers exam","","!")
+ D EN^DDIOL("Screening/VTE Risk Assessment/Suicide Risk Assessment/Newborn Hearing exam types","","!")
+ D EN^DDIOL("PO is valid for Depression Screening and Alcohol Screening and BIMS exam types","","!")
+ D EN^DDIOL("L, M and H are only valid for VTE Risk Assessment/Suicide Risk Assessment exams","","!")
+ D EN^DDIOL("PS (Pass) is only valid for Newborn Hearing Right and Left","","!")
  Q
 INPH ;EP - called from help 9000024
  D EN^DDIOL("Must begin with a numeric value.")
@@ -167,26 +190,45 @@ CMPLDATE(%) ;EP - called from trigger on TREATMENT PLAN File
  S C=$$CONVDAYS(B)
  Q $$FMADD^XLFDT(A,C)
 ICD(Y,N,D) ;EP - called from input transforms
+ S N=$G(N)
+ S D=$G(D)
  I $$CHK(Y,N,D)
  Q:$D(^ICD9(Y))
  Q
-CHK(Y,I,D) ; SCREEN OUT E CODES AND INACTIVE CODES
+CHK(Y,N,D) ; SCREEN OUT E CODES AND INACTIVE CODES
  I $D(DIFGLINE) Q 1
  NEW %,A,I,V
  I $G(D) G CHK1
- I $G(N) S D=$P(^AUPNTP(N,0),U,2)
- ;
-CHK1 S %=$$ICDDX^ICDCODE(Y,D)  ;CSV
- I $E($P(%,U,2),1)="E" Q 0  ;no E codes ;CSV
- I $$VERSION^XPDUTL("BCSV")]"" D  I 1  ;CSV
- .S A=$P(%,U,17),I=$P(%,U,12),V=$P(%,U,10) ;CSV
- E  S A=$P($G(^ICD9(Y,9999999)),U,4),I=$P(^ICD9(Y,0),U,11)  ;CSV
- I $G(V)]"" Q V
+ I $G(N) S D=$P($P(^AUPNTP(N,0),U,2),".")
+ I D="" S D=DT
+CHK1 ;
+ S I=$$IMP^AUPNSICD(D)
+ S %=$$ICDDX^ICDEX(Y,D,,"I")
+ I $P(%,U,20)'=I Q 0   ;not correct coding system
+ S I="CHKDX"_I
+ G @I
+ ;Q
+CHKDX1 ;CODING SYSTEM 1 - ICD9
+ I $E($P(%,U,2),1)="E" Q 0  ;no E codes
+ I $$VERSION^XPDUTL("BCSV")]"",'$P(%,U,10) Q 0  ;STATUS IS INACTIVE
+ I $$VERSION^XPDUTL("BCSV")]"" G CSEX
+ S A=$P($G(^ICD9(Y,9999999)),U,4),I=$P(^ICD9(Y,0),U,11)
  I D]"",I]"",D>I Q 0
  I D]"",A]"",D<A Q 0
- ;if have no date to check then check 9th piece
- I '$G(D),$S($$VERSION^XPDUTL("BCSV")]"":$P(%,U,10),1:$P(^ICD9(Y,0),U,9)) Q 0
+ ;
 CSEX ; IF 'USE WITH SEX' FIELD HAS A VALUE CHECK THAT VALUE AGAINST AUPNSEX
+ I '$D(AUPNSEX) Q 1
+ I $P(%,U,11)]"",$P(%,U,11)'=AUPNSEX Q 0
+ Q 1
+ ;
+CHKDX30 ;coding system 30 - ICD10
+ I $E($P(%,U,2),1)="V" Q 0  ;no codes V00-Y99 per Leslie Racine.
+ I $E($P(%,U,2),1)="W" Q 0
+ I $E($P(%,U,2),1)="X" Q 0
+ I $E($P(%,U,2),1)="Y" Q 0
+ I '$P(%,U,10) Q 0  ;STATUS IS INACTIVE
+ ;
+CSEX30 ; IF 'USE WITH SEX' FIELD HAS A VALUE CHECK THAT VALUE AGAINST AUPNSEX
  I '$D(AUPNSEX) Q 1
  I $P(%,U,11)]"",$P(%,U,11)'=AUPNSEX Q 0
  Q 1

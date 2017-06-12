@@ -1,5 +1,5 @@
 APCDACP1 ; IHS/CMI/LAB - print list of accepted pov's ;
- ;;2.0;IHS PCC SUITE;**1**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**1,11**;MAY 14, 2009;Build 58
  ;
  W !!,"PLEASE NOTE:  The IHS Direct Inpatient System no longer requires"
  W !,"the use of the ACCEPT command so this option is no longer necessary and"
@@ -56,10 +56,8 @@ PRN1 ;
 1 ;
  S APCDER=^AUPNVPOV(APCDE,0)
  W !," ",APCDTITL," Code: ["
- ;W $P(^ICD9($P(APCDER,U),0),U),"]   ICD Narrative: [",$P(^ICD9($P(APCDER,U),0),U,3),"]"
- ;I $D(^ICD9($P(APCDER,U),9999999)) W !?6,"ICD Lower Age: [",$P(^ICD9($P(APCDER,U),9999999),U),"] ICD Upper Age: [",$P(^ICD9($P(APCDER,U),9999999),U,2),"] "
- W $P($$ICDDX^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV)),U,2),"] ICD Narrative: [",$P($$ICDDX^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV)),U,4),"]"
- S %=$$ICDDX^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV))
+ W $P($$ICDDX^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV)),U,2),"] ICD Narrative: [",$P($$ICDDX^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV)),U,4),"]"
+ S %=$$ICDDX^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV))
  S (A,B)=""  ;CSV
  I $$VERSION^XPDUTL("BCSV")]"" D  I 1  ;CSV
  .S A=$P(%,U,15),B=$P(%,U,16)  ;CSV
@@ -71,10 +69,8 @@ PRN1 ;
 2 ;
  S APCDER=^AUPNVPRC(APCDE,0)
  W !," ",APCDTITL," Code: ["
- ;W $P(^ICD0($P(APCDER,U),0),U),"]   ICD Narrative: [",$P(^ICD0($P(APCDER,U),0),U,4),"]"
- ;I $D(^ICD0($P(APCDER,U),9999999)) W !?6,"ICD Lower Age: [",$P(^ICD0($P(APCDER,U),9999999),U),"] ICD Upper Age: [",$P(^ICD0($P(APCDER,U),9999999),U,2),"] "
- W $P($$ICDOP^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV)),U,2),"] ICD Narrative: [",$P($$ICDOP^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV)),U,5),"]"
- S %=$$ICDOP^ICDCODE($P(APCDER,U),$$VD^APCLV(APCDV))
+ W $P($$ICDOP^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV),,"I"),U,2),"] ICD Narrative: [",$P($$ICDOP^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV),,"I"),U,5),"]"
+ S %=$$ICDOP^ICDEX($P(APCDER,U),$$VD^APCLV(APCDV),,"I")
  S (A,B)=""  ;CSV
  I $$VERSION^XPDUTL("BCSV")]"" D  I 1  ;CSV
  .S A="",B=""  ;CSV

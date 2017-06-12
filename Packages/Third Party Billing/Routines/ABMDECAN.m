@@ -1,19 +1,15 @@
 ABMDECAN ; IHS/ASDST/DMJ - Cancel Selected Claim ;
- ;;2.6;IHS 3P BILLING SYSTEM;**9,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,11,19**;NOV 12, 2009;Build 300
  ;
  ; 03/10/04 V2.5 Patch 5 - Deny cancel claim if bill attached
+ ; IHS/SD/SDR - V2.5 P8 - Added code for cancellation reason
+ ; IHS/SD/SDR - v2.5 p10 - IM20454 - Fix cancellation when replacement insurer present
+ ; IHS/SD/SDR - v2.5 p12 - UFMS - If user isn't logged into cashiering session they can't do
+ ;   this option.  Also added call to populate cashiering session with claim/bill number if they
+ ;   are cancelling.  Also added who cancelled bill, when, and reason (.111,.112,.113)
  ;
- ; IHS/SD/SDR - V2.5 P8
- ;     Added code for cancellation reason
- ;
- ; IHS/SD/SDR - v2.5 p10 - IM20454
- ;   Fix cancellation when replacement insurer present
- ;
- ; IHS/SD/SDR - v2.5 p12 - UFMS
- ;   If user isn't logged into cashiering session they can't do
- ;   this option.  Also added call to populate cashiering session
- ;   with claim/bill number if they are cancelling.
- ;   Also added who cancelled bill, when, and reason (.111,.112,.113)
+ ;IHS/SD/SDR - 2.6*19 - HEAT155799 - Updated code that creates 3P Cancelled Claim entry so it can
+ ;   be called from the Merged claim option if user decides to delete claims that were merged.
  ;   
  K ABMP
  S U="^"
@@ -64,13 +60,18 @@ ENT2 ;EP - BYPASS THE WARNING
  D ^DIR
  I Y'=1 Q
  W !
+ ;abm*2.6*19 IHS/SD/SDR HEAT155799 - added line tag ENT3
+ENT3 ;EP - Delete claim without asking
  S DIE="^ABMCCLMS(DUZ(2),"
  S DA=ABMP("CDFN")
  S DIE("NO^")="OUTOK"
- S DR=".04////X;.114////"_DUZ_";.115///NOW;.118R~Cancellation REASON:"
+ ;S DR=".04////X;.114////"_DUZ_";.115///NOW;.118R~Cancellation REASON:"  ;abm*2.6*19 IHS/SD/SDR HEAT155799
+ I $G(ABMREAS)'="" S DR=".04////X;.114////"_DUZ_";.115///NOW;.118///"_ABMREAS  ;abm*2.6*19 IHS/SD/SDR HEAT155799
+ I $G(ABMREAS)="" S DR=".04////X;.114////"_DUZ_";.115///NOW;.118R~Cancellation REASON:"  ;abm*2.6*19 IHS/SD/SDR HEAT155799
  D ^DIE
  I $P($G(^ABMCCLMS(DUZ(2),ABMP("CDFN"),1)),U,8)="" D  Q
- .W !!,"CLAIM NOT CANCELLED"
+ .;W !!,"CLAIM NOT CANCELLED"  ;abm*2.6*19 IHS/SD/SDR HEAT155799
+ .W !!,"CLAIM "_ABMP("CDFN")_" NOT CANCELLED"  ;abm*2.6*19 IHS/SD/SDR HEAT155799
  .S DIK="^ABMCCLMS(DUZ(2),"
  .S DA=ABMP("CDFN")
  .D ^DIK

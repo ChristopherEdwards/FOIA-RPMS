@@ -1,9 +1,10 @@
 BIEXPRT6 ;IHS/CMI/MWR - EXPORT IMMUNIZATION RECORDS; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  EXPORT IMMUNIZATION RECORDS: BUILD PATIENT HISTORY EXPORT FOR FORECASTING.
  ;;  CALLED BY BIEXPRT3.
  ;;  PATCH 8: New routine to accommodate new TCH Forecaster   TCHHIST+0
+ ;;  PATCH 13: Pass Flu Season Start & End Dates to TCH.  TCHHIST+128
  ;
  ;
  ;
@@ -138,7 +139,15 @@ TCHHIST(BIFDT,BIDUZ2,BINF) ;EP
  ..S BITMP1=BITMP1_U_J
  .;
  .;---> Influenza Indication (Field 26).
- .S BITMP1=BITMP1_U_$S($D(BICT(88)):1,1:0)
+ .;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ .;---> Pass Flu Season Start & End Dates to TCH.
+ .;S BITMP1=BITMP1_U_$S($D(BICT(88)):1,1:0)
+ .D
+ ..;---> If Flu contraindicated, concat 1 and quit.
+ ..I $D(BICT(88)) S BITMP1=BITMP1_U_1 Q
+ ..;---> Pass Site's Flu season dates.
+ ..S BITMP1=BITMP1_U_$$FLUDATS^BIUTL8(BIDUZ2)
+ .;**********
  .;
  .;---> Meningococcal Indication (Field 27).
  .S BITMP1=BITMP1_U_$S($D(BICT(32)):1,1:0)

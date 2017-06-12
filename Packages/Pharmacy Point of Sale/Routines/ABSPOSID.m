@@ -1,5 +1,5 @@
 ABSPOSID ; IHS/FCS/DRS - the fill date field ;   [ 09/12/2002  10:11 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001;Build 15
  ;
  ; This should be used for prescriptions (and postage) only,
  ; not charges associated with a visit.  It's tied to the prescription

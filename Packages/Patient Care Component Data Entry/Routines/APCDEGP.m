@@ -1,5 +1,5 @@
 APCDEGP ; IHS/CMI/LAB - group preventive services group form ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11**;MAY 14, 2009;Build 58
  ;
 START ;
  D INIT
@@ -146,7 +146,7 @@ DISPLAY ;display all info and do you want to continue
  S (X,C)=0 F  S X=$O(^TMP("APCDEGP",$J,"POV",X)) Q:X'=+X  S C=C+1 D
  .I C=1 W !,"POV's:"
  .S Y=$P(^TMP("APCDEGP",$J,"POV",X,"APCDTPOV"),U),Y=$E(Y,2,99),Z=$P(^TMP("APCDEGP",$J,"POV",X,"APCDTPOV"),U,2),Z=$E(Z,2,99)
- .W ?10,$P($$ICDDX^ICDCODE(Y),U,2),?18,"Narrative: ",$P(^AUTNPOV(Z,0),U),!
+ .W ?10,$P($$ICDDX^ICDEX(Y),U,2),?20,"Narrative: ",$P(^AUTNPOV(Z,0),U),!
  S (X,C)=0 F  S X=$O(^TMP("APCDEGP",$J,"EDUC",X)) Q:X'=+X  S C=C+1 D
  .I C=1 W !,"Education topics:"
  .S Y=$P(^TMP("APCDEGP",$J,"EDUC",X,"APCDTTOP"),U),Y=$E(Y,2,99),Z=$P(^TMP("APCDEGP",$J,"EDUC",X,"APCDTTOP"),U,2),Z=$E(Z,2,99)

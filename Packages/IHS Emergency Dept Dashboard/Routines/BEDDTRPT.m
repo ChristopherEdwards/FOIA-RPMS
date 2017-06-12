@@ -1,5 +1,5 @@
 BEDDTRPT ;VNGT/HS/BEE-BEDD ED Triage Report  ; 08 Nov 2011  12:00 PM
- ;;1.0;BEDD DASHBOARD;;Dec 17, 2012;Build 31
+ ;;2.0;BEDD DASHBOARD;;Jun 04, 2014;Build 13
  ;
  ;Adapted from BEDDTRGRPT/CNHS/RPF
  ;

@@ -1,5 +1,8 @@
-LA7UTL02 ;VA/HOIFO/BH - Cytopathology Query Utility ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**69,1027**;NOV 01, 1997
+LA7UTL02 ;VA/HOIFO/BH - Cytopathology Query Utility ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1027,1032,1034**;NOV 01, 1997;Build 88
+ ;
+ ;;VA LR Patch(s): 69
+ ;
 CYPATH(LRDFN,IEN,RET,ERR) ; Returns data for a Cytopathology Encounter
  ;
  ; Input:
@@ -186,7 +189,8 @@ ICD ; - Get ICD Data
  . S ICD9=$$GET1^DIQ(63.901,ICDIENS,.01,"E")
  . I $G(DIERR) D  Q
  . . K @RET
- . . I $G(ERR)'="" S @ERR@("-1")="Fileman Error within GET1 call (ICD9 data)."
+ . . ; I $G(ERR)'="" S @ERR@("-1")="Fileman Error within GET1 call (ICD9 data)."
+ . . I $G(ERR)'="" S @ERR@("-1")="Fileman Error within GET1 call (ICD data)."  ; IHS/MSC/MKK - LR*5.2*1034
  . . S QUIT=1
  . I ICD9="" Q
  . S @RET@("ICD9",ICDIEN)=ICD9

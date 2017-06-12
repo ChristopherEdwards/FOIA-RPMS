@@ -1,67 +1,30 @@
-PXRMDLLA ;SLC/PJH - REMINDER DIALOG LOADER ;07-Feb-2012 14:51;DU
- ;;1.5;CLINICAL REMINDERS;**2,5,7,1004,1008**;Jun 19, 2000;Build 25
- ;
-CODE(DFIEN,DFTYP) ;
- Q:DFIEN="" ""
- Q:DFTYP["ICD9" $P($G(^ICD9(DFIEN,0)),U)
- Q:DFTYP["ICPT" $P($$CPT^ICPTCOD(DFIEN),U,2)
- Q ""
- ;
-CODES(FILE,TXIEN,ARRAY) ;Return list of selectable codes from taxonomy file
- N CNT,CODE,DATA,IEN,TEMP,TEXT,NODE,SUB
- S SUB=0,CNT=0,NODE=$S(FILE=80:"SDX",FILE=81:"SPR")
- F  S SUB=$O(^PXD(811.2,TXIEN,NODE,SUB)) Q:'SUB  D
- .S DATA=$G(^PXD(811.2,TXIEN,NODE,SUB,0)) Q:DATA=""
- .;Ignore if disabled
- .I $P(DATA,U,3)=1 Q
- .;Get ien of code
- .S IEN=$P(DATA,U) Q:IEN=""
- .;Translate ien to code
- .I FILE=80 S CODE=$P($G(^ICD9(IEN,0)),U)
- .I FILE=81 S CODE=$P($$CPT^ICPTCOD(IEN),U,2)
- .;Ignore invalid codes
- .S TEMP=$$CODE^PXRMVAL(CODE,FILE) Q:'$P(TEMP,U)  Q:$P(TEMP,U,9)=1
- .;Set display text from taxonomy selectable code text
- .S TEXT=$P(DATA,U,2)
- .;otherwise use icd9/cpt description
- .I TEXT="",FILE=80 S TEXT=$G(^ICD9(IEN,1))
- .I TEXT="",FILE=80 S TEXT=$P($G(^ICD9(IEN,0)),U,3)
- .I TEXT="",FILE=81 S TEXT=$P($$CPT^ICPTCOD(IEN),U,3)
- .S CNT=CNT+1,ARRAY(CNT)=IEN_U_CODE_U_TEXT
- Q
- ;
-EXP(TIEN,DCUR,DTTYP) ;Expand taxonomy codes
- N CODES,CNT,FILE,LIT,CAT
- S FILE=$S(DTTYP="POV":80,DTTYP="CPT":81,1:"") Q:'FILE
- S LIT="Selectable "_$S(FILE=80:"Diagnoses:",1:"Procedures:")
- S CAT=$P($G(^PXD(811.2,TIEN,0)),U)
- ;
- S OCNT=OCNT+1
- S ORY(OCNT)=3_U_DITEM_U_U_DTTYP_U_U_U_U_U_CAT_U_LIT
- ;Get selectable codes
- D CODES(FILE,TIEN,.CODES)
- S CNT=0
- ;Save selectable codes as type 5 records
- F  S CNT=$O(CODES(CNT)) Q:'CNT  D
- .S OCNT=OCNT+1,ORY(OCNT)=5_U_DITEM_U_U_DTTYP_U_U_CODES(CNT)
- Q
+PXRMDLLA ;SLC/PJH - REMINDER DIALOG LOADER ;23-Mar-2015 10:11;DU
+ ;;2.0;CLINICAL REMINDERS;**6,1001,1003,12,18,26,1005**;Feb 04, 2005;Build 23
+ ;IHS/MSC/MGH Patch 1001 add IHS files
  ;
 FREC(DFIEN,DFTYP) ;Build type 3 record
+ N CSARRAY,CSCNT
  ;Dialog type/text and resolution
- S DNAM=$$NAME(DFIEN,DFTYP),DCOD=$$CODE(DFIEN,DFTYP)
+ S DNAM=$$NAME(DFIEN,DFTYP)
  ;Translate vitals ien to PCE code - This will need a DBIA
+ S DCOD=""
  I DPCE="VIT" D
  .S DFIEN=$$GET1^DIQ(120.51,DFIEN,7,"E")
  .;Vitals Caption
  .S DVIT=$P($G(^PXRMD(801.41,DITEM,2)),U,4)
  I DFTYP]"" D
  .S OCNT=OCNT+1
- .S ORY(OCNT)=3_U_DITEM_U_U_DPCE_U_DEXC_U_DFIEN_U_DCOD_U_DNAM_U_U_DVIT
+ .S ORY(OCNT)=3_U_DITEM_U_U_DPCE_U_DEXC_U_DFIEN_U_$G(DCOD)_U_DNAM_U_U_DVIT
  .;Get order type for orderable items
+ .;DBIA #3110
  .S:DPCE="Q" $P(ORY(OCNT),U,11)=$P($G(^ORD(101.41,DFIEN,0)),U,4)
- .;If mental health check if a GAF score
+ .;If mental health check if a GAF score and if MH test is required
  .I DPCE="MH",DFIEN D
- ..I $P($G(^YTT(601,DFIEN,0)),U)="GAF" S $P(ORY(OCNT),U,12)=1
+ ..;DBIA #5044
+ ..I $P($G(^YTT(601.71,DFIEN,0)),U)="GAF" S $P(ORY(OCNT),U,12)=1
+ ..;Check to see if the MH test is required
+ ..S $P(ORY(OCNT),U,13)=+$P($G(^PXRMD(801.41,DITEM,0)),U,18)
+ ..I $P(ORY(OCNT),U,13)=2,$$PATCH^XPDUTL("OR*3.0*243")=0 S $P(ORY(OCNT),U,13)=1
  Q
  ;
 GUI(IEN) ;Work out prompt type for PCE
@@ -72,7 +35,9 @@ GUI(IEN) ;Work out prompt type for PCE
  ;
 LOAD(DITEM,DCUR,DTTYP) ;Load dialog questions into array
  N DARRAY,DCOD,DEXC,DFIND,DFIEN,DFTYP,DNAM,DPCE,DRES,DSEQ,DSUB,DTYP,OCNT
- N DVIT
+ N DVIT,NODE,CNT,IDENT,TAXBUILT,TAXNODE,TDX,TPR,TSEL
+ I +$G(DITEM)'>0 Q
+ ;DBIA #3110    OR(101.41
  ;
  ;Build list of PCE codes
  S DARRAY("AUTTEDT(")="PED"
@@ -81,22 +46,29 @@ LOAD(DITEM,DCUR,DTTYP) ;Load dialog questions into array
  S DARRAY("AUTTIMM(")="IMM"
  S DARRAY("AUTTSK(")="SK"
  ;
- S DARRAY("AUTTMSR(")="MSR"  ;IHS/CIA/DKM - Support for V MEASUREMENT
  S DARRAY("GMRD(120.51,")="VIT"
+ S DARRAY("AUTTMSR(")="MSR"  ;IHS/MSC/MGH - Patch 1001 Support for V MEASUREMENTS
  S DARRAY("ORD(101.41,")="Q"
- S DARRAY("YTT(601,")="MH"
- S DARRAY("APCDACV(")="ASM"   ;IHS/MSC/MGH -Support for Asthma
+ S DARRAY("YTT(601.71,")="MH"
+ S DARRAY("APCDACV(")="ASM"   ;IHS/MSC/MGH -Patch 1001 Support for Asthma
  ;
  S DARRAY("ICD9(")="POV"
  S DARRAY("ICPT(")="CPT"
+ S DARRAY("WV(790.404,")="WH"
+ S DARRAY("WV(790.1,")="WHR"
  ;
- S DARRAY("PXD(811.2,")="T" ;dialog cpt/pov is generated from taxonomy
+ S DARRAY("PXD(811.2,")="T"
  ;
  ;Get the dialog element
- S OCNT=0,DTYP=$P($G(^PXRMD(801.41,DITEM,0)),U,4)
+ S OCNT=0
+ N TERMNODE,TERMSTAT,TERMOUT
+ S DTYP=$P($G(^PXRMD(801.41,DITEM,0)),U,4)
  ;Finding detail
  S DRES=$P($G(^PXRMD(801.41,DITEM,1)),U,3)
  S DFIND=$P($G(^PXRMD(801.41,DITEM,1)),U,5)
+ ;check for WH finding
+ I $P($G(^PXRMD(801.41,DITEM,0)),U,16)["WHR" S DFIND=$G(WHFIND)
+ ;
  S DFIEN=$P(DFIND,";"),DFTYP=$P(DFIND,";",2)
  S DPCE="",DVIT="" I DFTYP'="" S DPCE=$G(DARRAY(DFTYP))
  ;Exclude from P/N
@@ -106,25 +78,34 @@ LOAD(DITEM,DCUR,DTTYP) ;Load dialog questions into array
  I DPCE'="T" D FREC(DFIEN,DFTYP)
  ;
  ;Taxonomy codes need expanding (3 - finding record)
- I DPCE="T" D EXP(DFIEN,DCUR,DTTYP)
+ I DPCE="T" D
+ .S TAXBUILT=0
+ .I $G(DTTYP)="" D
+ ..S TAXNODE=$G(^PXRMD(801.41,DITEM,"TAX"))
+ ..S TSEL=$P(TAXNODE,U) I TSEL="N" Q
+ ..S TDX=$$TOK^PXRMDTAX(DFIEN,"POV")
+ ..S TPR=$$TOK^PXRMDTAX(DFIEN,"CPT")
+ ..I TSEL="D" S DTTYP="POV",TAXBUILT=1 Q
+ ..I TSEL="P" S DTTYP="CPT",TAXBUILT=1 Q
+ ..I TDX,TPR Q
+ ..I TDX S DTTYP="POV",TAXBUILT=1 Q
+ ..I TPR S DTTYP="CPT",TAXBUILT=1
+ .I $G(DTTYP)'="" D EXP^PXRMDLLB(DITEM,DFIEN,DCUR,DTTYP,5) I TAXBUILT=0 Q
+ .D EXPTAX^PXRMDLLB(DITEM,DFIEN,DCUR)
  ;
  ;Prompt details (4 - prompt records)
  N ARRAY,DTITLE,DREQ,DSEQ,DSSEQ,DSUB,DTYP
  ;If not a taxonomy get prompts from dialog file
- I DPCE'="T" D PROTH(DITEM)
- ;Ceck for MST findings
- I (DPCE'="T"),(DFTYP]"") D MST(DFTYP,DFIEN)
- ;If a taxonomy get details from general finding parameters (CPT/POV)
+ I DPCE'="T" D PROTH(DITEM,"","")
+ ;Check for MST findings
+ I (DPCE'="T"),(DFTYP]"") D MST^PXRMDLLB(DFTYP,DFIEN)
+ ;If taxonomy use finding parameters (CPT/POV)
  I DPCE="T" D
- .;Quit if finding type not passed
- .Q:DTTYP=""
- .N RSUB,FNODE
- .;Get parameter file node for this finding type
- .S FNODE=$O(^PXRMD(801.45,"B",DTTYP,"")) Q:FNODE=""
- .;Derive resolution from line ien 1=done 2=done elsewhere
- .S RSUB=DCUR+1 I (RSUB<1)!(RSUB>2) Q
- .;Get details from 811.5
- .D PRTAX(FNODE,RSUB)
+ .I $G(DTTYP)="",$G(^PXRMD(801.41,DITEM,"TAX"))'="N" Q
+ .;
+ .I $D(^PXRMD(801.41,DITEM,10,"B"))>0 D  Q
+ ..I $G(DTTYP)'="",$G(DCUR)'="" D PROTH(DITEM,DTTYP,DCUR) Q
+ ..D PROTH(DITEM,"","")
  ;Return array of type 4 records
  S DSEQ=""
  F  S DSEQ=$O(ARRAY(DSEQ)) Q:'DSEQ  D
@@ -136,7 +117,11 @@ LOAD(DITEM,DCUR,DTTYP) ;Load dialog questions into array
  ..S ORY(OCNT)=4_U_DITEM_U_DSEQ_"."_DSSEQ_U_ARRAY(DSEQ,DSSEQ)
  ;
  ;Get progress note text if defined
- I DPCE'="T" D:'DEXC PTXT(DITEM)
+ ;I DPCE'="T" D:'DEXC PTXT(DITEM)
+ ;Build Alternate progress note text for taxonomies with more then one pick list.
+ I DTTYP="" D:'DEXC PTXT(DITEM)
+ ;Build Alternate progress note text for taxonomies with one pick list.
+ I DPCE="T",DTTYP'="" D:'DEXC PTXT(DITEM)
  ;Additional findings
  N FASUB
  S FASUB=0
@@ -144,47 +129,22 @@ LOAD(DITEM,DCUR,DTTYP) ;Load dialog questions into array
  .S DFIND=$P($G(^PXRMD(801.41,DITEM,3,FASUB,0)),U)
  .S DFIEN=$P(DFIND,";"),DFTYP=$P(DFIND,";",2) Q:DFTYP=""  Q:DFIEN=""
  .S DVIT="",DPCE=$G(DARRAY(DFTYP))
- .I DPCE'="" D FREC(DFIEN,DFTYP)
+ .I DPCE'="",DPCE'="T" D FREC(DFIEN,DFTYP)
+ .I DPCE'="",DPCE="T" D
+ ..D EXP^PXRMDLLB(DITEM,DFIEN,DCUR,"CPT",3)
+ ..D EXP^PXRMDLLB(DITEM,DFIEN,DCUR,"POV",3)
+ ;D EXPTAX^PXRMDLLB(DITEM,DFIEN,DCUR)
  Q
  ;
- ;Pass MST code as a forced value
-MST(DFTYP,DFIEN) ;
- ;Validate finding ien
- Q:DFIEN=""
- ;For each MST term check if finding is mapped
- N FOUND,TCOND,TIEN,TNAM,TSUB
- S FOUND=0
- F TNAM="POSITIVE","NEGATIVE","DECLINES" D  Q:FOUND
- .;Get term IEN
- .S TIEN=$O(^PXRMD(811.5,"B","MST "_TNAM_" REPORT","")) Q:'TIEN
- .;Check if finding is mapped to term
- .Q:'$D(^PXRMD(811.5,TIEN,20,"E",DFTYP,DFIEN))
- .;If exam and term condition logic is null ignore
- .I DFTYP="AUTTEXAM(" D  Q:TCOND=""
- ..S TCOND="",TSUB=$O(^PXRMD(811.5,TIEN,20,"E",DFTYP,DFIEN,"")) Q:'TSUB
- ..S TCOND=$P($G(^PXRMD(811.5,TIEN,20,TSUB,3)),U)
- .;If it is then create additional prompt for MST
- .N DSEQ,DEXC,DDEF,DGUI,DTYP,DTEXT,DSNL,DREQ
- .;Add to end of array
- .S DSEQ=$O(ARRAY(""),-1)+1
- .;Null fields
- .S DDEF="",DEXC="",DTEXT="",DSNL="",DREQ=""
- .;MST status (exept for exams)
- .I DFTYP'="AUTTEXAM(" S DDEF=$$STCODE^PXRMMST("MST "_TNAM_" REPORT")
- .;GUI process and forced value
- .S DGUI="MST",DTYP="F"
- .;Save in array
- .S ARRAY(DSEQ)=DGUI_U_DEXC_U_DDEF_U_DTYP_U_DTEXT_U_DSNL_U_DREQ
- .;Quit after the first term is found
- .S FOUND=1
- Q
  ;
  ;Returns item name
 NAME(DFIEN,DFTYP) ;
  Q:DFTYP="" ""
  Q:DFIEN="" ""
  N NAME,FGLOB,POSN
- I DFTYP["ICD9" S NAME=$P($G(^ICD9(DFIEN,1)),U) Q:NAME]"" NAME
+ ;DBIA #4108
+ I DFTYP="WV(790.404," S NAME=$P($G(^WV(790.404,DFIEN,0)),U) Q:NAME]"" NAME
+ I DFTYP="WV(790.1," S NAME=$G(WHNAME) K WHNAME Q:NAME]"" NAME
  S POSN=2
  S:DFTYP["AUTT" POSN=1 S:DFTYP["AUTTEDT" POSN=4 S:DFTYP["ICD" POSN=3
  S FGLOB=U_DFTYP_DFIEN_",0)",NAME=$P($G(@FGLOB),U,POSN)
@@ -192,20 +152,27 @@ NAME(DFIEN,DFTYP) ;
  I NAME="" S NAME=DFIEN
  Q NAME
  ;
-PROTH(IEN) ; Additional prompts defined in 801.41
- N DDATA,DDEF,DIEN,DEXC,DGUI,DNAME,DOVR,DREQ,DSEQ,DSNL,DSUB,DTXT,DTYP
+PROTH(IEN,DTTYP,DCUR) ; Additional prompts defined in 801.41
+ N DDATA,DDEF,DIEN,DEXC,DGUI,DNAME,DOVR,DREQ,DSEQ,DSNL,DSUB,DFTEXT
+ N DTXT,DTYP,NODE,PRINT,TAX
  S DSEQ=0
  F  S DSEQ=$O(^PXRMD(801.41,IEN,10,"B",DSEQ)) Q:'DSEQ  D
  .;Get prompts in sequence
  .S DSUB=$O(^PXRMD(801.41,IEN,10,"B",DSEQ,"")) Q:'DSUB
+ .S NODE=$G(^PXRMD(801.41,IEN,10,DSUB,0))
  .;Prompt ien
  .S DIEN=$P($G(^PXRMD(801.41,IEN,10,DSUB,0)),U,2) Q:'DIEN
  .;Ignore disabled components, and those that are not prompts
- .Q:($P($G(^PXRMD(801.41,DIEN,0)),U,3)]"")!("PF"'[$P($G(^(0)),U,4))
+ .I $$ISDISAB^PXRMDLL(DIEN)=1 Q
+ .Q:"PF"'[$P($G(^PXRMD(801.41,DIEN,0)),U,4)
+ .;check to make sure prompt is apporiate for the taxonomy encounter type
+ .I $G(DTTYP)'="",$G(DCUR)'="",$$TAXPRMPT(DIEN,DTTYP,DCUR)=0 Q
  .;Set defaults to null
  .S DDEF="",DEXC="",DREQ="",DSNL=""
  .;Prompt name and GUI process (quit if null)
  .S DNAME=$P($G(^PXRMD(801.41,DIEN,0)),U),DGUI=$$GUI(DIEN)
+ .I $G(DGUI)="WH_NOT_PURP" D
+ ..S PRINT=$$GET^XPAR($G(DUZ)_";VA(200,^SRV.`"_+$G(SRV)_"^DIV^SYS","PXRM WH PRINT NOW",1,"I")
  .;Type Prompt or Forced
  .S DTYP=$P($G(^PXRMD(801.41,DIEN,0)),U,4)
  .I "PF"[DTYP D
@@ -219,7 +186,18 @@ PROTH(IEN) ; Additional prompts defined in 801.41
  ..S DNAME=DTXT I DOVR]"" S DNAME=DOVR
  ..;Convert date to fileman format
  ..I DGUI="VST_DATE",DDEF["T" S DDEF=$$DT^XLFDT()
- .S ARRAY(DSEQ)=DGUI_U_DEXC_U_DDEF_U_DTYP_U_DNAME_U_DSNL_U_DREQ
+ .S ARRAY(DSEQ)=DGUI_U_DEXC_U_DDEF_U_DTYP_U_DNAME_U_DSNL_U_DREQ_U_$G(DFTEXT)_U_$G(PRINT)
+ .;the following section add a comment prompt to the WH review of result
+ .;section of the reminder dialog
+ .I DGUI="WH_PAP_RESULT",DFTYP="WV(790.1,",DTYP="P" D
+ ..N WHCNT,WHFLAG,WHNUM,WHLOOP
+ ..S WHNUM=DSEQ+1,WHLOOP=0
+ ..F WHLOOP=0 D
+ ...S (WHCNT,WHFLAG)=0
+ ...F  S WHCNT=$O(^PXRMD(801.41,IEN,10,"B",WHCNT)) Q:'WHCNT!(WHFLAG=1)  D
+ ....I WHCNT=WHNUM S WHFLAG=1,WHNUM=WHNUM+1
+ ...I WHFLAG=0 S WHLOOP=1
+ ..S ARRAY(WHNUM)="COM"_U_U_U_"P"_U_"Comment:"_U_U_U
  .;Additional checkboxes
  .I DGUI="COM",DIEN>1 D
  ..N DSSEQ,DSUB,DTEXT
@@ -232,7 +210,7 @@ PROTH(IEN) ; Additional prompts defined in 801.41
  ;
 PRTAX(FNODE,RSUB) ;Get all additional fields for this resolution type
  N ACNT,ASUB
- N DDATA,DDEF,DEXC,DGUI,DNAME,DREQ,DSEQ,DSUB,DTYP
+ N DDATA,DDEF,DEXC,DGUI,DNAME,DREQ,DSEQ,DSUB,DTYP,PRINT
  S ASUB=0,DSEQ=0
  F  S ASUB=$O(^PXRMD(801.45,FNODE,1,RSUB,5,ASUB)) Q:'ASUB  D
  .S DDATA=$G(^PXRMD(801.45,FNODE,1,RSUB,5,ASUB,0)) Q:DDATA=""
@@ -244,6 +222,8 @@ PRTAX(FNODE,RSUB) ;Get all additional fields for this resolution type
  .S DDEF="",DEXC="",DREQ="",DSNL=""
  .;Prompt name and GUI process (quit if null)
  .S DNAME=$P($G(^PXRMD(801.41,DSUB,0)),U),DGUI=$$GUI(DSUB)
+ .I $G(DGUI)="WH_NOT_PURP" D
+ ..S PRINT=$$GET^XPAR($G(DUZ)_";VA(200,^SRV.`"_+$G(SRV)_"^DIV^SYS","PXRM WH PRINT NOW",1,"I")
  .;Type Prompt or Forced
  .S DTYP=$P($G(^PXRMD(801.41,DSUB,0)),U,4)
  .I DTYP="P" D
@@ -253,28 +233,28 @@ PRTAX(FNODE,RSUB) ;Get all additional fields for this resolution type
  ..S DNAME=DTXT I DOVR]"" S DNAME=DOVR
  ..;Required/Prompt caption
  ..S DDATA=$G(^PXRMD(801.41,DSUB,2))
- .S ARRAY(DSEQ)=DGUI_U_DEXC_U_DDEF_U_DTYP_U_DNAME_U_DSNL_U_DREQ
+ .S ARRAY(DSEQ)=DGUI_U_DEXC_U_DDEF_U_DTYP_U_DNAME_U_DSNL_U_DREQ_U_U_$G(PRINT)
  Q
  ;
 PTXT(ITEM) ;Get progress note (WP) text for type 6 records
- N LAST,NULL,SUB,TEXT S SUB=0,LAST=0
+ N ARRAY,LAST,NULL,SUB,TEXT,TXTCNT
+ S SUB=0
  F  S SUB=$O(^PXRMD(801.41,ITEM,35,SUB)) Q:'SUB  D
- .S TEXT=$G(^PXRMD(801.41,ITEM,35,SUB,0))
+ .S ARRAY(SUB)=$G(^PXRMD(801.41,ITEM,35,SUB,0))
+ S SUB=0,LAST=0 F  S SUB=$O(ARRAY(SUB)) Q:'SUB  D
+ .S TEXT=$G(ARRAY(SUB))
  .S NULL=0 I (TEXT="")!($E(TEXT)=" ") S NULL=1
  .I LAST,'NULL S TEXT="<br>"_TEXT
+ .S TEXT=$$STRREP^PXRMUTIL(TEXT,"\\","<br>")
  .S LAST=0 I NULL S TEXT="<br>"_TEXT,LAST=1
  .S OCNT=OCNT+1,ORY(OCNT)=6_U_ITEM_U_U_TEXT
  Q
  ;
-TOK(TIEN,TYPE) ;Check if selectable codes exist
- N DATA,FOUND,SUB
- S FOUND=0,SUB=0
- F  S SUB=$O(^PXD(811.2,TIEN,TYPE,SUB)) Q:'SUB  D  Q:FOUND
- .S DATA=$G(^PXD(811.2,TIEN,TYPE,SUB,0)) Q:DATA=""
- .;Ignore disabled codes
- .I '$P(DATA,U,3) S FOUND=1
- Q FOUND
+ ;function to determine if the prompt is valid for the taxonomy encounter type.
+TAXPRMPT(DIEN,DTTYP,DCUR) ;
+ N FIND,IEN
+ S IEN=$P($G(^PXRMD(801.41,DIEN,1)),U,4) I +IEN=0 Q 1
+ S FIND=$P($G(^PXRMD(801.45,IEN,0)),U) I FIND="" Q 1
+ I FIND=DTTYP Q 1
+ Q 0
  ;
-TEST(ORY,DITEM,DCUR,DTTYP) ;
- D LOAD(DITEM,DCUR,DTTYP)
- Q

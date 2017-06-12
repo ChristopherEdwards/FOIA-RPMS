@@ -1,5 +1,5 @@
-APSPFNC6 ;IHS/MSC/PLS - Prescription Creation Support ;11-Sep-2013 10:08;DU
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1012,1016**;Sep 23, 2004;Build 74
+APSPFNC6 ;IHS/MSC/PLS - Prescription Creation Support ;29-Oct-2014 14:27;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1011,1012,1016,1017,1018**;Sep 23, 2004;Build 21
  ;=================================================================
  ;Returns string containing the possible pickup locations
 GPKUP(DATA,USR,OI,ORDER) ; EP -
@@ -108,3 +108,42 @@ GETLONG(RET,ORDER) ;EP-
  ; Input: Drug File IEN
 GETLNGDG(DRUG) ;EP-
  Q $$GET1^DIQ(50,DRUG,9999999.352)
+ ;
+ ; Find a site
+LOC(ORIEN) ;
+ N PSOLOC,PSOINS,PSOSITE
+ S PSOLOC=$P($G(^OR(100,ORIEN,0)),U,10)
+ S PSOSITE=$$GET^XPAR("LOC.`"_PSOLOC_U_"DIV.`"_DUZ(2)_"^SYS","APSP AUTO RX DIV")
+ I 'PSOSITE D
+ .S PSOSITE=0
+ .I PSOLOC["SC" D
+ ..S PSOLOC=+PSOLOC
+ ..S PSOINS=$P($G(^SC(PSOLOC,0)),U,4)
+ ..Q:'PSOINS
+ ..S PSOSITE=$$DIV(PSOINS)
+ .S:'PSOSITE PSOSITE=$$DIV(DUZ(2))
+ .S:'PSOSITE PSOSITE=$$DIV(+$$SITE^VASITE)
+ Q $S($G(PSOSITE):PSOSITE,1:0)
+ ; This screen is used by the APSP AUTO RX DIV parameter.
+ ; Input: DIV - Pointer to Institution (4) file
+DIVSCN(ENT) ;
+ I $G(ENT)["DIC(4," Q ''$$DIV(+ENT)
+ I $G(ENT)["DIC(4.2," Q 1
+ I $G(ENT)["SC(" Q 1
+ Q 0
+ ; Return Pharmacy Division
+DIV(INS) Q $O(^PS(59,"D",+INS,0))
+ ;
+ ; Returns the last activity type for requested reason
+LASTACT(RX,REASON) ;EP-
+ N RES,LP,PR,PT,FLG
+ S FLG=0,RES=""
+ S LP=$C(1)
+ Q:'$G(RX) RES
+ Q:'$L($G(REASON)) RES
+ F  S LP=$O(^PSRX(RX,"A",LP),-1) Q:'LP  D  Q:FLG
+ .S PR=$P(^PSRX(RX,"A",LP,0),U,2)
+ .Q:PR'=REASON
+ .S FLG=1
+ .S RES=$P($G(^PSRX(RX,"A",LP,9999999)),U,2)
+ Q RES

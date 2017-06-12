@@ -1,5 +1,5 @@
 BQITRSK ;PRXM/HC/ALA-CVD Risk Factors ; 11 Apr 2006  4:25 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  Q
  ;
 EN(TGLOB) ;EP -- Entry point
@@ -194,7 +194,7 @@ EN(TGLOB) ;EP -- Entry point
  . S VISIT=$P(@HDATA@(DFN,DATE),U,3)
  . S IEN=$P(@HDATA@(DFN,DATE),U,4)
  . S FREF=$P(@HDATA@(DFN,DATE),U,5)
- . I SEX="M",RESULT<40 D  Q
+ . I SEX="M"!(SEX="U"),RESULT<40 D  Q
  .. S @BQGLB1@(DFN,"CRITERIA","Risk Factor-HDL Lab Test","V",VISIT,IEN)=DATE_U_EXDT_U_IEN_U_FREF
  .. D STOR(DFN,"Risk Factor-HDL Lab Test",BQGLB1)
  . I SEX="F",RESULT<45 D

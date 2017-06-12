@@ -1,5 +1,5 @@
-ABMDESM1 ; IHS/ASDST/DMJ - Display Summarized Claim Info ; 
- ;;2.6;IHS Third Party Billing;**1,6,8,11,13**;NOV 12, 2009;Build 213
+ABMDESM1 ; IHS/SD/SDR - Display Summarized Claim Info ; 
+ ;;2.6;IHS Third Party Billing;**1,6,8,11,13,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -22,11 +22,12 @@ ABMDESM1 ; IHS/ASDST/DMJ - Display Summarized Claim Info ;
  ; IHS/SD/SDR,AML - v2.5 p13 - IM25899
  ;   Alignment changes
  ;
- ; IHS/SD/SDR - v2.6 CSV
- ; IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display if visit type 731
- ; IHS/SD/SDR - abm*2.6*6 - HEAT28973 - if 55 modifier present use '1' for units when calculating charges
- ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - Swing bed changes
+ ;IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - abm*2.6*1 - HEAT7884 - display if visit type 731
+ ;IHS/SD/SDR - abm*2.6*6 - HEAT28973 - if 55 modifier present use '1' for units when calculating charges
+ ;IHS/SD/SDR - abm*2.6*6 - NOHEAT - Swing bed changes
  ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Changed to use $$GET^DIQ so output transform will execute for SNOMED/Provider Narrative
  ;
  K ABMS
  ;
@@ -123,7 +124,8 @@ MSH S ABMS(ABMS("I"))=ABMX("SUB")
  .S $P(ABMS(ABMS("I")),U,7)=$P($G(^ABMDCODE($P(ABMX(0),U,16),0)),U)
  E  S $P(ABMS(ABMS("I")),U,7)=$S($P(^DIC(81.1,$P($$CPT^ABMCVAPI(+ABMX(0),ABMP("VDT")),U,4),0),U,3)=2:2,1:1)  ;CSV-c
  S $P(ABMS(ABMS("I")),U,10)=$P($G(ABMX(0)),U,15)  ;POS
- S $P(ABMS(ABMS("I")),U,8)=$P(^AUTNPOV($P(ABMX(0),U,6),0),U)
+ ;S $P(ABMS(ABMS("I")),U,8)=$P(^AUTNPOV($P(ABMX(0),U,6),0),U)  ;abm*2.6*14 HEAT161263
+ S $P(ABMS(ABMS("I")),U,8)=$$GET1^DIQ(9999999.27,$P(ABMX(0),U,6),"01","E")  ;abm*2.6*14 HEAT161263
  S ABMX(0)=@(ABMP("GL")_"21,"_ABMX("X")_",0)")
  S ABMDPRV=$O(@(ABMP("GL")_"21,"_ABMX_",""P"",""C"",""R"",0)"))
  S:+ABMDPRV'=0 ABMDPRV=$P($G(@(ABMP("GL")_"21,"_ABMX_",""P"","_ABMDPRV_",0)")),U)

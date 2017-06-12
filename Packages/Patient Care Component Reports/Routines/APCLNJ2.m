@@ -1,15 +1,15 @@
 APCLNJ2 ; IHS/CMI/LAB - E-CODE CLINIC VISITS BY DATE RANGE/BY AGE/VISIT TYPE ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;This report is to be used to list Injury visits by clinic/by age
  ;
  W:$D(IOF) @IOF W !!?21,"INJURY SURVEILLANCE SUMMARY REPORT"
- W !,?34,"(E-CODES)",!
+ W !,?27,"(EXTERNAL CAUSE CODES)",!
  W !!,"This report will COUNT visits which have an injury diagnosis.  The user",!,"can select which visits to count based on any of the following criteria:",!
  W ?15,"- Visit date",!?15,"- Clinic of Visit",!?15,"- Service Category of Visit",!?15,"- Type of Visit",!?15,"- Location of Encounter",!?15,"- Age Range",!
- W !,"The visit counts are summarized by the following 18 E-Code Categories:",!!,?2,"Motor Vehicles..Boat/Water..Air Transport..Accidental Poison..Environmental..",!
+ W !,"The visit counts are summarized by the following 18 External Cause Categories:",!!,?2,"Motor Vehicles..Boat/Water..Air Transport..Accidental Poison..Environmental..",!
  W ?2,"Stings/Venons..Falls..Fire/Flame..Animal Vites..Drowning/Sub..Cutting/Piercing",!
  W ?2,"Fire Arms..Sports Injury..Suicide..Assault..Child Abuse..Undetermined..Other..",!
- W !,?2,"**Detailed information for each E-Code Range is outlined in the User Manual**",!!
+ W !,?2,"**Detailed information for each Cause of Injury Code Range is outlined in the User Manual**",!!
 GETDATES ;
 BD ;get beginning date
  W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Visit Date" D ^DIR K DIR S:$D(DUOUT) DIRUT=1

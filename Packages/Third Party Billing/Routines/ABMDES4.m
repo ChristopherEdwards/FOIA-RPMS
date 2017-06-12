@@ -1,5 +1,5 @@
 ABMDES4 ; IHS/ASDST/DMJ - ADA Form Dental Charge Summary ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/EFG - V2.5 P8 - IM16385
  ;   Fix header wrapping; include misc services
@@ -9,6 +9,7 @@ ABMDES4 ; IHS/ASDST/DMJ - ADA Form Dental Charge Summary ;
  ;   Added active insurer print to summary
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 5/8/14 - HEAT163277 - Made change for RX multiple so charges would be counted in total sooner
  ;
  N ABM
  Q:'$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),33,0))&('$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),43,0)))
@@ -103,11 +104,13 @@ WRT ;
  .S $P(ABMRV(+ABM(2),ABM(1),ABMCNTR),U,6)=$P(ABMRV(+ABM(2),ABM(1),ABMCNTR),U,6)+ABM(6)   ; cumulative charges
  .S $P(ABMRV(+ABM(2),ABM(1),ABMCNTR),U,9)=$P($G(^PSDRUG(ABM(1),2)),U,4)_" "_$P($G(^(0)),U)  ; NDC generic name
  ;
- S ABMRCD=0
+ ;S ABMRCD=0  ;abm*2.6*14 HEAT163277
+ S ABMRCD=-1  ;abm*2.6*14 HEAT163277
  F  S ABMRCD=$O(ABMRV(ABMRCD)) Q:'+ABMRCD  D
  .S ABMED=0
  .F  S ABMED=$O(ABMRV(ABMRCD,ABMED)) Q:'+ABMED  D  Q:$D(DUOUT)
- ..S ABMCNTR=0
+ ..;S ABMCNTR=0  ;abm*2.6*14 HEAT163277
+ ..S ABMCNTR=-1  ;abm*2.6*14 HEAT163277
  ..F  S ABMCNTR=$O(ABMRV(ABMRCD,ABMED,ABMCNTR)) Q:ABMCNTR=""  D
  ...S ABMRXCHG=$P(ABMRV(ABMRCD,ABMED,ABMCNTR),U,6)  ;Charge
  ...S ABM("TCHRG")=ABM("TCHRG")+ABMRXCHG

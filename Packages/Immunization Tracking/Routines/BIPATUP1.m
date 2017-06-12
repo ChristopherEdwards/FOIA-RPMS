@@ -1,10 +1,12 @@
 BIPATUP1 ;IHS/CMI/MWR - UPDATE PATIENT DATA; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**8**;MAR 15,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
- ;;  NOTE!: An earlier version of this routine is saved in BIZPATUP1.
  ;;  PATCH 8: Extensive changes to accommodate new TCH Forecaster   LDFORC+0
  ;;  PATCH 9: Numerous changes to accomodate new Heb B High Risk  IHSPOST+0
+ ;;  PATCH 10: Recognize both TCH incoming 33 PNEUMO-PS or 133 PCV-13. DDUE2+56
+ ;;  PATCH 12: If Dose Override is Invalid (1-4) forecast Pneumo.  IHSPOST+30
+ ;;  PATCH 13: Do not forecast Flu before local Flu Season Start Date.  DDUE2+46
  ;
  ;----------
 LDFORC(BIDFN,BIFORC,BIHX,BIFDT,BIDUZ2,BINF,BIPDSS) ;EP
@@ -124,7 +126,7 @@ DDUE2(BIDOSE,BIAGE,BIHX,BINF,BIPC,BIIMMFL,BIDUZ2,BITCHPN,BIFDT,BITCHHB) ;EP
  ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
  ;---> Many changes below to accommodate new TCH Forecaster.
  ;
- ;---> Uncomment next line to see raw ImmServe Doses Due:
+ ;---> Uncomment next line to see raw Doses Due:
  ;W !!!,BIDOSE R ZZZ
  ;
  N A,BI,D,X S X=BIDOSE
@@ -147,31 +149,38 @@ DDUE2(BIDOSE,BIAGE,BIHX,BINF,BIPC,BIIMMFL,BIDUZ2,BITCHPN,BIFDT,BITCHHB) ;EP
  ;---> Determine whether to set Recommended Age or Minimum Accepted Age
  ;---> based on Site Parameter.
  S BI("DUE")=BI("REC")
- I $$MINAGE^BIUTL2($G(BIDUZ2))="A" S BI("DUE")=BI("MIN")
+ I $$MINAGE^BIUTL2($G(BIDUZ2))=1 S BI("DUE")=BI("MIN")
  ;
- ;---> If this dose is past due (B=1), D(2) will stuff DATE PAST DUE;
+ ;---> If this dose is past due (BI("PAST")=1), D(2) will stuff DATE PAST DUE;
  ;---> Otherwise, D(1) will stuff RECOMMENDED DATE DUE.
- ;S (D(1),D(2))="" D
- ;.I B S D(2)=D Q
- ;.S D(1)=D
  S (D(1),D(2))="" D
  .I BI("PAST") S D(2)=BI("EXC") Q
  .S D(1)=BI("DUE")
  ;
  ;---> *** TRANSLATIONS OF INCOMING IMMSERVE VACCINES:
  ;--->     -------------------------------------------
- ;
  Q:A=""
  ;
  ;---> Check to see if Site specified do not forecast this Vaccine Group.
  Q:$D(BINF($$HL7TX^BIUTL2(A,1)))
+ ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Do not forecast Flu (CVX 88) before local Flu Season Start Date, regardless of
+ ;---> Min vs. Rec site parameter #8.
+ I A=88,$E($G(BIFDT),4,5)>6 Q:(BIFDT<($E(BIFDT,1,3)_$TR($P($$FLUDATS^BIUTL8(BIDUZ2),"%"),"/")))
+ ;**********
  ;
  ;---> Add this Immunization Due.
  D SETDUE^BIPATUP2(BIDFN_U_$$HL7TX^BIUTL2(A)_U_U_D(1)_U_D(2))
  ;
  ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
  ;---> If TCH set Pneumo due, set BITCHPN=1.
- S:(A=33) BITCHPN=1
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Check for TCH incoming 33 PNEUMO-PS or 133 PCV-13.
+ ;S:(A=33) BITCHPN=1
+ S:((A=33)!(A=133)) BITCHPN=1
  ;**********
  ;
  ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
@@ -211,9 +220,10 @@ IHSPOST(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2,BIRISKH) ;EP
  .;
  .;---> For this Immunization, set A=CVX Code, D=Date.
  .N A,D S A=$P(BIDOSE,U,2),D=$P(BIDOSE,U,3)
- .;---> Quit if Dose Override (ImmServe Input Field 51)=Invalid Dose=2.
- .;I $P(BIDOSE,U,5),$P(BIDOSE,U,5)<9 Q
- .;
+ .;---> Quit if Dose Override is Invalid (1-4).
+ .;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ .;---> Reinstated for TCH.
+ .I $P(BIDOSE,U,4),$P(BIDOSE,U,4)<9 Q
  .;
  .;---> If this is a Pneumo (33,100,109) or Hep B (8,42,43,44,45,etc.))
  .;---> translate and store it in local array BIFLU(CVX,Inverse Fm date).
@@ -221,26 +231,26 @@ IHSPOST(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2,BIRISKH) ;EP
  .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
  .;---> Update Pneumo CVX's.
  .;S:((A=100)!(A=109)) A=33
+ .;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ .;---> Leave for now, but next patch Change so that only CVX 33 satisfies High Risk.
  .S:((A=100)!(A=109)!(A=133)!(A=152)) A=33
+ .;**********
  .;
  .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  .;---> Collect Hep B CVX's.
  .S:((A=8)!(A=42)!(A=44)!(A=43)!(A=43)!(A=51)!(A=102)) A=45
  .S:((A=104)!(A=110)!(A=132)!(A=146)) A=45
  .;
- .;
- .;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
- .;---> Only concerned with Pneumos.
- .;
  .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  .;---> Now concerned with Hep B's too.
  .;S:(A=33) BIFLU(A,9999999-$$TCHFMDT^BIUTL5(D))=""
  .S:(A=33)!(A=45) BIFLU(A,9999999-$$TCHFMDT^BIUTL5(D))=""
  .;**********
- .;S X=X+7 OLD IMMSERVE COUNTER.
  ;
  ;
- ;---> Get value for forced Influenza regardless of age.
+ ;---> Old/disregard: Get value for forced Influenza regardless of age.
+ ;---> Now only forced Pneumo option (Flu forecast for everyone).
+ ;---> NOTE: This value is PATIENT-SPECIFIC (not site param).
  ;---> 0=Normal, 1=Influenza, 2=Pneumococcal, 3=Both, 4=Disregard Risk Factors.
  S BIFFLU=$$INFL^BIUTL11(BIDFN)
  ;---> Quit (don't check Risk Factors) if BIFFLU=4, Disregard Risk Factors.
@@ -256,11 +266,6 @@ IHSPOST(BIDFN,BIHX,BIFDT,BIFLU,BIFFLU,BIRISKI,BIRISKP,BILIVE,BIDUZ2,BIRISKH) ;EP
  ;********** PATCH 8, v8.5, MAR 15,2014, IHS/CMI/MWR
  ;---> Only Pneumo will be checked (Flu now forecast for everyone), by
  ;---> passing 2 in the third parameter.
- ;
- ;---> Check for Influenza and Pneumo Risk Factors.
- ;---> If BIRISKI, BIRISKP =0, then either site param is turned off
- ;---> or patient is NOT High Risk.  Both cases exclude it from forecast.
- ;D RISK^BIDX(BIDFN,BIFDT,0,.BIRISKI,.BIRISKP)
  ;
  ;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
  ;---> New parameter to return Hep B risk. (No longer include Flu.)
@@ -288,8 +293,6 @@ IHSPNEU(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  ;
  ;---> Quit if this patient has a contraindication to Pneumo.
  ;********** PATCH 4, v8.5, DEC 01,2012, IHS/CMI/MWR
- ;---> Use newer Related Contraindications call to determine contraindicaton.
- ;Q:$$CONTR^BIUTL11(BIDFN,119)
  N BICT D CONTRA^BIUTL11(BIDFN,.BICT)
  Q:$D(BICT(33))
  ;**********
@@ -308,7 +311,7 @@ IHSPNEU(BIDFN,BIFLU,BIFFLU,BIRISKP,BINF,BIFDT,BIAGE,BIDUZ2) ;EP
  ;---> and has already had one Pneumo.
  Q:((BIAGE<BIPNAGE)&(BIMRECNT))
  ;
- ;---> If High Risk Pneumo or Forecast Regardless of Age, set BIALLAGE=1.
+ ;---> If High Risk Pneumo or Forecast for this patient regardless of Age, set BIALLAGE=1.
  I BIRISKP!(23[BIFFLU) S BIALLAGE=1
  ;
  ;---> Quit if Pt Age < Pneumo Age (on Forecast date) and not forecast for

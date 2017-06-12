@@ -1,0 +1,182 @@
+PXRMRDI ;SLC/PKR - Routines to support RDI list building. ;11/05/2013
+ ;;2.0;CLINICAL REMINDERS;**4,17,18,24,26**;Feb 04, 2005;Build 404
+ ;=========================================================
+APPERR(TYPE) ;Handle errors getting appointment data.
+ N ECODE,MGIEN,MGROUP,NL,TIME,TO,USER
+ S USER=$S($D(ZTQUEUED):DBDUZ,1:DUZ)
+ S TIME=$$NOW^XLFDT
+ S TIME=$$FMTE^XLFDT(TIME)
+ K ^TMP("PXRMXMZ",$J)
+ S ^TMP("PXRMXMZ",$J,1,0)="The "_TYPE_" requested by "_$$GET1^DIQ(200,USER,.01)_" on "
+ S ^TMP("PXRMXMZ",$J,2,0)=TIME_" requires appointment data which could not be obtained"
+ S ^TMP("PXRMXMZ",$J,3,0)="from the Scheduling database due to the following error(s):"
+ S ECODE=0,NL=3
+ F  S ECODE=$O(^TMP($J,"SDAMA301",ECODE)) Q:ECODE=""  D
+ . S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=" "_^TMP($J,"SDAMA301",ECODE)
+ S TO(DUZ)=""
+ S MGIEN=$G(^PXRM(800,1,"MGFE"))
+ I MGIEN'="" D
+ . S MGROUP="G."_$$GET1^DIQ(3.8,MGIEN,.01)
+ . S TO(MGROUP)=""
+ D SEND^PXRMMSG("PXRMXMZ","Scheduling database error(s)",.TO,DUZ)
+ K ^TMP($J,"SDAMA301")
+ Q
+ ;
+ ;=========================================================
+APPL(NGET,BDT,EDT,PLIST,PARAM) ;List type computed finding that returns
+ ;a list of patients with appointments in the date range BDT to EDT.
+ N FILTER,FLDS,RESULT
+ K ^TMP($J,PLIST),^TMP($J,"SDAMA301")
+ I BDT<2000000 S BDT=2000101
+ S FILTER(1)=BDT_";"_EDT
+ S FILTER("SORT")="P"
+ ;Set the rest of the filter nodes.
+ D SFILTER(PARAM,.FILTER,.FLDS)
+ ;DBIA #4433
+ S RESULT=$$SDAPI^SDAMA301(.FILTER)
+ I RESULT=-1 D APPERR("Patient List build") Q
+ N COUNT,DATE,DFN,DONE,ITEM
+ S DFN=""
+ F  S DFN=$O(^TMP($J,"SDAMA301",DFN)) Q:DFN=""  D
+ . S (COUNT,DONE)=0,DATE=""
+ . F  S DATE=$O(^TMP($J,"SDAMA301",DFN,DATE),-1) Q:(DONE)!(DATE="")  D
+ .. S COUNT=COUNT+1
+ .. S ITEM=$P(^TMP($J,"SDAMA301",DFN,DATE),U,2)
+ .. S ^TMP($J,PLIST,DFN,COUNT)=U_DATE_U_44_U_$P(ITEM,";",1)_U_$P(ITEM,";",2)
+ .. I COUNT=NGET S DONE=1
+ K ^TMP($J,"SDAMA301"),^TMP($J,"HLOCL")
+ Q
+ ;
+ ;=========================================================
+FSTATUS(STATUS) ;Format the STATUS, field #22.
+ N TEXT,TMP
+ S TMP=$P(STATUS,";",1)
+ S TEXT=$S(TMP="":"",1:"Code - "_TMP)
+ S TMP=$P(STATUS,";",2)
+ I TMP'="" S TEXT=TEXT_"; Description - "_TMP
+ S TMP=$P(STATUS,";",3)
+ I TMP'="" S TEXT=TEXT_"; Print Status - "_TMP
+ S TMP=$P(STATUS,";",4)
+ I TMP'="" S TEXT=TEXT_"; Checked In Date/Time - "_$$EDATE^PXRMDATE(TMP)
+ S TMP=$P(STATUS,";",5)
+ I TMP'="" S TEXT=TEXT_"; Checked Out Date/Time - "_$$EDATE^PXRMDATE(TMP)
+ S TMP=$P(STATUS,";",6)
+ I TMP'="" S TEXT=TEXT_"; Admission Movement IFN - "_TMP
+ Q TEXT
+ ;
+ ;=========================================================
+PAPPL(DFN,NGET,BDT,EDT,NFOUND,TEST,DATE,DATA,TEXT) ;Multiple type computed
+ ;finding that returns a list appointments for a patient.
+ N FIELD,FILTER,FLDS,PARAM,RESULT
+ K ^TMP($J,"SDAMA301")
+ S PARAM=TEST K TEST
+ S NFOUND=0
+ I BDT<2000000 S BDT=2000101
+ S FILTER(1)=BDT_";"_EDT
+ S FILTER(4)=DFN
+ S FILTER("SORT")="P"
+ ;Set the rest of the filter nodes.
+ D SFILTER(PARAM,.FILTER,.FLDS)
+ ;DBIA #4433
+ S RESULT=$$SDAPI^SDAMA301(.FILTER)
+ I RESULT=-1 D APPERR("Computed finding evaluation") Q
+ N ALLNULL,APPDATE,DATALIST,DONE,FLABEL,IND,ITEM,STATUS,TMP
+ S FLABEL(1)="APPOINTMENT DATE/TIME"
+ S FLABEL(2)="CLINIC"
+ S FLABEL(3)="APPOINTMENT STATUS"
+ S FLABEL(4)="PATIENT"
+ S FLABEL(5)="LENGTH OF APPOINTMENT"
+ S FLABEL(6)="COMMENTS"
+ S FLABEL(7)="OVERBOOK"
+ S FLABEL(8)="ELIGIBILITY OF VISIT"
+ S FLABEL(9)="CHECK-IN DATE/TIME"
+ S FLABEL(10)="APPOINTMENT TYPE"
+ S FLABEL(11)="CHECK-OUT DATE/TIME"
+ S FLABEL(12)="OUTPATIENT ENCOUNTER IEN"
+ S FLABEL(13)="PRIMARY STOP CODE"
+ S FLABEL(14)="CREDIT STOP CODE"
+ S FLABEL(15)="WORKLOAD NON-COUNT"
+ S FLABEL(16)="DATE APPOINTMENT MADE"
+ S FLABEL(17)="DESIRED DATE OF APPOINTMENT"
+ S FLABEL(18)="PURPOSE OF VISIT and SHORT DESCRIPTION"
+ S FLABEL(19)="EKG DATE/TIME"
+ S FLABEL(20)="X-RAY DATE/TIME"
+ S FLABEL(21)="LAB DATE/TIME"
+ S FLABEL(22)="STATUS"
+ S FLABEL(23)="X-RAY FILMS"
+ S FLABEL(24)="AUTO-REBOOKED APPOINTMENT DATE/TIME"
+ S FLABEL(25)="NO-SHOW/CANCEL DATE/TIME"
+ S FLABEL(26)="RSA APPOINTMENT ID"
+ S FLABEL(28)="DATA ENTRY CLERK"
+ S FLABEL(29)="NO-SHOW/CANCELED BY"
+ S FLABEL(30)="CHECK-IN USER"
+ S FLABEL(31)="CHECK-OUT USER"
+ S FLABEL(32)="CANCELLATION REASON"
+ S FLABEL(33)="CONSULT LINK"
+ S SDIR=$S(NGET<0:1,1:-1)
+ S NGET=$S(NGET<0:-NGET,1:NGET)
+ S APPDATE="",DONE=0
+ F  S APPDATE=$O(^TMP($J,"SDAMA301",DFN,APPDATE),SDIR) Q:(DONE)!(APPDATE="")  D
+ . S NFOUND=NFOUND+1
+ . S TEST(NFOUND)=1,DATE(NFOUND)=APPDATE
+ .;Fields 1-26
+ . S DATALIST=$G(^TMP($J,"SDAMA301",DFN,APPDATE))
+ .;Fields 28-33
+ . S TMP=$G(^TMP($J,"SDAMA301",DFN,APPDATE,0))
+ . S ALLNULL=1
+ . I TMP'="" F IND=1:1:$L(TMP,U) I $P(TMP,U,IND)'="" S ALLNULL=0
+ . I 'ALLNULL S $P(DATALIST,U,28)=TMP
+ . F IND=1:1:$L(DATALIST,U) D
+ .. S FIELD=$P(DATALIST,U,IND)
+ .. I IND=6 S FIELD=$G(^TMP($J,"SDAMA301",DFN,APPDATE,"C"))
+ .. I FIELD="" Q
+ .. I IND=22 S STATUS=FIELD
+ .. I FLABEL(IND)["DATE" S FIELD=$$EDATE^PXRMDATE(FIELD)
+ .. I FIELD[";" S FIELD=$P(FIELD,";",2)
+ ..;Save the clinic as the value.
+ .. I IND=2 S DATA(NFOUND,"VALUE")=FIELD
+ .. I IND=22 S FIELD=$$FSTATUS(STATUS)
+ .. S TEXT(NFOUND,IND)=FLABEL(IND)_": "_FIELD
+ .. S DATA(NFOUND,FLABEL(IND))=FIELD
+ . I NFOUND=NGET S DONE=1
+ K ^TMP($J,"SDAMA301"),^TMP($J,"HLOCL")
+ Q
+ ;
+ ;=========================================================
+SFILTER(PARAM,FILTER,FLDS) ;Parse the PARMETER and set the appropriate
+ ;fields.
+ N IND,LLNAME,LLP,P1,P2,STATUS,TEMP
+ S (FLDS,LLNAME,STATUS)=""
+ F IND=1:1:$L(PARAM,U) D
+ . S TEMP=$P(PARAM,U,IND)
+ . S P1=$P(TEMP,":",1),P2=$P(TEMP,":",2)
+ . I P1="FLDS" S FLDS=$TR(P2,",",";") Q
+ . I P1="LL" S LLNAME=P2 Q
+ . I P1="STATUS" S STATUS=$TR(P2,",",";") Q
+ S FILTER("FLDS")=$S(FLDS="":"1;2",1:FLDS)
+ S FILTER(3)=$S(STATUS="":"I;R",1:STATUS)
+ I LLNAME="" Q
+ S LLP=$O(^PXRMD(810.9,"B",LLNAME,""))
+ ;The LL VA-ALL LOCATIONS means no clinic filter.
+ I LLNAME'="VA-ALL LOCATIONS" D LOCLIST^PXRMLOCF(LLP,"HLOCL")
+ I $D(^TMP($J,"HLOCL")) S FILTER(2)="^TMP($J,""HLOCL"","
+ Q
+ ;
+ ;=========================================================
+TFL(DFN,NGET,BDT,EDT,NFOUND,TEST,DATE,VALUE,TEXT) ;Multiple type computed
+ ;finding for a patient's treating facility list.
+ N DONE,IND,NOW,SDIR,TDATE,TFL,TFLD
+ S NFOUND=0
+ ;DBIA #2990
+ D TFL^VAFCTFU1(.TFL,DFN)
+ I +TFL(1)=-1 Q
+ S NOW=$$NOW^PXRMDATE
+ S (DONE,IND)=0
+ F  S IND=$O(TFL(IND)) Q:(DONE)!(IND="")  D
+ . S NFOUND=NFOUND+1
+ . S TEST(NFOUND)=1,DATE(NFOUND)=NOW
+ . S VALUE(NFOUND,"VALUE")=TFL(IND)
+ . I NFOUND=NGET S DONE=1 Q
+ F IND=1:1:NFOUND S VALUE(IND,"NUM FACILITIES")=NFOUND
+ Q
+ ;

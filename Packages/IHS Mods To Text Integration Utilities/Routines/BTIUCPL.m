@@ -1,0 +1,157 @@
+BTIUCPL ; IHS/MSC/JS - TIU V Care Plan Object ;25-Nov-2013 10:05;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1012**;MAR 20, 2013;Build 45
+ ;5/22/13 - TO TEST EHR GUI, PARAMETER 'PARAM' HARDSET = 265 (PROBLEM IEN)
+ ;
+ ; <<< USE VISIT IEN 2434 (FEB 22 2013 @13:59) PATIENT TEST,MAX >>>
+ ;
+ ;
+ ;NUMBER: 668    NAME: V CARE PLAN
+ ;DESCRIPTION:   Artifact 13530 - MU TIU Objects for Care Plan
+ ;
+ ;OBJECT METHOD: S RET=$$CPL^BTIUCPL(DFN,"^TMP(""BTIUCPL"",$J)",+$G(TIU("VISIT"),$G(PARAM)))
+ ;
+ ;TEST DIRECT:   S RET=$$CPL^BTIUCPL(DFN,"^TMP(""BTIUCPL"",$J)",+$G(TIU("VISIT"),$G(PARAM)))
+ ;                               (DFN=76,PRIEN=265,PARAM="L")
+ ;
+ ;               S RET=$$CPL^BTIUCPL(76,"BTIUCPL",2434,265)
+ ;
+ ; ^AUPNCPL("ASDT",265,"G",6869670.869591,"A",1,1)=""
+ ; ^AUPNCPL("ASDT",266,"P",6869669.884771,"A",2,1)=""
+ ; ^AUPNCPL("ASDT",267,"G",6869669.884586,"A",3,1)=""
+ ; ^AUPNCPL("ASDT",268,"G",6869596.906661,"A",4,1)=""
+ ;
+ ; ^AUPNCPL("B",265,1)=""
+ ; ^AUPNCPL("B",266,2)=""
+ ; ^AUPNCPL("B",267,3)=""
+ ; ^AUPNCPL("B",268,4)=""
+ ;
+CPL(DFN,TARGET,VIEN,PARAM) ;EHR p12
+ ;  DFN    = The patient this problem belongs to
+ ;  TARGET = Location of object report
+ ;  VIEN   = Visit ien (optional)   [IF VIEN PASSED, PROBLEM(S) RETURNED ARE 'Purpose of Visit' POV]
+ ;  PARAM  = A  All problems        [IF VIEN NULL AND PARAM NULL, DEFAULTS TO 'L' LAST DATE PROBLEM]
+ ;           C  Active problems
+ ;           L  Last date problem
+ ;           Problem ien
+ ;
+ N CNT,CONIEN,CPLANG,CPLANP,CPLARR,CPLCON,CPLVED,CPLVTR,CPLVVI,FNUM,IEN,SNO,STATUS
+ N VED,VST,VTRIN,VVIN,VVISIT
+ I $G(TARGET)="" S TARGET=$$TMPGBL
+ ;I $G(TARGET)="" S TARGET="BTIUCPL"
+ K @TARGET
+ S RET=""
+ S CNT=0
+ I $G(DFN)="" S @TARGET@(1,0)="Invalid input - Missing Patient DFN" Q "~@"_$NA(@TARGET)
+ I $G(VIEN)="" S @TARGET@(1,0)="Invalid input - Missing Visit ien" Q "~@"_$NA(@TARGET)
+ I $G(PARAM)="" S @TARGET@(1,0)="Invalid input - PARAM not a valid Problem ien" Q "~@"_$NA(@TARGET)
+ I $G(PARAM)]"" I PARAM'?1N.E S @TARGET@(1,0)="Invalid input - PARAM not a valid Problem ien" Q "~@"_$NA(@TARGET)
+ ;
+ I $G(PARAM)="" S PARAM="L" ;  default to last date  <<<< future, if 'L' use VVI lkup  5/22/13 <<<<
+ ;
+ I $G(PARAM)]"" I PARAM?1N.E D PRIEN(PARAM)
+ Q "~@"_$NA(@TARGET)
+ ;
+PRIEN(PRIEN) ;
+1 ;-- Get the patient care plan data record(s) --
+ N X S X="" D CPLAN(.X,PRIEN,DFN,"G",.CNT) ;   Care Plan Goals
+ N X S X="" D CPLAN(.X,PRIEN,DFN,"P",.CNT) ;   Care Plan of Care
+ N X S X="" D CPLVVI(.X,DFN,PRIEN,.CNT) ;      Visit Instructions
+ N X S X="" D CPLVTR(.X,DFN,PRIEN,.CNT) ;      Treatment/Regimen
+ N X S X="" D CPLVED(.X,DFN,PRIEN,.CNT) ;      Patient Education
+ N X S X="" D CPLCON(.X,DFN,PRIEN,.CNT) ;      Consults
+ ;
+ I CNT=0 S @TARGET@(1,0)="No Care Plan record found for patient" Q "~@"_$NA(@TARGET)
+ ;
+2 ; -- call GETS^DIQ for file entries --
+ S IEN="",FNUM=9000092 F  S IEN=$O(CPLANG(IEN)) Q:IEN=""  D GETDATA
+ S IEN="",FNUM=9000092 F  S IEN=$O(CPLANP(IEN)) Q:IEN=""  D GETDATA
+ S IEN="",FNUM=9000010.58 F  S IEN=$O(CPLVVI(IEN)) Q:IEN=""  D GETDATA
+ S IEN="",FNUM=9000010.61 F  S IEN=$O(CPLVTR(IEN)) Q:IEN=""  D GETDATA
+ S IEN="",FNUM=9000010.16 F  S IEN=$O(CPLVED(IEN)) Q:IEN=""  D GETDATA
+ S IEN="",FNUM=123 F  S IEN=$O(CPLCON(IEN)) Q:IEN=""  D GETDATA
+ ;
+3 ; -- format object report --
+ N CNT,SPACE,STRPAD
+ S CNT=0
+ S $P(SPACE," ",1)=""
+ S $P(STRPAD," ",3)=""
+ S IEN="",FNUM=9000092 F  S IEN=$O(CPLANG(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ S IEN="",FNUM=9000092 F  S IEN=$O(CPLANP(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ S IEN="",FNUM=9000010.58 F  S IEN=$O(CPLVVI(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ S IEN="",FNUM=9000010.61 F  S IEN=$O(CPLVTR(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ S IEN="",FNUM=9000010.16 F  S IEN=$O(CPLVED(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ S IEN="",FNUM=123 F  S IEN=$O(CPLCON(IEN)) Q:IEN=""  D OUT^BTIUCPL1
+ ;
+CPLAN(DATA,IEN,DFN,TYPE,CNT) ;
+ N INVDT,RET
+ S INVDT=""
+ F  S INVDT=$O(^AUPNCPL("ASDT",IEN,TYPE,INVDT)) Q:INVDT=""  D
+ .S STATUS="" F  S STATUS=$O(^AUPNCPL("ASDT",IEN,TYPE,INVDT,STATUS)) Q:STATUS=""  D
+ ..Q:STATUS="E"
+ ..N CPIEN,SIEN
+ ..S CPIEN="" S CPIEN=$O(^AUPNCPL("ASDT",IEN,TYPE,INVDT,STATUS,CPIEN)) Q:CPIEN=""  D
+ ...S SIEN="" F  S SIEN=$O(^AUPNCPL("ASDT",IEN,TYPE,INVDT,STATUS,CPIEN,SIEN)) Q:SIEN=""  D
+ ....N REC,RECDFN S REC=$G(^AUPNCPL(SIEN,0))
+ ....Q:REC=""
+ ....S RECDFN=$P(REC,U,2)
+ ....Q:RECDFN'=DFN
+ ....I TYPE="G" S CPLANG(SIEN)="" S CNT=CNT+1
+ ....I TYPE="P" S CPLANP(SIEN)="" S CNT=CNT+1
+ Q
+ ;
+CPLVVI(DATA,DFN,PROB,CNT) ;
+ N FNUM,VVIN
+ ;Return the instructions for the last visit by default
+ S VVIN="" F  S VVIN=$O(^AUPNVVI("B",PROB,VVIN)) Q:VVIN=""  D
+ .N REC,RECDFN S REC=$G(^AUPNVVI(VVIN,0))
+ .Q:REC=""
+ .S RECDFN=$P(REC,U,2)
+ .Q:RECDFN'=DFN
+ .S VVISIT=$P(REC,U,3)
+ .Q:'VVISIT
+ .S CPLVVI(VVIN)="" S CNT=CNT+1
+ Q
+ ;
+CPLVTR(DATA,DFN,PROB,CNT) ;
+ S VST="" F  S VST=$O(^AUPNVTXR("AF",DFN,VST)) Q:VST=""  D
+ .S SNO="" F  S SNO=$O(^AUPNVTXR("AF",DFN,VST,SNO)) Q:SNO=""  D
+ ..S VTRIN="" F  S VTRIN=$O(^AUPNVTXR("AF",DFN,VST,SNO,VTRIN)) Q:VTRIN=""  D
+ ...N REC,RECDFN S REC=$G(^AUPNVTXR(VTRIN,0))
+ ...Q:REC=""
+ ...S RECDFN=$P(REC,U,2)
+ ...Q:RECDFN'=DFN
+ ...Q:$P(REC,U,4)'=PROB
+ ...Q:$P(REC,U,5)=1  ; -- DISCONTINUED
+ ...S CPLVTR(VTRIN)="" S CNT=CNT+1
+ Q
+ ;
+CPLVED(DATA,DFN,PROB,CNT) ;
+ I $G(VVISIT)="" Q
+ S VED="" F  S VED=$O(^AUPNVPED("AC",DFN,VED)) Q:VED=""  D
+ .N REC,RECDFN S REC=$G(^AUPNVPED(VED,0))
+ .Q:REC=""
+ .S RECDFN=$P(REC,U,2)
+ .Q:RECDFN'=DFN
+ .Q:$P(REC,U,3)'=VVISIT
+ .S CPLVED(VED)="" S CNT=CNT+1
+ Q
+ ;
+CPLCON(DATA,DFN,PROB,CNT) ;
+ S CONIEN=""
+ F  S CONIEN=$O(^GMR(123,"I",PROB,CONIEN),-1) Q:'+CONIEN  D
+ .N REC,RECDFN S REC=$G(^GMR(123,CONIEN,0))
+ .Q:REC=""
+ .S RECDFN=$P(REC,U,2)
+ .Q:RECDFN'=DFN
+ .S CPLCON(CONIEN)="" S CNT=CNT+1
+ Q
+ ;
+GETDATA ;
+ K CPLERR
+ D GETS^DIQ(FNUM,IEN_",","**","E","CPLARR","CPLERR")
+ I $D(CPLERR) D   Q "~@"_$NA(@TARGET)
+ .S @TARGET@(1,0)="Server error: "_$G(FNUM)_$G(CPLERR("DIERR",1))_U_$G(CPLERR("DIERR",1,"TEXT",1))
+ Q
+ ;
+TMPGBL(X) ;EP
+ K ^TMP("BTIUCPL",$J) Q $NA(^($J))

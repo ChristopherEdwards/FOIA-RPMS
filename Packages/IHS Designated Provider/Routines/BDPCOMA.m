@@ -1,5 +1,5 @@
 BDPCOMA ; IHS/CMI/TMJ - ADD RECORDS FOR A PARTICULAR COMMUNITY ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ;This routine adds patient living in a selected community
  ;for a selected Provider and Provider Type
@@ -63,6 +63,16 @@ TYPE ; GET CATEGORY TYPE FOR DESIGNATED PROVIDER
  S DIR(0)="90360.1,.01",DIR("B")="DPCP" K DA D ^DIR K DIR
  Q:$D(DIRUT)
  S BDPTYPE=+Y,BDPREC("PROV TYPE")=Y(0)
+ I $P(^BDPTCAT(BDPTYPE,0),U,1)="MESSAGE AGENT",'$D(^BDPMSGA("B",BDPPROV)) D  G TYPE
+ .W !!,"The provider you selected is not listed as a Message Agent, he/she must "
+ .W !,"be added to the Message Agent List using the option on the Manager's "
+ .W !,"Menu before they can be assigned as a message agent.",!
+ I $P(^BDPTCAT(BDPTYPE,0),U,1)="MESSAGE AGENT",$P($G(^BDPMSGA(BDPPROV,0)),U,3) D  G TYPE
+ .W !!,"The provider you selected has been inactivated as a message agent, he/she"
+ .W !," must be reactivated using the option on the Manager's Menu before they can "
+ .W !,"be assigned as a message agent.",!
+ ;
+ ;
  S BDPQ=0
  Q
 PROV ; GET DESIGNATED PROVIDER

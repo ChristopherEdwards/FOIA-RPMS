@@ -1,5 +1,5 @@
 BSDWKR6 ;cmi/anch/maw - BSD Turn Around Time Report 2/20/2007 2:41:31 PM
- ;;5.3;PIMS;**1007,1010,1011,1012**;FEB 27, 2007
+ ;;5.3;PIMS;**1007,1010,1011,1012,1019**;FEB 27, 2007;Build 3
  ;
  ;
  ;cmi/anch/maw 2/20/2007 PATCH 1007 item 1007.24
@@ -235,7 +235,8 @@ PRINT ; print report to paper
  NEW BSDX S BSDX=0 F  S BSDX=$O(^TMP("BSDWKR6",$J,BSDX)) Q:'BSDX  D
  . I $Y>(IOSL-4) D
  ..S PAGE=PAGE+1
- ..S Y=$$READ^BDGF("E","Press Return to Continue")
+ ..;S Y=$$READ^BDGF("E","Press Return to Continue")
+ ..I $E(IOST,1,1)="C" S Y=$$READ^BDGF("E","Press Return to Continue")  ;ihs/cmi/maw 01/29/2016 PATCH 1019
  ..D HDG
  . W !,^TMP("BSDWKR6",$J,BSDX,0)
  D ^%ZISC,EXIT

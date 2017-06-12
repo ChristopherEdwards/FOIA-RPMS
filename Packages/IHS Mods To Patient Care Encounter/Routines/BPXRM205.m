@@ -1,0 +1,231 @@
+BPXRM205 ; IHS/MSC/MGH - Version 2.0 Patch 1005 post routine. ;17-Jun-2015 06:33;du
+ ;;2.0;CLINICAL REMINDERS;**1005**;Feb 04, 2005;Build 23
+ ;
+ENV ;EP environment check
+ N IN,INSTDA,STAT
+ ;Check for the installation of Reminders 2.0
+ S IN="CLINICAL REMINDERS 2.0",INSTDA=""
+ I '$D(^XPD(9.7,"B",IN)) D  Q
+ .W !,"You must first install CLINICAL REMINDERS 2.0 before this patch" S XPDQUIT=2
+ S INSTDA=$O(^XPD(9.7,"B",IN,INSTDA),-1)
+ S STAT=+$P($G(^XPD(9.7,INSTDA,0)),U,9)
+ I STAT'=3 D  Q
+ .W !,"CLINICAL REMINDERS 2.0 must be completely installed before installing this patch." S XPDQUIT=2
+ S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
+ ;
+ S IN="IHS CLINICAL REPORTING 14.0",INSTDA=""
+ I '$D(^XPD(9.7,"B",IN)) D  Q
+ .W !,"You must first install IHS CLINICAL REPORTING 14.0 before this patch" S XPDQUIT=2
+ S INSTDA=$O(^XPD(9.7,"B",IN,INSTDA),-1)
+ S STAT=+$P($G(^XPD(9.7,INSTDA,0)),U,9)
+ I STAT'=3 D  Q
+ .W !,"IHS CLINICAL REPORTING 14.0 must be completely installed before installing this patch." S XPDQUIT=2
+ S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
+ S IN="AICD 4.0",INSTDA=""
+ I '$D(^XPD(9.7,"B",IN)) D  Q
+ .W !,"You must first install AICD 4.0 before this patch" S XPDQUIT=2
+ S INSTDA=$O(^XPD(9.7,"B",IN,INSTDA),-1)
+ S STAT=+$P($G(^XPD(9.7,INSTDA,0)),U,9)
+ I STAT'=3 D  Q
+ .W !,"AICD 4.0 must be completely installed before installing this patch." S XPDQUIT=2
+ S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
+ ;Check for the installation of other patches
+ S PATCH="PXRM*2.0*1004"
+ I '$$PATCH(PATCH) D  Q
+ . W !,"You must first install "_PATCH_"." S XPDQUIT=2
+ S PATCH="GMPL*2.0*1004"
+ I '$$PATCH(PATCH) D  Q
+ . W !,"You must first install "_PATCH_"." S XPDQUIT=2
+ S PATCH="XU*8.0*539"
+ I '$$PATCH(PATCH) D  Q
+ . W !,"You must first install "_PATCH_"." S XPDQUIT=2
+ Q
+PATCH(X) ;return 1 if patch X was installed, X=aaaa*nn.nn*nnnn
+ ;copy of code from XPDUTL but modified to handle 4 digit IHS patch numb
+ Q:X'?1.4UN1"*"1.2N1"."1.2N.1(1"V",1"T").2N1"*"1.4N 0
+ NEW NUM,I,J
+ S I=$O(^DIC(9.4,"C",$P(X,"*"),0)) Q:'I 0
+ S J=$O(^DIC(9.4,I,22,"B",$P(X,"*",2),0)),X=$P(X,"*",3) Q:'J 0
+ ;check if patch is just a number
+ Q:$O(^DIC(9.4,I,22,J,"PAH","B",X,0)) 1
+ S NUM=$O(^DIC(9.4,I,22,J,"PAH","B",X_" SEQ"))
+ Q (X=+NUM)
+ ;===============================================================
+PRE ;EP pre-init
+ ;Delete exchange file entries put in by patches
+ D DELEI
+ ;delete the DDs for files with Variable pointers
+ D DELDD
+ Q
+ ;===============================================================
+POST ;Post-install
+ N DIK
+ K ^XTMP("PXRM_DISEV")
+ D CVMEA
+ ;Rebuild X-ref
+ S DIK="PXD(811.2,"
+ S DIK(1)="4^APDS"
+ D ENALL2^DIK
+ S DIK="PXD(811.2,"
+ S DIK(1)="4^APDS"
+ D ENALL^DIK
+ D SOURCE
+ Q
+ ;
+ARRAY(ARRAY) ;List of exchange entries used by delete and install
+ S ARRAY(1,1)="DEPRESSION/PTSD REMINDER TERM UPDATES - PATCH 17"
+ S ARRAY(2,1)="ECOE REMINDER DIALOGS"
+ S ARRAY(3,1)="NATIONAL BLOOD PRESSURE CHANGES"
+ S ARRAY(4,1)="PATCH 12 ITEMS"
+ S ARRAY(5,1)="PXRM PATCH 26 DIALOG UPDATES"
+ S ARRAY(6,1)="PXRM VISIT DATE MONTH REQ YEAR BLANK"
+ S ARRAY(7,1)="PXRM*2*17 COMPUTED FINDINGS"
+ S ARRAY(8,1)="RT VA-ALCOHOL NONE PAST 1YR"
+ S ARRAY(9,1)="TX HIGH RISK FLU AND PNEUMONIA"
+ S ARRAY(10,1)="UPDATE VA-DIABETES"
+ S ARRAY(11,1)="VA BRANCHING LOGIC REMINDER UPDATES OEF/OIF"
+ S ARRAY(12,1)="VA MH SCREENING REMINDERS UPDATE"
+ S ARRAY(13,1)="VA-AAA SCREENING"
+ S ARRAY(14,1)="VA-ALCOHOL AUDIT-C POSITIVE F/U EVAL"
+ S ARRAY(15,1)="VA-ALCOHOL F/U POS AUDIT-C"
+ S ARRAY(16,1)="VA-BL DEPRESSION SCREEN"
+ S ARRAY(17,1)="VA-BREAST TUMOR"
+ S ARRAY(18,1)="VA-DEPRESSION SCREENING"
+ S ARRAY(19,1)="VA-DISABLE BRANCHING LOGIC REPLACEMENT ELEMENT"
+ S ARRAY(20,1)="VA-EMBEDDED FRAGMENTS RISK EVALUATION"
+ S ARRAY(21,1)="VA-EMBEDDED FRAGMENTS SCREEN"
+ S ARRAY(22,1)="VA-GP ALC ADVICE2"
+ S ARRAY(23,1)="VA-GP EF CONTACT INFORMATION"
+ S ARRAY(24,1)="VA-GP LDL STATIN REMINDER NOT DUE"
+ S ARRAY(25,1)="VA-HF ACUTE ILLNESS EVAL"
+ S ARRAY(26,1)="VA-HF ETOH SELF SCORE AUD 10"
+ S ARRAY(27,1)="VA-HOMELESSNESS SCREENING"
+ S ARRAY(28,1)="VA-HOMELESSNESS SCREEENING DIALOG"
+ S ARRAY(29,1)="VA-INFLUENZA 2010 UPDATES"
+ S ARRAY(30,1)="VA-INFLUENZA H1N1 UPDATE"
+ S ARRAY(31,1)="VA-IRAQ AFGHAN"
+ S ARRAY(32,1)="VA-LIPID STATIN RX CVD/DM (VER1.0)"
+ S ARRAY(33,1)="VA-MH HIGH RISK NO-SHOW ADHOC RPT"
+ S ARRAY(34,1)="VA-MH NO SHOW APPT CLINICS LL"
+ S ARRAY(35,1)="VA-MH STOP CODES FOR PTSD EVALUATION"
+ S ARRAY(36,1)="VA-MHTC APPT STOP CODES AND EXCLUSION STOP"
+ S ARRAY(37,1)="VA-MHTC NEEDS ASSIGNMENT"
+ S ARRAY(38,1)="VA-MHV BMI COLORECTAL UPDATES PATCH 12"
+ S ARRAY(39,1)="VA-MHV CERVICAL CANCER SCREEN"
+ S ARRAY(40,1)="VA-MHV HIGH RISK TERMS"
+ S ARRAY(41,1)="VA-MHV HYPERTENSION"
+ S ARRAY(42,1)="VA-MHV INFLUENZA VACCINE"
+ S ARRAY(43,1)="VA-MHV MAMMOGRAM SCREENING"
+ S ARRAY(44,1)="VA-MHV RETINOPATHY TERMS"
+ S ARRAY(45,1)="VA-OEF/OIF MONITOR"
+ S ARRAY(46,1)="VA-OEF/OIF MONITOR REPORTING"
+ S ARRAY(47,1)="VA-PATIENT RECORD FLAG INFORMATION"
+ S ARRAY(48,1)="VA-POLYTRAUMA MARKER"
+ S ARRAY(49,1)="VA-PROJECT ARCH VISN CONTRACT CARE PILOT ELIGIBILITY"
+ S ARRAY(50,1)="VA-PTSD REASSESSMENT (PCL)"
+ S ARRAY(51,1)="VA-TB/POSITIVE PPD"
+ S ARRAY(52,1)="VA-TBI/POLY IDT EVALUATIONS ELEMENT UPDATE"
+ S ARRAY(53,1)="VA-TERATOGENIC MEDICATIONS ORDER CHECKS"
+ S ARRAY(54,1)="VA-TEXT INFO SCREEN FOR AAA"
+ S ARRAY(55,1)="VA-WH DISCUSS BREAST CA SCREEN WOMAN 40-49"
+ S ARRAY(56,1)="VA-WH MAMMOGRAM REVIEW RESULTS DIALOG"
+ S ARRAY(57,1)="VA-WH MAMMOGRAM SCREENING"
+ S ARRAY(58,1)="VA-WH MAMMOGRAM SCREENING DIALOG"
+ S ARRAY(59,1)="VA-WH PAP SMEAR REVIEW RESULTS"
+ S ARRAY(60,1)="VA-WH PAP SMEAR REVIEW RESULTS DIALOG"
+ S ARRAY(61,1)="VA-WH PAP SMEAR SCREENING"
+ S ARRAY(62,1)="VA-WH PAP SMEAR SCREENING DIALOG"
+ S ARRAY(63,1)="VA-MH HIGH RISK NO-SHOW FOLLOW-UP"
+ S ARRAY(64,1)="VA-WH DISCUSS BREAST CA WOMAN 40-49 DIALOG"
+ S ARRAY(65,1)="VA-TERATOGENIC MEDICATIONS ORDER CHECKS (UPDATE #1)"
+ S ARRAY(66,1)="VA-PNEUMOCOCCAL REMINDERS"
+ S ARRAY(67,1)="VA-PATCH 36 POST COMPONENTS"
+ S ARRAY(68,1)="VA-PATCH 31 POST HS COMPONENTS"
+ S ARRAY(69,1)="VA-PALLIATIVE CARE CONSULT"
+ S ARRAY(70,1)="VA-ECOE PATCH 30 ELEMENT UPDATE"
+ S ARRAY(71,1)="PXRM*2*26 NATIONAL TAXONOMIES"
+ S ARRAY(72,1)="PATCH 36 WH TAXONOMIES (5)"
+ S ARRAY(73,1)="PRXM PATCH 26 ECOE UPDATE"
+ S ARRAY(74,1)="PXRM PATCH 26 PALLIATIVE CARE UPDATE"
+ Q
+ ;
+ ;===============================================================
+DELEI ;If the Exchange File entry already exists delete it.
+ N ARRAY,IC,IND,LIST,LUVALUE,NUM
+ D ARRAY(.ARRAY)
+ S IC=0
+ F  S IC=$O(ARRAY(IC)) Q:'IC  D
+ .S LUVALUE(1)=ARRAY(IC,1)
+ .D FIND^DIC(811.8,"","","U",.LUVALUE,"","","","","LIST")
+ .I '$D(LIST) Q
+ .S NUM=$P(LIST("DILIST",0),U,1)
+ .I NUM'=0 D
+ ..F IND=1:1:NUM D
+ ... N DA,DIK
+ ... S DIK="^PXD(811.8,"
+ ... S DA=LIST("DILIST",2,IND)
+ ... D ^DIK
+ Q
+ ;
+ ;===============================================================
+DELDD ;Delete the old data dictionaries.
+ N DIU,TEXT
+ D EN^DDIOL("Removing old data dictionaries.")
+ S DIU(0)=""
+ F DIU=801.41,811.5,811.9 D
+ . S TEXT=" Deleting data dictionary for file # "_DIU
+ . D EN^DDIOL(TEXT)
+ . D EN^DIU2
+ Q
+ ;Delete the cross-reference
+CVMEA N MSG,RESULT,XREF
+ D BMES^XPDUTL("Deleting V MEASUREMENT XREF")
+ D DELIXN^DDMOD(9000010.01,"ACR","","",.MSG)
+ ;Create cross-reference for V MEASUREMENTS
+ D BMES^XPDUTL("Creating V MEASUREMENT XREF.")
+ ;Set the XREF nodes
+ S XREF("FILE")=9000010.01
+ S XREF("ROOT FILE")=9000010.01
+ S XREF("SET")="D EVFILE^PXPXRM(9000010.01,.X,.DA)"
+ S XREF("KILL")="D KEFILE^PXPXRM(9000010.01,.X,.DA)"
+ S XREF("WHOLE KILL")="K ^PXRMINDX(9000010.01)"
+ D SXREFVF(.XREF,"measurement type")
+ D CREIXN^DDMOD(.XREF,"k",.RESULT,"","MSG")
+ I RESULT="" D DCERRMSG(.MSG,.XREF)
+ Q
+SXREFVF(XREF,ITEM) ;Set XREF array nodes common for all V files.
+ N UITEM
+ S UITEM=$$UP^XLFSTR(ITEM)
+ S XREF("TYPE")="MU"
+ S XREF("NAME")="ACR"
+ S XREF("SHORT DESCR")="Clinical Reminders index."
+ S XREF("DESCR",1)="This cross-reference builds two indexes, one for finding"
+ S XREF("DESCR",2)="all patients with a particular "_ITEM_" and one for finding all"
+ S XREF("DESCR",3)="the "_ITEM_"s a patient has."
+ S XREF("DESCR",4)="The indexes are stored in the Clinical Reminders index global as:"
+ S XREF("DESCR",5)=" ^PXRMINDX("_XREF("FILE")_",""IP"","_UITEM_",DFN,ENTRY DATE/TIME,DAS) and"
+ S XREF("DESCR",6)=" ^PXRMINDX("_XREF("FILE")_",""PI"",DFN,"_UITEM_",ENTRY DATE/TIME,DAS)"
+ S XREF("DESCR",7)="respectively."
+ S XREF("DESCR",8)="For all the details, see the Clinical Reminders Index Technical Guide/Programmer's Manual."
+ S XREF("USE")="ACTION"
+ S XREF("EXECUTION")="R"
+ S XREF("ACTIVITY")="IR"
+ S XREF("VAL",1)=.01
+ S XREF("VAL",1,"SUBSCRIPT")=1
+ S XREF("VAL",2)=.02
+ S XREF("VAL",2,"SUBSCRIPT")=2
+ Q
+DCERRMSG(MSG,XREF) ;Display cross-reference creation error message.
+ W !,"Cross-reference could not be created!"
+ W !,"Error message:"
+ D AWRITE^PXRMUTIL("MSG")
+ W !!,"Cross-reference information:"
+ D AWRITE^PXRMUTIL("XREF")
+ Q
+SOURCE ;Loop through the taxonomies and reset the data sources
+ N IEN,SOURCE
+ S IEN=0 F  S IEN=$O(^PXD(811.2,IEN)) Q:'+IEN  D
+ .S SOURCE=$P($G(^PXD(811.2,IEN,0)),U,4)
+ .Q:SOURCE=""
+ .D SPDS^PXRMPDS(IEN,SOURCE)
+ Q

@@ -1,11 +1,12 @@
 BIPATUP2 ;IHS/CMI/MWR - UPDATE PATIENT DATA 2; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  IHS FORECAST. UPDATE PATIENT DATA, IMM FORECAST IN ^BIPDUE(.
  ;;  NOTE!: An earlier version of this routine is saved in BIZPATUP2.
  ;;  PATCH 8: Changes for Problem Doses retrieval from TCH Forecaster.  DPROBS+10
  ;;  PATCH 9: Mods to flag only problem components of combo vaccines.  DPROBS+23
- ;
+ ;;  PATCH 10: Strip TCH's leading zero, so it matches RPMS CVX.  DPROBS+32
+ ;;  PATCH 13: Changes to...aDD "C" xref on Vaccine IEN in ^BIPDUE  SETDUE+24, KILLDUE+20
  ;
  ;----------
 DPROBS(BIFORC,BIPDSS,BIID) ;EP
@@ -39,7 +40,12 @@ DPROBS(BIFORC,BIPDSS,BIID) ;EP
  .;
  .N BICVXS S BICVXS=$P(BIDOSE,U,7)
  .;---> If piece 7 is null then not a combo, set BIPDSS and quit.
- .I 'BICVXS S BIPDSS=BIPDSS_$P(BIDOSE,U)_"%"_$P(BIDOSE,U,2)_U Q
+ .;
+ .;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ .;---> Strip TCH's leading zero, so it matches RPMS CVX ("03"=3).
+ .;I 'BICVXS S BIPDSS=BIPDSS_$P(BIDOSE,U)_"%"_$P(BIDOSE,U,2)_U Q
+ .I 'BICVXS S BIPDSS=BIPDSS_$P(BIDOSE,U)_"%"_+$P(BIDOSE,U,2)_U Q
+ .;**********
  .;
  .;--> Piece 7 equals one or more problem CVX's in this combo, delimited by comma.
  .N J F J=1:1 S BICVX=$P(BICVXS,",",J) Q:'BICVX  D
@@ -70,7 +76,14 @@ KILLDUE(BIDFN) ;EP
  ..S Z=$P(Y,U,4) K:Z ^BIPDUE("D",Z,N)
  ..S Z=$P(Y,U,5) K:Z ^BIPDUE("D",Z,N)
  ..S $P(^BIPDUE(0),U,4)=$P(^BIPDUE(0),U,4)-1
+ ..;
+ ..;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ..;---> Kill "C" xref on 2nd pc, Vaccine IEN.
+ ..S Z=$P(Y,U,2) K:Z ^BIPDUE("C",Z,N)
+ ..;**********
+ ..;
  .K ^BIPDUE("B",BIDFN),^BIPDUE("E",BIDFN)
+ ;
  ;
  ;---> Clear previous Forecasting Errors.
  D:$D(^BIPERR("B",BIDFN))
@@ -156,5 +169,12 @@ SETDUE(BIDATA) ;EP
  S A=$P(BIDATA,U,4),B=$P(BIDATA,U,5)
  I A S ^BIPDUE("D",A,N)=""
  I B S ^BIPDUE("D",B,N)="",^BIPDUE("E",BIDFN,B,N)=""
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Add "C" xref on 2nd pc, Vaccine IEN.
+ N V S V=$P(BIDATA,U,2)
+ I V S ^BIPDUE("C",V,N)=""
+ ;**********
+ ;
  S $P(^BIPDUE(0),U,3,4)=N_U_(M+1)
  Q

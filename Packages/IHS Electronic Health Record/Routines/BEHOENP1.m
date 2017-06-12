@@ -1,5 +1,5 @@
-BEHOENP1 ;MSC/IND/DKM - Retrieve PCC data for a visit ;02-Feb-2010 15:19;MGH
- ;;1.1;BEH COMPONENTS;**005002,005004**;Sep 18, 2007
+BEHOENP1 ;MSC/IND/DKM - Retrieve PCC data for a visit ;03-Jun-2014 12:24;DU
+ ;;1.1;BEH COMPONENTS;**005002,005004,005011,005012**;Sep 18, 2007
  ;=================================================================
  ; RPC: Return PCC data for an associated visit
 LOAD(DATA,DFN,VIEN) ;EP
@@ -52,16 +52,23 @@ PRV N NARR,PRIM
  Q
  ; V POV
  ; POV^ien^CAT^narrative^com^prv^primary
-POV N NARR,PRIM
- S:CODE CODE=$P(^ICD9(CODE,0),U)
- S NARR=$P(X(0),U,4)
- S:NARR NARR=$P(^AUTNPOV(NARR,0),U)
+POV N NARR,PRIM,VDATE
+ ;IHS/MSC/MGH Changes for ICD-10 update
+ I CODE D
+ .S VDATE=$P($G(^AUPNVSIT(VIEN,0)),U,1)
+ .I $$AICD^BEHOENPC S CODE=$P($$ICDDX^ICDEX(CODE,VDATE),U,2)
+ .E  S CODE=$P($$ICDDX^ICDCODE(CODE,VDATE),U,2)
+ ;S CODE=$P(^ICD9(CODE,0),U)
+ ;S NARR=$P(X(0),U,4)
+ S NARR=$$GET1^DIQ(9000010.07,LP,.04)
+ I $P(NARR,"|",2)="" S NARR=$P(NARR,"|",1)
+ ;S:NARR NARR=$P(^AUTNPOV(NARR,0),U)
  S PRIM=$P(X(0),U,12)="P"
  D ADD(TAG_U_CODE_U_CAT_U_NARR_U_U_PRV_U_PRIM,CMNT)
  Q
  ; V CPT
  ; CPT^ien^cat^nar^com^prv^qty^mods
-CPT N NARR,QTY,MCNT,MIDX,MODS
+CPT N NARR,QTY,MCNT,MIDX,MODS,MIEN
  S CODE=$O(^ICPT("B",CODE,0))
  S:CODE CODE=$P(^ICPT(CODE,0),U)
  S NARR=$P(X(0),U,4)
@@ -93,8 +100,17 @@ SK N NARR,QTY,REF
  Q
  ; V PATIENT ED
  ; PED^ien^cat^nar^com^prv^Level of understanding^Refused^Elapsed^Setting^Goals^Outcome
-PED N NARR,QTY,REF
- S:CODE NARR=$P(^AUTTEDT(CODE,0),U)
+PED N NARR,QTY,REF,SNO,Z,TXT,IN
+ Q:'CODE
+ S NARR=$P(^AUTTEDT(CODE,0),U)
+ ;IHS/MSC/MGH Updated for SNOMED education
+ I $P($G(^AUTTEDT(CODE,0)),U,12)'="" D
+ .S TXT=""
+ .S SNO=$P($G(^AUTTEDT(CODE,0)),U,12)
+ .S IN=SNO_U_36_U_U_1
+ .S Z=$$CONC^BSTSAPI(IN)
+ .S TXT=$P(Z,U,4)
+ .I $L(TXT) S NARR=TXT_"-"_$P($P($G(^AUTTEDT(CODE,0)),U,1),"-",2)
  S QTY=$P(X(0),U,6)
  S REF=$$REFUSAL(9999999.09,CODE,LP)
  D ADD(TAG_U_CODE_U_CAT_U_NARR_U_U_PRV_U_QTY_U_REF_U_$P(X(0),U,8)_U_$P(X(0),U,7)_U_$P(X(0),U,13)_U_$P(X(0),U,14),CMNT)
@@ -123,9 +139,11 @@ TRT N QTY,NARR
  D ADD(TAG_U_CODE_U_CAT_U_NARR_U_U_PRV_U_QTY,CMNT)
  Q
  ; V MEASUREMENT
-MSR N NARR,VAL
+MSR N NARR,VAL,EIE
  S:CODE NARR=$P(^AUTTMSR(CODE,0),U)
  S VAL=$P(X(0),U,4)
+ S EIE=$P($G(X(2)),U,1)
+ Q:EIE=1
  D ADD(TAG_U_CODE_U_CAT_U_$G(NARR)_U_U_PRV_U_VAL)
  Q
  ; GMRV VITAL MEASUREMENT
@@ -172,4 +190,11 @@ IMMLOTSC(LOT,IMM) ;EP
  S X=$G(^AUTTIML(+LOT,0))
  Q:'$L(X)!$P(X,U,3) 0
  F I=4:1:8 I $P(X,U,I)=IMM S I=-1 Q
+ ;IHS/MSC/MGH P14 Facility specific lot
+ Q:(($P(X,U,14))&($P(X,U,14)'=$G(DUZ(2)))) 0
  Q $S(I=-1:1,1:0)
+ ;Elig screen
+IMMELIG(CODE) ;EP
+ N X
+ S X=$G(^BIELIG(CODE,0))
+ Q '$P(X,U,3)

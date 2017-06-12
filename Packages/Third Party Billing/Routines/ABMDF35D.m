@@ -1,5 +1,6 @@
 ABMDF35D ; IHS/SD/SDR - Set HCFA1500 (02/12) Print Array - Part 4 ;  
- ;;2.6;IHS Third Party Billing;**13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**13,14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR - 2.6*14 - Updated DX^ABMCVAPI call to be numeric
  ;
  ; *********************************************************************
  ;
@@ -11,7 +12,8 @@ DX ; Diagnosis Info
  S ABMDXQ=0
  F  S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM!(ABM>12)  D  Q:ABMDXQ=1
  .S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM,""))
- .S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ; CSV-c
+ .;S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ; CSV-c  ;abm*2.6*14 updated API call
+ .S ABM("DIAG")=$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,2)  ; CSV-c  ;abm*2.6*14 updated API call
  .S $P(ABMF(30),U)=$S($P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0)),U,6)=1:0,1:9)  ;ICD indicator
  .S $P(ABMF(ABM("ID")),U,ABM("TB"))=ABM("DIAG")
  .S ABM("TB")=ABM("TB")+1

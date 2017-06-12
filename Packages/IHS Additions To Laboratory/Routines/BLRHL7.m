@@ -1,5 +1,5 @@
-BLRHL7 ;cmi/anch/maw - Main Driver for incoming HL7 messages 12/3/1997 ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027**;NOV 01, 1997
+BLRHL7 ;cmi/anch/maw - Main Driver for incoming HL7 messages 12/3/1997 ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;IHS LABORATORY;**1027,1033**;NOV 01, 1997
  ;
  ;;5.2;LAB MESSAGING;**17,27**;Sep 27, 1994
  ;this will be the GIS equivalent of LA7HL7
@@ -19,7 +19,7 @@ ORU(HLDA) ;EP - Process incoming ORU
  I LA7MSH="" D REJECT("no MSH in 772") G EXIT
  S LA7FS=$E(LA7MSH,4)
  S LA7CFIG=""
- F LA7=3:1:6 S LA7CFIG=LA7CFIG_$P(LA7MSH,LA7FS,LA7)
+ F LA7=3:1:6 S LA7CFIG=LA7CFIG_$P($P(LA7MSH,LA7FS,LA7),"^")  ;dont get anything in the components
  S LA7CFIG=$TR(LA7CFIG,"^")  ;cmi/maw 10/08/2007
  S X=LA7CFIG X ^%ZOSF("LPC")
  S LA76248=$O(^LAHM(62.48,"C",$E(LA7CFIG,1,27)_Y,0))
@@ -47,6 +47,7 @@ ORUPUT ;store incoming message in ^LAHM(62.49,
  ;move message from HL7 global to Lab global
  ;cmi/flag/maw modified to account for GIS Line Split 7/21/2004
  S LA71=0
+ S BLRSEGF=""
  F LA7=0:0 S LA7=$O(^INTHU(HLDA,3,LA7)) Q:'LA7  D
  . S BLRSEG=$G(^INTHU(HLDA,3,LA7,0))
  . S BLRSEG=$TR(BLRSEG,$C(10))  ;cmi/anch/maw 8/15/2007 added due to UNILAB passing a $C(10) in at the beginning of each line

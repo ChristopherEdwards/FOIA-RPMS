@@ -1,15 +1,15 @@
 AMHPHQM ; IHS/CMI/LAB - PHQ - MULTIPLE PATS 10 Dec 2008 9:28 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**4**;JUN 18, 2010;Build 28
+ ;;4.0;IHS BEHAVIORAL HEALTH;**4,6**;JUN 02, 2010;Build 10
  ;
  ;
 START ;
  W:$D(IOF) @IOF
  D EN^XBVK("AMH")
- W !,$$CTR^AMHLEIN("PHQ-2 and PHQ-9 Depression Outcomes - Scores for Multiple Patients",80),!!
- W !,"This option is used to list PHQ-2 and PHQ-9 Scores for multiple patients sorted"
- W !,"by patient.",!
+ W !,$$CTR^AMHLEIN("PHQ-2, PHQ-9 and PHQ-9T Depression Outcomes - Scores for Multiple Patients",80),!!
+ W !,"This option is used to list PHQ-2, PHQ-9 and PHQ-9T Scores for multiple "
+ W !,"patients sorted by patient.",!
 WHICH ;
- W !!,"Please note:  Only visits with PHQ-2/PHQ-9 scores recorded will display on ",!,"this list.",!
+ W !!,"Please note:  Only visits with PHQ-2/PHQ-9/PHQ-9T scores recorded will display",!,"on this list.",!
  D DBHUSR^AMHUTIL
 DATES ;
  K AMHED,AMHBD
@@ -118,26 +118,28 @@ DONE ;
 PRINT1 ;
  I $Y>(IOSL-3) D HEADER Q:$D(AMHQ)
  W !,$E(AMHNAME,1,15),?17,$$HRN^AUPNPAT(DFN,DUZ(2)),?24,$$D^AMHLEIN((9999999-AMHDATE))
- S X=0,Y="",Z="",T=""
+ S X=0,Y="",Z="",T="",J=""
  I AMHT="BH" D
  .F  S X=$O(^AMHRMSR("AD",AMHV,X)) Q:X'=+X  D
  ..S Y=$$VAL^XBDIQ1(9002011.12,X,.01)
  ..I Y="PHQ2" S T=T_$P(^AMHRMSR(X,0),U,4)_" "
  ..I Y="PHQ9" S Z=Z_$P(^AMHRMSR(X,0),U,4)_" "
+ ..I Y="PHQT" S J=J_$P(^AMHRMSR(X,0),U,4)_" "
  I AMHT="PCC" D
  .F  S X=$O(^AUPNVMSR("AD",AMHV,X)) Q:X'=+X  D
  ..S Y=$$VAL^XBDIQ1(9000010.01,X,.01) D
  ..I Y="PHQ2" S T=T_$P(^AUPNVMSR(X,0),U,4)_" "
  ..I Y="PHQ9" S Z=Z_$P(^AUPNVMSR(X,0),U,4)_" "
- W ?33,T,?39,Z
+ ..I Y="PHQT" S J=J_$P(^AUPNVMSR(X,0),U,4)_" "
+ W ?34,T,?38,Z,?43,J
  I AMHT="BH" D
- .W ?45,$E($$PPNAME^AMHUTIL(AMHV),1,10),?57,$E($$VAL^XBDIQ1(9002011,AMHV,.25),1,5)
+ .W ?48,$E($$PPNAME^AMHUTIL(AMHV),1,9),?58,$E($$VAL^XBDIQ1(9002011,AMHV,.25),1,5)
  .S X=$O(^AMHRPRO("AD",AMHV,0))
- .I X W ?64,$$VAL^XBDIQ1(9002011.01,X,.01)_"-"_$E($$VAL^XBDIQ1(9002011.01,X,.04),1,7)
+ .I X W ?65,$$VAL^XBDIQ1(9002011.01,X,.01)_"-"_$E($$VAL^XBDIQ1(9002011.01,X,.04),1,6)
  I AMHT="PCC" D
- .W ?45,$E($$PRIMPROV^APCLV(AMHV),1,10),?57,$E($$VAL^XBDIQ1(9000010,AMHV,.08),1,5)
+ .W ?48,$E($$PRIMPROV^APCLV(AMHV),1,9),?58,$E($$VAL^XBDIQ1(9000010,AMHV,.08),1,5)
  .S X=$O(^AUPNVPOV("AD",AMHV,0))
- .I X W ?64,$$VAL^XBDIQ1(9000010.07,X,.01)_"-"_$E($$VAL^XBDIQ1(9000010.07,X,.04),1,7)
+ .I X W ?65,$$VAL^XBDIQ1(9000010.07,X,.01)_"-"_$E($$VAL^XBDIQ1(9000010.07,X,.04),1,6)
  Q
  ;----------
 HEADER ;EP
@@ -146,10 +148,11 @@ HEADER ;EP
 HEADER1 ;
  W:$D(IOF) @IOF S AMHPG=AMHPG+1
  W !?3,$P(^VA(200,DUZ,0),U,2),?35,$$FMTE^XLFDT(DT),?70,"Page ",AMHPG,!
- W !,$$CTR^AMHLEIN("PHQ-2 and PHQ-9 SCORES FOR MULTIPLE PATIENTS",80),!
+ W !,$$CTR^AMHLEIN("PHQ-2, PHQ-9 and PHQ-9T SCORES FOR MULTIPLE PATIENTS",80),!
  S X="Visit Dates: "_$$FMTE^XLFDT(AMHBD)_" to "_$$FMTE^XLFDT(AMHED) W $$CTR^AMHLEIN(X,80),!
  S X=$S($D(AMHRCLNT):"Clinics:  Selected",1:"Clinic: ALL Clinics") W $$CTR^AMHLEIN(X,80),!
  S X=$S($D(AMHPROVT):"Providers: Selected",1:"Providers: ALL Providers") W $$CTR^AMHLEIN(X,80),!
- W !,"PATIENT NAME",?17,"HRN",?24,"Date",?33,"PHQ-2",?39,"PHQ-9",?45,"Provider",?57,"CLINIC",?64,"Diagnosis/POV"
+ W !,"PATIENT NAME",?17,"HRN",?24,"Date",?33,"PHQ2",?38,"PHQ9",?43,"PHQT",?48,"Provider",?58,"CLINIC",?65,"Diagnosis/POV"
+ ;W !?33,"-2",?37,"-9",?41,"-T"
  W !,$TR($J("",80)," ","-")
  Q

@@ -1,5 +1,5 @@
 ACHSTX ; IHS/ITSC/PMF - EXPORT DATA (1/9) ;JUL 10, 2008
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,7,13,14,16,21**;JUN 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,7,13,14,16,21**;JUN 11,2001;Build 37
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Allow AlphaNumeric ACN.
  ;IHS/SET/JVK ACHS*3.1*7 11/6/03 - Do not allow export unless ESig Que is empty
  ;IHS/OIT/FCJ ACHS*3.1*13 7/16/07 Added test for UFMS export and record counts for export

@@ -1,61 +1,61 @@
 ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,10,13**;NOV 12, 2009;Build 213
- ; IHS/DSD/DMJ - 5/1/98 -  NOIS NCA-0598-180002
- ;  Modified to set Admission Type, node 5, if it does not already exist
- ; IHS/SD/SDR - v2.5 p3 - 2/26/2003 - NDA-0402-180192 - Added new block 19 stuff
- ; IHS/SD/SDR - v2.5 p5 - 5/17/04 - Added code to change from PATIENT to DISCHARGE STATUS
- ; IHS/SD/SDR v2.5 p5 - 5/17/04 - Added code for new prompt for refer. phys. person class
- ; IHS/SD/SDR v2.5 p6 - 7/14/04 - IM14117 - Modified code to prompt for either
- ;     Person Class, Provider Class, or taxonomy code.  One of the three must be entered
- ; IHS/SD/SDR v2.5 p8 - IM14016/IM15234/IM15615 - Fix Prior Authorization field
- ; IHS/SD/SDR V2.5 P8 - IM14693/IM16105 - Added code for Number of Enclosures (32)
- ; IHS/SD/SDR - V2.5 P8 - IM12246/IM17548 - Added Reference and In-House CLIA Numbers
- ; IHS/SD/SDR - v2.5 p9 - IM19291 - Supervising provider and UPIN
- ; IHS/SD/SDR - v2.5 p9 - IM18516 - Delayed Reason Code
- ; IHS/SD/SDR - v2.5 p9 - IM19062 - allow employment related to be "N"
- ; IHS/SD/SDR v2.5 p11 - NPI
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added question 36 HEARING/VISION RX DATE
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added start/end disability dates
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added assumed/relinquished care dates
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added property/casualty date of 1st contact
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added patient paid amount
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added spinal manipulation cond code
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - added vision condition info
- ;IHS/SD/SDR 2.6*13 - ICD10 Added code to create/update 9A entry for Onset of Symptoms/Illness if
- ;  Date of First Symptom is populated.  They should both exist and be the same date.
- ;IHS/SD/SDR 2.6*13 - exp mode 35 - added Initial Treatment Date
- ;IHS/SD/SDR 2.6*13 - exp mode 35  Added acute manifestation date
- ;IHS/SD/SDR - 2.6*13 - exp mode 35 Added Ord/Ref/Sup Phys FL17
- ;
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,10,13,14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR 2.5*6-7/14/04-IM14117 - Modified code to prompt for either
+ ;  Person Class, Provider Class, or taxonomy code.  One of the three must be entered
+ ;IHS/SD/SDR 2.5*8-IM14016/IM15234/IM15615 - Fix Prior Authorization field
+ ;IHS/SD/SDR 2.5*8-IM14693/IM16105 - Added code for Number of Enclosures (32)
+ ;IHS/SD/SDR-2.5*8-IM12246/IM17548 - Added Reference and In-House CLIA Numbers
+ ;IHS/SD/SDR-2.5*9-IM19291 - Supervising provider and UPIN
+ ;IHS/SD/SDR-2.5*9-IM18516 - Delayed Reason Code
+ ;IHS/SD/SDR-2.5*9-IM19062 - allow employment related to be "N"
+ ;IHS/SD/SDR 2.5*11-NPI
+ ;IHS/SD/SDR-2.6*6-5010-added question 36 HEARING/VISION RX DATE
+ ;IHS/SD/SDR-2.6*6-5010-added start/end disability dates
+ ;IHS/SD/SDR-2.6*6-5010-added assumed/relinquished care dates
+ ;IHS/SD/SDR-2.6*6-5010-added property/casualty date of 1st contact
+ ;IHS/SD/SDR-2.6*6-5010-added patient paid amount
+ ;IHS/SD/SDR-2.6*6-5010-added spinal manipulation cond code
+ ;IHS/SD/SDR-2.6*6-5010-added vision condition info
+ ;IHS/SD/SDR 2.6*13-ICD10 Added code to create/update 9A entry for Onset of Symptoms/Illness if
+ ;  Date of First Symptom is populated.  They should both exist and be same date.
+ ;IHS/SD/SDR 2.6*13-exp mode 35 -added Initial Treatment Date
+ ;IHS/SD/SDR 2.6*13-Added acute manifestation date
+ ;IHS/SD/SDR-2.6*13-Added Ord/Ref/Sup Phys FL17
+ ;IHS/SD/SDR 2.6*14-ICD10 002E -Correction to screen for Admit DX.
+ ;IHS/SD/SDR 2.6*14-HEAT163697 -Added quit to stop edits for referring provider to happen if prv was deleted.
+ ;IHS/SD/SDR 2.6*14-HEAT163737 -for ref/ord/sup phys remove provider type is provider name is deleted.
+ ;IHS/SD/SDR 2.6*14-HEAT163740 -Added default to Admit Dx if it was previously populated.
+ ;IHS/SD/SDR 2.6*14-HEAT165301 -Removed link to page 9A for Date of First Symptom
  ;**********************************************************************
  ;
 9 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".86["_ABM("#")_"] Date of First Symptom" D ^DIE K DR
  I X>ABMP("VDT") W *7,!!,"ERROR: Date can not be after the Visit Date (",$$HDT^ABMDUTL(ABMP("VDT")),")!" S DR=".86///@" D ^DIE G 9
- ;start new code abm*2.6*13 ICD10 new export mode 35
- S ABMTEST=+$O(^ABMDCODE("AC","O",11,0))
- S ABMI=0
- F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI)) Q:'ABMI  D
- .I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI,0)),U)'=ABMTEST Q
- .D ^XBFMK
- .S DA(1)=ABMP("CDFN")
- .S DA=ABMI
- .S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
- .D ^DIK
- I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)="" Q
- K ABMTEST,ABMI
- D ^XBFMK
- S DA(1)=ABMP("CDFN")
- S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
- S DIC("P")=$P(^DD(9002274.3,51,0),U,2)
- S X=+$O(^ABMDCODE("AC","O",11,0))
- S DIC(0)="ML"
- K DD,DO
- D FILE^DICN
- S DIE=DIC
- S DA=+Y
- S DR=".02////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)
- D ^DIE
- ;end new code ICD10 new export mode
+ ;abm*2.6*14 HEAT165301 removed new to populate page 9A
+ ;start new abm*2.6*13 ICD10 new export mode 35
+ ;S ABMTEST=+$O(^ABMDCODE("AC","O",11,0))
+ ;S ABMI=0
+ ;F  S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI)) Q:'ABMI  D
+ ;.I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMI,0)),U)'=ABMTEST Q
+ ;.D ^XBFMK
+ ;.S DA(1)=ABMP("CDFN")
+ ;.S DA=ABMI
+ ;.S DIK="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ ;.D ^DIK
+ ;I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)="" Q
+ ;K ABMTEST,ABMI
+ ;D ^XBFMK
+ ;S DA(1)=ABMP("CDFN")
+ ;S DIC="^ABMDCLM(DUZ(2),"_DA(1)_",51,"
+ ;S DIC("P")=$P(^DD(9002274.3,51,0),U,2)
+ ;S X=+$O(^ABMDCODE("AC","O",11,0))
+ ;S DIC(0)="ML"
+ ;K DD,DO
+ ;D FILE^DICN
+ ;S DIE=DIC
+ ;S DA=+Y
+ ;S DR=".02////"_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,6)
+ ;D ^DIE
+ ;end new ICD10 new export mode
  Q
  ;
 11 W ! S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".87["_ABM("#")_"] Date First Consulted for this Condition" D ^DIE K DR
@@ -119,8 +119,7 @@ ABMDE3C ; IHS/ASDST/DMJ - Edit Page 3 - QUESTIONS - part 4 ;
  Q:($D(^ABMDCLM(DUZ(2),ABMP("CDFN"),53,0))<10)
  S DA(1)=ABMP("CDFN"),DIK="^ABMDCLM(DUZ(2),"_DA(1)_",53,",DA=$O(^ABMDCODE("AC","C",2,"")) D ^DIK
  Q
-EMCODE ;
- S (DINUM,X)=$O(^ABMDCODE("AC","C",2,"")) Q:X=""
+EMCODE S (DINUM,X)=$O(^ABMDCODE("AC","C",2,"")) Q:X=""
  K DD,DO S DA(1)=ABMP("CDFN"),DIC="^ABMDCLM(DUZ(2),"_DA(1)_",53,",DIC(0)="LE"
  I '$D(^ABMDCLM(DUZ(2),DA(1),53,0)) S ^ABMDCLM(DUZ(2),DA(1),53,0)="^9002274.3053P^^"
  D FILE^DICN K DIC
@@ -172,13 +171,26 @@ ESET D ^DIE K DR
  Q
 24 ;Admitting DX
  W !,"** CODING SYSTEM IS "_$S(ABMP("VDT")<ABMP("ICD10"):"ICD-9",1:"ICD-10")_" **"  ;abm*2.6*10 ICD10 002E
- ;start new code abm*2.6*10 ICD10 002E
- I $D(^ROUTINE("ICDSAPI")) D  Q
- .W !,"["_ABM("#")_"] Admitting DX"
- .S ABMFLD=+$$SEARCH^ICDSAPI("DIAG",,,$S($G(ABMP("ICD10")):ABMP("ICD10"),$G(ABMP("VDT")):ABMP("VDT"),1:DT))
- .I ABMFLD>0 S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=ABMFLD D ^DIE
+ ;start old abm*2.6*14 ICD10 002E
+ ;start new abm*2.6*10 ICD10 002E
+ ;I $D(^ROUTINE("ICDSAPI")) D  Q
+ ;.W !,"["_ABM("#")_"] Admitting DX"
+ ;.S ABMFLD=+$$SEARCH^ICDSAPI("DIAG",,,$S($G(ABMP("ICD10")):ABMP("ICD10"),$G(ABMP("VDT")):ABMP("VDT"),1:DT))
+ ;.I ABMFLD>0 S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=ABMFLD D ^DIE
  ;end new code ICD10 002E
- S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".59["_ABM("#")_"] Admitting DX" D ^DIE
+ ;S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".59["_ABM("#")_"] Admitting DX" D ^DIE
+ ;end old start new ICD10 002E
+ K DIR,DR,X,Y
+ S DIR(0)="PO^80:QEAM"
+ I ABMP("VDT")<ABMP("ICD10")  S DIR("S")="I $P($$DX^ABMCVAPI(+Y),U,20)'=30"
+ I '(ABMP("VDT")<ABMP("ICD10")) S DIR("S")="I $P($$DX^ABMCVAPI(+Y),U,20)=30"
+ S DIR("A")="["_ABM("#")_"] Admitting DX"
+ S:(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,9)) DIR("B")=$P($$DX^ABMCVAPI(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,9)),U,2)  ;abm*2.6*14 HEAT163740
+ D ^DIR
+ I X="@" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".59////@" D ^DIE
+ Q:$D(DIRUT)!$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
+ S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".59////"_+Y D ^DIE
+ ;end new ICD10 002E
  Q
 25 ; Supervising Prov (FL19)
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".912["_ABM("#")_"] Supervising Prov.(FL19)" D ^DIE
@@ -283,6 +295,8 @@ ESET D ^DIE K DR
  S ABM("PROVIDER")=$$PRVLKUP^ABMDFUTL($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24),$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26))
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".824////"_$S($P(ABM("PROVIDER"),U)'="":$P(ABM("PROVIDER"),U),1:"@") D ^DIE
  S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".826////"_$S($P(ABM("PROVIDER"),U,2)'="":$P(ABM("PROVIDER"),U,2),1:"@") D ^DIE
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)="" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".825////@" D ^DIE  ;abm*2.6*14 HEAT163737
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26)="" Q  ;abm*2.6*14 HEAT163697
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)'="" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DIE("NO^")=1,DR=".825R~Physician Type: //" D ^DIE
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)="" S DIE="^ABMDCLM(DUZ(2),",DA=ABMP("CDFN"),DR=".825////@" D ^DIE
  Q

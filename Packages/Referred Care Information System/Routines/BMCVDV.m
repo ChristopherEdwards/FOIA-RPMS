@@ -1,5 +1,5 @@
 BMCVDV ; IHS/OIT/FCJ - 1/2 VIEW/EDIT PROVIDER-VENDOR FILE ;
- ;;4.0;REFERRED CARE INFO SYSTEM;**5,7,8**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**5,7,8**;JAN 09, 2006;Build 51
  ;BMC*4.0*5 5.13.2009 IHS.OIT.FCJ ORIGIAL ROUTINE FR ACHSVDV
  ;
 A1 ;EP
@@ -48,19 +48,21 @@ A2 ;EP
  W ?46,"10) BPA: ",$S('$D(BMCRT("BPA")):"NONE",'$D(BMCRT("BPA","ACTIVE")):"NONE ACTIVE",BMCRT("BPA","ACTIVE")>0:"ACTIVE="_+$P(BMCRT("BPA","ACTIVE"),U,1),1:"")
  W !,"11) E-Mail: ",$$VAL^XBDIQ1(9999999.11,BMCPROV,2103)   ;BMC*4.0*7 IHS.OIT.FCJ
  W ?46,"12) DUNS: ",$$VAL^XBDIQ1(9999999.11,BMCPROV,.07)
+ W !,"13) Direct Participant: ",$$VAL^XBDIQ1(9999999.11,BMCPROV,2104)   ;BMC*4.0*8 IHS.OIT.FCJ
+ W !,"14) Direct E-Mail: ",$$VAL^XBDIQ1(9999999.11,BMCPROV,2105)   ;BMC*4.0*8 IHS.OIT.FCJ
  W !!,"**** MAILING/BILLING ADDRESS ****",?44,"**** PROVIDER LOCATION ADDRESS ****"
- W !,"13) Street: ",$P(BMC13,U),?46,"14) Street: ",$E($P(BMC13,U,6),1,17)
+ W !,"15) Street: ",$P(BMC13,U),?46,"16) Street: ",$E($P(BMC13,U,6),1,17)
  ;BMC*4.0*7 IHS.OIT.FCJ CHANGES FOR FAX
  W !?6,"City: ",$P(BMC13,U,2),?52,"City: ",$P(BMC13,U,7),!?5,"State: ",BMCMS,?26,"Zip: ",$P(BMC13,U,4),?51,"State: ",BMCBS
  W !?5,"Phone: ",$P(BMC11,U,9),?26,"Fax: ",$P(BMC11,U,14),?48,"Zip Code: ",$P(BMC13,U,9),!?7,"Attn: ",$P(BMC13,U,5)
- W !,"15) Vendor Type: ",BMCVT
- W ?46,"16) Fed/Non-Fed: ",$S($P(BMC11,U,10)=1:"NON-FED",$P(BMC11,U,10)=2:"FED",$P(BMC11,U,10)="":"")
- W !,"17) Specialty: ",$S($P(BMC11,U,4):$P(^DIC(7,$P(BMC11,U,4),0),U),1:"")
- W ?46,"18) Geographic Loc: ",$S($P(BMC11,U,25)="":"",$P(BMC11,U,25):$P(^AUTTGL($P(BMC11,U,25),0),U))
+ W !,"17) Vendor Type: ",BMCVT
+ W ?46,"18) Fed/Non-Fed: ",$S($P(BMC11,U,10)=1:"NON-FED",$P(BMC11,U,10)=2:"FED",$P(BMC11,U,10)="":"")
+ W !,"19) Specialty: ",$S($P(BMC11,U,4):$P(^DIC(7,$P(BMC11,U,4),0),U),1:"")
+ W ?46,"20) Geographic Loc: ",$S($P(BMC11,U,25)="":"",$P(BMC11,U,25):$P(^AUTTGL($P(BMC11,U,25),0),U))
  W !,$$REPEAT^XLFSTR("*",79)
  G:'$D(^XUSEC("BMCZVEN",DUZ)) A4^BMCVDV1
- ;BMC*4.0*8 CHANGED 14 TO 15 IN NXT LINE
- I BMCVT="" W *7,!!,"MUST HAVE VENDOR TYPE." D 15^BMCVDVA G A2:'$D(Y),A1
+ ;BMC*4.0*8 CHANGED 14 TO 17 IN NXT LINE
+ I BMCVT="" W *7,!!,"MUST HAVE VENDOR TYPE." D 17^BMCVDVA G A2:'$D(Y),A1
 A3 ;
  K BMCCTFL,BMCRQFL,BMCPAFL,BMCBPFL
  S Y=$$DIR^XBDIR("Y","Want to Edit","NO","","","",2)
@@ -76,7 +78,7 @@ END ;EP
  ;
 HDR ;
  S X="PROVIDER/VENDOR UPDATE",Y="BMC"
- W @IOF,!,$$C^XBFUNC(X),!!
+ W @IOF,!,$$C^XBFUNC(X),!
  W $$REPEAT^XLFSTR("*",79)
  Q
  ;

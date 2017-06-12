@@ -1,6 +1,8 @@
 ABME5SV3 ; IHS/ASDST/DMJ - 837 SV3 Segment 
- ;;2.6;IHS Third Party Billing System;**6,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,9,16,19**;NOV 12, 2009;Build 300
  ;Transaction Set Header
+ ;IHS/SD/SDR 2.6*16 - HEAT236242 - Updated to include coor. dx on line item
+ ;IHS/SD/SDR - 2.6*19 - HEAT180453 - Made AREA OF ORAL CAVITY print in SV304
  ;
 EP ;EP
  K ABMREC("SV3"),ABMR("SV3")
@@ -38,6 +40,7 @@ LOOP ;LOOP HERE
  Q
 50 ;SV304 - Oral Cavity Designation
  S ABMR("SV3",50)=""
+ S ABMR("SV3",50)=$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,40)  ;area of oral cavity  ;abm*2.6*19 IHS/SD/SDR HEAT180453
  Q
 60 ;SV305 - Prothesis, Crown, or Inlay Code
  S ABMR("SV3",60)=""
@@ -46,6 +49,7 @@ LOOP ;LOOP HERE
  ;S ABMR("SV3",70)=$P(ABMRV(ABMI,ABMJ,ABMK),U,5)  ;abm*2.6*9 NOHEAT
  S ABMR("SV3",70)=""  ;abm*2.6*9 NOHEAT
  S:$P(ABMRV(ABMI,ABMJ,ABMK),U,5)>1 ABMR("SV3",70)=$P(ABMRV(ABMI,ABMJ,ABMK),U,5)  ;abm*2.6*9 NOHEAT
+ I $P($G(^AUTNINS(ABMP("INS"),0)),U)["WASHINGTON MEDICAID" S ABMR("SV3",70)=$P(ABMRV(ABMI,ABMJ,ABMK),U,5)  ;IHS/SD/AML 12/27/12 HEAT95806
  Q
 80 ;SV307 - Description
  S ABMR("SV3",80)=""
@@ -61,4 +65,9 @@ LOOP ;LOOP HERE
  Q
 120 ;SV311 - Composite DX Code Pointer
  S ABMR("SV3",120)=""
+ ;start new abm*2.6*16 IHS/SD/SDR HEAT236242
+ S ABMR("SV3",120)=$P(ABMRV(ABMI,ABMJ,ABMK),U,11)
+ S ABMR("SV3",120)=$TR(ABMR("SV3",120),",",":")
+ S ABMR("SV3",120)=$P(ABMR("SV3",120),":",1,4)
+ ;end new abm*2.6*16 IHS/SD/SDR HEAT236242
  Q

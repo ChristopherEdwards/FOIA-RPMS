@@ -1,26 +1,17 @@
-XTKERM2 ;SF/RWF - Kermit Receive a file. ;11/8/93  11:50 ; [ 11/22/95  1:19 PM ]
- ;;7.3;TOOLKIT;;Apr 25, 1995
- ;IHS/OHPRD/FJE 11/22/95 added test for XTKHL7 variable to remove IO
- ;IHS/OHPRD/FJE 11/22/95 added IHSTSKMN to que data to HL7
-R ;IHS/OHPRD/FJE tests for XTKHL7 to change IO display
- I '$D(ZTQUEUED)&('$D(XTKHL7)) U IO(0) D
+XTKERM2 ;SF/RWF - Kermit Receive a file. ;11/8/93  11:50 ;
+ ;;7.3;TOOLKIT;**122**;Apr 25, 1995;Build 5
+ ;Per VHA Directive 2004-038, this routine should not be modified.
+R I '$D(ZTQUEUED) U IO(0) D
  . I IO=IO(0) W !,"Now start a KERMIT send from your system.",!,"Starting [REMOTE] KERMIT receive.",!
  . E  W !,"Starting a [LOCAL] KERMIT receive.",!
- . Q
- ;IHS/OHPRD/FJE tests for XTKHL7 to change IO for HL7 (copy of above)        
- I '$D(ZTQUEUED)&($D(XTKHL7)) U IO(0) D
- . I IO=IO(0) W !,"Now send the file from your system.",!
- . E  W !,"Starting a receive.",!
  . Q
  U IO S XTKET=$H
  F XTKERR=0:0 D GET,@("R"_XTKR("PT")):'XTKERR Q:XTKERR!(XTKR("PT")="B")
  D:XTKERR RB
- H 3 ;IHS/OHPRD/FJE patched per Wally Fort, 10-13-95 for kermit timing
  S %=$H,XTKET=$H-XTKET*86400+$P(%,",",2)-$P(XTKET,",",2)
  I '$D(ZTQUEUED) U IO(0) D
- . W !,"Done with ",$S(IO=IO(0):"[REMOTE]",1:"[LOCAL]")," receive, File transfer ",$S('XTKERR:"was successful.  ("_XTKR("CCNT")_" bytes)",1:"failed.  Resend FILE.  ("_XTKERR_")")  ;IHS/OHPRD/FJE added resend file to display
- W:'XTKERR !,?10,"Bytes: ",XTKR("CCNT")," Sec: ",XTKET," cps: ",$J(XTKR("CCNT")/XTKET,3,1)
- I $D(XTKHL7) D IHSTSKMN  ;IHS/OHPRD/FJE test for HL7 and que data transfer
+ . W !,"Done with ",$S(IO=IO(0):"[REMOTE]",1:"[LOCAL]")," receive, File transfer ",$S('XTKERR:"was successful.  ("_XTKR("CCNT")_" bytes)",1:"failed. ("_XTKERR_")")
+ W:'XTKERR !,?10,"Bytes: ",XTKR("CCNT")," Sec: ",XTKET," cps: ",$J($S(XTKET>0:XTKR("CCNT")/XTKET,1:""),3,1)
  Q
 RS S XTKS("PN")=XTKR("PN") D RPAR^XTKERM4,BSPAR^XTKERM4 S XTKS("PT")="Y" D SPACK,BUMP Q
 RF D SEQ Q:X  S X=XTKRDAT D FILE,ACK,BUMP Q
@@ -34,7 +25,7 @@ SEQ S X=(XTKR("PN")'=XTKS("PN")) Q:'X  D NAK S X=1 Q
  Q
 GET S XTKR("TRY")=XTKR("TRY")+1 I XTKR("TRY")>XTKR("MAXTRY") G ABORT
  D RPACK^XTKERM3
- I XTKERR D NAK G GET
+ I XTKERR D DEBUG("E:"_XTKERR):$D(XTKDEBUG),NAK G GET
  I "SFEDNZYB"'[XTKR("PT") S XTKERR="6 Unknown packet type" Q
  Q
 ABORT S:'XTKERR XTKERR="5 Aborting receive operation" Q
@@ -44,10 +35,12 @@ NAK S XTKS("PT")="N",XTKSDAT="" D SPACK Q
 ACK S XTKS("PT")="Y",XTKSDAT="" D SPACK S XTKR("TRY")=0 Q
 SPACK G SPACK^XTKERM3
 RPACK G RPACK^XTKERM3
+DEBUG(MSG) ;
+ S XTKDEBUG=XTKDEBUG+1,^TMP("XTKERM",$J,XTKDEBUG)=MSG
+ Q
 FILE ;See if need to change file name.
  I XTKDIC["DIZ(8980,",XTKR("RFN")="y" S XTKFILE(0)=XTKFILE,XTKFILE=X
  ;Other wise toss file name we don't need it.
- ;I XTKDIC'["^DIZ(8980," S X="KERMIT File Name: "_X D PDATA ;Old, just store the file name.
  Q
 STORE ;Store the data (XTKRDAT) in file.
  I 'XTKMODE S X=XTKRDAT D PDATA Q
@@ -67,10 +60,4 @@ REPLACE S XTKRDAT=X_$S(Y=XTKR("QA"):Y,1:$C($A(Y)-64))_$E(XTKRDAT,I+1,999),I=$L(X
 CLOSE ;Close and update the filename if file 8980
  I XTKDIC["DIZ(8980,",XTKR("RFN")="y" S $P(^DIZ(8980,XTKDA,0),"^",1)=XTKFILE,^DIZ(8980,"B",$E(XTKFILE,1,30),XTKDA)="" K ^DIZ(8980,"B",XTKFILE(0),XTKDA)
  S @("X=$S($D("_XTKDIC_"0)):^(0),1:"""")"),^(0)=$P(X_"^^",U,1,2)_U_DWLC_U_DWLC
- Q
-IHSTSKMN ;IHS/OHPRD/FJE added task for data to move to HL7
- I XTKERR W !,"Transfer of your data file failed.  Retransmit file.  If the file still cannot",!,"be transmitted, contact a computer specialist to assist you." D  Q
- . I $D(XTKDA),XTKDA S DA=XTKDA,DIK="^DIZ(8980," D ^DIK K DIK,DA
- K ZTSAVE F %="XTKFILE","XTKDA" S ZTSAVE(%)=""
- S ZTRTN="^BCHKERM",ZTDESC="ENTRY OF MESSAGES FROM KERMIT HOLDING FILE INTO THE HL7 SYSTEM FOR THE "_XTKFILE_" FILE",ZTIO="",ZTDTH=DT D ^%ZTLOAD K ZTSK
  Q

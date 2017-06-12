@@ -1,0 +1,120 @@
+BJPC2P11 ; IHS/CMI/LAB - PCC Suite v2.0 patch 3 environment check ;   
+ ;;2.0;IHS PCC SUITE;**11,11**;MAY 14, 2009;Build 58
+ ;
+ ;
+ ; The following line prevents the "Disable Options..." and "Move Routines..." questions from being asked during the install.
+ I $G(XPDENV)=1 S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
+ F X="XPO1","XPZ1","XPZ2","XPI1" S XPDDIQ(X)=0
+ ;KERNEL
+ I +$$VERSION^XPDUTL("XU")<8 D MES^XPDUTL($$CJ^XLFSTR("Version 8.0 of KERNEL is required.  Not installed",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires Kernel Version 8.0....Present.",80))
+ ;FILEMAN
+ I +$$VERSION^XPDUTL("DI")<22 D MES^XPDUTL($$CJ^XLFSTR("Version 22.0 of FILEMAN is required.  Not installed.",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires Fileman v22....Present.",80))
+ ;BJPC
+ I $$VERSION^XPDUTL("BJPC")'="2.0" D MES^XPDUTL($$CJ^XLFSTR("Version 2.0 of the IHS PCC SUITE (BJPC) is required.  Not installed",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires IHS PCC Suite (BJPC) Version 2.0....Present.",80))
+ ;BJPC 2.0 PATCH 4
+ I '$$INSTALLD("BJPC*2.0*10") D SORRY(2)
+ I '$$INSTALLD("ATX*5.1*11") D SORRY(2)
+ I '$$INSTALLD("LEX*2.0*1003") D SORRY(2)
+ I $$VERSION^XPDUTL("AICD")<4 D MES^XPDUTL($$CJ^XLFSTR("Version 4.0 of the AICD is required.  Not installed",80)) D SORRY(2) I 1
+ E  D MES^XPDUTL($$CJ^XLFSTR("Requires AICD Version 4.0....Present.",80))
+ ;
+ Q
+ ;
+PRE ;
+ S DA=0 F  S DA=$O(^APCLVSTS(DA)) Q:DA'=+DA  S DIK="^APCLVSTS(" D ^DIK
+ I $T(PRE^AMQQPOST)]"" D PRE^AMQQPOST I 1
+ E  D AMQQPRE
+ S DA=$O(^APCDERR("B","E026",0))
+ I DA S DIE="^APCDERR(",DR=".02///UNCODED ICD DX CODE USED;.03///AN UNCODED DX CODE WAS ENTERED" D ^DIE K DA,DIE,DR
+ S DA=$O(^DIC(19,"B","APCD SUPER MENU FIX UNCODED",0))
+ I DA S DIE="^DIC(19,",DR="1///Fix UNCODED ICD Diagnoses/Operations" D ^DIE K DA,DIE,DR
+ Q
+POST ;
+ ;D POST^ATX6ENV
+ D CHA
+ S DIK="^APCHSURV(" D IXALL^DIK
+ ;HMR TEXT
+ D HMRT
+ ;remove coding quidelines
+ S DA=$O(^APCDTKW("B","CODE",0)) I DA S DIK="^APCDTKW(" D ^DIK K DA,DIK
+ D DELETE^XPDMENU("APCD MENU UTILITIES","APCD DISPLAY CODING GUIDELINES")
+ D DELETE^XPDMENU("APCL M DX/PROC COUNT REPORTS","APCL P QA POVAPC")
+ S X=$$ADD^XPDMENU("APCDSUPER","APCD UPDATE ICD FROM SNOMED","UIFS")
+ I 'X W !,"Attempt to add APCD UPDATE ICD FROM SNOMED option failed.." H 3
+ S X=$$ADD^XPDMENU("APCDCAF EHR CODING AUDIT MENU","APCDCAF INCOMP CHARTS BY PROV","ICPD")
+ I 'X W !,"Attempt to add APCDCAF INCOMP CHARTS BY PROV option failed.." H 3
+ S X=$$ADD^XPDMENU("APCDSUPER","APCD DXC BY REV/USER","DXV")
+ I 'X W !,"Attempt to add APCD DXC BY REV/USER option failed.." H 3
+ S X=$$ADD^XPDMENU("APCDCAF EHR CODING AUDIT MENU","APCDCAF TRV2","TRVL")
+ I 'X W !,"Attempt to add APCDCAF TRVL option failed.." H 3
+ D HS
+ D ASCI ;REINDEX NEW XREF FOR ICARE
+ ;D ^BJPC2A  - TAXONOMIES WILL GO OUT IN ATX
+ D POST^AMQQPOST
+ Q
+CHA ;
+ S BJPCX=0 F  S BJPCX=$O(^APCLACTG(BJPCX)) Q:BJPCX'=+BJPCX  D
+ .Q:$P(^APCLACTG(BJPCX,0),U,3)'="AUTTCHA"
+ .S DA=BJPCX,DIE="^APCLACTG(",DR=".03///ICM" D ^DIE
+ .Q
+ Q
+HMRT ;
+ S BJPCX=0 F  S BJPCX=$O(^APCHREMU(BJPCX)) Q:BJPCX'=+BJPCX  D
+ .S BJPCN=$P(^APCHREMU(BJPCX,0),U,1)
+ .S BJPCDA=$O(^APCHSURV("AL",BJPCN,0))
+ .I 'BJPCDA Q
+ .K ^APCHSURV(BJPCDA,1)
+ .M ^APCHSURV(BJPCDA,1)=^APCHREMU(BJPCX,11)
+ S DIK="^APCHSURV(" D IXALL^DIK
+ Q
+ASCI ;
+ NEW P,S,D,I
+ K ^AUPNVPOV("ASCI")
+ S P=0 F  S P=$O(^AUPNVPOV("ASNC",P)) Q:P'=+P  D
+ .S S="" F  S S=$O(^AUPNVPOV("ASNC",P,S)) Q:S=""  D
+ ..S D=0 F  S D=$O(^AUPNVPOV("ASNC",P,S,D)) Q:D=""  D
+ ...S I=0 F  S I=$O(^AUPNVPOV("ASNC",P,S,D,I)) Q:I=""  D
+ ....S ^AUPNVPOV("ASCI",S,I)=""
+ Q
+HS ;
+ S DA=$O(^APCHSCMP("B","PROBLEMS - ACTIVE",0))
+ I DA S DIE="^APCHSCMP(",DR="3///ACTIVE PROBLEMS (ALL)" D ^DIE K DIE,DA,DR
+ ;S DA=$O(^APCHSCMP("B","PROBLEMS - INACTIVE",0))
+ ;I DA S DIE="^APCHSCMP(",DR="3///INACTIVE/RESOLVED PROBLEMS" D ^DIE K DIE,DA,DR
+ Q
+INSTALLD(BJPCSTAL) ;EP - Determine if patch BJPCSTAL was installed, where
+ ; APCLSTAL is the name of the INSTALL.  E.g "AG*6.0*11".
+ ;
+ NEW BJPCY,DIC,X,Y
+ S X=$P(BJPCSTAL,"*",1)
+ S DIC="^DIC(9.4,",DIC(0)="FM",D="C"
+ D IX^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",22,",X=$P(BJPCSTAL,"*",2)
+ D ^DIC
+ I Y<1 D IMES Q 0
+ S DIC=DIC_+Y_",""PAH"",",X=$P(BJPCSTAL,"*",3)
+ D ^DIC
+ S BJPCY=Y
+ D IMES
+ Q $S(BJPCY<1:0,1:1)
+IMES ;
+ D MES^XPDUTL($$CJ^XLFSTR("Patch """_BJPCSTAL_""" is"_$S(Y<1:" *NOT*",1:"")_" installed.",IOM))
+ Q
+SORRY(X) ;
+ KILL DIFQ
+ I X=3 S XPDQUIT=2 Q
+ S XPDQUIT=X
+ W *7,!,$$CJ^XLFSTR("Sorry....FIX IT!",IOM)
+ Q
+AMQQPRE ;EP;FOR PRE-INSTALL
+ N X,Y,Z
+ F X=1,5 D
+ .S Y=0
+ .F  S Y=$O(^AMQQ(X,Y)) Q:Y>999!'Y  K ^AMQQ(X,Y)
+ .S Y="A"
+ .F  S Y=$O(^AMQQ(X,Y)) Q:Y=""  K ^AMQQ(X,Y)
+ Q

@@ -1,5 +1,5 @@
 ABSPOSQ4 ; IHS/FCS/DRS - Process responses ;       [ 10/07/2002  10:36 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,6,31**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,6,31**;JUN 21, 2001;Build 15
  ; Called from ABSPOSQ3 at RESPONSE()
  ;
  ; What's here:  the main LOOP and several miscellaneous subroutines,

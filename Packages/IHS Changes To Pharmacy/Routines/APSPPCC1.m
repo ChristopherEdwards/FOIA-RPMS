@@ -1,13 +1,24 @@
-APSPPCC1 ;IHS/CIA/PLS - PCC Hook for Pharmacy Package - Continued ;28-Oct-2011 12:13;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1005,1007,1009,1010,1013**;Sep 23, 2004;Build 33
+APSPPCC1 ;IHS/CIA/PLS - PCC Hook for Pharmacy Package - Continued ;04-Jun-2014 14:48;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1003,1005,1007,1009,1010,1013,1017,1018**;Sep 23, 2004;Build 21
  ; Modified - IHS/MSC/PLS - 02/05/08 - POV API modified
  ;                          08/25/10 - SET+1
  ;                          02/10/11 - EN and new EN1 EP
  ; Prompt and store POV value in APSP POV CACHE parameter
 EN(DFN,RXIEN,SUS) ;EP
- N POV,RFIEN
- S RFIEN=$O(^PSRX(RXIEN,1,$C(1)),-1)
- Q:$L($$GET^XPAR("SYS","APSP POV CACHE",+RXIEN_","_+RFIEN))  ; already have a POV stored
+ ;Q  ;IHS/MSC/PLS - 05/16/2013 - POV Functionality disabled per CR368
+ ;IHS/MSC/PLS - 06/03/2014 - Added hard set of ICD code into XPAR parameter
+ I $$GET1^DIQ(9009033,+$G(PSOSITE),405,"I") D
+ .N POV,RFIEN,IMP
+ .S RFIEN=$O(^PSRX(RXIEN,1,$C(1)),-1)
+ .Q:'$G(SUS)&('RFIEN)
+ .Q:$L($$GET^XPAR("SYS","APSP POV CACHE",+RXIEN_","_+RFIEN))  ; already have a POV stored
+ .I $$VERSION^XPDUTL("AICD")<4.0 S POV="V68.1"
+ .E  D
+ ..S IMP=$$IMP^ICDEX("10D",DT)
+ ..I DT<IMP S POV="V68.1"
+ ..E  S POV="Z76.0"
+ .D SET(RXIEN,RFIEN,POV)
+ Q
  I $$GET1^DIQ(9009033,+$G(PSOSITE),405,"I") D
  .W !!,"Processing POV entry for prescription...",!
  .D EN1

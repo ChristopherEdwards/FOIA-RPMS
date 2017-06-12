@@ -1,5 +1,5 @@
 BDGM202B ; IHS/ANMC/LJF - M202 PRINT ; [ 01/04/2005  5:03 PM ]
- ;;5.3;PIMS;**1001,1006,1008,1013,1015**;MAY 28, 2004;Build 21
+ ;;5.3;PIMS;**1001,1006,1008,1013,1015,1019**;MAY 28, 2004;Build 3
  ;IHS/ITSC/WAR 09/27/2004 PATCH 1001 Shift transfers Rt 1 position
  ;IHS/ITSC/LJF 10/25/2004 PATCH 1001 remove blank lines to fit new info
  ;IHS/OIT/LJF  08/24/2006 PATCH 1006 added lines for swing beds & observations
@@ -100,7 +100,7 @@ PART2 ;W !?26,"Part II - Special Information",!,DGLINE
  ;W !!,"Minimum Census, Excluding Newborn..............................."
  W !,"Minimum Census, Excluding Newborn..............................."  ;IHS/ITSC/LJF 10/25/2004 PATCH 1001
  ;W ?64,DGMIN  ;cmi/maw 11/7/2007 orig line
- W ?64,$S(+$G(DGMIN)<0:0,1:DGMIN)  ;cmi/maw 11/7/2007 mod because PEAK^BDGM202A sometimes does not get set
+ W ?64,$S(+$G(DGMIN)<0:0,1:$G(DGMIN))  ;cmi/maw 11/7/2007 mod because PEAK^BDGM202A sometimes does not get set
  Q
  ;
  ;IHS/OIT/LJF 08/24/2006 patch 1006 added Swing Beds & Observations to list below

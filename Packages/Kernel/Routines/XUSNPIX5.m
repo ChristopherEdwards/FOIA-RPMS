@@ -1,5 +1,5 @@
 XUSNPIX5 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/7/08  17:45
- ;;8.0;KERNEL;**453,481**; Jul 10, 1995;Build 18
+ ;;8.0;KERNEL;**453,481,548**; Jul 10, 1995;Build 27
  ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
  ; NPI Extract Report Mailer routine
@@ -20,7 +20,7 @@ XUSNPIX5 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/7/08  17:45
  ;      Piece 6 => $H last run completion time
  ;
  ;   ^XTMP("XUSNPIX1",1) = DATA
- ;
+ ;               
  ;          XUSNPI => Unique NPI of entry
  ;          LDT => Last Date Run, VA Fileman Format
  ;
@@ -39,7 +39,7 @@ EMAIL(XUSRTN) ; EMAIL THE MESSAGE
  ;
  N XMY
  ; Send email to designated recipient for live release
- S XMY("XXX@Q-NPS.VA.GOV")=""
+ D MAILTO^XUSNPIX1(.XMY) ;p548
  D ESEND
  Q
  ;
@@ -54,9 +54,9 @@ SMAIL(XUSRTN,XUSPROD,XUSVER,DTTM) ; Summary email
  S ^TMP(XUSRTN,$J,2)="-------"
  S ^TMP(XUSRTN,$J,3)=^XTMP(XUSRTN,"H")_"  "_DTTM
  S ^TMP(XUSRTN,$J,4)=""
- S ^TMP(XUSRTN,$J,5)="Type 1  NEW PERSON FILE (#200) "_$J(+$P(T1,U),3)_" Message(s) Totaling "_$J(+$P(T1,U,2),7)_" NPI records."
- S ^TMP(XUSRTN,$J,6)="Type 2  INSITUTION FILE (#4) "_$J(+$P(T2,U),3)_" Message(s) Totaling "_$J(+$P(T2,U,2),7)_" NPI records."
- S ^TMP(XUSRTN,$J,7)="Type 1  NON VA Individual (#355.93) "_$J(+$P(T1NV,U),3)_" Message(s) Totaling "_$J(+$P(T1NV,U,2),7)_" NPI records."
+ S ^TMP(XUSRTN,$J,5)="Type 1  NEW PERSON FILE (#200)          "_$J(+$P(T1,U),3)_" Message(s) Totaling "_$J(+$P(T1,U,2),7)_" NPI records."
+ S ^TMP(XUSRTN,$J,6)="Type 2  INSITUTION FILE (#4)            "_$J(+$P(T2,U),3)_" Message(s) Totaling "_$J(+$P(T2,U,2),7)_" NPI records."
+ S ^TMP(XUSRTN,$J,7)="Type 1  NON VA Individual (#355.93)     "_$J(+$P(T1NV,U),3)_" Message(s) Totaling "_$J(+$P(T1NV,U,2),7)_" NPI records."
  S ^TMP(XUSRTN,$J,8)="Type 2  NON VA Facility/Group (#355.93) "_$J(+$P(T2NV,U),3)_" Message(s) Totaling "_$J(+$P(T2NV,U,2),7)_" NPI records."
  S ^TMP(XUSRTN,$J,9)=""
  S ^TMP(XUSRTN,$J,10)="Programmer Notes:   "_XUSVER_" - "_$G(XUSPROD)
@@ -77,7 +77,7 @@ SMAIL(XUSRTN,XUSPROD,XUSVER,DTTM) ; Summary email
  S L=18,T="" F  S T=$O(^TMP("XUSNPIXS",$J,T)) Q:'T  S M=0 F  S M=$O(^TMP("XUSNPIXS",$J,T,M)) Q:'M  D
  .S N=$G(^TMP("XUSNPIXS",$J,T,M))
  .S L=L+1
- .S ^TMP(XUSRTN,$J,L)=$E($P(N,U)_" ",1,10)_$J(M,16)_$J($P(N,U,2),24)
+ .S ^TMP(XUSRTN,$J,L)=$E($P(N,U)_"          ",1,10)_$J(M,16)_$J($P(N,U,2),24)
  S L=L+1,^TMP(XUSRTN,$J,L)=""
  S L=L+1,^TMP(XUSRTN,$J,L)=HYPHEN
  ; Send verification email to local mail group and VA Outlook mail group

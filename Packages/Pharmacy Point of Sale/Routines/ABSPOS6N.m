@@ -1,5 +1,5 @@
 ABSPOS6N ; IHS/OIT/SCR - Functions to Close and Re-open a claim ;   
- ;;1.0;PHARMACY POINT OF SALE;**37,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**37,40**;JUN 21, 2001;Build 15
  Q
 CLOSECLM(ABSP59)         ;EP - from ABSPOS6D
  ;

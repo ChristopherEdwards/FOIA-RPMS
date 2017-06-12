@@ -1,5 +1,5 @@
-BEHOVM2 ;IHS/MSC/MGH - Triage: Vital Measurements ;18-Jul-2012 12:43;DU
- ;;1.1;BEH COMPONENTS;**001004,001005,001007,001009**;Sep 18, 2007
+BEHOVM2 ;IHS/MSC/MGH - Triage: Vital Measurements ;23-Sep-2014 15:22;DU
+ ;;1.1;BEH COMPONENTS;**001004,001005,001007,001009,001010**;Sep 18, 2007
  ;=================================================================
 QUAL(RESULT,IEN,QUALS) ;EP Store the vitals qualifiers
  ;Entry data is the IEN of the measurment and the qualifiers separated by ~
@@ -43,10 +43,11 @@ PO2(RESULT,IEN,QUALS) ;Store data for O2 Saturation
  .S @FDA@(1.4)=O2
  .S RESULT=$$UPDATE^BGOUTL(.FDA,"E")
  Q
-EIE(RESULT,BEHDATA) ; EP Store entered in error data
+EIE(RESULT,BEHDATA,TYPE) ; EP Store entered in error data
  ;BEHDATA CONSISTS OF THE FOLLOWING DATA:
  ;FILE IEN^DUZ^REASON
- N BEHFDA,BEHIEN,BEHIENS,BEHERR,FNUM,F2NUM,VMSR
+ ;If type=0 it is delete only, if type=1 its an edit
+ N BEHFDA,BEHIEN,BEHIENS,BEHERR,FNUM,F2NUM,VMSR,TYPE
  S VMSR=$$VMSR
  S FNUM=$S(VMSR:9000010.01,1:120.5)
  S F2NUM=$S(VMSR:9000010.014,1:120.506)
@@ -60,6 +61,10 @@ EIE(RESULT,BEHDATA) ; EP Store entered in error data
  I $D(BEHIEN(1)) S RESULT="OK"
  D VFEVT^BEHOENPC(FNUM,+BEHDATA,1)
  I $D(BEHERR)>0 S RESULT="Unable to process entered in error"
+ ;IHS/MSC/MGH EHR 13 See if it is a weight, If so check for BMI on same date and delete
+ S CHK=$$GET1^DIQ(9000010.01,+BEHDATA,.01,"I")
+ I $$GET1^DIQ(9999999.07,CHK,.01)="WT" D EIE^BEHOVM5(+BEHDATA)
+ I $$GET1^DIQ(9999999.07,CHK,.01)="HT" D EIE^BEHOVM5(+BEHDATA)
  Q
 GETCATS(RESULTS,VIT,LONG) ;EP Given a vital sign, return the categories for this VM and the default
  N BEHCAT,BEHQUAL,ID,ABB,VMSR,Y,CNT
@@ -114,13 +119,16 @@ QRYBMI(PCTILE) ;Moved from BEHOVM for space
  K ^TMP("BEHOVM",$J)
  Q
 FNDHT(IDT) ;Find closest height before weight
- N VIEN,RESULT,DOB,SEX,TAGE,X,X2,X1,SX,APCHMDT
+ N VIEN,RESULT,DOB,SEX,TAGE,X,X2,X1,SX,APCHMDT,IDT2
  S VIEN=$O(^TMP("BEHOVM",$J,VTHT,IDT,""))
  I 'VIEN D
  .;IHS/MSC/MGH Added in HS logic for lookback days for ht. Patch 4
  .;Only allowed to look forward for the same date as the wt. Otherwise,
  .N ID1,ID2
- .S DOB=$P(^DPT(DFN,0),U,3),SEX=$P(^DPT(DFN,0),U,2),X2=DOB,X1=DT D ^%DTC S TAGE=X,SX=$S(SEX="M":2,SEX="F":3,1:"")
+ .S IDT2=9999999-IDT
+ .S TAGE=$$PTAGE^BGOUTL(DFN,IDT2)
+ .S DOB=$P(^DPT(DFN,0),U,3),SEX=$P(^DPT(DFN,0),U,2),SX=$S(SEX="M":2,SEX="F":3,1:"")
+ .;X2=DOB,X1=DT D ^%DTC S TAGE=X
  .S ID1=$O(^TMP("BEHOVM",$J,VTHT,IDT),-1),ID2=$O(^TMP("BEHOVM",$J,VTHT,IDT))
  .I ID1 D
  ..S X1=$P(ID1,".",1),X2=$P(IDT,".",1)
@@ -208,4 +216,23 @@ GETCATP(RESULTS,VIEN) ;EP Given a vital sign and an IEN, return the categories f
  ..S CHK=$O(^GMRD(120.52,"AA",IEN,BEHCAT,X,0))
  ..S @RESULTS@(CNT)="Q"_U_CHK_U_X
  ..I $D(QUALIEN(CHK)) S @RESULTS@(CNT)="Q"_U_CHK_U_X_U_1
+ Q
+PCTILE(DATA,VCTL,DFN,START,END,METRIC) ;EP  Moved from BEHOVM
+ N I,X,DOB,SEX,AGE,L,M,S,P,D,Z,ID,V,C
+ S METRIC=+$G(METRIC),X=$G(^DPT(+DFN,0)),SEX=$P(X,U,2),DOB=$P(X,U,3)
+ Q:'$L(SEX)!'DOB
+ S:METRIC<0 METRIC=$$DEFUNIT^BEHOVM(VCTL)
+ S START=$$FMDIFF^XLFDT(START,DOB)/30-1
+ S END=$$FMDIFF^XLFDT(END,DOB)/30+1
+ S (I,C)=0
+ F  S I=$O(^BEHOVM(90460.01,VCTL,3,I)) Q:'I  S X=^(I,0) D
+ .S AGE=+$P(X,";",2)
+ .Q:AGE<START!(AGE>END)!($P(X,";")'=SEX)
+ .S L=$P(X,";",3),M=$P(X,";",4),S=$P(X,";",5),D=$$FMADD^XLFDT(DOB,AGE*30)
+ .F P=2:1:10 D
+ ..S ID=$P("3^5^10^25^50^75^85^90^95^97",U,P)  ;Added 85 in p11
+ ..S Z=$P("-1.881^-1.645^-1.282^-0.674^0^0.674^1.036^1.282^1.645^1.881",U,P)
+ ..I L S V=L*S*Z+1**(1/L)*M
+ ..E  S V=2.71828183**(S*Z)*M
+ ..S C=C+1,@DATA@(C)=ID_U_D_U_$S(METRIC:V,1:$$CONVERT^BEHOVM(V,1,0))
  Q

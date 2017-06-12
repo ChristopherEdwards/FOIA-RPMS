@@ -1,5 +1,5 @@
 ABSPOSO1 ; IHS/FCS/DRS - NCPDP Override Main menu ; [ 09/03/2002  11:14 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,6,7**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,6,7**;JUN 21, 2001;Build 15
  ;---------------------------------------------------------------
  ; IHS/SD/lwj  9/3/02  NCPDP 5.1 changes
  ; In 3.2, prior authorization was updated and stored in field 416.

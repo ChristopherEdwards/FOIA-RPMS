@@ -1,11 +1,12 @@
 ABMDE8D ; IHS/SD/SDR - Page 8 - MEDICATIONS ; APR 05, 2002
- ;;2.6;IHS Third Party Billing System;**2,7,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,7,9,19**;NOV 12, 2009;Build 300
  ;
  ; IHS/SD/SDR - V2.5 P8 - Rewrote routine - Request to completely change display
  ; IHS/SD/SDR - v2.5 p9 - IM16660 - 4-digit revenue codes
  ; IHS/SD/SDR - v2.5 p9 - task 1 - Use service line provider multiple
  ; IHS/SD/SDR - v2.5 p11 - NPI
  ; IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - Modified to call ABMFEAPI
+ ;IHS/SD/SDR - 2.6*19 - HEAT173117 - Added code to prompt for CPT Narrative if necessary for med.
  ;
 DISP K ABMZ,DIC
  S ABMZ("TITL")="MEDICATIONS",ABMZ("PG")="8D"
@@ -116,10 +117,12 @@ E ;EDIT EXISTING ENTRY
  .S DR=DR_";.24////"_$P($G(^PSRX(ABMIEN,2)),U,7)  ;NDC
  .S DR=DR_";.29//"  ;CPT code  ;abm*2.6*7 HEAT30524
  .D ^DIE
+ .D NARR  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  .D PROV
  ;
  ;no prescription, prompt for all fields
- E  D
+ ;E  D  ;abm*2.6*19 IHS/SD/SDR HEAT173117
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0)),U,22)="" D  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  .S DR=".14//"_$S($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0)),U,14)'="":$$SDT^ABMDUTL($P(^(0),U,14)),$P(^ABMDCLM(DUZ(2),ABMP("CDFN"),7),U,1)'=$P(^(7),U,2):$$SDT^ABMDUTL($P(^(7),U)),1:"/"_$$SDT^ABMDUTL($P(^(7),U)))
  .S DR=DR_";.28//"_$$SDT^ABMDUTL($P(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0),U,14))
  .S DR=DR_";.03Units (at $"_ABMZ("PPDU")_" per unit);.04///"_ABMZ("PPDU")
@@ -134,12 +137,24 @@ E ;EDIT EXISTING ENTRY
  .S DR=DR_";.25"
  .S DR=DR_";.29//"  ;CPT code  ;abm*2.6*7 HEAT30524
  .D ^DIE
+ .D NARR  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  .D PROV
  .;
  I (^ABMDEXP(ABMMODE(4),0)["HCFA")!(^ABMDEXP(ABMMODE(4),0)["CMS") D
  .D DX^ABMDEMLC S DR=".13////"_$G(Y(0)) D ^DIE
  .S DIR(0)="E",DIR("A")="Enter RETURN to Continue" D ^DIR K DIR
  Q
+ ;
+ ;start new abm*2.6*19 IHS/SD/SDR HEAT173117 NARR
+NARR ;
+ I (+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0)),U,29)'=0) D
+ .I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0)),U,29))) D
+ ..Q:$P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["5010"  ;only 5010 formats
+ ..S ABMCNCK=$O(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),23,DA,0)),U,29),0))
+ ..I ABMCNCK,$P($G(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,ABMCNCK,0)),U,2)="Y" S DR="22Narrative" D ^DIE
+ Q
+ ;end new abm*2.6*19 IHS/SD/SDR HEAT173117 NARR
+ ;
 PPDU ;PRICE PER DISPENSE UNIT
  S DR=""
  S:^ABMDEXP(ABMMODE(4),0)["UB" DR=".02//250;"

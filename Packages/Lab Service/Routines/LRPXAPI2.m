@@ -1,7 +1,6 @@
-LRPXAPI2 ;VA/SLC/STAFF - Lab Extract API code ;2/26/04  15:15
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+LRPXAPI2 ;VA/SLC/STAFF - Lab Extract API code ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**295,1030,1031,1034**;NOV 01, 1997;Build 88
  ;
- ;;VA LR Patch(s): 295
  ;
 VERIFIED(LRDFN,LRIDT) ; $$(lrdfn,lridt) -> 1 if verified, else 0
  ; checks for date report completed

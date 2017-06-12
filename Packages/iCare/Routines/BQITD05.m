@@ -1,5 +1,5 @@
 BQITD05 ;PRXM/HC/ALA-CVD Significant Risk ; 02 Mar 2006  1:17 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,3,4**;Apr 18, 2012;Build 66
  Q
  ;
 POP(BQARY,TGLOB) ; EP -- By population
@@ -31,7 +31,7 @@ POP(BQARY,TGLOB) ; EP -- By population
  F  S TDFN=$O(@TMGLBB@(TDFN)) Q:TDFN=""  D
  . S SEX=$$GET1^DIQ(2,TDFN,.02,"I")
  . S AGE=$$AGE^BQIAGE(TDFN)
- . I SEX="M" D
+ . I SEX="M"!(SEX="U") D
  .. ; If males are less than 19 years old, kill risk factors and quit
  .. I AGE<19 K @TMGLBB@(TDFN) Q
  .. ; If males are 19-44 and have less than 2 risk factors, kill risk factors and quit
@@ -179,7 +179,7 @@ PAT(DEF,BTGLOB,BDFN) ; EP -- By patient
  . S IEN=$P(@HDATA@(BDFN,DATE),"^",4)
  . S FREF=$P(@HDATA@(BDFN,DATE),"^",5)
  . K @TMGLB
- . I SEX="M",RESULT<40 D
+ . I SEX="M"!(SEX="U"),RESULT<40 D
  .. S @TMGLB@(BDFN,"CRITERIA","Risk Factor-HDL Lab Test","V",VISIT,IEN)=VSDTM_U_EXDT_U_IEN_U_FREF
  .. D STOR(BDFN,"Risk Factor-HDL Lab Test",TMGLB)
  . I SEX="F",RESULT<45 D
@@ -196,7 +196,7 @@ PAT(DEF,BTGLOB,BDFN) ; EP -- By patient
  S DXOK=0
  S SEX=$$GET1^DIQ(2,BDFN,.02,"I")
  S AGE=$$AGE^BQIAGE(BDFN)
- I SEX="M" D
+ I SEX="M"!(SEX="U") D
  . I AGE<19 K @BTGLOB@(BDFN) Q
  . I AGE>18,AGE<45,$G(@BTGLOB@(BDFN))<2 Q
  . I +$G(@BTGLOB@(BDFN))=0 Q

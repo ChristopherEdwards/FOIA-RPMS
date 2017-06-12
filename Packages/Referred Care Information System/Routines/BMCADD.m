@@ -1,6 +1,7 @@
 BMCADD ; IHS/PHXAO/TMJ - ADD A NEW REFERRAL ;         [ 07/12/2006  3:48 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**2*;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**2,8,9*;JAN 09, 2006;Build 51
  ;4.0*2 IHS/OIT/FCJ Marked EP for API routine
+ ;4.0*8 IHS/OIT/FCJ Added selecting a visit and adding a v ref entry
  ;
  ;IHS/OIT/FCJ Messages are no longer triggered.  Prompts
  ;    user if they would like to send a message.
@@ -31,12 +32,12 @@ START ;
  ;
 MAIN ;
  S BMCQ=0
- S BMCMODE="A",BMCLOOK=""
+ S BMCMODE="A",(BMCLOOK,BMCVDFN,BMCVRIE,BMCSTRM,BMCSNO,BMCSCOD)="" ;BMC*4.0*8 ADDED BMCVDFN AND BMCSTRM
  S APCDOVRR=""
  D PATIENT ;              get patient being referred
  Q:BMCQ
  D REFDISP
- I BMCQ=1 G GETDATE
+ I BMCQ=1 D GETDATE Q
  D ASK
  Q:BMCQ
  ;
@@ -47,7 +48,10 @@ GETDATE ;EP;Do Get Date if no existing Referrals
  Q:BMCQ
  D ADD ;                  add new referral record
  Q:BMCQ
+ I BMCPCC,'$G(BMCOUTR) D DSPV^BMCADDP I BMCQ D DELETE Q  ;BMC*4.0*8 TEST FOR PCC LINK AND GO TO REQUIRE A VST
  D EDIT ;                 edit referral record just added
+ Q:BMCQ                                 ;BMC*4.0*8
+ I BMCPCC,'$G(BMCOUTR) D ADDVREF        ;BMC*4.0*8 Add to V Ref file
  Q
  ;
 PATIENT ;EP; GET PATIENT
@@ -78,16 +82,18 @@ REFDISP ;EP;Display if Patient has existing Referrals
  W ?25,"**LAST 5 REFERRALS**",!,?25,"********************",!
  I '$D(^BMCREF("AA",BMCDFN)) W !,?20,"**--NO EXISTING REFERRALS--**",! S BMCQ=1 Q
  S BMCQ=0
- S BMCDT=""
- F I=1:1:5 S BMCDT=$O(^BMCREF("AA",BMCDFN,BMCDT),-1) Q:BMCDT=""  D NEXT
- Q
+ S BMCDT="",CT=5  ;BMC*3.1*9 ADDED CT AND CT TO NXT LINE
+ F I=1:1:5 S BMCDT=$O(^BMCREF("AA",BMCDFN,BMCDT),-1) Q:BMCDT=""  D NEXT Q:CT=0
+ K CT Q
 NEXT ;2ND $O
  S BMCRIEN=""
  F  S BMCRIEN=$O(^BMCREF("AA",BMCDFN,BMCDT,BMCRIEN),-1) Q:BMCRIEN'=+BMCRIEN  D
  . Q:BMCDT=""
  . Q:BMCRIEN=""
  . Q:$P($G(^BMCREF(BMCRIEN,1)),U)'=""  ;4.0 IHS/ITSC/FCJ TST FOR SR
+ . Q:CT=0   ;BMC*3.1*9
  . D START^BMCLKID1
+ . S CT=CT-1  ;BMC*3.1*9
  Q
  ;
 DATE ; GET DATE OF REFERRAL
@@ -132,13 +138,16 @@ ADD ; ADD NEW REFERRAL RECORD
  D PROV
  Q:BMCQ
  I BMCRR="" D  Q
- .S DIC="^BMCREF(",DIC(0)="L",DLAYGO=90001,DIC("DR")=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT,X=BMCRDATE
+ .;BMC*4.0*8 SPLIT NXT LINE AND ADDED TOC STATUS FIELD 1304
+ .S DIC="^BMCREF(",DIC(0)="L",DLAYGO=90001,X=BMCRDATE
+ .S DIC("DR")=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT_";1304////P"
  .D FILE^BMCFMC
  .I Y<0 W !,"Error creating REFERRAL.",!,"Notify programmer.",! D EOP^BMC Q
  .W !!,"REFERRAL number : ",BMCRNUMB,!
  .S BMCRIEN=+Y
  .S BMCQ=0
  .Q
+ ;
 RR ;routine referral selected
  ;create entry with .01
  ;%rcr
@@ -153,16 +162,35 @@ RR ;routine referral selected
  ;call %RCR to copy routine referral into the newly created
  ;RCIS Referral entry
  S %X="^BMCRTNRF("_BMCRR_",",%Y="^BMCREF("_BMCRIEN_"," D %XY^%RCR ;move 0 node
+ S BMCSCOD="",BMCSTRM=""   ;BMC*4.0*8
+ S BMCSCOD=$P($G(^BMCRTNRF(BMCRR,13)),U,3) S:BMCSCOD BMCSTRM=$P($$CONC^BSTSAPI(BMCSCOD_"^^^1"),U,2)  ;BMC*4.0*8
+ S $P(^BMCREF(BMCRIEN,13),U,3)=""  ;BMC*4.0*8
  K ^BMCREF(BMCRIEN,61),^BMCREF(BMCRIEN,62) ;kill off nodes that don't belong
  I $D(^BMCREF(BMCRIEN,21,0)),$P(^BMCREF(BMCRIEN,21,0),U,2)[3221 S $P(^BMCREF(BMCRIEN,21,0),U,2)="90001.21PA"
  ;*******IMPORTANT - in line above, if nodes are added to the routine referral definition file, you must add the node to the line above
  S $P(^BMCREF(BMCRIEN,0),U)=BMCRDATE
  S DA=BMCRIEN,DIK="^BMCREF(" D IX1^DIK ;reindex entry
- S DIE="^BMCREF(",DR=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT
+ ;BMC*4.0*8 IHS.OIT.FCJ ADDING TOC STATUS
+ S DIE="^BMCREF(",DR=".02////"_BMCRNUMB_";.03////"_BMCDFN_";.06////"_BMCPROV_";.15////A;.25////"_DUZ_";.26////"_DT_";.27////"_DT_";1304////P"
  D DIE^BMCFMC
  I $D(Y) W !!,"Error in editing referral entry.  NOTIFY PROGRAMMER." Q
  S Y=BMCRIEN D ^BMCREF
  S BMCQ=0
+ Q
+ ;
+ADDVREF ;EP FR BMCADDFY AND BMCADDS;ADD ENTRY TO V REF FILE ;BMC*4.0*8 NEW SECTION
+ S DIC="^AUPNVREF(",DIC(0)="L",DLAYGO=9000010.59,X=BMCSCOD
+ S DIC("DR")=".02////"_BMCDFN_";.03////"_BMCVDFN_";.06////"_BMCRIEN_";1201////"_$$NOW^XLFDT_";1202////"_BMCPROV_";1204////"_BMCPROV_";1216////"_$$NOW^XLFDT
+ D FILE^BMCFMC
+ I +Y<0 W !,"Error creating V REFERRAL.",!,"Notify programmer.",! D EOP^BMC Q
+ S BMCVRIE=+Y
+ ;Now add V Referral pointer to RCIS REFERRAL
+ K DIC
+ S DIE="^BMCREF(",DA=BMCRIEN
+ S DR="1303////"_BMCVRIE
+ D ^DIE
+ I $D(Y) W !,"Error adding V REFERRAL in RCIS Referral file.",!,"Notify programmer."
+ K DIE
  Q
  ;
 ADD2 ;add if routine referrals have been defined

@@ -1,5 +1,5 @@
 BKMVSUP5 ;PRXM/HC/WOM - Continuation of BKMVSUP, HIV SUPPLEMENT; [ 1/19/2005 7:16 PM ] ; 10 Jun 2005  12:31 PM
- ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.2;HIV MANAGEMENT SYSTEM;;Apr 01, 2015;Build 40
  Q
 FLOW(DFN) ; EP - Generate Flow Sheet
  I LNCNT>(MAXCT-4) D NEWPG^BKMVSUP
@@ -131,32 +131,32 @@ REM(DFN) ; EP - List Reminders
  ; I IOST["C-" W !!?1,"Calculating HIV-RELATED REMINDERS - Please wait."
  D UPD^BKMVSUP,BLANK^BKMVSUP(1) S LINE=" HIV-RELATED REMINDERS: " D UPD^BKMVSUP
  N PRT,A1,B1,DUE,OVERDUE,REMTXT,DXDT
- K LIST D REMIND^BKMVF3(DFN,NOW,.LIST)
+ K REMLIST D REMIND^BKMVF3(DFN,NOW,.REMLIST)
  I LNCNT>(MAXCT-1) D NEWPG^BKMVSUP
- I $O(LIST("")) D
+ I $O(REMLIST("")) D
  . D UPD^BKMVSUP S LINE=" Reminder",LINE=$$LINE^BKMVSUP(LINE,"Last",26)
  . S LINE=$$LINE^BKMVSUP(LINE,"Due",41) D UPD^BKMVSUP
- . S A1="" F  S A1=$O(LIST(A1)) Q:A1=""  D
- .. S B1="" F  S B1=$O(LIST(A1,B1)) Q:B1=""  D
- ... S DUE=$G(LIST(A1,B1,"DUE")) ;S:DUE="" DUE="Unknown" this is not on the Clinical Rem, they must be the same
+ . S A1="" F  S A1=$O(REMLIST(A1)) Q:A1=""  D
+ .. S B1="" F  S B1=$O(REMLIST(A1,B1)) Q:B1=""  D
+ ... S DUE=$G(REMLIST(A1,B1,"DUE")) ;S:DUE="" DUE="Unknown" this is not on the Clinical Rem, they must be the same
  ... I LNCNT>MAXCT D NEWPG^BKMVSUP
- ... I 'DUE,'$G(LIST(A1,B1,"LAST")) Q
- ... S REMTXT=$G(LIST(A1,B1,0))
+ ... I 'DUE,'$G(REMLIST(A1,B1,"LAST")) Q
+ ... S REMTXT=$G(REMLIST(A1,B1,0))
  ... S OVERDUE=0
  ... I DUE'="" S:DUE<DT OVERDUE=1 S DUE=$P($$FMTE^XLFDT(+DUE,"5Z"),"@",1)
- ... I OVERDUE=0,$G(LIST(A1,B1,"LAST"))="" S DUE="("_DUE_")"
- ... I OVERDUE=1 S DUE=$S($G(LIST(A1,B1,"LAST"))="":"("_DUE_")",1:DUE)
+ ... I OVERDUE=0,$G(REMLIST(A1,B1,"LAST"))="" S DUE="("_DUE_")"
+ ... I OVERDUE=1 S DUE=$S($G(REMLIST(A1,B1,"LAST"))="":"("_DUE_")",1:DUE)
  ... ;I OVERDUE=1 S DUE="May Be Due Now (Was due "_DUE_")"
  ... S LINE=" "_$E(REMTXT,1,25)
- ... S LINE=$$LINE^BKMVSUP(LINE,$P($$FMTE^XLFDT($G(LIST(A1,B1,"LAST")),"5Z"),"@"),26)
- ... I $G(LIST(A1,B1,"LASTTXT"))]"" S LINE=LINE_LIST(A1,B1,"LASTTXT")
+ ... S LINE=$$LINE^BKMVSUP(LINE,$P($$FMTE^XLFDT($G(REMLIST(A1,B1,"LAST")),"5Z"),"@"),26)
+ ... I $G(REMLIST(A1,B1,"LASTTXT"))]"" S LINE=LINE_REMLIST(A1,B1,"LASTTXT")
  ... S LINE=$$LINE^BKMVSUP(LINE,DUE,42) D UPD^BKMVSUP
  ... I REMTXT["Viral Load"!(REMTXT["Trichomoniasis Test")!(REMTXT["Tetanus IZ")!(REMTXT["Dental Exam") D UPD^BKMVSUP
  ... I LNCNT>MAXCT D NEWPG^BKMVSUP
  ;
  ; Check for a history of Tuberculosis diagnosis (DX.14) or history of positive PPD test (T.21)
  ; Preferentially list TB dx over positive PPD
- I '$D(LIST("REM.T.05")) D
+ I '$D(REMLIST("REM.T.05")) D
  . ; *** Need to new variables ***
  . ; *** Do we need to examine BKM PPD TAX, BKM PPD CPTS or BKM PPD CVX CODES since they are not used for a positive PPD determination?
  . ; Check for history of Tuberculosis diagnosis

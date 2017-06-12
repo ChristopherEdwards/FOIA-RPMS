@@ -1,5 +1,5 @@
 APCHPWHT ; IHS/CMI/LAB -- create/modify health summary type ; 06 Sep 2011  1:08 PM
- ;;2.0;IHS PCC SUITE;**6,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**6,7,11**;MAY 14, 2009;Build 58
  ;; ;
  ;routine to create/modify a health summary type
 EP ;EP - called from option
@@ -129,7 +129,9 @@ PH ;EP called from protocol to generate PWH
  S Y=DFN D ^AUPNPAT
  S APCHSDFN=DFN
  S %=$P(^APCHPWHT(APCHPWHT,0),U)_" Patient Wellness Handout for "_$P(^DPT(APCHSDFN,0),U)
+ S APCHITST=1
  D EN2^APCHPWHG(APCHPWHT,DFN)
+ K APCHITST
  D BACK
  Q
  ;

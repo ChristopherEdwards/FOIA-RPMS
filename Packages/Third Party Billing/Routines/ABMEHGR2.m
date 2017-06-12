@@ -1,5 +1,5 @@
 ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;     
- ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,8,9,10,11,19**;NOV 12, 2009;Build 300
  ;Original;DMJ;03/20/96 9:07 AM
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
@@ -18,6 +18,8 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  ; IHS/SD/SDR -abm*2.6*6 - 5010 - added date written to array for 23
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added line item control number
  ; IHS/SD/SDR - abm*2.6*6 - HEAT28973 - if 55 modifier present use '1' as the units to calculate charges
+ ;IHS/SD/SDR - 2.6*19 - HEAT180453 - Added code to include AREA OF ORAL CAVITY in ABMRV array for dental.
+ ;IHS/SD/SDR - 2.6*19 - HEAT173117 - Correction to CPT Narrative for 23 multiple.
  ;
  ; *********************************************************************
  ;
@@ -101,6 +103,7 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S $P(ABMRV(23,DA,ABMLCNT),U,11)=ABM(13)  ;corresponding dx
  .S $P(ABMRV(23,DA,ABMLCNT),U,38)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U)  ;abm*2.6*6 5010 line item control number
  .;end new code HEAT35661
+ .S $P(ABMRV(23,DA,ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,3)),U,2)  ;abm*2.6*9 NARR  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  .Q:'$G(ABMDA)
  .S $P(ABMRV(23,DA,ABMLCNT),U,14)=ABM(52,ABMDA,8,"E")  ;days of supply
  .;S $P(ABMRV(23,DA,ABMLCNT),U,15)=ABM(52,ABMDA,27,"E")  ;ndc #  ;abm*2.6*6
@@ -114,7 +117,7 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .S $P(ABMRV(23,DA,ABMLCNT),U,27)=$S($G(ABM(28))'="":ABM(28),1:ABM(14))  ;service date to  ;abm*2.6*10 HEAT70933
  .S $P(ABMRV(23,DA,ABMLCNT),U,32)=ABM(25)  ;date written  ;abm*2.6*6 5010
  .S $P(ABMRV(23,DA,ABMLCNT),U,38)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U)  ;abm*2.6*6 5010 line item control number
- .S $P(ABMRV(23,DA,ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U,2)  ;abm*2.6*9 NARR
+ .;S $P(ABMRV(23,DA,ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),23,DA,2)),U,2)  ;abm*2.6*9 NARR  ;abm*2.6*19 IHS/SD/SDR HEAT173117
  Q
  ;
 25 ;EP - Revenue Code
@@ -195,7 +198,8 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  ;
  S DA=0
  F  S DA=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA)) Q:'DA  D
- .F J=1:1:9 S ABM(J)=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,0),"^",J)
+ .;F J=1:1:9 S ABM(J)=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,0),"^",J)  ;abm*2.6*19 HEAT180453
+ .F J=1:1:11 S ABM(J)=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,0),"^",J)  ;abm*2.6*19 HEAT180453
  .S:'+ABM(9) ABM(9)=1
  .S ABM("DCODE")=$P(^AUTTADA(ABM(1),0),U) ; dental code
  .S ABMDENP=$P($G(^ABMDREC(ABMP("INS"),0)),U,2)
@@ -220,6 +224,7 @@ ABMEHGR2 ; IHS/ASDST/DMJ - GET ANCILLARY SVCS REVENUE CODE INFO ;
  .;end new code abm*2.6*8
  .S $P(ABMRV(33,DA,ABMLCNT),U,38)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,2)),U)  ;abm*2.6*6 5010 line item control number
  .S $P(ABMRV(33,DA,ABMLCNT),U,39)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,2)),U,2)  ;abm*2.6*9 NARR
+ .S $P(ABMRV(33,DA,ABMLCNT),U,40)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),33,DA,0)),U,11)  ;area of oral cavity  ;abm*2.6*19 HEAT180453
  Q
  ;
 35 ;EP - Radiology

@@ -1,10 +1,10 @@
-LRCAPES1 ;DALOI/FHS/KLL-CONT MANUAL PCE CPT WORKLOAD CAPTURE ;07/30/04
- ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
- ;
- ;;VA LR Patche(s): 274,308
+LRCAPES1 ;DALOI/FHS/KLL-CONT MANUAL PCE CPT WORKLOAD CAPTURE ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**274,308,1031,1033**;NOV 1, 1997
  ;
  ;Continuation of LRCAPES
 EN ; EP - Setup the order of defined NLT codes
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  ; ^ICPTCOD supported by DBIA 1995-A
  Q:$G(^TMP("LR",$J,"AK",0,1))=DUZ_U_DT
  N LRI,LRY,LRX,LRX2,LRX3,LRDES,LRCNT
@@ -26,6 +26,8 @@ EN ; EP - Setup the order of defined NLT codes
  Q
  ;
 SET(DFN,LRPRO,LREDT,LRLOC,LRINS,LRCPT,LRAA,LRAD,LRAN) ; Call to check variable
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  S (LREND,LROK)=0,LRAA=+$G(LRAA),LRAD=+$G(LRAD),LRAN=+$G(LRAN)
  I '$D(^DPT(DFN,0))#2 S LROK="1^Error Patient" Q LROK
  I $$GET^XUA4A72(LRPRO,DT)<1 S LROK="2^Inactive Provider" Q LROK
@@ -41,6 +43,8 @@ SET(DFN,LRPRO,LREDT,LRLOC,LRINS,LRCPT,LRAA,LRAD,LRAN) ; Call to check variable
  Q LROK
  ;
 SEND ;Send data to PCE via DATA2PCE^PXAPI API
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  I $$GET1^DIQ(63,+$G(LRDFN),.02,"I")=2,$G(LRDSSID),$O(^TMP("LRPXAPI",$J,"PROCEDURE",0)) D
  . I '$D(LRQUIET) W !,$$CJ^XLFSTR("Sending PCE Workload",IOM)
  . S:'$D(^LRO(68,LRAA,1,LRAD,1,LRAN,"PCE")) ^("PCE")="" S LRPCEN=^("PCE")
@@ -53,6 +57,8 @@ SEND ;Send data to PCE via DATA2PCE^PXAPI API
  Q
  ;
 SETWKL(LRAA,LRAD,LRAN) ;Set workload into 68 from CPT coding
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  Q:'$P(LRPARAM,U,14)!('$P($G(^LRO(68,+$G(LRAA),0)),U,16))
  I '$G(^LRO(68,+$G(LRAA),1,+$G(LRAD),1,+$G(LRAN),0)) Q
  I '$O(^TMP("LR",$J,"LRLST",0)) K ^TMP("LR",$J,"LRLST") Q
@@ -74,6 +80,8 @@ SETWKL(LRAA,LRAD,LRAN) ;Set workload into 68 from CPT coding
  Q
  ;
 DIS ;
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N X9
  K X,LRLST,LRCNT,LRI,LRX,LRXY,LRXTST
  K ^TMP("LR",$J,"LRLST")
@@ -92,6 +100,8 @@ DIS ;
  D DEM
  ;
 CHK ;User accepts CPT list
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N DIR
  S DIR("A")="Is this correct "
  S DIR(0)="Y",DIR("B")="Yes" D RD
@@ -127,6 +137,8 @@ READ ;Select CPT codes for accession
  Q
  ;
 DEM ;
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N LRIENS,DA
  S LRIENS=LRAN_","_LRAD_","_LRAA_","
  W @IOF
@@ -177,6 +189,8 @@ DEM ;
  Q
  ;
 CHKCPT ;Edit CPT code - does it exist,active in 81 or 64, linked to workload?
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N LRINACT,LRII
  S (LRNR,LRACTV,LRXY2,LRWL2,LRD2)=0,LRXY1=$P(LRXY,U)
  I LRXY1=-1 S LRNOTFD=$S($G(LRNOTFD):LRNOTFD_LRX_",",1:LRX_",") Q
@@ -206,7 +220,10 @@ CHKCPT ;Edit CPT code - does it exist,active in 81 or 64, linked to workload?
  Q
  ;
 LSTCPT(LRAA,LRAD,LRAN)  ; Show loaded CPT codes if any
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  Q:$S('$G(LRAA):1,'$G(LRAD):1,'$G(LRAN):1,1:0)
+ ;
  N LRSTR
  S LRSTR=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,"PCE")) Q:'LRSTR
  N DA,DIC,DIR,DIRUT,DIR,DR,ERR,DUOUT,IEN,LRDA,LRENC,LREND,LRP,S,X,Y
@@ -222,6 +239,8 @@ LSTCPT(LRAA,LRAD,LRAN)  ; Show loaded CPT codes if any
  Q
  ;
 HLP ;Help display for CPT selection
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N DIR,DIRUT,DUOUT,DTOUT,LREND,LRX,LRY
  W @IOF
  S LRX="^TMP(""LR"","_$J_",""AK"",0,1)"

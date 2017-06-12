@@ -1,5 +1,5 @@
-GMRAGUI1 ;SLC/DAN - CPRS GUI support ;2/9/09  09:45
- ;;4.0;Adverse Reaction Tracking;**21,25,36,38,42**;Mar 29, 1996;Build 4
+GMRAGUI1 ;SLC/DAN - CPRS GUI support ;06-May-2013 11:01;DU
+ ;;4.0;Adverse Reaction Tracking;**21,25,36,38,42,1007**;Mar 29, 1996;Build 18
  ;
  Q
 EN1 ; GETREC, cont'd
@@ -78,7 +78,7 @@ NKA ;Change patient assessment to NKA
  .S $P(^GMR(120.86,0),U,3,4)=(DFN_"^"_($P(^GMR(120.86,0),U,4)+1))
  .S ^GMR(120.86,DFN,0)=DFN_U,^GMR(120.86,"B",DFN,DFN)=""
  L -^GMR(120.86,0) L +^GMR(120.86,DFN,0):5 I '$T S ORY="-1^Unable to update assessment - try again." Q
- S DIE="^GMR(120.86,",DA=DFN,DR="1////0;2////"_DUZ_";3///NOW" D ^DIE
+ S DIE="^GMR(120.86,",DA=DFN,DR="1////0;2////"_DUZ_";3///NOW;9999999.01///"_"@" D ^DIE
  S ORY=0
  L -^XTMP("GMRAED",DFN)
  Q

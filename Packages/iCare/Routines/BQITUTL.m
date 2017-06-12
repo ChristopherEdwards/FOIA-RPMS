@@ -1,15 +1,26 @@
 BQITUTL ;PRXM/HC/ALA-Diagnoses Category Utility Program ; 02 Mar 2006  1:21 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  Q
  ;
-BLD(TAX,REF) ;EP - Build a taxonomy
+BLD(TAX,REF,BQTTYP) ;PEP - Build a taxonomy
+ NEW BQTXN
  ;Input
  ;  TAX - Taxonomy name
  ;  REF - reference where list will reside
- D BLDTAX^BQITUIX(TAX,REF)
+ I '$$PATCH^XPDUTL("ATX*5.1*11") D BLDTAX^BQITUIX(TAX,REF) Q
+ S BQTTYP=$G(BQTTYP,"")
+ I BQTTYP="" D
+ . S BQQN=$O(^BQI(90508,1,10,"B",TAX,""))
+ . I BQQN'="" S BQQY=$P(^BQI(90508,1,10,BQQN,0),U,3)
+ . S BQTTYP=$S($G(BQQY)=5:"L",1:"")
+ I BQTTYP="L" S BQTXN=$O(^ATXLAB("B",TAX,""))
+ E  S BQTXN=$O(^ATXAX("B",TAX,0))
+ I BQTXN="" Q
+ D BLDTAX^ATXAPI(TAX,REF,BQTXN,BQTTYP)
+ K BQTTYP,BQQY
  Q
  ;
-BLDSV(FILEREF,VAL,TARGET) ;EP - Add a single value to a taxonomy
+BLDSV(FILEREF,VAL,TARGET) ;PEP - Add a single value to a taxonomy
  ;Description
  ;  Use this if no taxonomy was given but an individual code
  ;Input
@@ -33,6 +44,14 @@ BLDSV(FILEREF,VAL,TARGET) ;EP - Add a single value to a taxonomy
  ..S @TARGET@(IEN)=NAME
  ;
  K FILEREF,FILE,INDEX,VAL,END,NAME,IEN,TARGET
+ Q
+ ;
+SNOM(SUB,REF) ;PEP - Build a SNOMED subset
+ NEW BQIOK,TTREF
+ S TTREF=$NA(^TMP("BQISNOM",$J)) K @TTREF
+ S BQIOK=$$SUBLST^BSTSAPI(TTREF,SUB_"^36^1")
+ S BQN="" F  S BQN=$O(@TTREF@(BQN)) Q:BQN=""  S CID=$P(@TTREF@(BQN),U,1),@REF@(CID)=$P(@TTREF@(BQN),U,3)
+ K @TTREF
  Q
  ;
 CHECK(V,E) ;EP
@@ -98,3 +117,17 @@ GDXN(DEF) ;EP - Get IEN of a definition
  S DIC(0)="NZ",X=DEF,DIC="^BQI(90506.2,"
  D ^DIC
  Q +Y
+ ;
+MEAS(BQDFN,MEAS) ;EP - Get measurement
+ NEW VALUE,RVDT,QFL,IEN,RES,VISIT,RESULT,VDATE
+ I MEAS'?.N S MEAS=$$FIND1^DIC(9999999.07,,"MX",MEAS)
+ S VALUE=0
+ S RVDT="",QFL=0
+ F  S RVDT=$O(^AUPNVMSR("AA",BQDFN,MEAS,RVDT)) Q:RVDT=""  D  Q:QFL
+ . S IEN=""
+ . F  S IEN=$O(^AUPNVMSR("AA",BQDFN,MEAS,RVDT,IEN)) Q:IEN=""  D  Q:QFL
+ .. S RES=$G(^AUPNVMSR(IEN,0)),VISIT=$P(RES,U,3),RESULT=$P(RES,U,4),VDATE=""
+ .. I $P($G(^AUPNVMSR(IEN,2)),U,1)=1 Q
+ .. I VISIT'="" S VDATE=$P(^AUPNVSIT(VISIT,0),U,1)\1
+ .. S VALUE="1^"_VDATE_U_RESULT_U_VISIT_U_IEN,QFL=1
+ Q VALUE

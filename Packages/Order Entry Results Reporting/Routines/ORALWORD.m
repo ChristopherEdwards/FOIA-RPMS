@@ -1,8 +1,11 @@
-ORALWORD ; SLC/JMH - Utilities for Checking if an order can be ordered ;17-Jun-2013 14:52;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243,1010**;Dec 17, 1997;Build 47
+ORALWORD ; SLC/JMH - Utilities for Checking if an order can be ordered ;09-Oct-2013 08:56;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**243,1010,1012**;Dec 17, 1997;Build 242
  ;
  ; Modified - IHS/MSC/PLS - 06/17/13 - Added Q1 support for ALLWORD
+ ;                        - 10/09/13 - Changed ALLWORD and ALLWRN to simply quit
 ALLWORD(ORY,DFN,ORX,ORTYPE,PROV) ;
+ ;IHS/MSC/PLS - 10/09/2013
+ S ORY=0 Q  ; IHS doesn't use
  N OROI,ORYS,QOIEN,QPIEN,ORCLOZ,QOAA
  S OROI=0
  ;
@@ -117,6 +120,8 @@ ALLWRN(ORY,ORN,REFILLS) ;allow order to be renewed
  N ORDS,ORQT,ORUPD,ORSCH,ORDUR,ORDFN,ORDRG,OROI,ORMAXDS,ORMAXQT,ORCLOZ,ORREF,ORMAXREF
  ;default return 1 (ORY=1 means allow renew)
  S ORY=1
+ ;IHS/MSC/PLS - 10/09/13
+ Q  ;IHS doesn't use
  ;get DFN (ORDFN)
  S ORDFN=+$P(^OR(100,ORN,0),U,2)
  Q:'ORDFN

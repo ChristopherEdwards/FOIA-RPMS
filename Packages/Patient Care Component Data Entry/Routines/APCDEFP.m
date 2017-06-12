@@ -1,5 +1,5 @@
-APCDEFP ; IHS/CMI/LAB - APCD Auto Print PCC Encounter Form ;
- ;;2.0;IHS PCC SUITE;**4**;MAY 14, 2009
+APCDEFP ; IHS/CMI/LAB - APCD Auto Print PCC Encounter Form ; 16 Oct 2012  6:19 PM
+ ;;2.0;IHS PCC SUITE;**4,11**;MAY 14, 2009;Build 58
  ;
  ;This routine will print out an automated PCC encounter form for
  ;a particular visit.
@@ -63,8 +63,8 @@ WVPOV ;-- write out v pov
  . W !?3,$P(APCDPOV(APCDTA),U,2),?60,$P($G(APCDPOV(APCDTA)),U,1)
  . I $P(APCDPOV(APCDTA),U,3)]"" W !?5,"Stage: ",$P(APCDPOV(APCDTA),U,3)
  . I $P(APCDPOV(APCDTA),U,4)]""!($P(APCDPOV(APCDTA),U,5)]"") W !?5,"Modifier: ",$P(APCDPOV(APCDTA),U,4),?45,"Cause of DX: ",$P(APCDPOV(APCDTA),U,5)
- . I $P(APCDPOV(APCDTA),U,6)]""!($P(APCDPOV(APCDTA),U,9)]"")!($P(APCDPOV(APCDTA),U,10)]"") W !?5,"E Code: ",$P(APCDPOV(APCDTA),U,6),?30,"E Code: ",$P(APCDPOV(APCDTA),U,9),?60,"E Code: ",$P(APCDPOV(APCDTA),U,10)
- . I $P(APCDPOV(APCDTA),U,11)]""!($P(APCDPOV(APCDTA),U,8)]"") W !?5,"Place of Occurence: ",$P(APCDPOV(APCDTA),U,11),?45,"Date of Injury: ",$P(APCDPOV(APCDTA),U,8)
+ . I $P(APCDPOV(APCDTA),U,6)]""!($P(APCDPOV(APCDTA),U,9)]"")!($P(APCDPOV(APCDTA),U,10)]"") W !?5,"E Code: ",$P(APCDPOV(APCDTA),U,6),?30,"Cause: ",$P(APCDPOV(APCDTA),U,9),?60,"Cause: ",$P(APCDPOV(APCDTA),U,10)
+ . I $P(APCDPOV(APCDTA),U,11)]""!($P(APCDPOV(APCDTA),U,8)]"") W !?5,"Place of Occurrence: ",$P(APCDPOV(APCDTA),U,11),?45,"Date of Injury: ",$P(APCDPOV(APCDTA),U,8)
  K APCDPOV,APCDTA
  W !,APCDLN
  Q

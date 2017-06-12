@@ -1,5 +1,5 @@
 BDGPCCL ; IHS/ANMC/LJF,WAR - PCC LINK CODE ;  [ 09/14/2004  2:11 PM ]
- ;;5.3;PIMS;**1001,1003,1004,1005,1006,1010,1013**;MAY 28, 2004
+ ;;5.3;PIMS;**1001,1003,1004,1005,1006,1010,1013,1018,1019**;MAY 28, 2004;Build 3
  ;IHS/ITSC/LJF 09/01/2004 PATCH 1001 change visit pointer if "A" visit
  ;IHS/ITSC/LJF 05/13/2005 PATCH 1003 HASVISIT changed to find only H visit at date/time stamp
  ;             06/24/2005 PATCH 1003 fix typo so update to Discharge UB-92 works
@@ -8,6 +8,7 @@ BDGPCCL ; IHS/ANMC/LJF,WAR - PCC LINK CODE ;  [ 09/14/2004  2:11 PM ]
  ;             09/08/2006 PATCH 1006 prevent PCC visit deletion if already coded
  ;cmi/anch/maw 10/20/2008 PATCH 1010 added set of APCDALVR("APCDOPT") to BDG VISIT CREATOR
  ;ihs/cmi/maw  09/26/2011 PATCH 1013 added service cat and clinic for DAY SURGERY
+ ;IHS/OIT/CLS  03/31/2015 PATCH 1018 changed '=' to '[' DAY SURGERY to allow for subspecialties
  ;
  ; Called by ADT Event Driver as first protocol
  ;
@@ -117,9 +118,11 @@ ADDVST ; create visit
  . S APCDALVR("APCDANE")=""    ;no user interactive w/FM
  ;
  NEW ASRV S ASRV=$$LASTSRVN^BDGF1(DGPMCA,DFN)    ;admit service name
- S APCDALVR("APCDCAT")=$S(ASRV["OBSERVATION":"O",ASRV="DAY SURGERY":"S",1:"H")   ;srv category maw 09/26/2011
+ ;S APCDALVR("APCDCAT")=$S(ASRV["OBSERVATION":"O",ASRV="DAY SURGERY":"S",1:"H")   ;srv category maw 09/26/2011
+ S APCDALVR("APCDCAT")=$S(ASRV["OBSERVATION":"O",ASRV["DAY SURGERY":"S",1:"H")   ;srv category maw 09/26/2011; IHS/OIT/CLS 03/31/2015 patch 1018
  I ASRV["OBSERVATION" S APCDALVR("APCDCLN")=$O(^DIC(40.7,"C",87,0))
- I ASRV="DAY SURGERY" S APCDALVR("APCDCLN")=$O(^DIC(40.7,"C",44,0))  ;ihs/cmi/maw 09/26/2011 PATCH 1013
+ ;I ASRV="DAY SURGERY" S APCDALVR("APCDCLN")=$O(^DIC(40.7,"C",44,0))  ;ihs/cmi/maw 09/26/2011 PATCH 1013
+ I ASRV["DAY SURGERY" S APCDALVR("APCDCLN")=$O(^DIC(40.7,"C",44,0))  ;ihs/cmi/maw 09/26/2011 PATCH 1013; IHS/OIT/CLS 03/31/2015 patch 1018
  ;
  D ^APCDALV
  ;
@@ -207,7 +210,8 @@ CHKCAT ; called by ADDVH to check visit service category
  I DSRV'["OBSERVATION",CAT="O" D  Q
  . S APCDALVR("APCDCAT")="H" D EDITVST(VST,DFN)
  . I '$O(^AUPNVINP("AD",VST,0)),$$GET1^DIQ(405,DGPMCA,.17)]"" D ADDVH
- I DSRV'="DAY SURGERY",CAT="S" D  Q  ;ihs/cmi/maw 09/26/2011 PATCH 1013 for day surgery
+ ;I DSRV'="DAY SURGERY",CAT="S" D  Q  ;ihs/cmi/maw 09/26/2011 PATCH 1013 for day surgery
+ I DSRV'["DAY SURGERY",CAT="S" D  Q  ;ihs/cmi/maw 09/26/2011 PATCH 1013 for day surgery; IHS/OIT/CLS 03/31/2015 patch 1018
  . S APCDALVR("APCDCAT")="H" D EDITVST(VST,DFN)
  . I '$O(^AUPNVINP("AD",VST,0)),$$GET1^DIQ(405,DGPMCA,.17)]"" D ADDVH
  ;
@@ -298,7 +302,7 @@ HASVPTR() ; -- returns 1 if admission already has good visit pointer
  I $$GET1^DIQ(9000010,X,.11)="DELETED" D DELPTR Q 0
  ;
  ; if 405 points to a visit not an hosp or observation, remove pointer
- S Y=$$GET1^DIQ(9000010,X,.07,"I") I (Y'="H"),(Y'="O") D DELPTR Q 0
+ S Y=$$GET1^DIQ(9000010,X,.07,"I") I (Y'="H"),(Y'="O"),(Y'="S") D DELPTR Q 0  ;PATCH 1019 added screen of day surgery
  ;
  Q 1
  ;

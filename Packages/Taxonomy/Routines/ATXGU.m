@@ -1,5 +1,5 @@
 ATXGU ;cmi/anch/maw - ATX Gui Taxonomy Utilities 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ;
  ;generic Taxonomy GUI calls
  ;cmi/anch/maw 3/8/2007 modified MED to remove screen on inactive meds
@@ -195,7 +195,7 @@ ICD(ATXRET) ;-- get all POV's
  S ATXI=0
  S ATXERR=""
  S ^ATXTMP($J,ATXI)="T00100POVS"_$C(30)
- S ATXPOV="" F  S ATXPOV=$O(^ICD9("AB",ATXPOV)) Q:ATXPOV=""  D
+ S ATXPOV=0 F  S ATXPOV=$O(^ICD9("AB",ATXPOV)) Q:ATXPOV=""  D
  . S ATXPIEN=0 F  S ATXPIEN=$O(^ICD9("AB",ATXPOV,ATXPIEN)) Q:'ATXPIEN  D
  .. Q:$E(ATXPOV,1,1)="["
  .. Q:ATXPOV="delete"
@@ -366,9 +366,9 @@ ICDO(ATXRET) ;-- icd operation
  S ^ATXTMP($J,ATXI)="T00050ICDO^T00007IEN"_$C(30)
  S ATXDA=0 F  S ATXDA=$O(^ICD0(ATXDA)) Q:'ATXDA  D
  . ;S ATXICD0=$P($G(^ICD0(ATXDA,0)),U)
- . S ATXICD0=$P($$ICDOP^ICDCODE(ATXDA),U,2)
+ . S ATXICD0=$P($$ICDOP^ICDCODE(ATXDA,,,"I"),U,2)
  . ;S ATXICDD=$P($G(^ICD0(ATXDA,0)),U,4)
- . S ATXICDD=$P($$ICDOP^ICDCODE(ATXDA),U,5)
+ . S ATXICDD=$P($$ICDOP^ICDCODE(ATXDA,,,"I"),U,5)
  . S ATXI=ATXI+1
  . S ^ATXTMP($J,ATXI)=ATXICD0_"-"_ATXICDD_U_ATXDA_$C(30)
  S ^ATXTMP($J,ATXI+1)=$C(31)_$G(ATXERR)

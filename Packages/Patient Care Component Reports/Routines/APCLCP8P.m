@@ -1,5 +1,5 @@
-APCLCP8P ; IHS/CMI/LAB - print apc report by prov disc ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+APCLCP8P ; IHS/CMI/LAB - print apc report by prov disc ; 11 Apr 2013  10:34 AM
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;IHS/CMI/LAB changed minutes to hours in print
 START ;
  S APCL80S="-------------------------------------------------------------------------------"
@@ -44,8 +44,8 @@ P ;
  Q
 SUBHEAD ;
  Q:$D(APCLQUIT)
- S APCLLENG=$L($S(APCLSEX="F":"FEMALE",1:"MALE"))
- W ?(80-(6+APCLLENG)/2),"SEX:  ",$S(APCLSEX="F":"FEMALE",1:"MALE")
+ S APCLLENG=$L($S(APCLSEX="F":"FEMALE",APCLSEX="U":"UNKNOWN",1:"MALE"))
+ W ?(80-(6+APCLLENG)/2),"SEX:  ",$S(APCLSEX="F":"FEMALE",APCLSEX="U":"UNKNOWN",1:"MALE")
  W !!?28,"TOTAL",?38,"# CONTS",?48,"# CONTS"
  W !?28,"PATIENT",?38,"AS PRIM.",?48,"AS SEC.",?58,"ACTIVITY",?69,"TRAVEL"
  W !,"AGE GROUP",?28,"CONTACTS",?38,"PROVIDER",?48,"PROVIDER",?58,"TIME*",?69,"TIME"

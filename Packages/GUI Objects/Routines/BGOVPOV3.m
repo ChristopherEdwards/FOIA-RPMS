@@ -1,0 +1,234 @@
+BGOVPOV3 ; IHS/BAO/TMD - Visit POV maintenance ;13-Apr-2016 03:47;du
+ ;;1.1;BGO COMPONENTS;**19,20**;Mar 20, 2007;Build 6
+ ; Add/Edit VPOV data
+ ;  INP = null^ Visit IEN [2] ^ Problem IEN [3] ^ Patient IEN [4] ^ Prov Text [5] ^ Descriptive CT [6] ^
+ ;        SNOMED CT [7] ^ ^Primary/Seconday ^ Provider IEN [10]^ asthma control [11]
+ ;  LIST(n) = POV IEN [1]
+ ;  QUAL = Q [1] ^ TYPE [2] ^IEN (If edit)  [3] ^ SNOMED [4] ^ BY [5] ^WHEN [6] ^ DEL [7]
+ ;  INJ  = Cause DX[1] ^ Injury Code [2] ^ Injury Place [3] ^ First/Revisit [4] ^ Injury Dt [5] ^ Onset Date [6]
+ ;  NORM = SNOMED
+EDIT(RET,INP,LIST,QUAL,INJ,NORM) ;EP
+ N VIEN,DFN,TYPE,ITYPE,NARR,STAGE,MOD,CAUSEDX,REVISIT,ECODE,PLACE,CONTROL,SNOMED,DESC,TEXT,SAVRET,VDT
+ N PRIM,INJDT,ONSET,FDA,FNUM,VFNEW,PRV,TYPE2,DUP,LAT,LATEXT,FIRST
+ N CANDUP,OFF,APCDVSIT,PXCEVIEN,PROB,NEW,DESCT,SNODATA,IMP
+ N PTDATA,CHK,POVLST,IENS,POV,RET3,SPEC,VFIEN,X,FIRST
+ S FNUM=$$FNUM
+ S CHK=0,IENS="",SPEC="",FIRST=""
+ S FIVE=$G(FIVE),DUP=$G(DUP)
+ S NEW=0,RET3=""
+ S NORM=$G(NORM)
+ S INJ=$G(INJ)
+ S QUAL=$G(QUAL)
+ ;MSC/MGH - 07/08/09 - Offset to support VistA and RPMS
+ S OFF=$S($G(DUZ("AG"))="I":0,1:9999999)
+ S VIEN=$P(INP,U,2)
+ S PROB=$P(INP,U,3)
+ I 'VIEN S RET=$$ERR^BGOUTL(1008) Q
+ I $G(DUZ("AG"))="I" S APCDVSIT=VIEN
+ E  S PXCEVIEN=VIEN
+ S DFN=$P(INP,U,4)
+ S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ Q:RET
+ ;Patch 13 SNOMED CT data
+ S VDT=$$GET1^DIQ(9000010,VIEN,.01,"I")
+ S SNOMED=$P(INP,U,7)
+ S NARR=$P(INP,U,5),DESCT=$P(INP,U,6)
+ S NARR=$TR(NARR,"^|","")
+ ;IHS/MSC/MGH Changes for laterality
+ S LAT=$$GET1^DIQ(9000011,PROB,.22,"I")
+ I LAT'="" D
+ .S LATEXT=$$CVPARM^BSTSMAP1("LAT",$P(LAT,"|",2))
+ .S NARR=NARR_"|"_DESCT_"|"_LATEXT
+ E  S NARR=NARR_"|"_DESCT
+ S TYPE=$P($P(INP,U,8),"|",1)
+ ;Handle Prenatal 1.0 POV sets
+ I $P(INP,U,5)["|",DESCT="" D
+ . S NARR=$P(INP,U,5)
+ . S TYPE=$TR($P(INP,U,3),"`")
+ . I TYPE]"" S TYPE=$P($$ICDDX^ICDCODE(TYPE,$$NOW^XLFDT),U,2)
+ . S SPEC=1,PROB=""
+ I $E($P(INP,U,3))="`" D
+ . S NARR=$P(INP,U,5)
+ . S TYPE=$TR($P(INP,U,3),"`")
+ . I TYPE]"" S TYPE=$P($$ICDDX^ICDCODE(TYPE,$$NOW^XLFDT),U,2)
+ . S SPEC=1,PROB=""
+ S RET=$$FNDNARR^BGOUTL2(NARR)
+ Q:RET<0
+ S NARR=$S(RET:"`"_RET,1:""),RET=""
+ D GETPOVS(.LIST,.POVLST)
+ S PTDATA=$$GETDATA^BGOVPOV2(DFN,$G(LIST(0)))
+ S SNODATA=$$CONC^BSTSAPI(SNOMED_"^^"_VDT_"^1^^"_PTDATA)
+ I 'SPEC D
+ .S FIVE=$P(SNODATA,U,5)
+ .S FIRST=$P(FIVE,";",1)
+ .S CHK=$$MATCH^BGOVPOV3(FIVE,.POVLST)
+ .I CHK=1 D
+ ..D DELPOV(.LIST,PROB)
+ ..S VFNEW=1
+ ..S DEL=";"
+ ..S X=$L(FIVE,DEL)
+ ..F I=1:1:X D
+ ...S X2=$P(FIVE,DEL,I)
+ ...S TYPE=X2,VFIEN=0,NEW=1
+ ...D STORE
+ .I CHK=0 D
+ ..S VFNEW=0
+ ..S POV="" F  S POV=$O(LIST(POV)) Q:POV=""  D
+ ...S VFIEN=$P(LIST(POV),U,1)
+ ...S TYPE=$$GET1^DIQ(9000010.07,VFIEN,.01)
+ ...D STORE
+ I SPEC D STORE
+ S RET=IENS
+ Q
+MATCH(FIVE,POVLST) ;Match up the ICDs on the problem with the SNOMED
+ N DEL,X,X2,I,SFIVE,CHK2
+ S CHK2=0
+ S DEL=";"
+ S SFIVE=$G(FIVE)
+ S X=$L(SFIVE,DEL)
+ S CNT=$G(POVLST(0))
+ Q:X'=CNT 1
+ F I=1:1:X D
+ .S X2=$P(SFIVE,DEL,I)
+ .I '$D(POVLST(X2)) S CHK2=1                                           ;There is a code in the snomed lookup not in the POV file
+ Q CHK2
+GETPOVS(LIST,POVLST) ;Get the ICD codes currently stored
+ N IEN,CODE,ICDCODE,CNT
+ S CNT=0
+ S IEN="" F  S IEN=$O(LIST(IEN)) Q:IEN=""  D
+ .S ICDCODE=$P(LIST(IEN),U,1)
+ .S CODE=$$GET1^DIQ(9000010.07,ICDCODE,.01)
+ .S POVLST(CODE)="",CNT=CNT+1
+ S POVLST(0)=CNT
+ Q
+DELPOV(LIST,PROB) ;Delete the POVs in the list
+ N VPOV,RET1,POVICD
+ S VPOV="" F  S VPOV=$O(LIST(VPOV)) Q:VPOV=""  D
+ .S POVICD=$P(LIST(VPOV),U,1)
+ .D DEL^BGOVPOV(.RET1,POVICD,PROB)
+ Q
+STORE ;Store the POV
+ ;MSC/MGH Updated in patch 18 to send in extra data
+ S CANDUP=1
+ I TYPE="" D
+ .;Patch 14 check for which undefined code to use
+ .I $$AICD^BGOUTL2 D
+ ..S IMP=$$IMP^ICDEX("10D",DT)
+ ..I IMP<VDT!(IMP=VDT) S TYPE="ZZZ.999"
+ ..I IMP>VDT S TYPE=".9999"
+ .E  S TYPE=".9999"
+ I TYPE'["." S TYPE=TYPE_"."
+ S ITYPE=$P($$CODEN^ICDEX(TYPE,80),"~",1)
+ I 'ITYPE S RET=$$ERR^BGOUTL(1094) Q
+ I 'VFIEN  D CHECK^BGOVPOV(.DUP,ITYPE_U_DFN_U_+$G(^AUPNVSIT(VIEN,0))_U_SNOMED_U_LAT)
+ I DUP'="" S RET=DUP
+ Q:RET
+ ;Injury data
+ S (CAUSEDX,REVISIT,ECODE,PLACE,INJDT,ONSET)=""
+ I INJ'="" D
+ .S CAUSEDX=$P(INJ,U,1)
+ .S REVISIT=$P(INJ,U,4)
+ .S ECODE=$P(INJ,U,2)
+ .S PLACE=$P(INJ,U,3)
+ .S INJDT=$$CVTDATE^BGOUTL($P(INJ,U,5))
+ .S INJDT=$P(INJDT,".",1)
+ .S ONSET=$$CVTDATE^BGOUTL($P(INJ,U,6))
+ ;
+ ;Provider Information
+ S PRIM=$P(INP,U,9)
+ S PRIM=$S($L(PRIM):PRIM,$$FNDPRI^BGOVPOV1(VIEN):"S",1:"P")
+ S PRV=$P(INP,U,10)
+ S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
+ Q:RET
+ ;
+ I 'VFIEN D  Q:'VFIEN
+ .D VFNEW^BGOUTL2(.RET,FNUM,ITYPE,VIEN,$S(CANDUP:"",1:"POV"))
+ .S:RET>0 VFIEN=RET,SAVRET=RET,RET=""
+ E  S SAVRET=VFIEN
+ S FDA=$NA(FDA(FNUM,VFIEN_","))
+ S @FDA@(.01)="`"_ITYPE
+ S @FDA@(.04)=NARR
+ S @FDA@(.29)=NORM                                                     ;Patch 18
+ S @FDA@(.07)=CAUSEDX
+ S @FDA@(.08)=REVISIT
+ S @FDA@(.09)=$S(ECODE'="":ECODE,1:"")
+ S @FDA@(.11)=PLACE
+ ;Patch 20
+ S PRIM=$S(PRIM="Primary":"P",PRIM="PRIMARY":"P",PRIM="P":"P",1:"S")
+ I PRIM="P"&(FIRST=TYPE) S @FDA@(.12)=PRIM
+ E  S @FDA@(.12)="S"
+ ;S @FDA@(.12)=PRIM
+ S @FDA@(.13)=INJDT
+ S @FDA@(.17+OFF)=ONSET                                                ;P6
+ I PROB'="" S @FDA@(.16)="`"_PROB
+ S @FDA@(1104)=$S(LAT="":"@",1:LAT)                                           ;P20
+ S @FDA@(1101)=SNOMED
+ S @FDA@(1102)=DESCT
+ S @FDA@(1201)="N"
+ S @FDA@(1204)="`"_DUZ                                                 ; PATCH 5
+ ;IHS/MSC/MGH added new fields patch 11
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
+ S RET=$$UPDATE^BGOUTL(.FDA,"E@")
+ I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
+ Q:RET
+ ;IHS/MSC/MGH Patch 13 check for qualifiers
+ I NEW=1 D QUALB^BGOVPOV1(.RET,PROB,VFIEN)
+ I QUAL'="" D QUAL^BGOVPOV1(.RET,VFIEN,QUAL)
+ I PRIM="P"&(FIRST=TYPE) D  Q:RET
+ .D SETPRI^BGOVPOV(.RET,VFIEN_U_PRIM,1)
+ .S:RET>0 VFIEN=RET,RET=""
+ ;E  I $$FIXVPOVS^BGOVPOV1(VIEN,.VFIEN)  ; Fix VPOV sequencing Removed P18
+ D VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)
+ ;Check for asthma diagnoses
+ S CONTROL=$P(INP,U,11)
+ I DUZ("AG")="I" D
+ . N ASTHMA
+ . ;IHS/MSC/MGH Patch 15, change to DESCT
+ . S ASTHMA=$$CHECK^BGOASLK(ITYPE,DESCT)
+ . I ASTHMA=1 S RET=RET_U_ASTHMA
+ . I CONTROL="NONE RECORDED" S CONTROL=""
+ . I CONTROL'="" D ASTHMA^BGOVPOV(DFN,CONTROL,VIEN)
+ .;Check for bulletin for new dx
+ .N DA,X,APCDDATE,APCDVSIT,ATXAD,APCDPAT,AUPNPAT
+ .S DA=VFIEN,X=ITYPE
+ .S APCDDATE=$P($G(^AUPNVSIT(VIEN,0)),U,1)
+ .S APCDVSIT=VIEN,ATXAD="",(APCDPAT,AUPNPAT)=DFN
+ .D ^ATXPOV
+ S IENS=IENS_";"_SAVRET
+ ;Add POV to the problem multiple
+ Q:PROB=""
+ Q:$D(^AUPNPROB(PROB,14,"B",VIEN))
+ N PRIEN,FDA,IEN,ERR
+ S PRIEN="+1,"_PROB_","
+ S FDA(9000011.14,PRIEN,.01)=VIEN
+ D UPDATE^DIE(,"FDA","IEN","ERR")
+ I $D(ERR) S RET="Unable to update problem multiple"
+ Q
+ ;Input=CODIEN  SNOMED concept ID
+ ;      VIEN    Visit IEN
+INJURY(RET,SNOMED,VIEN) ;Is this problem an injury?
+ N ICD,SNODATA,VDT
+ S RET=0
+ I 'SNOMED S RET="-1^Missing SNOMED CT"
+ S VDT=$$GET1^DIQ(9000010,VIEN,.01,"I")
+ S SNODATA=$$CONC^BSTSAPI(SNOMED_"^^"_VDT_"^1")
+ S ICD=$P($P(SNODATA,U,5),";",1)
+ I $$AICD^BGOUTL2 D ICD10(.RET,ICD) Q
+ S X=$$ICDDX^ICDCODE(ICD)
+ S ICD=$P(X,U,2)
+ I ICD>799.9&(ICD<1000) S RET=1
+ Q
+ICD10(RET,ICD) ;New entry point for ICD-10
+ N IMP,X
+ S IMP=$$IMP^ICDEX("10D",DT)
+ I IMP<VDT D
+ .I $E(ICD,1)="S" S RET=1
+ .I $E(ICD,1)="T",$E(ICD,2,3)<89 S RET=1
+ I IMP>VDT D
+ .I ICD>799.9&(ICD<1000) S RET=1
+ Q
+FNUM() Q 9000010.07

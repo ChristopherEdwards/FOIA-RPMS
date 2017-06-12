@@ -1,8 +1,9 @@
 BILETPR1 ;IHS/CMI/MWR - PRINT PATIENT LETTERS.; DEC 15, 2011
- ;;8.5;IMMUNIZATION;**1**;JAN 03,2012
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  BUILD ^TMP WP ARRAY FOR PRINTING LETTERS.
- ;   PATCH 1: Fix Date/Loc line.  DATELOC+2
+ ;;  PATCH 10: If no skin tests on record, display explicitly. HISTORY1+190
+ ;;            Display only the most recent three dates of Skin Tests. HISTORY1+209
  ;
  ;
  ;----------
@@ -70,8 +71,7 @@ HISTORY(BILET,BILINE,BIDFN,BIPDSS) ;EP
  ;     1 - BILET  (req) IEN of Letter in BI LETTER File.
  ;     2 - BILINE (ret) Last line written into ^TMP array.
  ;     3 - BIDFN  (req) Patient's IEN in VA PATIENT File #2.
- ;     4 - BIPDSS (opt) Returned string of Visit IEN's that are
- ;                        Problem Doses, according to ImmServe.
+ ;     4 - BIPDSS (opt) Returned string of Visit IEN's that are Problem Doses,
  ;
  ;---> Quit if this Form Letter does not included Imm History.
  N BIFORM S BIFORM=$P(^BILET(BILET,0),U,2)
@@ -245,7 +245,6 @@ HISTORY1(BILINE,BIDFN,BIFORM,BINVAL,BIGBL,BIPDSS,BIHDRS,BINOSK,BILOC,BIMMRF,BIMM
  ;---> Skin Tests ONLY, then store next line.
  I '$O(BIAR(0)),$G(BINOSK)'=2 D
  .D WRITE(.BILINE,"        No previous immunizations recorded.",BIGBL)
- .;D WRITE(.BILINE,,BIGBL)
  ;
  ;---> Quit if NOT including Skin Tests.
  Q:($G(BINOSK))=1
@@ -279,16 +278,30 @@ HISTORY1(BILINE,BIDFN,BIFORM,BINVAL,BIGBL,BIPDSS,BIHDRS,BINOSK,BILOC,BIMMRF,BIMM
  .;---> BIAR(VisitDate,SkinTestName,VisitIEN)=Skin Test display line.
  .S BIAR($P(Y,V,12),$P(Y,V,10),$P(Y,V,4))=X
  ;
- Q:'$D(BIAR)
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> If no skin tests on record, display that explicitly.
+ ;Q:'$D(BIAR)
+ I '$D(BIAR) D  Q
+ .D WRITE(.BILINE)
+ .S X="     Skin Tests/PPD: None on record" D WRITE(.BILINE,X)
+ ;**********
+ ;
  ;---> Skin Test Header.
  D:$G(BINOSK)'=2 WRITE(.BILINE,,BIGBL)
  D:'$G(BIHDRS)
- .S X="               Skin Tests:"
+ .;S X="               Skin Tests:"
+ .S X="               Recent Skin Tests:"
  .D WRITE(.BILINE,X,BIGBL)
  .S X="               -----------------------"
  .D WRITE(.BILINE,X,BIGBL)
  ;
  ;---> Build Skin Test History lines for History Section of Form Letter.
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Display only the most recent three dates of Skin Tests.
+ ;
+ N BIZTEMP
+ ;
  N N S N=0
  F  S N=$O(BIAR(N)) Q:'N  D
  .N BIDT
@@ -299,7 +312,17 @@ HISTORY1(BILINE,BIDFN,BIFORM,BINVAL,BIGBL,BIPDSS,BIHDRS,BINOSK,BILOC,BIMMRF,BIMM
  ..F  S P=$O(BIAR(N,M,P)) Q:'P  D
  ...N X S X=BIAR(N,M,P)
  ...S X="     "_$S(I=1:BIDT_": ",1:"          ")_X
- ...D WRITE(.BILINE,X,BIGBL)
+ ...;
+ ...S BIZTEMP(N,M)=X
+ ...;D WRITE(.BILINE,X,BIGBL)
+ ;
+ N N S N=9999999
+ F I=1:1:4 S N=+$O(BIZTEMP(N),-1) Q:'N
+ F  S N=$O(BIZTEMP(N)) Q:'N  D
+ .N M S M=""
+ .F  S M=$O(BIZTEMP(N,M)) Q:(M="")  D
+ ..D WRITE(.BILINE,BIZTEMP(N,M),BIGBL)
+ ;**********
  ;
  Q
  ;
@@ -388,9 +411,6 @@ FORECAST(BILET,BILINE,BIFORCST,BIFDT) ;EP
  ;---> Loop through "^"-pieces of Imm Forecast, getting data.
  F I=1:1 S Y=$P(BIFORC,U,I) Q:Y=""  D
  .;
- .;---> CodeChange for v7.1 - IHS/CMI/MWR 12/01/2000:
- .;---> Remove Dose#.
- .;S Y=$P(Y,V) S:((Y["-")&(Y'["Td")) Y=$P(Y,"-",2)
  .S Y=$P(Y,V) I +Y&($E(Y,2)="-") S Y=$E(Y,3,99)
  .;
  .D WRITE(.BILINE,"        "_$$STRIP^BIUTL5(.Y))
@@ -400,25 +420,11 @@ FORECAST(BILET,BILINE,BIFORCST,BIFDT) ;EP
  ;
  ;----------
 DATELOC(BILET,BILINE,BIDLOC) ;EP
- ;
- ;********** PATCH 1, v8.5, JAN 03,2012, IHS/CMI/MWR
- ;---> Include "." in front of BILINE to receive new value from call.
- ;D DATELOC^BILETPR2(BILET,BILINE,BIDLOC)
  D DATELOC^BILETPR2(BILET,.BILINE,BIDLOC)
- ;**********
  Q
  ;
  ;
  ;----------
 WRITE(BILINE,BIVAL,BIGBL) ;EP
- ;---> Write a line to the ^TMP global for WP or Listman.
- ;---> NOTE: DUPLICATE CODE IN ^BILETPR3 FOR SPEED.
- ;---> Parameters:
- ;     1 - BILINE (ret) Last line# in the WP ^TMP global.
- ;     2 - BIVAL  (opt) Value/text of line (Null=blank line).
- ;     3 - BIGBL  (opt) ^TMP global node to write to (def="BILET").
- ;
- Q:'$D(BILINE)
- S:$G(BIGBL)="" BIGBL="BILET"
- D WL^BIW(.BILINE,BIGBL,$G(BIVAL))
+ D WRITE^BILETPR3(.BILINE,$G(BIVAL),$G(BIGBL))
  Q

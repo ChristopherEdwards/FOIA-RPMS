@@ -1,5 +1,5 @@
 TIUDD1 ; SLC/JER - XREFs for file 8925.1 ;19-OCT-2001 10:05:37 [7/28/04 9:08am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,51,115,163**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,51,115,163,224**;Jun 20, 1997;Build 7
 SACL(X,FLD) ; Set logic for ACL cross-reference
  ; Called from fields .01 (NAME), .07 (STATUS), .03 (PRINT NAME),
  ; .02 (ABBREVIATION), and Subfield .01 of ITEM sub-file
@@ -30,8 +30,9 @@ SACL(X,FLD) ; Set logic for ACL cross-reference
  . S TIUDA=$S(+$G(DA(1)):+$G(DA(1)),1:+$G(DA))
  . I $P($G(^TIU(8925.1,+TIUDA,0)),U,4)'="DOC" Q
  . S TIUSTTS=$P($G(^TIU(8925.1,+TIUDA,0)),U,7)
- . ; Include only TEST or ACTIVE titles
- . I $S(TIUSTTS=10:0,TIUSTTS=11:0,1:1) Q
+ . ;VMPELR P 224 allow the update of inactive titles
+ . ; Include only TEST or ACTIVE or INACTIVE TITLES
+ . I $S(TIUSTTS=10:0,TIUSTTS=11:0,TIUSTTS=13:0,1:1) Q
  . S TIUTTL=$P($G(^TIU(8925.1,+TIUDA,0)),U)
  . Q:TIUTTL']""
  . S X=$$UP^XLFSTR(X)
@@ -71,18 +72,27 @@ SACL(X,FLD) ; Set logic for ACL cross-reference
  . S TIUDA=$S(+$G(DA(1)):+$G(DA(1)),1:+$G(DA))
  . I $P($G(^TIU(8925.1,+TIUDA,0)),U,4)'="DOC" Q
  . S TIUSTTS=$P($G(^TIU(8925.1,+TIUDA,0)),U,7)
- . ; Include only TEST or ACTIVE titles
- . I $S(TIUSTTS=10:0,TIUSTTS=11:0,1:1) Q
+ . ; Include only TEST or ACTIVE OR inactive titles
+ . I $S(TIUSTTS=10:0,TIUSTTS=11:0,TIUSTTS=13:0,1:1) Q
  . ; First build x-ref for Clinical Documents & Immediate descendents
  . S TIUCLASS=+$$CLINDOC^TIULC1(+TIUDA)
  . I TIUCLASS'>0 Q
  . S ^TIU(8925.1,"ACL",TIUCLASS,X,+TIUDA)=""
  . S ^TIU(8925.1,"ACL",38,X,+TIUDA)=""
+ . S TIUABV=$P($G(^TIU(8925.1,+TIUDA,0)),U,2)
+ . I TIUABV]"" S TIUABV=TIUABV_"  <"_X_">" S ^TIU(8925.1,"ACL",TIUCLASS,TIUABV,+TIUDA)="",^TIU(8925.1,"ACL",38,TIUABV,+TIUDA)=""
+ . S TIUPN=$P($G(^TIU(8925.1,+TIUDA,0)),U,3)
+ . I TIUPN]"" S TIUPN=TIUPN_"  <"_X_">" S ^TIU(8925.1,"ACL",TIUCLASS,TIUPN,+TIUDA)="",^TIU(8925.1,"ACL",38,TIUPN,+TIUDA)=""
  . D SACLKWIC(X,TIUCLASS,+TIUDA)
  . ; Now build x-ref for document classes
  . S TIUCLASS=+$$DOCCLASS^TIULC1(+TIUDA)
  . I TIUCLASS'>0 Q
  . S ^TIU(8925.1,"ACL",TIUCLASS,X,+TIUDA)=""
+ . ;VMP/ELR PATCH 224 ADDED NEXT 4 LINES
+ . S TIUABV=$P($G(^TIU(8925.1,+TIUDA,0)),U,2)
+ . I TIUABV]"" S TIUABV=TIUABV_"  <"_X_">" S ^TIU(8925.1,"ACL",TIUCLASS,TIUABV,+TIUDA)=""
+ . S TIUPN=$P($G(^TIU(8925.1,+TIUDA,0)),U,3)
+ . I TIUPN]"" S TIUPN=TIUPN_"  <"_X_">" S ^TIU(8925.1,"ACL",TIUCLASS,TIUPN,+TIUDA)=""
  . D SACLKWIC(X,TIUCLASS,+TIUDA)
  Q
 SACLKWIC(X,TIUCLASS,TIUDA) ; Set logic for KWIC analog
@@ -113,8 +123,8 @@ KACL(X,FLD) ; KILL Logic for ACL cross-reference
  . S TIUDA=$S(+$G(DA(1)):+$G(DA(1)),1:+$G(DA))
  . I $P($G(^TIU(8925.1,+TIUDA,0)),U,4)'="DOC" Q
  . S TIUSTTS=$P($G(^TIU(8925.1,+TIUDA,0)),U,7)
- . ; Include only TEST or ACTIVE titles
- . I $S(TIUSTTS=10:0,TIUSTTS=11:0,1:1) Q
+ . ; Include only TEST or ACTIVE or INACTIVE titles
+ . I $S(TIUSTTS=10:0,TIUSTTS=11:0,TIUSTTS=13:0,1:1) Q
  . S TIUTTL=$P($G(^TIU(8925.1,+TIUDA,0)),U)
  . Q:TIUTTL']""
  . S TIUTTL=X_"  <"_TIUTTL_">"
@@ -142,16 +152,25 @@ KACL(X,FLD) ; KILL Logic for ACL cross-reference
  . K ^TIU(8925.1,"ACL",TIUCLASS,TIUTTL,+TIUDA)
  . D KACLKWIC(TIUTTL,TIUCLASS,+TIUDA)
  I FLD=.01 D
- . N TIUDA
+ . N TIUDA,TIUABV,TIUPN
  . S TIUDA=$S(+$G(DA(1)):+$G(DA(1)),1:+$G(DA))
  . ; First remove x-ref for Clinical Documents & Immediate descendents
  . S TIUCLASS=+$$CLINDOC^TIULC1(+TIUDA)
  . K ^TIU(8925.1,"ACL",TIUCLASS,X,+TIUDA)
  . K ^TIU(8925.1,"ACL",38,X,+TIUDA)
+ . S TIUABV=$P($G(^TIU(8925.1,+TIUDA,0)),U,2)
+ . I TIUABV]"" S TIUABV=TIUABV_"  <"_X_">" K ^TIU(8925.1,"ACL",TIUCLASS,TIUABV,+TIUDA),^TIU(8925.1,"ACL",38,TIUABV,+TIUDA)
+ . S TIUPN=$P($G(^TIU(8925.1,+TIUDA,0)),U,3)
+ . I TIUPN]"" S TIUPN=TIUPN_"  <"_X_">" K ^TIU(8925.1,"ACL",TIUCLASS,TIUPN,+TIUDA),^TIU(8925.1,"ACL",38,TIUPN,+TIUDA)
  . D KACLKWIC(X,TIUCLASS,+TIUDA)
  . ; Now remove x-ref for document classes
  . S TIUCLASS=+$$DOCCLASS^TIULC1(+TIUDA)
  . K ^TIU(8925.1,"ACL",TIUCLASS,X,+TIUDA)
+ . ;VMP/ELR PATCH 224 ADDED NEXT 4 LINES
+ . S TIUABV=$P($G(^TIU(8925.1,+TIUDA,0)),U,2)
+ . I TIUABV]"" S TIUABV=TIUABV_"  <"_X_">" K ^TIU(8925.1,"ACL",TIUCLASS,TIUABV,+TIUDA)
+ . S TIUPN=$P($G(^TIU(8925.1,+TIUDA,0)),U,3)
+ . I TIUPN]"" S TIUPN=TIUPN_"  <"_X_">" K ^TIU(8925.1,"ACL",TIUCLASS,TIUPN,+TIUDA)
  . D KACLKWIC(X,TIUCLASS,+TIUDA)
  Q
 KACLKWIC(X,TIUCLASS,TIUDA) ; KILL Logic for KWIC analog
@@ -160,4 +179,4 @@ KACLKWIC(X,TIUCLASS,TIUDA) ; KILL Logic for KWIC analog
  . S TIUC=$E(X,TIUJ)
  . I "(,.?! '-/&:;)"[TIUC S TIUC=$E($E(X,TIUI,TIUJ-1),1,30),TIUI=TIUJ+1
  . I  I $L(TIUC)>2 K ^TIU(8925.1,"ACL",TIUCLASS,TIUC_"  <"_X_">",TIUDA),^TIU(8925.1,"ACL",38,TIUC_"  <"_X_">",TIUDA)
- Q
+ Q 

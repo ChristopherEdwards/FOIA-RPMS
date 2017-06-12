@@ -1,5 +1,5 @@
 BGP5DON ; IHS/CMI/LAB - NATL COMP EXPORT 13 Nov 2006 12:31 PM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  W:$D(IOF) @IOF
@@ -149,20 +149,7 @@ COM1 S X=0
  .I $D(DIRUT) S BGPQUIT=1
  .I 'Y S BGPQUIT=1
  .Q
-MFIC K BGPQUIT
- I $P($G(^BGPSITE(DUZ(2),0)),U,8)=1 D  I BGPMFITI="" G COMM
- .S BGPMFITI=""
- .W !!,"Specify the LOCATION taxonomy to determine which patient visits will be"
- .W !,"used to determine whether a patient is in the denominators for the report."
- .W !,"You should have created this taxonomy using QMAN.",!
- .K BGPMFIT
- .S BGPMFITI=""
- .D ^XBFMK
- .S DIC("S")="I $P(^(0),U,15)=9999999.06",DIC="^ATXAX(",DIC(0)="AEMQ",DIC("A")="Enter the Name of the Location/Facility Taxonomy: "
- .S B=$P($G(^BGPSITE(DUZ(2),0)),U,9) I B S DIC("B")=$P(^ATXAX(B,0),U)
- .D ^DIC
- .I Y=-1 Q
- .S BGPMFITI=+Y
+ K BGPQUIT
 BEN ;
  ;I $G(BGPSEAT) G HOME
  I BGPRTC="H" G HOME
@@ -199,9 +186,6 @@ SUM ;display summary of this report
  W !?5,"Baseline Period: ",?31,$$FMTE^XLFDT(BGPBBD)," to ",?31,$$FMTE^XLFDT(BGPBED)
  W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
  W !,"The Beneficiary Population is: ",BGPBENF(0)
- ;I $G(BGPSEAT) W !!,"The Patient Population is: ",$P(^DIBT(BGPSEAT,0),U,1)
- ;W !!,"The COMMUNITY Taxonomy to be used is: ",$P(^ATXAX(BGPTAXI,0),U)
- I $G(BGPMFITI) W !!,"The MFI Location Taxonomy to be used is: ",$P(^ATXAX(BGPMFITI,0),U)
  I BGPHOME W !,"The HOME location is: ",$P(^DIC(4,BGPHOME,0),U)," ",$P(^AUTTLOC(BGPHOME,0),U,10)
  I 'BGPHOME W !,"No HOME Location selected."
  D TEXT^BGP5DSL
@@ -213,7 +197,7 @@ ZIS ;call to XBDBQUE
  I $G(BGPQUIT) D XIT Q
  I BGPRPT="" D XIT Q
  I BGPEXPT D
- .W !!,"A file will be created called BG150",$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
+ .W !!,"A file will be created called BG151",$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT," and will reside",!,"in the ",BGPUF," directory.",!
  .W !,"Depending on your site configuration, these files may need to be manually",!,"sent to your Area Office.",!
  K IOP,%ZIS I BGPROT="D",BGPDELT="F" D NODEV,XIT Q
  K IOP,%ZIS W !! S %ZIS=$S(BGPDELT'="S":"PQM",1:"PM") D ^%ZIS
@@ -223,12 +207,10 @@ ZIS ;call to XBDBQUE
  I $D(IO("Q")) G TSKMN
 DRIVER ;
  D ^BGP5D1
- ;I $D(BGPSEAT) D ^BGP5D10
  U IO
  D ^BGP5DP
  D ^%ZISC
  I BGPEXPT D GS^BGP5UTL
- ;I $G(BGPEXCEL) D EXCELGS^BGP5UTL
  Q
  ;
 NODEV ;

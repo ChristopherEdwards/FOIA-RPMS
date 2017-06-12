@@ -1,10 +1,10 @@
-PXRMINDC ; SLC/PKR - Index counting routines. ;16-Feb-2012 15:58;DU
- ;;1.5;CLINICAL REMINDERS;**12,1009**;Jun 19, 2000;Build 24
+PXRMINDC ; SLC/PKR - Index counting routines. ;23-Mar-2015 10:36;DU
+ ;;2.0;CLINICAL REMINDERS;**4,6,1001,17,26,1005**;Feb 04, 2005;Build 23
  ;
  ;========================================================
 CNT5(FILENUM,COUNT) ;Get date counts for indexes where the date
  ;is at subscript 5. Works for file numbers:
- ;63, 70, 120.5, 601.2,9000010.01
+ ;63, 70, 120.5, 601.2, 601.84,
  ;9000010.11, 9000010.12, 9000010.13, 9000010.16, 9000010.23
  N DAS,DATE,DFN,IND,ITEM,YEAR
  I '$D(ZTQUEUED) W !,"Counting file number "_FILENUM
@@ -26,11 +26,10 @@ CNT5(FILENUM,COUNT) ;Get date counts for indexes where the date
  ;========================================================
 CNT6(FILENUM,COUNT) ;Get date counts for indexes where the date
  ;is at subscript 6. Works for file numbers:
- ;9000010.07, 9000010.18,9000010.08
- N DAS,DATE,DFN,IND,ITEM,TYPE,YEAR
+ ;9000010.07, 9000010.18
+ N CODESYS,DAS,DATE,DFN,IND,ITEM,TYPE,YEAR
  I '$D(ZTQUEUED) W !,"Counting file number "_FILENUM
- S IND=0
- S DFN=""
+ S DFN="",IND=0
  F  S DFN=$O(^PXRMINDX(FILENUM,"PPI",DFN)) Q:DFN=""  D
  . S IND=IND+1
  . I '$D(ZTQUEUED),(IND#10000=0) W "."
@@ -40,58 +39,76 @@ CNT6(FILENUM,COUNT) ;Get date counts for indexes where the date
  .. F  S ITEM=$O(^PXRMINDX(FILENUM,"PPI",DFN,TYPE,ITEM)) Q:ITEM=""  D
  ... S DATE=""
  ... F  S DATE=$O(^PXRMINDX(FILENUM,"PPI",DFN,TYPE,ITEM,DATE)) Q:DATE=""  D
- .... S YEAR=$E(DATE,1,3)
- .... S DAS=""
+ .... S YEAR=$E(DATE,1,3),DAS=""
  .... F  S DAS=$O(^PXRMINDX(FILENUM,"PPI",DFN,TYPE,ITEM,DATE,DAS)) Q:DAS=""  D
  ..... S COUNT(YEAR)=$G(COUNT(YEAR))+1
+ I FILENUM'=9000010.07 Q
+ S CODESYS=""
+ F  S CODESYS=$O(^PXRMINDX(FILENUM,CODESYS)) Q:CODESYS=""  D
+ . I (CODESYS="PPI")!(CODESYS="IPP") Q
+ . S DFN=""
+ . F  S DFN=$O(^PXRMINDX(FILENUM,CODESYS,"PPI",DFN)) Q:DFN=""  D
+ .. S IND=IND+1
+ .. I '$D(ZTQUEUED),(IND#10000=0) W "."
+ .. S TYPE=""
+ .. F  S TYPE=$O(^PXRMINDX(FILENUM,CODESYS,"PPI",DFN,TYPE)) Q:TYPE=""  D
+ ... S ITEM=""
+ ... F  S ITEM=$O(^PXRMINDX(FILENUM,CODESYS,"PPI",DFN,TYPE,ITEM)) Q:ITEM=""  D
+ .... S DATE=""
+ .... F  S DATE=$O(^PXRMINDX(FILENUM,CODESYS,"PPI",DFN,TYPE,ITEM,DATE)) Q:DATE=""  D
+ ..... S YEAR=$E(DATE,1,3),DAS=""
+ ..... F  S DAS=$O(^PXRMINDX(FILENUM,CODESYS,"PPI",DFN,TYPE,ITEM,DATE,DAS)) Q:DAS=""  D
+ ...... S COUNT(YEAR)=$G(COUNT(YEAR))+1
  Q
  ;
  ;========================================================
 CNTPL(FILENUM,COUNT) ;Get date counts for Problem List indexes where the
- ;date is at subscript 7. Works for file numbers:
+ ;date is at subscript 8. Works for file numbers:
  ;9000011
- N DAS,DATE,DFN,IND,ITEM,PRIORITY,STATUS,TYPE,YEAR
+ N CODESYS,DAS,DATE,DFN,IND,ITEM,PRIORITY,STATUS,TYPE,YEAR
  I '$D(ZTQUEUED) W !,"Counting file number "_FILENUM
- S IND=0
- S DFN=""
- F  S DFN=$O(^PXRMINDX(FILENUM,"PSPI",DFN)) Q:DFN=""  D
- . S IND=IND+1
- . I '$D(ZTQUEUED),(IND#10000=0) W "."
- . S STATUS=""
- . F  S STATUS=$O(^PXRMINDX(FILENUM,"PSPI",DFN,STATUS)) Q:STATUS=""  D
- .. S PRIORITY=""
- .. F  S PRIORITY=$O(^PXRMINDX(FILENUM,"PSPI",DFN,STATUS,PRIORITY)) Q:PRIORITY=""  D
- ... S ITEM=""
- ... F  S ITEM=$O(^PXRMINDX(FILENUM,"PSPI",DFN,STATUS,PRIORITY,ITEM)) Q:ITEM=""  D
- .... S DATE=""
- .... F  S DATE=$O(^PXRMINDX(FILENUM,"PSPI",DFN,STATUS,PRIORITY,ITEM,DATE)) Q:DATE=""  D
- ..... S YEAR=$E(DATE,1,3)
- ..... S DAS=""
- ..... F  S DAS=$O(^PXRMINDX(FILENUM,"PSPI",DFN,STATUS,PRIORITY,ITEM,DATE,DAS)) Q:DAS=""  D
- ...... S COUNT(YEAR)=$G(COUNT(YEAR))+1
+ S CODESYS="",IND=0
+ F  S CODESYS=$O(^PXRMINDX(FILENUM,CODESYS)) Q:CODESYS=""  D
+ . S DFN=""
+ . F  S DFN=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN)) Q:DFN=""  D
+ .. S IND=IND+1
+ .. I '$D(ZTQUEUED),(IND#10000=0) W "."
+ .. S STATUS=""
+ .. F  S STATUS=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN,STATUS)) Q:STATUS=""  D
+ ... S PRIORITY=""
+ ... F  S PRIORITY=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN,STATUS,PRIORITY)) Q:PRIORITY=""  D
+ .... S ITEM=""
+ .... F  S ITEM=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN,STATUS,PRIORITY,ITEM)) Q:ITEM=""  D
+ ..... S DATE=""
+ ..... F  S DATE=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN,STATUS,PRIORITY,ITEM,DATE)) Q:DATE=""  D
+ ...... S YEAR=$E(DATE,1,3)
+ ...... S DAS=""
+ ...... F  S DAS=$O(^PXRMINDX(FILENUM,CODESYS,"PSPI",DFN,STATUS,PRIORITY,ITEM,DATE,DAS)) Q:DAS=""  D
+ ....... S COUNT(YEAR)=$G(COUNT(YEAR))+1
  Q
  ;
  ;========================================================
 CNTPTF(FILENUM,COUNT) ;Get date counts for PTF indexes where the
  ;date is at subscript 7. Works for file numbers:
  ;45
- N DAS,DATE,DFN,IND,ITEM,NODE,TYPE,YEAR
+ N CODESYS,DAS,DATE,DFN,IND,ITEM,NODE,YEAR
  I '$D(ZTQUEUED) W !,"Counting file number "_FILENUM
- S IND=0
- F TYPE="ICD0","ICD9" D
+ S CODESYS="",IND=0
+ ;F TYPE="ICD0","ICD9" D
+ F  S CODESYS=$O(^PXRMINDX(FILENUM,CODESYS)) Q:CODESYS=""  D
  . S DFN=""
- . F  S DFN=$O(^PXRMINDX(FILENUM,TYPE,"PNI",DFN)) Q:DFN=""  D
+ . F  S DFN=$O(^PXRMINDX(FILENUM,CODESYS,"PNI",DFN)) Q:DFN=""  D
  .. S IND=IND+1
  .. I '$D(ZTQUEUED),(IND#10000=0) W "."
  .. S NODE=""
- .. F  S NODE=$O(^PXRMINDX(FILENUM,TYPE,"PNI",DFN,NODE)) Q:NODE=""  D
+ .. F  S NODE=$O(^PXRMINDX(FILENUM,CODESYS,"PNI",DFN,NODE)) Q:NODE=""  D
  ... S ITEM=""
- ... F  S ITEM=$O(^PXRMINDX(FILENUM,TYPE,"PNI",DFN,NODE,ITEM)) Q:ITEM=""  D
+ ... F  S ITEM=$O(^PXRMINDX(FILENUM,CODESYS,"PNI",DFN,NODE,ITEM)) Q:ITEM=""  D
  .... S DATE=""
- .... F  S DATE=$O(^PXRMINDX(FILENUM,TYPE,"PNI",DFN,NODE,ITEM,DATE)) Q:DATE=""  D
+ .... F  S DATE=$O(^PXRMINDX(FILENUM,CODESYS,"PNI",DFN,NODE,ITEM,DATE)) Q:DATE=""  D
  ..... S YEAR=$E(DATE,1,3)
  ..... S DAS=""
- ..... F  S DAS=$O(^PXRMINDX(FILENUM,TYPE,"PNI",DFN,NODE,ITEM,DATE,DAS)) Q:DAS=""  D
+ ..... F  S DAS=$O(^PXRMINDX(FILENUM,CODESYS,"PNI",DFN,NODE,ITEM,DATE,DAS)) Q:DAS=""  D
  ...... S COUNT(YEAR)=$G(COUNT(YEAR))+1
  Q
  ;
@@ -127,7 +144,7 @@ COUNT ;Driver for making index counts.
  ;See if this should be tasked.
  S TASKIT=$$ASKTASK^PXRMSXRM
  I TASKIT D
- . W !,"Queue the Clinical Reminders index count."
+ . W !,"Queue the Clinical Reminders Index count."
  . D TASKIT(LIST,.GBL,.ROUTINE)
  E  D RUNNOW(LIST,.GBL)
  Q
@@ -135,32 +152,36 @@ COUNT ;Driver for making index counts.
  ;========================================================
 MESSAGE(FILENUM,COUNT,TOTAL,START,END) ;Build the MailMan message giving the
  ;count breakdown.
- N COFF,GLOBAL,IND,ML,PERC,TEXT,YEAR,XMSUB,NAME
+ N COFF,FROM,ML,NAME,NL,PERC,TEXT,TO,YEAR,XMSUB
  K ^TMP("PXRMXMZ",$J)
  S ML=$$MAX^XLFMTH($L(TOTAL)+2,8)
  S COFF=ML-5
- S GLOBAL=$G(^PXRMINDX(FILENUM,"GLOBAL NAME"))
  S NAME=$$GET1^DID(FILENUM,"","","NAME")
- I GLOBAL="" D
- .S GLOBAL=NAME
- .W !,"Index for "_NAME_" has not yet been created"
- S XMSUB="Yearly data distribution for global "_GLOBAL
+ S XMSUB="Yearly data distribution for global "_NAME
  S ^TMP("PXRMXMZ",$J,1,0)="File name: "_NAME
  S ^TMP("PXRMXMZ",$J,2,0)="Count finished at "_$$FMTE^XLFDT($$NOW^XLFDT,"5Z")
  S ^TMP("PXRMXMZ",$J,3,0)=$$ETIME^PXRMSXRM(START,END)
  S ^TMP("PXRMXMZ",$J,4,0)=" "
  S ^TMP("PXRMXMZ",$J,5,0)="Year"_$$INSCHR^PXRMEXLC(COFF," ")_"Count"_$J("%",8)
  S ^TMP("PXRMXMZ",$J,6,0)="----"_$$INSCHR^PXRMEXLC(COFF," ")_"-----"_$J("-----",10)
- S IND=6
- S YEAR=""
+ S NL=6,YEAR=0
  F  S YEAR=$O(COUNT(YEAR)) Q:YEAR=""  D
  . S PERC=100*COUNT(YEAR)/TOTAL
  . S TEXT=YEAR_$J(COUNT(YEAR),ML,0)_$J(PERC,10,2)
- . S IND=IND+1,^TMP("PXRMXMZ",$J,IND,0)=TEXT
- S IND=IND+1,^TMP("PXRMXMZ",$J,IND,0)=" "
+ . S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=TEXT
+ S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=" "
  S TEXT="Total entries: "_TOTAL
- S IND=IND+1,^TMP("PXRMXMZ",$J,IND,0)=TEXT
- D SEND^PXRMMSG(XMSUB)
+ S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=TEXT
+ I TOTAL=0 D
+ . I '$D(^PXRMINDX(FILENUM)) S TEXT="The index for file "_NAME_" does not exist!"
+ . S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=TEXT
+ I TOTAL>0,'$D(^PXRMINDX(FILENUM,"DATE BUILT")) D
+ . S TEXT="Warning, the index for file "_NAME_" may be incomplete or corrupted!"
+ . S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=TEXT
+ S FROM=$$GET1^DIQ(200,DUZ,.01)
+ S TO(DUZ)=""
+ D SEND^PXRMMSG("PXRMXMZ",XMSUB,.TO,FROM)
+ K ^TMP("PXRMXMZ",$J)
  Q
  ;
  ;===============================================================
@@ -174,6 +195,7 @@ RUNNOW(LIST,GBL) ;Run the routines now.
  S ROUTINE(100)="CNTSS^PXRMINDC"
  S ROUTINE(120.5)="CNT5^PXRMINDC"
  S ROUTINE(601.2)="CNT5^PXRMINDC"
+ S ROUTINE(601.84)="CNT5^PXRMINDC"
  S ROUTINE(9000011)="CNTPL^PXRMINDC"
  S ROUTINE(9000010.07)="CNT6^PXRMINDC"
  S ROUTINE(9000010.11)="CNT5^PXRMINDC"
@@ -193,7 +215,7 @@ RUNNOW(LIST,GBL) ;Run the routines now.
  . S RTN=RTN_"("_FN_",.COUNT)"
  . S START=$H
  . K COUNT
- . D @RTN
+ . I $D(^PXRMINDX(FN)) D @RTN
  . S END=$H
  . D TOTAL(.COUNT,.TOTAL)
  . D MESSAGE(FN,.COUNT,TOTAL,START,END)
@@ -201,13 +223,14 @@ RUNNOW(LIST,GBL) ;Run the routines now.
  ;
  ;===============================================================
 TASKIT(LIST,GBL,ROUTINE) ;Count the indexes as a tasked job.
- N DIR,DTOUT,DUOUT,MINDT,SDTIME,X,Y
+ N DIR,DIROUT,DIRUT,DTOUT,DUOUT,MINDT,SDTIME,X,Y
  S MINDT=$$NOW^XLFDT
- ;W !,"Queue the Clinical Reminders index counting job."
  S DIR("A",1)="Enter the date and time you want the job to start."
- S DIR("A")="It must be after "_$$FMTE^XLFDT(MINDT,"5Z")_" "
+ S DIR("A",2)="It must be after "_$$FMTE^XLFDT(MINDT,"5Z")
+ S DIR("A")="Start the task at: "
  S DIR(0)="DAU"_U_MINDT_"::RSX"
  D ^DIR
+ I $D(DIROUT)!$D(DIRUT) Q
  I $D(DTOUT)!$D(DUOUT) Q
  S SDTIME=Y
  K DIR
@@ -216,7 +239,7 @@ TASKIT(LIST,GBL,ROUTINE) ;Count the indexes as a tasked job.
  S ZTSAVE("LIST")=""
  S ZTSAVE("GBL(")=""
  S ZTRTN="TASKJOB^PXRMINDC"
- S ZTDESC="Clinical Reminders index count"
+ S ZTDESC="Clinical Reminders Index count"
  S ZTDTH=SDTIME
  S ZTIO=""
  D ^%ZTLOAD
@@ -240,8 +263,7 @@ TASKJOB ;Execute as tasked job. LIST and GBL come through ZTSAVE.
 TOTAL(COUNT,TOTAL) ;Convert the FileMan years in COUNT to regular
  ;years get the total number of entries in count.
  N TC,YEAR
- S TOTAL=0
- S YEAR=""
+ S (TOTAL,YEAR)=0
  F  S YEAR=$O(COUNT(YEAR)) Q:YEAR=""  D
  . S TOTAL=TOTAL+COUNT(YEAR)
  . S TC(YEAR+1700)=COUNT(YEAR)

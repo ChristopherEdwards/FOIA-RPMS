@@ -1,5 +1,5 @@
-LRVER5 ;DALOI/CJS/DALOI/FHS - LAB ROUTINE DATA VERIFICATION ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**42,153,283,286,1027**;NOV 01, 1997
+LRVER5 ;DALOI/CJS/DALOI/FHS - LAB ROUTINE DATA VERIFICATION ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**42,153,283,286,1027,1034**;NOV 01, 1997;Build 88
  ;
  I $G(LRNDISP) D
  . S LRNX=0
@@ -33,7 +33,8 @@ V42 ;
 Q42 ;
  ;
  ; Check for amended results that have arrived via an HL7 interface.
- I $D(^LAH("LA7 AMENDED RESULTS",LRUID,LRSB)) D  G:SX'=X!($G(LRAMEND(LRSB))) V45
+ ; I $D(^LAH("LA7 AMENDED RESULTS",LRUID,LRSB)) D  G:SX'=X!($G(LRAMEND(LRSB))) V45
+ I $D(^LAH("LA7 AMENDED RESULTS",+$G(LRUID),LRSB)) D  G:SX'=X!($G(LRAMEND(LRSB))) V45    ; IHS/OIT/MKK - LR*5.2*1034
  . W !,LRTEST," " W:X'="" @LRFP
  . D AMEND Q:$G(LRAMEND(LRSB))
  . I SX=X W !,LRTEST," " W:X'="" @LRFP
@@ -131,6 +132,14 @@ LRSUBS ; From LRVR5
  ;
  ;
 LRSET ; from above and LRVR5
+ D ENTRYAUD^BLRUTIL("LRSET^LRVER5 0.0")
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ ;       LRSB may be null if LRSET is called from Executable Help
+ ;       of a Field Definition. The following line is from VA Patch
+ ;       LR*5.2*350 version of the routine.  That is the LEDI IV patch.
+ I $G(LRSB)<1 N LRSB S LRSB=+$G(^LAB(60,+$G(DA(1)),.2))
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
  ;
  N I,LRERR,RESULT
  D CHK^DIE(63.04,LRSB,"EH",X,.RESULT,"LRERR")

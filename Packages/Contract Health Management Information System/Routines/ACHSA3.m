@@ -1,5 +1,5 @@
 ACHSA3 ; IHS/ITSC/PMF - ENTER DOCUMENTS (4/8)-(CON,DESC,PRD,ONUM) ;   [ 09/22/2004  3:39 PM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**11**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**11**;JUN 11, 2001;Build 37
  ;ITSC/SET/JVK ACHS*3.1*11 MODIFIED TO DISPLAY MEDICARE PROVIDER
  ;
 B4 ;
@@ -119,7 +119,9 @@ C1 ; Enter period of authorization (From/To dates).
  I ACHSTYP=1 G C1A
  W !!,"Period Of Authorization"
 A1 ;
- S Y=$$DIR^XBDIR("D^:"_$$HTFM^XLFDT($H+120)_":E","From Date",$$FMTE^XLFDT($G(ACHSFDT)),"","Enter a Date Not More Than 120 Days from Today")
+ ;ACHS*3.1*23333333 BE SURE TO CHANGE BACK TO 120 DAYS....
+ ;S Y=$$DIR^XBDIR("D^:"_$$HTFM^XLFDT($H+120)_":E","From Date",$$FMTE^XLFDT($G(ACHSFDT)),"","Enter a Date Not More Than 120 Days from Today")
+ S Y=$$DIR^XBDIR("D^:"_$$HTFM^XLFDT($H+360)_":E","From Date",$$FMTE^XLFDT($G(ACHSFDT)),"","Enter a Date Not More Than 120 Days from Today")
  I $D(DTOUT) D END^ACHSA Q
  G B10:$D(DUOUT)
  S ACHSFDT=Y

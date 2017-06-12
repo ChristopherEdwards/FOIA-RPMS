@@ -1,5 +1,5 @@
 BQITASK1 ;PRXM/HC/ALA-Reminders Update Task ; 24 May 2007  1:10 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
 EN ;EP - Entry point
  ;NEW UID
@@ -22,6 +22,9 @@ REM ;EP - Redo reminders
  ;
  S BQDFN=0,ERRCNT=0
  F  S BQDFN=$O(^AUPNPAT(BQDFN)) Q:'BQDFN  D  Q:ERRCNT>100
+ . NEW CRMDT
+ . S CRMDT=$P($G(^BQIPAT(BQDFN,0)),"^",8)
+ . ;I $$FMDIFF^XLFDT(DT,CRMDT\1)<7 Q
  . NEW BQIDATA
  . S BQIDATA=$NA(^BQIPAT)
  . K @BQIDATA@(BQDFN,40)
@@ -31,6 +34,8 @@ REM ;EP - Redo reminders
  . I '$$HRN^BQIUL1(BQDFN) Q
  . ; If no visit in last 3 years, quit
  . I '$$VTHR^BQIUL1(BQDFN) Q
+ . ; If no visit in last 2 years, quit
+ . ;I '$$VTWR^BQIUL1(BQDFN) Q
  . D PAT^BQIRMDR(BQDFN)
  ;
  NEW DA
@@ -52,12 +57,15 @@ ORM ; EP - Update all patients for one reminder
  . ; If no active HRN, don't include
  . I '$$HRN^BQIUL1(BQDFN) Q
  . ; If no visit in last 3 years, quit
- . I '$$VTHR^BQIUL1(BQDFN) Q
+ . ;I '$$VTHR^BQIUL1(BQDFN) Q
+ . ; If no visit in last 2 years, quit
+ . I '$$VTWR^BQIUL1(BQDFN) Q
  . S IEN=0
  . F  S IEN=$O(^XTMP("BQIRMOM",IEN)) Q:IEN=""  D
  .. S RCAT=$P(^XTMP("BQIRMOM",IEN),U,1)
  .. S HIEN=$P(^XTMP("BQIRMOM",IEN),U,2)
  .. S CODE=$P(^XTMP("BQIRMOM",IEN),U,3)
+ .. ;I RCAT["EHR" D EMR^BQIRMDR1(BQDFN,CODE) Q
  .. I RCAT'="Care Management" D RMR^BQIRMDR(BQDFN,HIEN) Q
  .. I RCAT="Care Management" D REG^BQIRMDR1(BQDFN,CODE)
  K HIEN,RCAT,BQDFN,CODE,IEN

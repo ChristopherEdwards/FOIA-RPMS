@@ -1,5 +1,5 @@
 ABSPFUNC ;IHS/ITSC/ENM - MISC FUNCTIONS [ 02/24/2004  9:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**10,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10,46**;JUN 21, 2001;Build 15
  ;
  ;-------------------------------------------------------------
  ;IHS/SD/lwj 03/10/04 Patch 10

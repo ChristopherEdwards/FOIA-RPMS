@@ -1,0 +1,226 @@
+LEX2080P ;ISL/KER - LEX*2.0*80 Pre/Post Install ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
+ ;               
+ ; Global Variables
+ ;    ^%ZOSF("UCI")       ICR  10096
+ ;    ^LEX(757.31         N/A
+ ;    ^LEXM(              N/A
+ ;    ^ORD(101,           ICR    872
+ ;    ^TMP("LEXKID")      SACC 2.3.2.5.1
+ ;    ^TMP(BUILD)         SACC 2.3.2.5.1
+ ;               
+ ; External References
+ ;    $$FIND1^DIC         ICR   2051
+ ;    FILE^DIE            ICR   2053
+ ;    ^DIK                ICR  10013
+ ;    IX1^DIK             ICR  10013
+ ;    IX2^DIK             ICR  10013
+ ;    $$GET1^DIQ          ICR   2056
+ ;    $$FMTE^XLFDT        ICR  10103
+ ;    $$NOW^XLFDT         ICR  10103
+ ;    $$UP^XLFSTR         ICR  10104
+ ;    BMES^XPDUTL         ICR  10141
+ ;    MES^XPDUTL          ICR  10141
+ ;    EN^XQOR             ICR  10101
+ ;               
+ ; Local Variables NEWed or KILLed by Kernel
+ ;     XPDNOQUE
+ ; 
+ Q
+PRE ; LEX*2.0*80 Pre-Install
+ S XPDNOQUE=1 I $D(ZTQUEUED) S XPDABORT=1,XPDQUIT=1,XPDQUIT("ICD*18.0*57")=1,XPDQUIT("LEX*2.0*80")=1 Q
+ Q
+POST ; LEX*2.0*80 Post-Install
+ S XPDNOQUE=1 I $D(ZTQUEUED) S XPDABORT=1,XPDQUIT=1,XPDQUIT("ICD*18.0*57")=1,XPDQUIT("LEX*2.0*80")=1 Q
+ N LEX1,LEX2,LEX3,LEXA,LEXAC,LEXAO,LEXB,LEXBUILD,LEXC,LEXDUZ,LEXFI,LEXLOUD
+ N LEXFY,LEXH,LEXI,LEXID,LEXIN,LEXNM,LEXP,LEXPH,LEXPRO,LEXNOPRO,LEXPTYPE
+ N LEXQTR,LEXS,LEXSTR,LEXSCHG,LEXT,LEXU,LEXUSR,X,Y S LEXNOPRO=""
+ D IMP^LEX2080 Q:'$L(LEXBUILD)  D CON,LOAD,UPD,STATUS^LEX2080A,EN^LEX2080B,DEF S LEXLOUD=1
+ I '$D(^TMP("LEX*2.0*80",$J,"NODATA")) D:$L($T(POST2^LEXXGP1)) POST2^LEXXGP1
+ K ^TMP("LEX*2.0*80",$J,"NODATA"),LEXLOUD
+ Q
+LOAD ; Load Data
+ ;             
+ ;      LEXSHORT   Send Short Message
+ ;      LEXMSG     Flag to send Message
+ ;            
+ N LEXSHORT,LEXMSG,LEXSUBH S LEXSHORT="",LEXMSG=""
+ S:$L($G(LEXPTYPE)) LEXSUBH=$G(LEXPTYPE) S U="^"
+ S LEXB=$G(^LEXM(0,"BUILD")) Q:LEXB=""  Q:$G(LEXBUILD)=""
+ I $D(^TMP("LEX*2.0*80",$J,"NODATA")) Q
+ D:LEXB=LEXBUILD EN^LEXXGI
+LQ ; Load Quit
+ D KLEXM
+ Q
+ ;             
+KLEXM ; Subscripted Kill of ^LEXM
+ H 2 N DA S DA=0 F  S DA=$O(^LEXM(DA)) Q:+DA=0  K ^LEXM(DA)
+ N LEX S LEX=$G(^LEXM(0,"PRO")) K ^LEXM(0)
+ Q
+ ;             
+INS ; Install Message
+ K ^TMP("LEXKID",$J),LEXSCHG N LEXA,LEXAC,LEXAO,LEXB,LEXBUILD,LEXH
+ N LEXIN,LEXPRO,LEXS,LEXT,LEXU S LEXBUILD="LEX*2.0*80"
+ S LEXPRO=$$NOT,LEXS="LEX*2.0*80 Installation" H 2
+ D BL,TL((" "_LEXS)),TL(" ======================="),BL
+ S LEXAO="   As of:       "_$$ED($$NOW^XLFDT) D TL(LEXAO) S LEXAC=""
+ S LEXA=$$UCI S:$L($P(LEXA,"^",1)) LEXAC="   In Account:  "
+ S LEXAC=LEXAC_$S($L($P(LEXA,"^",1)):"[",1:"")_$P(LEXA,"^",1)_$S($L($P(LEXA,"^",2)):"]",1:"")
+ S:$L($P(LEXA,"^",2)) LEXAC=LEXAC_"  "_$P(LEXA,"^",2) D TL(LEXAC) S LEXU=$$USR
+ S:$L($P(LEXU,"^",1)) LEXU="   Maint By:    "_$P(LEXU,"^",1)_"   "_$P(LEXU,"^",2) D TL(LEXU)
+ S LEXB="   Build:       "_LEXBUILD D TL(LEXB) S LEXIN=$P($G(LEXPRO),"^",1) I LEXIN>0 D
+ . S LEXT="   Protocol:    "_"LEXICAL SERVICES UPDATE" D BL,TL(LEXT) S LEXT="   Invoked:     "_$$ED(LEXIN) D TL(LEXT),BL
+ D:+($G(^TMP("LEXKID",$J,0)))>0 MAIL^LEX2080 K ^TMP("LEXKID",$J)
+ Q
+NOT(X) ; Notify by Protocol
+ N LEXIN,LEXFI,LEXID,LEXP,Y K LEXSCHG S LEXFI=0,LEXIN="",LEXSCHG("LEX")=""
+ S LEXP=+($O(^ORD(101,"B","LEXICAL SERVICES UPDATE",0))) Q:LEXP=0 ""  S X=LEXP_";ORD(101," D EN^XQOR
+ S:$P($G(LEXSCHG("LEX")),".",1)?7N LEXIN=$G(LEXSCHG("LEX"))
+ D:+LEXIN>0 BMES^XPDUTL(("  Protocol 'LEXICAL SERVICES UPDATE' invoked  "_$$ED(LEXIN))),MES^XPDUTL(" ") S X=LEXIN
+ Q X
+ ;            
+ ; Miscellaneous
+ED(X) ;   External Date
+ N Y S Y=$$FMTE^XLFDT($G(X)) S:Y["@" Y=$P(Y,"@",1)_"  "_$P(Y,"@",2,299) S:$L(Y) X=Y
+ Q X
+UCI(X) ;   UCI where Lexicon is installed
+ N LEXU,LEXP,LEXT,Y X ^%ZOSF("UCI") S LEXU=Y,LEXP=""
+ S LEXP=$S($$PROD^XUPROD(1):" (Production)",1:" (Test)")
+ S:LEXU[","&($L($P(LEXU,",",1))>3) LEXU=$P(LEXU,",",1)
+ S X="",$P(X,"^",1)=LEXU,$P(X,"^",2)=LEXP
+ Q X
+USR(X) ;   User/Person Installing
+ N LEXDUZ,LEXUSR,LEXPH,LEXNM S LEXDUZ=+($G(DUZ)) Q:+LEXDUZ'>0 "UNKNOWN^"  S LEXNM=$$GET1^DIQ(200,+LEXDUZ,.01) Q:'$L(LEXNM) "UNKNOWN^"
+ S LEXUSR=LEXDUZ S LEXPH=$$GET1^DIQ(200,+LEXUSR,.132) S:LEXPH="" LEXPH=$$GET1^DIQ(200,+LEXUSR,.131)
+ S:LEXPH="" LEXPH=$$GET1^DIQ(200,+LEXUSR,.133) S:LEXPH="" LEXPH=$$GET1^DIQ(200,+LEXUSR,.134)
+ S LEXUSR=$$GET1^DIQ(200,+LEXDUZ,.01),X=LEXUSR_"^"_LEXPH
+ Q X
+UPD ;   Update to data after load
+ N DA,DIK S DA=5009688
+ S ^LEX(757.033,DA,0)="10DS02.0^S02.0^3120324^30"
+ S ^LEX(757.033,DA,1,0)="^757.331D^^1"
+ S ^LEX(757.033,DA,1,1,0)="3141001^1"
+ S ^LEX(757.033,DA,2,0)="^757.332D^1^1"
+ S ^LEX(757.033,DA,2,1,0)="3141001"
+ S ^LEX(757.033,DA,2,1,1)="Fracture of vault of skull"
+ S ^LEX(757.033,DA,3,0)="^757.043D^1^1"
+ S ^LEX(757.033,DA,3,1,0)="3141001"
+ S ^LEX(757.033,DA,3,1,1)="Fracture of vault of skull"
+ S DA=5009688,DIK="^LEX(757.033," D IX1^DIK
+ I $G(^LEX(757.01,332908,5,2,0))="HYPERTENSION" D
+ . N DA,DIK S DA(1)=332908,DA=2,DIK="^LEX(757.01,"_DA(1)_",5," D ^DIK
+ I $G(^LEX(757.01,332908,5,3,0))="HYPERTENSIVE" D
+ . N DA,DIK S DA(1)=332908,DA=3,DIK="^LEX(757.01,"_DA(1)_",5," D ^DIK
+ I $G(^ICD9(13450,68,2,2,5,0))="HYPERTENSION" D
+ . N DA,DIK S DA(2)=13450,DA(1)=2,DA=5,DIK="^ICD9("_DA(2)_",68,"_DA(1)_",2," D ^DIK
+ I $G(^ICD9(13450,68,2,2,6,0))="HYPERTENSIVE" D
+ . N DA,DIK S DA(2)=13450,DA(1)=2,DA=6,DIK="^ICD9("_DA(2)_",68,"_DA(1)_",2," D ^DIK
+ I $G(^ICD9(502758,68,1,2,2,0))="HYPERTENSION" D
+ . N DA,DIK S DA(2)=502758,DA(1)=1,DA=2,DIK="^ICD9("_DA(2)_",68,"_DA(1)_",2," D ^DIK
+ I $G(^ICD9(502758,68,1,2,3,0))="HYPERTENSIVE" D
+ . N DA,DIK S DA(2)=502758,DA(1)=1,DA=3,DIK="^ICD9("_DA(2)_",68,"_DA(1)_",2," D ^DIK
+ S ^ICD9(509440,68,1,2,0)="^80.682^2^2"
+ S ^ICD9(509440,68,1,2,1,0)="FARM"
+ S ^ICD9(509440,68,1,2,2,0)="FARMERS"
+ S DA=509440,DIK="^ICD9(" D IX1^DIK
+ S ^ICD9(9127,68,1,2,0)="^80.682^1^1"
+ S ^ICD9(9127,68,1,2,1,0)="FARM"
+ S DA=9127,DIK="^ICD9(" D IX1^DIK
+ Q
+CON ;   Conversion of Data
+ D DISP,SUBSET,NARR,OPTS,IMP
+ Q
+IMP ; Fix errant Implementation Dates
+ N CODE F CODE="250.00","294.9" D
+ . N STA F STA="0",2 K ^LEX(757.02,"ACT",(CODE_" "),STA,3131001)
+ . N SIEN S SIEN=0 F  S SIEN=$O(^LEX(757.02,"CODE",(CODE_" "),SIEN)) Q:+SIEN'>0  D
+ . . N HIST S HIST=0 F  S HIST=$O(^LEX(757.02,+SIEN,4,HIST)) Q:+HIST'>0  D
+ . . . N ND,DA,DIK,STA,EFF S ND=$G(^LEX(757.02,SIEN,4,HIST,0)),STA=$P(ND,"^",2),EFF=$P(ND,"^",1)
+ . . . Q:STA'?1N  Q:EFF'?7N  Q:STA>0  Q:EFF'=3131001
+ . . . S DA(1)=SIEN,DA=HIST,DIK="^LEX(757.02,"_DA(1)_",4," D ^DIK
+ . . K ^LEX(757.02,SIEN,4,"B",3131001)
+ Q
+OPTS ; Option Names
+ N OPT,OIEN,ONAM,FDA,MSG,TIEN,TNM
+ S OPT="LEX CSV ICD QUERY",OIEN=$$FIND1^DIC(19,,,OPT) I OIEN>0 D
+ . S ONAM="ICD Diagnosis Code Set Query" S FDA(19,(OIEN_","),1)=ONAM
+ . S FDA(19,(OIEN_","),1.1)=$$UP^XLFSTR(ONAM)
+ . D FILE^DIE("E","FDA","MSG")
+ S OPT="LEX CSV ICP QUERY",OIEN=$$FIND1^DIC(19,,,OPT) I OIEN>0 D
+ . S ONAM="ICD Procedure Code Set Query" S FDA(19,(OIEN_","),1)=ONAM
+ . S FDA(19,(OIEN_","),1.1)=$$UP^XLFSTR(ONAM)
+ . D FILE^DIE("E","FDA","MSG")
+ S OPT="LEX CSV",OIEN=$$FIND1^DIC(19,,"X",OPT) I OIEN>0 D
+ . N TID,TIEN,MSG S TID="ICD",TIEN=$$FIND1^DIC(19.01,(","_OIEN_","),"X",TID,"C",,"MSG")
+ . S:TIEN'>0 TIEN=$$FIND1^DIC(19.01,(","_OIEN_","),"X","DX","C",,"MSG") I TIEN>0 D
+ . . N TNM,FDA,MSG S TNM="DX",FDA(19.01,(TIEN_","_OIEN_","),2)=TNM
+ . . D FILE^DIE("E","FDA","MSG")
+ . S TID="ICP",TIEN=$$FIND1^DIC(19.01,(","_OIEN_","),"X",TID,"C",,"MSG")
+ . S:TIEN'>0 TIEN=$$FIND1^DIC(19.01,(","_OIEN_","),"X","PR","C",,"MSG") I TIEN>0 D
+ . . N TNM,FDA,MSG S TNM="PR",FDA(19.01,(TIEN_","_OIEN_","),2)=TNM
+ . . D FILE^DIE("E","FDA","MSG")
+ Q
+DISP ; Displays
+ D BMES^XPDUTL(" Updating ICD displays to include ICD-10")
+ N IEN,NEW,OLD S IEN=1,OLD="ICD",NEW="ICD/10D" D USER
+ S IEN=2,OLD="ICD/ICP",NEW="ICD/ICP/10D/10P" D USER
+ S IEN=3,OLD="ICD/ICP/CPT/CPC",NEW="ICD/ICP/10D/10P/CPT/CPC" D USER
+ S IEN=4,OLD="ICD/ICP/CPT/CPC/DS4",NEW="ICD/ICP/10D/10P/CPT/CPC/DS4"
+ D USER S IEN=7,OLD="ICD/ICP/CPT/CPC/DS4/SNM/NAN/OMA/NIC/SCC/SCT"
+ S NEW="ICD/ICP/10D/10P/CPT/CPC/DS4/SNM/NAN/OMA/NIC/SCC/SCT" D USER
+ S IEN=8,OLD="ICP/ICD/CPT/CPC/DS3/DS4/SNM/SCC/NAN/NIC/ACR/AIR/COS/"
+ S OLD=OLD_"CSP/CST/DXP/MCM/UMD/OMA/UWA/SCT"
+ S NEW="ICP/ICD/10D/10P/CPT/CPC/DS3/DS4/SNM/SCC/NAN/NIC/ACR/AIR/"
+ S NEW=NEW_"COS/CSP/CST/DXP/MCM/UMD/OMA/UWA/SCT" D USER
+ S IEN=9,OLD="DS4/ICD",NEW="DS4/ICD/10D" D USER
+ Q
+DEF ; Definitions file hard re-index
+ K ^LEXT(757.2,"AA"),^LEXT(757.2,"AB"),^LEXT(757.2,"ADEF")
+ K ^LEXT(757.2,"AN"),^LEXT(757.2,"APPS"),^LEXT(757.2,"AUD")
+ K ^LEXT(757.2,"B"),^LEXT(757.2,"C"),^LEXT(757.2,"D")
+ K ^LEXT(757.2,1,200,"B"),^LEXT(757.2,4,200,"B")
+ N IEN S IEN=0 F  S IEN=$O(^LEXT(757.2,IEN)) Q:+IEN'>0  D
+ . N DA,DIK S DA=IEN,DIK="^LEXT(757.2," D IX1^DIK
+ Q
+USER ; User Display Update
+ Q:+($G(IEN))'>0  Q:'$L($G(OLD))  Q:'$L($G(NEW))  Q:$L(NEW)'>$L(OLD)
+ Q:'$D(^LEX(757.31,+IEN,0))  Q:'$D(^LEX(757.31,+IEN,1))
+ S ^LEX(757.31,+IEN,1)=NEW  N APP,USR,DEF
+ S APP=0 F  S APP=$O(^LEXT(757.2,APP)) Q:+APP'>0  D
+ . S USR=0 F  S USR=$O(^LEXT(757.2,APP,200,USR)) Q:+USR'>0  D
+ . . I $G(^LEXT(757.2,APP,200,USR,2))=OLD D
+ . . . S ^LEXT(757.2,APP,200,USR,2)=NEW
+ Q
+SUBSET ; Sub-Sets
+ S ^LEXT(757.2,21,0)="ICD-10 Diagnosis",^LEXT(757.2,21,1)="^LEX(757.01,",^LEXT(757.2,21,2)="XTLK^LEXHLP"
+ S ^LEXT(757.2,21,3)="XTLK^LEXPRNT",^LEXT(757.2,21,4)="10D",^LEXT(757.2,21,5)="10D^WRD^0^80^10D^0^1"
+ S ^LEXT(757.2,21,6)="I $L($$ONE^LEXU(+Y,+($G(LEXVDT)),""10D""))"
+ S ^LEXT(757.2,21,7)="10D",^LEXT(757.2,21,100,0)="^^3^3^3111115^^^^"
+ S ^LEXT(757.2,21,100,1,0)="This subset is artifically created through the use of"
+ S ^LEXT(757.2,21,100,2,0)="a filter which will not permit the selection of a term"
+ S ^LEXT(757.2,21,100,3,0)="which does not have a valid ICD-10 Diagnosis code assigned."
+ S ^LEXT(757.2,22,0)="ICD-10 Procedures",^LEXT(757.2,22,1)="^LEX(757.01,",^LEXT(757.2,22,2)="XTLK^LEXHLP"
+ S ^LEXT(757.2,22,3)="XTLK^LEXPRNT",^LEXT(757.2,22,4)="10P",^LEXT(757.2,22,5)="10P^WRD^0^80^10P^0^1"
+ S ^LEXT(757.2,22,6)="I $L($$ONE^LEXU(+Y,+($G(LEXVDT)),""10P""))"
+ S ^LEXT(757.2,22,7)="10P",^LEXT(757.2,22,100,0)="^^3^3^3111115^^^^"
+ S ^LEXT(757.2,22,100,1,0)="This subset is artifically created through the use of"
+ S ^LEXT(757.2,22,100,2,0)="a filter which will not permit the selection of a term"
+ S ^LEXT(757.2,22,100,3,0)="which does not have a valid ICD-10 Procedure code assigned."
+ N DA,DIK S DIK="^LEXT(757.2," F DA=21,22 D IX1^DIK
+ Q
+NARR ; Narratives
+ K ^LEX(757.06) S ^LEX(757.06,0)="UNRESOLVED NARRATIVES^757.06^^0"
+ Q
+BL ;   Blank Line
+ D TL(" ")
+ Q
+TL(X) ;   Text Line
+ N LEXI S LEXI=$O(^TMP("LEXKID",$J," "),-1),LEXI=LEXI+1,^TMP("LEXKID",$J,LEXI)=$G(X),^TMP("LEXKID",$J,0)=LEXI
+ Q
+M(X) ;   Blank/Text
+ D MES^XPDUTL($G(X)) Q
+BM(X) ;   Blank/Text
+ D BMES^XPDUTL($G(X)) Q
+CLR ;
+ N ZTQUEUED,XPDABORT,XPDQUIT,XPDQUIT
+ Q

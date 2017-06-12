@@ -1,18 +1,17 @@
-PXRMCOPY ; SLC/PKR,PJH - Copy various reminder files. ;05/11/2001
- ;;1.5;CLINICAL REMINDERS;**5**;Jun 19, 2000
+PXRMCOPY ; SLC/PKR,PJH - Copy various reminder files. ;01/28/2013
+ ;;2.0;CLINICAL REMINDERS;**6,12,26**;Feb 04, 2005;Build 404
  ;
- ;=======================================================================
+ ;=====================================================
 COPY(PROMPT,ROOT,WHAT) ;Copy an entry of ROOT into a new entry.
  N DIROUT,DTOUT,DUOUT
- ;
  F  D GETORGR Q:$D(DIROUT)  Q:$D(DTOUT)
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 GETORGR ;Look-up logic to get and copy source entry to destination.
- N DA,DIE,DIC,DIK,DIR,FDA,FIELDLEN
+ N DA,DIE,DIC,DIK,DIR,DIRUT,FDA,FIELDLEN,FILE
  N IENN,IENO,IENS,MSG,NAME,ORGNAME,X,Y
- S DIC=ROOT,DIC(0)="AEQ",DIC("A")=PROMPT
+ S DIC=ROOT,DIC(0)="AEMQ",DIC("A")=PROMPT
  W !
  D ^DIC
  I $D(DUOUT)!$D(DTOUT) S DIROUT="" Q
@@ -35,7 +34,7 @@ GETNAM D ^DIR
  S NAME=Y
  ;
  ;Make sure the new name is valid.
- I '$$VNAME^PXRMINTR(NAME,FILE) G GETNAM
+ I '$$VNAME^PXRMINTR(NAME) G GETNAM
  ;
  ;Change to the new name.
  S IENS=IENN_","
@@ -63,25 +62,34 @@ GETNAM D ^DIR
  I Y D EDIT^PXRMEDIT(ROOT,IENN)
  Q
  ;
- ;=======================================================================
+ ;=====================================================
+COPYLL ;Copy a location list.
+ N PROMPT,ROOT,WHAT
+ S WHAT="location list"
+ S ROOT="^PXRMD(810.9,"
+ S PROMPT="Select the reminder location list to copy: "
+ D COPY(PROMPT,ROOT,WHAT)
+ Q
+ ;
+ ;=====================================================
 COPYREM ;Copy a reminder definition.
  N PROMPT,ROOT,WHAT
  S WHAT="reminder"
  S ROOT="^PXD(811.9,"
- S PROMPT="Select the reminder item to copy: "
+ S PROMPT="Select the reminder definition to copy: "
  D COPY(PROMPT,ROOT,WHAT)
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 COPYTAX ;Copy a taxonomy.
  N PROMPT,ROOT,WHAT
  S WHAT="taxonomy"
  S ROOT="^PXD(811.2,"
- S PROMPT="Select the taxonomy item to copy: "
+ S PROMPT="Select the reminder taxonomy to copy: "
  D COPY(PROMPT,ROOT,WHAT)
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 COPYTERM ;Copy a reminder term.
  N PROMPT,ROOT,WHAT
  S WHAT="reminder term"
@@ -90,23 +98,23 @@ COPYTERM ;Copy a reminder term.
  D COPY(PROMPT,ROOT,WHAT)
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 DELETE(DIK,DA) ;Delete the entry just added. 
  D ^DIK
  W !!,"New entry not created due to invalid name!",!
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 GETFOIEN(ROOT) ;Return the first open IEN in ROOT. This should be called
  ;after a call to SETSTART.
  N ENTRY,NIEN,OIEN
  S ENTRY=ROOT_0_")"
- S OIEN=$P(@ENTRY,U,3)
+ S OIEN=+$P(@ENTRY,U,3)
  S ENTRY=ROOT_OIEN_")"
  F  S NIEN=$O(@ENTRY) Q:+(NIEN-OIEN)>1  Q:+NIEN'>0  S OIEN=NIEN,ENTRY=ROOT_NIEN_")"
  Q OIEN+1
  ;
- ;=======================================================================
+ ;=====================================================
 INIEH(FILENUM,ROOT,IENN,IENO) ;Initialize the edit history after a copy.
  ;First delete any existing history entries.
  N ENTRY,IND,IENS,FDA,FDAIEN,MSG,SFN,TARGET,WP
@@ -132,19 +140,19 @@ INIEH(FILENUM,ROOT,IENN,IENO) ;Initialize the edit history after a copy.
  I $D(MSG) D AWRITE^PXRMUTIL("MSG")
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 MERGE(IENN,IENO,ROOT) ;Use MERGE to copy ROOT(IENO into ROOT(IENN.
  N DEST,SOURCE
  S DEST=ROOT_IENN_")"
  ;Lock the file before merging.
- L +@DEST:10
+ L +@DEST:DILOCKTM
  S SOURCE=ROOT_IENO_")"
  M @DEST=@SOURCE
  ;Unlock the file
  L -@DEST
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 SCAS(FILENUM,IEN,CLASS,SPONSOR) ;Set the class field to CLASS and the sponsor
  ;field to SPONSOR.
  N IENS,FDA,MSG
@@ -155,7 +163,7 @@ SCAS(FILENUM,IEN,CLASS,SPONSOR) ;Set the class field to CLASS and the sponsor
  I $D(MSG) D AWRITE^PXRMUTIL("MSG")
  Q
  ;
- ;=======================================================================
+ ;=====================================================
 SETSTART(ROOT) ;Set the starting value to add new entries. Start
  ;at the begining so empty spaces are filled in.
  N CUR,ENTRY

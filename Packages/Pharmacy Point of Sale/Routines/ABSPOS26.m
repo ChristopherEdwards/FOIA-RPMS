@@ -1,5 +1,5 @@
 ABSPOS26 ; IHS/FCS/DRS - put insurance in order ;   
- ;;1.0;PHARMACY POINT OF SALE;*46*;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;*46*;JUN 21, 2001;Build 15
  ; these are most of the rules implementations
  ; called from ABSPOS25
  Q

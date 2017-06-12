@@ -1,5 +1,5 @@
 APCLYV31 ; IHS/CMI/LAB - PRINT CLINIC VISITS (CALC) ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/12/2007 code set versioning PV1,PV2,PRC
  ;
@@ -46,14 +46,14 @@ POV ;does visit have POV within selected range?
  S APCLPV=0
 PV1 S APCLPV=$O(^AUPNVPOV("AD",APCLVDFN,APCLPV)) Q:APCLPV=""
  G PV1:'$D(^AUPNVPOV(APCLPV,0)) S X=$P(^(0),"^") G PV1:'$D(^ICD9(X,0))
- G PV2:APCLBICD["V",PV2:APCLBICD["E"
- ;I $P(^ICD9(X,0),"^")'<APCLBICD,($P(^ICD9(X,0),"^")'>APCLEICD) S APCLFLG=1 Q  ;cmi/anch/maw 9/12/2007 orig line
- I $P($$ICDDX^ICDCODE(X),"^",2)'<APCLBICD,($P($$ICDDX^ICDCODE(X),"^",2)'>APCLEICD) S APCLFLG=1 Q  ;cmi/anch/maw 9/12/2007 csv
+ ;G PV2:APCLBICD["V",PV2:APCLBICD["E"
+ ;I $P($$ICDDX^ICDEX(X),"^",2)'<APCLBICD,($P($$ICDDX^ICDEX(X),"^",2)'>APCLEICD) S APCLFLG=1 Q
+ I '$D(APCLARRC(X)) G PV1
+ S APCLFLG=1
  G PV1
-PV2 ;I $P(^ICD9(X,0),"^")'["V"&($P(^ICD9(X,0),"^")'["E") G PV1  ;cmi/anch/maw 9/12/2007 orig line
- I $P($$ICDDX^ICDCODE(X),"^",2)'["V"&($P($$ICDDX^ICDCODE(X),"^",2)'["E") G PV1  ;cmi/anch/maw 9/12/2007 csv
- ;S Y=+$E($P(^ICD9(X,0),"^"),2,9)  ;cmi/anch/maw 9/12/2007 orig line
- S Y=+$E($P($$ICDDX^ICDCODE(X),"^",2),2,9)  ;cmi/anch/maw 9/12/2007 csv
+PV2 ;
+ I $P($$ICDDX^ICDEX(X),"^",2)'["V"&($P($$ICDDX^ICDEX(X),"^",2)'["E") G PV1
+ S Y=+$E($P($$ICDDX^ICDEX(X),"^",2),2,9)  ;cmi/anch/maw 9/12/2007 csv
  I Y'<$E(APCLBICD,2,9),(Y'>$E(APCLEICD,2,9)) S APCLFLG=1 Q
  G PV1
  ;
@@ -63,7 +63,9 @@ PRC1 S APCLPRC=$O(^AUPNVPRC("AD",APCLVDFN,APCLPRC)) Q:APCLPRC=""
  G PRC1:'$D(^AUPNVPRC(APCLPRC,0)) S X=$P(^(0),"^")
  G PRC1:'$D(^ICD0(X,0))
  ;I $P(^ICD0(X,0),"^")'<APCLBICD,($P(^ICD0(X,0),"^")'>APCLEICD) S APCLFLG=1 Q  ;cmi/anch/maw 9/12/2007 orig line
- I $P($$ICDOP^ICDCODE(X),"^",2)'<APCLBICD,($P($$ICDOP^ICDCODE(X),"^",2)'>APCLEICD) S APCLFLG=1 Q  ;cmi/anch/maw 9/12/2007 csv
+ ;I $P($$ICDOP^ICDEX(X),"^",2)'<APCLBICD,($P($$ICDOP^ICDEX(X),"^",2)'>APCLEICD) S APCLFLG=1 Q  ;cmi/anch/maw 9/12/2007 csv
+ I '$D(APCLARRC(X)) G PRC1
+ S APCLFLG=1
  G PRC1
 PROV ;check to see if provider is one of the providers
  NEW X S X=0 F  S X=$O(^AUPNVPRV("AD",APCLVDFN,X)) Q:X'=+X!(APCLFOUN)  I APCLPROV=$P(^AUPNVPRV(X,0),U) S APCLFOUN=1

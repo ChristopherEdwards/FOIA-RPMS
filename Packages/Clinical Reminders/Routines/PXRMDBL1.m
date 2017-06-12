@@ -1,5 +1,5 @@
 PXRMDBL1 ; SLC/PJH - Reminder Dialog Generation. ;04/19/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;Build Reminder Dialog
  ;---------------------
@@ -21,7 +21,7 @@ BUILD(REM,NAME,ARRAY) ;
  S UPPER="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
  ;
  ;Build index of finding type to globals
- N DEF,DEF1,DEF2 D DEF^PXRMRUTL(.DEF,.DEF1,.DEF2)
+ N DEF,DEF1,DEF2 D DEF^PXRMRUTL("811.902",.DEF,.DEF1,.DEF2)
  ;
  ;Save name for use in building SET
  S DSET(1)=NAME
@@ -38,7 +38,6 @@ BUILD(REM,NAME,ARRAY) ;
  ..S DIEN=$$OK(RESN) Q:'DIEN
  ..;Create array used to build reminder dialog
  ..S CNT=CNT+1,ARRAY(CNT)=801.43_U_DIEN
- ..;test
  ..W !!,CNT,?5,"Finding item dialog "_$$FNAM(RESN)
  .;Else process all the term findings
  .S MIEN=$P($P(DATA,U),";") Q:'MIEN

@@ -1,5 +1,5 @@
 ACHSDN2A ;IHS/ITSC/PMF - DENIAL SET UP & DISPLAY ;   [ 04/17/2002  2:08 PM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,18,19,21,22**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,18,19,21,22**;JUN 11, 2001;Build 37
  ;ACHS*3.1*3  handle 'Alternate resource available' special - ENTIRE ROUTINE IS NEW
  ;ACHS*3.1*4  remove blank spaces from an input
  ;ACHS*3.1*18 Request for type of insurance

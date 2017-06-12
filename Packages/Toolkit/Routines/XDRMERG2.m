@@ -1,8 +1,5 @@
-XDRMERG2 ;SF-IRMFO.SEA/JLI - TENATIVE UPDATE POINTER NODES ; [ 04/02/2003   8:47 AM ]
- ;;7.3;TOOLKIT;**23,38,40,42,46,62,1001,1003**;Apr 25, 1995
- ;IHS/OIT/LJF 02/09/2007 PATCH 1003 prevent View Merge Status from scrolling off screen
- ;            03/02/2007 PATCH 1003 set 19th piece of ^DPT on FROM patient for backward
- ;                                     compatibility with PCC Mgt Reports
+XDRMERG2 ;SF-IRMFO.SEA/JLI - TENATIVE UPDATE POINTER NODES ; [6/12/02 9:48am]
+ ;;7.3;TOOLKIT;**23,38,40,42,46,62,137**;Apr 25, 1995;Build 11
  ;;
  Q
  ;
@@ -24,7 +21,16 @@ DINUM(XVAL,XR,XDRIENS) ; FIND AND MERGE DINUMMED POINTERS
  . D SAVEMERG^XDRMERGB(FILEI,IENOLD,IENNEW)
  . I '$D(@(XVAL_IENNEW_",0)")) D
  . . N DD,DO,DIC,X,DINUM,DA
- . . S DIC=XVAL,DIC(0)="L",X=IENNEW,DINUM=IENNEW D FILE^DICN Q:Y'>0
+ . . S DIC=XVAL,DIC(0)="L",X=IENNEW,DINUM=IENNEW D FILE^DICN D:$D(^DD("IX","F",FILEI,FLDJ))  Q:Y'>0  ;LLS 09-DEC-2013 - Added the conditional 'Do' to handle .01, DIMUMed, new style cross references to the Patient file
+ . . . ;LLS - 09-DEC-2013 begin added section:
+ . . . ;need to get the new style cross reference key values from the "FROM" patient and move to the "TO" Patient
+ . . . N XDRINDSB,XDRFFLD,XDRFLDI,Y,XDRARR
+ . . . S XDRINDSB=$O(^DD("IX","F",FILEI,FLDJ,"")) ;INDEX file subscript
+ . . . S XDRFLDI="" F  S XDRFLDI=$O(^DD("IX","F",FILEI,XDRFLDI)) Q:XDRFLDI=""  D:$D(^DD("IX","F",FILEI,XDRFLDI,XDRINDSB))  ;XDRFLDI will hold the field number that we want to file
+ . . . . S XDRFFLD=$$GET1^DIQ(FILEI,IENOLD_",",XDRFLDI,"I") ;get internal value of the field from "FROM" patient
+ . . . . S:XDRFLDI=FLDJ XDRFFLD=IENNEW ;want the pointer to the patient file set to the "TO" IEN not the "FROM" IEN
+ . . . . S XDRARR(FILEI,IENNEW_",",XDRFLDI)=XDRFFLD D UPDATE^DIE("","XDRARR") ;Set the internal value into "TO" patient
+ . . . ;LLS - 09-DEC-2013 end added section
  . D OVRWRI(FILEI,IENOLD,IENNEW)
  . D MERGEIT(XVAL,IENOLD,IENNEW)
  . D TIMSTAMP(2,FILEI,IENOLD)
@@ -82,10 +88,6 @@ DOMAIN(FILE,FROM) ; MERGE ACTUAL ENTRIES IN THE FILE (THE ONES POINTED TO)
  . . D MERGEIT(XDRDIC,IENFROM,IENTO)
  . S @(XDRDIC_IENFROM_",0)")=XDRVAL
  . S @(XDRDIC_IENFROM_",-9)")=IENTO
- . ;
- . ;IHS/OIT/LJF 03/02/2007 PATCH 1003 for backwards compatibility
- . I FILE=2,$$GET^XPAR("PKG","BPM USE IHS LOGIC") S $P(@(XDRDIC_IENFROM_",0)"),U,19)=IENTO
- . ;
  . D SETALIAS ; SET UP ALIAS ENTRY IN SELECTED FILES
  . N VALUE,XDRXX,XDRYY
  . S VALUE=$$FIND1^DIC(15.3,",","Q",FILE)
@@ -179,8 +181,6 @@ CHK1 ;
  . . W ?50,$P(XJOB,U,3),?55,$P(XJOB,U,4),?64," ",$P(XJOB,U,5)
  . . I $P(^TMP($J,"BDT",N),"~")="E" S N=N+1 W !?5,"ERROR: ",$E($P(^TMP($J,"BDT",N),"~"),1,230),!
  K ^TMP($J,"BDT")
- ;
- D PAUSE^BPMU  ;IHS/OIT/LJF 02/09/2007 PATCH 1003
  Q
  ;
 HEADER ;REM -9/25/96 Write header.

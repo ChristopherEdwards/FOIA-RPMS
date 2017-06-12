@@ -1,5 +1,5 @@
 APCDFQA ; IHS/CMI/LAB - QA AUDIT ON ICD CODING ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
 START ; 
  S APCDSITE="" S:$D(DUZ(2)) APCDSITE=DUZ(2)
@@ -9,6 +9,12 @@ START ;
  S APCDLHDR="ICD DIAGNOSIS CODING AUDIT"
  W !?((80-$L(APCDLHDR))/2),APCDLHDR
  W !!,"This report will list visits (by POSTING date with an option of random",!,"samples) for a selected data entry operator.  Purpose of Visit ",!,"ICD DIAGNOSIS Code and Provider Narrative will also be listed.",!!
+ W "NOTE:  This report is based on forms tracking which would assign the coding"
+ W !,"to the first operator who accessd the visit.  There is a new report:"
+ W !,"DXV - DX Coding Audit for Selected Set of Visits which may better"
+ W !,"reflect the user who coded the Purpose of Visit.  It uses the"
+ W !,"user who last marked the visit as reviewed/complete and the user last"
+ W !,"modified field for the Purpose of Visit.",!
  S APCDJOB=$J,APCDBT=$H
  K ^XTMP("APCDFQA",APCDJOB,APCDBT)
 GETDATES ;

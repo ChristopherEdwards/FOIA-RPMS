@@ -1,5 +1,5 @@
 LEX2I02P ;IHS/OIT/FCJ - LEXICON UTILITY PATCH 1002 ; 14 Mar 2012  12:44 PM
- ;;2.0;LEXICON UTILITY;**1002**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**1002**;Sep 23, 1996;Build 10
  ;=================================================================
  ;
  ;

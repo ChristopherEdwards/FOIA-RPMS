@@ -1,5 +1,5 @@
 ICD002P ;IHS/OIT/FCJ - ICD UPDATES PATCH 1002 ; 14 Mar 2012  12:32 PM
- ;;18.0;DRG Grouper;**1002**;Oct 20, 2000;Build 9
+ ;;18.0;DRG Grouper;**1002**;Oct 20, 2000;Build 7
  ;
  ;
  ;

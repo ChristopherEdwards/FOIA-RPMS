@@ -1,0 +1,115 @@
+BQIDCERV ;GDIT/HCSD/ALA-Emergency Room Visits (Pt List) ; 25 Feb 2013  4:09 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
+ ;
+ Q
+ ;
+EN(DATA,PARMS,MPARMS) ;EP
+ ;
+ ;Description
+ ;  Executable to retrieve inpatients for the specified parameters
+ ;Input
+ ;  PARMS = Array of parameters and their values
+ ;  MPARMS = Multiple array of a parameter
+ ;Output
+ ;  ^TMP("BQIDCINP",UID,DFN,VISIT IEN)=""
+ ;
+ NEW UID,IEN,EAFROM,EATHRU,EARANGE,EDFROM,EDTHRU,EDRANGE,EDTYP,EDACU,EVTYP
+ NEW AFDT,AEDT,RFROM,RTHRU,DFDT,DEDT,IEN,DFN,CT,MCT,PCT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIDCINP",UID))
+ S DCRIT=$NA(^TMP("BQICRIT",UID))
+ K @DATA,@DCRIT
+ ;
+ ;  Set the parameters into variables
+ I '$D(PARMS) Q
+ S PCT=0
+ ;
+ S NM="" F  S NM=$O(PARMS(NM)) Q:NM=""  S @NM=PARMS(NM)
+ S EAFROM=$G(EAFROM,""),EATHRU=$G(EATHRU,""),EARANGE=$G(EARANGE,"")
+ S EDFROM=$G(EDFROM,""),EDTHRU=$G(EDTHRU,""),EDRANGE=$G(EDRANGE,"")
+ S EDTYP=$G(EDTYP,""),EDACU=$G(EDACU,""),EVTYP=$G(EVTYP,"")
+ S CURERV=$G(CURERV,"N")
+ I $G(EDTYP)'=""!($D(MPARMS("EDTYP"))) S PCT=PCT+1
+ I $G(EDACU)'=""!($D(MPARMS("EDACU"))) S PCT=PCT+1
+ I $G(EVTYP)'=""!($D(MPARMS("EVTYP"))) S PCT=PCT+1
+ ;
+ I $G(EARANGE)'="" D
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(EARANGE,PPIEN,"EARANGE")
+ . S AFDT=$S($G(RFROM)'="":RFROM,1:$G(EAFROM))
+ . S AEDT=$S($G(RTHRU)'="":RTHRU,1:$G(EATHRU))
+ I $G(EAFROM)'="" S AFDT=EAFROM,AEDT=$G(EATHRU)
+ ;
+ I $G(EDRANGE)'="" D
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(EDRANGE,PPIEN,"EDRANGE")
+ . S DFDT=$S($G(RFROM)'="":RFROM,1:$G(EDFROM))
+ . S DEDT=$S($G(RTHRU)'="":RTHRU,1:$G(EDTHRU))
+ I $G(EDFROM)'="" S DFDT=EDFROM,DEDT=$G(EDTHRU)
+ ;
+ I $G(CURERV)="Y" D
+ . S DFN=0
+ . F  S DFN=$O(^AMERADM(DFN)) Q:'DFN  D
+ .. S IEN=DFN,PCT=1
+ .. D UPD(1,0)
+ .. S ADM=$P(^AMERADM(DFN,0),U,2)\1
+ .. I $G(AFDT)'="",(ADM<AFDT)!(ADM>AEDT) Q
+ .. D UPD(1,1)
+ ;
+ I $G(CURERV)="N" D
+ . I $G(AFDT)'="" S PCT=PCT+1 D
+ .. S AFDT=AFDT-.0001
+ .. F  S AFDT=$O(^AMERVSIT("B",AFDT)) Q:AFDT=""!(AFDT\1>AEDT)  D
+ ... S IEN=""
+ ... F  S IEN=$O(^AMERVSIT("B",AFDT,IEN)) Q:IEN=""  D
+ .... S DFN=$P(^AMERVSIT(IEN,0),U,2) D UPD(1,0)
+ .... D UPD(1,1)
+ .... D OTH
+ . ;
+ . I $G(DFDT)'="" S PCT=PCT+1 D
+ .. NEW BGDT
+ .. S BGDT=$$FMADD^XLFDT(DFDT,-120)
+ .. F  S BGDT=$O(^AMERVSIT("B",BGDT)) Q:BGDT=""!(BGDT\1>DEDT)  D
+ ... S IEN=""
+ ... F  S IEN=$O(^AMERVSIT("B",BGDT,IEN)) Q:IEN=""  D
+ .... S DEPDT=$P($G(^AMERVSIT(IEN,6)),U,2)\1
+ .... S DFN=$P(^AMERVSIT(IEN,0),U,2) D UPD(4,0)
+ .... I DEPDT<DFDT!(DEPDT>DEDT) D UPD(4,0) Q
+ .... D UPD(4,1)
+ .... D OTH
+ ;
+ S DFN=""
+ F  S DFN=$O(@DCRIT@("ERV",DFN)) Q:DFN=""  D
+ . S IEN=""
+ . F  S IEN=$O(@DCRIT@("ERV",DFN,IEN)) Q:IEN=""  D CNF
+ Q
+ ;
+CNF ;EP - confirm
+ S CT=0,MCT=0
+ F I=1:1:$L(@DCRIT@("ERV",DFN,IEN),U) D
+ . ;I $P(@DCRIT@("ERV",DFN,IEN),U,I)'="" S CT=CT+1
+ . I $P(@DCRIT@("ERV",DFN,IEN),U,I)'="",$P(@DCRIT@("ERV",DFN,IEN),U,I)=1 S MCT=MCT+1
+ I MCT=0 K @DCRIT@("ERV",DFN,IEN) Q
+ I PCT'=MCT K @DCRIT@("ERV",DFN,IEN) Q
+ I PCT=MCT S @DATA@(DFN)=""
+ Q
+ ;
+UPD(PEC,VAL) ;EP
+ S $P(@DCRIT@("ERV",DFN,IEN),U,PEC)=VAL
+ Q
+ ;
+OTH ;EP
+ I $G(EVTYP)="",'$D(MPARMS("EVTYP")) D UPD(2,"")
+ I $G(EVTYP)'="" D UPD(2,0) I $P(^AMERVSIT(IEN,0),U,5)=EVTYP D UPD(2,1)
+ I $G(EVTYP)="",$D(MPARMS("EVTYP")) D
+ . S EVTYP="" D UPD(2,0)
+ . F  S EVTYP=$O(MPARMS("EVTYP",EVTYP)) Q:EVTYP=""  I $P(^AMERVSIT(IEN,0),U,5)=EVTYP D UPD(2,1)
+ I $G(EDTYP)="",'$D(MPARMS("EDTYP")) D UPD(3,"")
+ I $G(EDTYP)'="" D UPD(3,0) I $P($G(^AMERVSIT(IEN,6)),U,1)=EDTYP D UPD(3,1)
+ I $G(EDTYP)="",$D(MPARMS("EDTYP")) D
+ . S EDTYP="" D UPD(3,0)
+ . F  S EDTYP=$O(MPARMS("EDTYP",EDTYP)) Q:EDTYP=""  I $P($G(^AMERVSIT(IEN,6)),U,1)=EDTYP D UPD(3,1)
+ I $G(EDACU)="",'$D(MPARMS("EDACU")) D UPD(5,"")
+ I $G(EDACU)'="" D UPD(5,0) I $P($G(^AMERVSIT(IEN,5.1)),U,4)=EDACU D UPD(5,1)
+ I $G(EDACU)="",$D(MPARMS("EDACU")) D
+ . S EDACU="" D UPD(5,0)
+ . F  S EDACU=$O(MPARMS("EDACU",EDACU)) Q:EDACU=""  I $P($G(^AMERVSIT(IEN,5.1)),U,4)=EDACU D UPD(5,1)
+ Q

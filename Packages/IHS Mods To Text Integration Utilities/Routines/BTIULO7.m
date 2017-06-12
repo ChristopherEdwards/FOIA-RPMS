@@ -1,5 +1,5 @@
-BTIULO7 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;24-Jul-2012 11:09;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1003,1004,1005,1006,1007,1009,1010**;NOV 04, 2004;Build 24
+BTIULO7 ;IHS/ITSC/LJF - IHS OBJECTS ADDED IN PATCHES;26-Jun-2014 08:49;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1002,1003,1004,1005,1006,1007,1009,1010,1012,1013**;NOV 04, 2004;Build 33
  ;IHS/CIA/MGH line up number of labs and only display test name
  ;Made changes to call ehr 1.1 visit creation
  ;Patch 1005 Changed lookup for dates without times
@@ -37,7 +37,6 @@ VINS(TARGET) ; returns insurance coverage for current vuecentric visit context; 
  S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
  I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
  S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1  S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
- ;S X="CIAVCXEN" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^CIAVCXEN(DFN,VST) I VST<1 Q
  D GETINS(.RESULT,VST)
  ;
  K @TARGET
@@ -65,7 +64,7 @@ NLAB(DFN,TIUTST,TIUCNT,BRIEF) ;EP; -- returns last # of current lab result for s
  ;Brief is set to remove caption and only insert test name PATCH 1003
  ;IHS/CIA/MGH Modified to only display the test name and line up labs better
  ;UPDATED 1009 FOR MULTIPLE RESULTS ON SAME VISIT
- NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,DATA,LGTH,ARR,DATE,DATE2
+ NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,DATA,LGTH,ARR,DATE,DATE2,LCNT
  K ^TMP("BTIULO",$J)
  S LAB=$O(^LAB(60,"B",TIUTST,0)) I LAB="" Q ""
  I $G(BRIEF) S CAPTION=$E(TIUTST,1,30)_":"  ;PATCH 1003
@@ -83,14 +82,14 @@ NLAB(DFN,TIUTST,TIUCNT,BRIEF) ;EP; -- returns last # of current lab result for s
  .. S LGTH=$L(TIU(.05)) ;PATCH 1003
  .. S DATA=$S(LGTH=1:"   "_DATE2,LGTH=2:"  "_DATE2,1:"    "_DATE2)   ;PATCH 1003
  .. S ARR(DATE,IEN)=$J(TIU(.04),8)_"  "_TIU(.05)_"  "_DATA
- S CNT=0,DATE=""
+ S CNT=0,LCNT=0,DATE=""
  ;IHS/MSC/MGH patch 1006 and 1010 change to check for CNT inside a date
+ N VFILENUM,ARRAY
  F  S DATE=$O(ARR(DATE),-1) Q:DATE=""!(CNT>=TIUCNT)  D
  . S IEN="" F  S IEN=$O(ARR(DATE,IEN),-1)  Q:'IEN!(CNT>=TIUCNT)  D
- .. S LINE=$G(ARR(DATE,IEN)),CNT=CNT+1
+ .. S LINE=$G(ARR(DATE,IEN)),CNT=CNT+1,LCNT=LCNT+1
  .. S Y=$S(CNT=1:CAPTION,1:$$SP($L(CAPTION)))
- .. S ^TMP("BTIULO",$J,CNT,0)=Y_LINE
- ;
+ .. S ^TMP("BTIULO",$J,LCNT,0)=Y_LINE
  I '$D(^TMP("BTIULO",$J)) S ^TMP("BTIULO",$J,1,0)=CAPTION_"No Results Found"
  Q "~@^TMP(""BTIULO"",$J)"
  ;
@@ -100,7 +99,7 @@ NVIT(DFN,TIUMSR,TIUCNT,TIUDATE,BRIEF) ;EP; returns last # of of a specific vital
  ; TIUDATE=1 return date measurement taken
  ;IHS/CIA/MGH Parameter BRIEF added to remove caption from display PATCH 1003
  ;
- NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,STOP,DATE,ARR,MSR,TT
+ NEW LAB,CAPTION,VDT,IEN,X,TIU,LINE,CNT,STOP,DATE,ARR,MSR,TT,QUALIF
  K ^TMP("BTIULO",$J)
  S MSR=$O(^AUTTMSR("B",TIUMSR,0)) I MSR="" S ^TMP("BTIULO",$J,1,0)="No measurements" Q "~@^TMP(""BTIULO"",$J)"
  I $G(BRIEF) S CAPTION=TIUMSR_": "            ;PATCH 1003
@@ -118,7 +117,11 @@ NVIT(DFN,TIUMSR,TIUCNT,TIUDATE,BRIEF) ;EP; returns last # of of a specific vital
  . . I TIUMSR="TMP" S Y=$P(LINE,U),Y=Y_" F ["_$J(((Y-32)/1.8),5,2)_" C]",$P(LINE,U)=Y
  . . I ((TIUMSR="HT")!(TIUMSR="HC")!(TIUMSR="WC")!(TIUMSR="AG")) S Y=$P(LINE,U),Y=$J(Y,5,2)_" in ["_$J((Y*2.54),5,2)_" cm]",$P(LINE,U)=Y
  . . I TIUMSR="WT" S Y=$P(LINE,U),Y=$J(Y,5,2)_" lb ["_$J((Y*.454),5,2)_" kg]",$P(LINE,U)=Y
- . . S QUALIF=$$QUAL(IEN)
+ . . I TIUMSR="BMI" D
+ . . . S Y=$P(LINE,U),Y=$J(Y,5,2)
+ . . . I $$PREG^BTIUPCC6(DFN,"",IEN)=1 S Y=Y_"*"
+ . . . S $P(LINE,U)=Y
+ . . S QUALIF=$$QUAL^BTIULO7A(IEN)
  . . I QUALIF'="" S LINE=LINE_U_QUALIF
  . . ;
  . . ; set it array by date/time to find most recent
@@ -154,20 +157,22 @@ EDC(DFN,MODE) ;EP; EDC-BRIEF and EDC-EXPANDED objects
  NEW X,HOW,EDCDT
  I '$D(MODE) S @TARGET@(1,0)="Please see your CAC to upgrade this object" Q "~@"_$NA(@TARGET)
  I $P(^DPT(DFN,0),U,2)="M" Q "Patient is male"
- S X=$$GET1^DIQ(9000017,+$G(DFN),4)
+ S X=$$GET1^DIQ(9000017,+$G(DFN),1311)
  I (MODE="B")!(X="") Q "EDC: "_$S(X="":"None Recorded",1:X)
- S HOW=$$GET1^DIQ(9000017,+DFN,4.05),EDCDT=$$GET1^DIQ(9000017,DFN,4.1)
+ S HOW=$$GET1^DIQ(9000017,+DFN,1313),EDCDT=$$GET1^DIQ(9000017,DFN,1312)
  Q "EDC: "_X_" (determined by "_$S(HOW="":"UNKNOWN METHOD",1:HOW)_" on "_EDCDT_")"
  ;
 RHX(DFN,TARGET,MODE) ;EP; REPRODUCTIVE HX-BRIEF and REPRODUCTIVE HX-EXPANDED objects
  ;MODE="B" or "E"
  ;Patch 1006 updated to get data from new fields
  NEW X,GRAV,OTHER,PARA,LC,SA,TA,TOT,G,MB,FT,PRE,EC,LAC,LAC1,LACDATE
+ K @TARGET
  I '$D(MODE) S @TARGET@(1,0)="Please see your CAC to upgrade this object" Q "~@"_$NA(@TARGET)
  ;I '$D(MODE)!(MODE="") S MODE="B"
  I $P(^DPT(DFN,0),U,2)="M" S @TARGET@(1,0)="Patient is male" Q "~@"_$NA(@TARGET)
+ I '$D(^AUPNREP(DFN,0)) S @TARGET@(1,0)="No history on file" Q "~@"_$NA(@TARGET)
  S X=$$GET1^DIQ(9000017,+$G(DFN),1103)
- I X="" G OLD
+ I X="" D OLD^BTIULO7A(DFN,TARGET,MODE) Q "~@"_$NA(@TARGET)
  S G=X
  I MODE="E" S G=G_" ("_$$GET1^DIQ(9000017,+$G(DFN),1104,"E")_")"
  S MB=$$GET1^DIQ(9000017,+$G(DFN),1105)
@@ -211,26 +216,37 @@ RHX(DFN,TARGET,MODE) ;EP; REPRODUCTIVE HX-BRIEF and REPRODUCTIVE HX-EXPANDED obj
  S CNT=CNT+1
  S @TARGET@(CNT,0)="Lactation Status: "_LAC1
  Q "~@"_$NA(@TARGET)
-OLD S X=$$GET1^DIQ(9000017,+$G(DFN),1)
- I X]"" D
- .S GRAV=$P(X,"P",1),OTHER=$P(X,"P",2)
- .S PARA=$P(OTHER,"LC",1),OTHER=$P(OTHER,"LC",2)
- .S LC=$P(OTHER,"SA",1),OTHER=$P(OTHER,"SA",2)
- .S SA=$P(OTHER,"TA",1),OTHER=$P(OTHER,"TA",2)
- .S TA=OTHER
- .S X=GRAV_" P"_PARA_" LC"_LC_" SA"_SA_" TA"_TA
- I (MODE="B")!(X="") Q "R HX: "_$S(X="":"None Recorded",1:X)
- S @TARGET@(1,0)="R HX: "_X_" (recorded on "_$$GET1^DIQ(9000017,+$G(DFN),1.1)_")"
- Q "~@"_$NA(@TARGET)
  ;
-FPM(DFN,MODE) ;EP; CONTRACEPTION-BRIEF object
+FPM(DFN,TARGET,MODE) ;EP; CONTRACEPTION-BRIEF object
  ;MODE="B" or "E"
- NEW X,FPBEGIN,FPDATE
+ NEW X,FPBEGIN,FPDATE,BHX,TYP,START,END,CNT,LINE,LIN1,BHC
+ K @TARGET
+ S CNT=0
  I $P(^DPT(DFN,0),U,2)="M" Q "Patient is male"
- S X=$$GET1^DIQ(9000017,+$G(DFN),3)
- I (MODE="B")!(X="") Q "FP METHOD: "_$S(X="":"None Recorded",1:X)
- S FPBEGIN=$$GET1^DIQ(9000017,DFN,3.05),FPDATE=$$GET1^DIQ(9000017,DFN,3.1)
- Q "FP METHOD: "_X_" (begun "_FPBEGIN_"; recorded "_FPDATE_")"
+ S BHX=0 F  S BHX=$O(^AUPNREP(DFN,2101,BHX)) Q:BHX'=+BHX  D
+ .Q:$D(^AUPNREP(DFN,2101,BHX,1))>0
+ .S BHC=$P(^AUPNREP(DFN,2101,BHX,0),U,1) I BHC D
+ ..S TYP=$P(^AUTTCM(BHC,0),U)
+ ..S START=$P(^AUPNREP(DFN,2101,BHX,0),U,2) I START]"" S START=$$FIXDT^BHSFAM1(START)
+ ..S END=$P(^AUPNREP(DFN,2101,BHX,0),U,3) I END]"" S END=$$FIXDT^BHSFAM1(END)
+ ..I CNT=0 D
+ ...S CNT=CNT+1 S @TARGET@(CNT,0)=""
+ ...S CNT=CNT+1 S @TARGET@(CNT,0)="FP METHOD: "
+ ..S LINE=$S(TYP="":"None Recorded",1:TYP)
+ ..I MODE="B"&(END="") D
+ ...S CNT=CNT+1
+ ...S LINE="   "_LINE_" Start Dt: "_START
+ ...S @TARGET@(CNT,0)=LINE
+ ..I MODE="E" D
+ ...S CNT=CNT+1
+ ...S LINE="   "_LINE_" Start Dt: "_START
+ ...S @TARGET@(CNT,0)=LINE
+ ...I END'="" D
+ ....S CNT=CNT+1
+ ....S LIN1=""
+ ....I $P(^AUPNREP(DFN,2101,BHX,0),U,5)]"" S LIN1=" Reason Discontinued: "_$P(^AUPNREP(DFN,2101,BHX,0),U,5)
+ ....S @TARGET@(CNT,0)="             End Dt: "_END_LIN1
+ Q "~@"_$NA(@TARGET)
  ;
 TODAYVIT(PAT) ;EP; returns all vitals taken today
  NEW MEAS,VST,VDT,END,APCLV,ERR,TYPE,VALUE
@@ -251,6 +267,9 @@ TODAYVIT(PAT) ;EP; returns all vitals taken today
  . I TYPE="WT" S VALUE=$J(VALUE,5,2)_" ("_$J((VALUE*.454),5,2)_" kg)"
  . I ((TYPE="HT")!(TYPE="HC")!(TYPE="WC")!(TYPE="AG")) S VALUE=$J(VALUE,5,2)_" ("_$J((VALUE*2.54),5,2)_" cm)"
  . I TYPE="TMP" S VALUE=VALUE_" ("_(((10*((VALUE-32)/1.8))\1)/10)_" C)"
+ . I TYPE="BMI" D
+ . . S VALUE=$J(VALUE,5,2)
+ . . I $$PNM^APCLSIL1(DFN,DT)="Y" S VALUE=VALUE_"*"
  . S RESULT=RESULT_TYPE_":"_VALUE_", "
  S RESULT=$E(RESULT,1,$L(RESULT)-2)   ;remove last comma
  Q RESULT
@@ -274,40 +293,6 @@ TODAYLAB(PAT) ;EP; returns all labs taken today;PATCH 1002 new code
  I '$D(^TMP("BTIULO",$J)) Q "No Labs Found for Today"
  Q "~@^TMP(""BTIULO"",$J)"
  ;
-TODAYMED(PAT,SIG) ;EP; returns all meds dispensed today;PATCH 1002 new code
- ; If SIG=1 include sig
- NEW VDT,END,VISIT,COUNT,RESULT,I
- K ^TMP("BTIULO",$J)
- ;
- ; for each visit patient had today, find all meds
- S VDT=9999999-DT,END=VDT_".2359"
- F  S VDT=$O(^AUPNVSIT("AA",PAT,VDT)) Q:'VDT  Q:VDT>END  D
- . S VISIT=0 F  S VISIT=$O(^AUPNVSIT("AA",PAT,VDT,VISIT)) Q:'VISIT  D
- . . K RESULT
- . . I $G(SIG) D GETSIG^BTIULO5(.RESULT,VISIT) I 1
- . . E  D GETMED^BTIULO5(.RESULT,VISIT)
- . . ;
- . . S I=0 F  S I=$O(RESULT(I)) Q:'I  D
- . . . S COUNT=$G(COUNT)+1
- . . . S ^TMP("BTIULO",$J,COUNT,0)=RESULT(I)
- ;
- I '$D(^TMP("BTIULO",$J)) Q "No Medications Found for Today"
- Q "~@^TMP(""BTIULO"",$J)"
- ;
-QUAL(MEAS) ; Get qualifiers for a measurement
- N QUALS,QUALN,QUALIF,TYPE,TNAME,O2
- S (QUALIF,O2)=""
- S TYPE=$P($G(^AUPNVMSR(MEAS,0)),U,1)
- S TNAME=$P($G(^AUTTMSR(TYPE,0)),U,1)
- S QUALS=0 F  S QUALS=$O(^AUPNVMSR(MEAS,5,QUALS)) Q:QUALS=""  D
- .S QUALN=$P($G(^AUPNVMSR(MEAS,5,QUALS,0)),U,1)
- .I +QUALN S QUALN=$P($G(^GMRD(120.52,QUALN,0)),U,1)
- .I QUALIF="" S QUALIF=QUALN
- .E  I QUALN'="" S QUALIF=QUALIF_","_QUALN
- I TNAME="O2" D
- .S O2=$P($G(^AUPNVMSR(MEAS,0)),U,10)
- .S QUALIF=QUALIF_" "_O2
- Q QUALIF
 PAD(DATA,LENGTH) ; -- SUBRTN to pad length of data
  Q $E(DATA_$$REPEAT^XLFSTR(" ",LENGTH),1,LENGTH)
  ;

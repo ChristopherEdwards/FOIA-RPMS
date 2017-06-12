@@ -1,7 +1,9 @@
-BADEHL4 ;IHS/MSC/MGH/VAC - Dentrix HL7 inbound interface  ;01-Oct-2010 14:42;MGH
- ;;1.0;DENTAL/EDR INTERFACE;**1**;AUG 22, 2011
+BADEHL4 ;IHS/MSC/MGH/VAC - Dentrix HL7 inbound interface  ;01-Oct-2010 ;MGH
+ ;;1.0;DENTAL/EDR INTERFACE;**1,4,5*;FEB 22, 2010;Build 23
  ;; Modified - IHS/MSC/AMF - 11/23/10 - More descriptive alert messages
  ;; Modified - IHS/MSC/AMF 10/2010 fix for hospital location FT1-16,2
+ ;; Modified - IHS/OIT/GAB **4** 05/2015 for ICD10 Implementation
+ ;; Modified - IHS/OIT/GAB **5** 03/2016 for ICD10 to accept POV from Dentrix (v 8.0.5 or later)
 UPD ;EP Update a V Dental entry
  N DIEN,MATCH,DA,APCDVSIT,CODEIEN,APCDSUR,APCDTEE
  N TYPE,TCODE,SCODE,PROV,X,Y,Y2,PIEN,POVIEN2,ADACODE,VTIME
@@ -30,6 +32,7 @@ UPD ;EP Update a V Dental entry
  .I VTIME="" S VTIME=1138 ;IHS/MSC/AMF 10/2010 Change in default time
  .S X=X_VTIME
  S Y=$$FMDATE^HLFNC(X)
+ S VISDT=$P(Y,".")  ;/IHS/OIT/GAB CHECK FOR CODING SYSTEM TO USE **4**
  S Y2=$P($G(^AUPNVDEN(EXKEY,12)),U,1)
  ;If the date and time of the visit is different, the old procedure
  ;and possibly the visit must be deleted and everything restarted
@@ -66,6 +69,7 @@ SETUP ;Setup the variables needed to modifiy or add
  .I VTIME="" S VTIME=1138
  .S X=X_VTIME
  S Y=$$FMDATE^HLFNC(X)
+ S VISDT=$P(Y,".")  ;/IHS/OIT/GAB CHECK FOR CODING SYSTEM TO USE **4**
  D DD^%DT S APCDTCDT=Y   ;External format
  S APCDALVR("APCDTCDT")=APCDTCDT
  S APCDALVR("APCDTCLN")="DENTAL"
@@ -125,9 +129,10 @@ DELV S FILE=9000010.05
  Q
 DEL ;EP  Delete V file entry
  ;Find the entry in the V DENTAL file and the visit
- N MATCH,DIEN,VSIT,DIK,DA,POV,PRV,DCNT
+ N MATCH,DIEN,VSIT,DIK,DA,POV,PRV,DCNT,TEXK,DCNT2
  N APCDALVR
  S DIEN=EXKEY
+ S TEXK=APCDTEXK
  ;Delete the entry
  I '$D(^AUPNVDEN(DIEN)) D ACK^BADEHL3(HLMSGIEN,DFN,"Can't delete visit "_DIEN_". Not in RPMS:") Q  ;IHS/MSC/AMF 11/23/10 More descriptive alert
  S VSIT=$P($G(^AUPNVDEN(+DIEN,0)),U,3)
@@ -135,16 +140,18 @@ DEL ;EP  Delete V file entry
  I PROV="" D ACK^BADEHL3(HLMSGIEN,DFN,"Missing provider in FT1:") Q  ;IHS/MSC/AMF 11/23/10 More descriptive alert
  ;Get the dependent count for this visit
  S DCNT=$P(^AUPNVSIT(VSIT,0),U,9)
- ;If the dependent count is greater than 3, there are other procedures on this visit
- ;Delete this one entry and quit
- I DCNT>3 D
- .S FILE=9000010.05
- .D VDEL(FILE,DIEN,VSIT)
+ ;Delete this entry and quit
+ ;I DCNT>3 D							;/IHS/OIT/GAB 3/2016 **5** commented this line
+ S FILE=9000010.05
+ D VDEL(FILE,DIEN,VSIT)
+ S FILE=9000010.07
+ D POVDEL(FILE,TEXK,VSIT)               ;/IHS/OIT/GAB 3/2016 **5** DELETE POV AFTER PROCEDURE IS REMOVED 
+ I DCNT<2 D PROVDEL(VSIT,PROV)          ;/IHS/OIT/GAB 3/2016 **5** REMOVE PROVIDER ENTRY IF ONE ENTRY LEFT
  ;If its 3, delete the VPOV and VPRV entries then delete the visit
- I DCNT<4 D
- .S FILE=9000010.05
- .D VDEL(FILE,DIEN,VSIT)
- .D CHECK(VSIT,PROV)
+ ;I DCNT<4 D                            ;/IHS/OIT/GAB **5** COMMENTED NEXT 4 LINES-REPLACED WITH ABOVE
+ ;.S FILE=9000010.05
+ ;.D VDEL(FILE,DIEN,VSIT)
+ ;.D CHECK(VSIT,PROV)
  ;Delete visit if dependent count is 0
  I DCNT=0 D VSTDEL(VSIT)
  Q
@@ -162,8 +169,16 @@ VSTDEL(VSIT) ;Delete the visit with zero dependents
  Q
 CHECK(VSIT,PROV) ;Remove the POV and PRV if those are the 2 remaining dependent entries
  N POVIEN,MATCH,ICD,VPRV,PROVIEN,ICDIEN,PROV2,PROVIEN2
- S ICD="" S ICD=$O(^ICD9("AB","V72.2",ICD))
- S:'ICD ICD=$O(^ICD9("AB","V72.2 ",ICD))
+ ;IHS/OIT/GAB **4**  ADDED BELOW 7 LINES
+ S ICD=""
+ S I=$$IMP^BADEHL3(VISDT)  ;/IHS/OIT/GAB **4** CK FOR WHICH CODING SYSTEM TO USE
+ ;IHS/OIT/GAB **4**  IF I=30 USING ICD10, IF I=1 USING ICD9
+ I I=30 D
+ .S ICD=$O(^ICD9("AB","ZZZ.999",ICD))
+ .I ICD="" S ICD=$O(^ICD9("AB","ZZZ.999 ",ICD))
+ I I=1  D
+ .I ICD="" S ICD=$O(^ICD9("AB","V72.2",ICD))
+ .S:'ICD ICD=$O(^ICD9("AB","V72.2 ",ICD))
  Q:ICD=""
  ;First the POV
  S MATCH=0
@@ -245,3 +260,59 @@ GETTOS(CODE,DESC) ;EP
  E  D
  .S RET=+$O(^ADEOPS("B",DESC,0))
  Q RET
+POVDEL(FILE,IEN,VSIT)       ;/IHS/OIT/GAB **5** ADDED THIS SEGMENT TO CHECK THE POV ENTRIES & DELETE
+ N EKEY,MATCH,VPRV,PROVIEN,PROV2,PROVIEN2
+ S ICDIEN="",POVIEN="",POVIEN2="",KEY="",ICD=""
+ S EKEY=IEN                 ;SET THE EXTERNAL KEY
+ S I=$$IMP^BADEHL3(VISDT)   ;WHICH CODING SYSTEM TO USE ICD9=1 OR ICD10=30
+ I I=30 D
+ .S POVIEN=$O(^AUPNVPOV("AD",VSIT,POVIEN))
+ .Q:POVIEN=""
+ .S KEY=$P($G(^AUPNVPOV(POVIEN,12)),U,9)     ; set the external key
+ .I KEY  D
+ ..S POVIEN="" F  S POVIEN=$O(^AUPNVPOV("AD",VSIT,POVIEN)) Q:POVIEN=""  D
+ ...S KEY=$P($G(^AUPNVPOV(POVIEN,12)),U,9)
+ ...I KEY=EKEY  D
+ ....S ICDIEN=$P($G(^AUPNVPOV(POVIEN,0)),U,1)
+ ....I ICDIEN  D
+ .....S FILE=9000010.07
+ .....S ICDIEN=POVIEN
+ .....D VDEL(FILE,ICDIEN,VSIT)
+ .E  D                         ;/IHS/OIT/GAB **5** NO EXTERNAL KEY SO SET TO ZZZ.999
+ ..S ICD=$O(^ICD9("AB","ZZZ.999",ICD))
+ ..I ICD="" S ICD=$O(^ICD9("AB","ZZZ.999 ",ICD))
+ ..Q:ICD=""
+ ..S MATCH=0
+ ..S POVIEN="" F  S POVIEN=$O(^AUPNVPOV("AD",VSIT,POVIEN)) Q:POVIEN=""!(MATCH=1)  D
+ ...S POVIEN2=$P($G(^AUPNVPOV(POVIEN,0)),U,1)
+ ...I ICD=POVIEN2 S ICDIEN=POVIEN S MATCH=1
+ ..Q:MATCH=0
+ ..I MATCH=1 D           ;Found the POV for this visit so delete the dependent entry
+ ...S FILE=9000010.07
+ ...D VDEL(FILE,ICDIEN,VSIT)
+ I I=1  D               ;/IHS/OIT/GAB **5** IF NOT ICD10 REMOVE V72.2
+ .S ICD=$O(^ICD9("AB","V72.2",ICD))
+ .S:'ICD ICD=$O(^ICD9("AB","V72.2 ",ICD))
+ .Q:ICD=""
+ .S MATCH=0               ;find the POV
+ .S POVIEN="" F  S POVIEN=$O(^AUPNVPOV("AD",VSIT,POVIEN)) Q:POVIEN=""!(MATCH=1)  D
+ ..S POVIEN2=$P($G(^AUPNVPOV(POVIEN,0)),U,1)
+ ..I ICD=POVIEN2 S ICDIEN=POVIEN S MATCH=1
+ .Q:MATCH=0
+ .I MATCH=1 D                  ;found the match so remove the POV
+ ..S FILE=9000010.07
+ ..D VDEL(FILE,ICDIEN,VSIT)
+ S DCNT=$P(^AUPNVSIT(VSIT,0),U,9)
+ Q
+PROVDEL(VSIT,PROV)         ;/IHS/OIT/GAB ADDED TO REMOVE PROVIDER ENTRY
+ N MATCH,VPRV,PROVIEN,PROV2,PROVIEN2
+ S (VPRV,MATCH)=0
+ S PROVIEN="" F  S PROVIEN=$O(^AUPNVPRV("AD",VSIT,PROVIEN)) Q:PROVIEN=""!(MATCH=1)  D
+ .S PROV2=$P($G(^AUPNVPRV(PROVIEN,0)),U,1)
+ .I PROV=PROV2 S PROVIEN2=PROVIEN S MATCH=1
+ Q:MATCH=0
+ I MATCH=1 D
+ .S FILE=9000010.06
+ .D VDEL(FILE,PROVIEN2,VSIT)
+ S DCNT=$P(^AUPNVSIT(VSIT,0),U,9)      ; Recheck the dependent count
+ Q

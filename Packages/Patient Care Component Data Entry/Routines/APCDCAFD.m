@@ -1,5 +1,5 @@
 APCDCAFD ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,11,15,16**;MAY 14, 2009;Build 9
  ;
 START ;
  D XIT
@@ -115,7 +115,15 @@ PROCESS ;
  W:$D(IOF) @IOF W !!
  W !!,"I will display visits that meet the following criteria:"
  W !!,"VISIT DATES: ",$$FMTE^XLFDT(APCDBD)," to ",$$FMTE^XLFDT(APCDED)
- W !,"SERVICE CATEGORY: A, O, S, C, T"
+ ;W !,"SERVICE CATEGORY: A, O, S, C, T, M"
+ W !,"SERVICE CATEGORY:  "
+ S X=$P(^DD(9000010,.07,0),U,3),D=""
+ F Y=1:1 S J=$P(X,";",Y) Q:J=""  D
+ .S C=$P(J,":")
+ .Q:'$$SCW^APCDCAF(C)
+ .S:D]"" D=D_", "
+ .S D=D_C
+ W D
  W !,"VISIT TYPE:  NOT Contract"
  W !,"Visits with at least one POV."
  W !!,"LOCATION OF ENCOUNTER: " D
@@ -136,7 +144,7 @@ PROCESS ;
  ;.I '$D(APCDCASS) W "All" Q
  ;.S Y=0,C=0 F  S Y=$O(APCDCASS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$$EXTSET^XBFUNC(9000010.45,Y,.04)
  W !!,"CHART DEFICIENCY REASONS: " D
- .I '$D(APCDCDRS) W "All (includes visits with no chart deficiency reason entered" Q
+ .I '$D(APCDCDRS) W "All (includes visits with no chart deficiency reason entered)" Q
  .S Y=0,C=0 F  S Y=$O(APCDCDRS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$E($P(^AUTTCDR(Y,0),U),1,15)
 CONT ;
  S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="Y" KILL DA D ^DIR KILL DIR
@@ -151,7 +159,7 @@ CONT ;
 SORT ;how to sort list of visits
 VA S APCDSORT=""
  S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider"
- S DIR(0)=DIR(0)_";A:Chart Audit Status;R:Chart Deficiency Reason (Last one entered);I:Has Medicare/Medicaid or PI"
+ S DIR(0)=DIR(0)_";A:Chart Audit Status;I:Has Medicare/Medicaid or PI"
  S DIR("A")="How would you like the list of visits sorted",DIR("B")="H" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G XIT
  S APCDSORT=Y
@@ -201,36 +209,31 @@ INFORM ;inform user what this report is all about
  W !,"complete or incomplete. All visits set as reviewed/complete will be passed"
  W !,"to the IHS/RPMS billing package."
  W !,"Contract Health visits are excluded."
- W !,"Visits that do not have a provider (primary or secondary) are ",$S($P(^APCDSITE(DUZ(2),0),U,28):"included in ",1:"excluded from "),"the list."
+ W !,"Visits that do not have a provider (primary or secondary) are ",$S($P(^APCDSITE(DUZ(2),0),U,28):"included in ",1:"excluded from "),!,"the list."
  W !,"Visits with the following service categories are NOT included in the list:"
  W !?10,"- Event (Historical)"
  S X="" F  S X=$O(^APCDSITE(DUZ(2),13,"B",X)) Q:X=""  W !?10,"- ",$$EXTSET^XBFUNC(9000010,.07,X)
  W !,$G(IORVON)_"PLEASE NOTE:"_$G(IORVOFF)_"  A visit will NOT pass to Billing until it is marked"
  W !,"as reviewed/completed."
  Q
- W !,$G(IORVON)_"PLEASE ALSO NOTE:"_$G(IORVOFF)_"  Incomplete/orphan ancillary visits do not show up"
- W !,"on this list.  These visits will show up on the LIR and PPPV reports"
- W !,"and will need to be completed and flagged as complete through the normal"
- W !,"data entry process."
- Q
-OLOC ;one location
+OLOC ;EP - one location
  S DIC="^AUTTLOC(",DIC(0)="AEMQ",DIC("A")="Which LOCATION: " D ^DIC K DIC
  I Y=-1 S APCDQ="" Q
  S APCDLOCS(+Y)=""
  Q
-SLOC ;taxonomy of locations
+SLOC ;EP - taxonomy of locations
  S X="LOCATION OF ENCOUNTER",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OOPS - QMAN NOT CURRENT - QUITTING" G XIT
  D PEP^AMQQGTX0(+Y,"APCDLOCS(")
  I '$D(APCDLOCS) S APCDQ="" Q
  I $D(APCDLOCS("*")) S APCDLOCT="A" K APCDLOCS W !!,"**** all locations will be included ****",! Q
  Q
  ;
-OCLN ;one clinic
+OCLN ;EP - one clinic
  S DIC="^DIC(40.7,",DIC(0)="AEMQ",DIC("A")="Which CLINIC: " D ^DIC K DIC
  I Y=-1 S APCDQ="" Q
  S APCDCLNS(+Y)=""
  Q
-SCLN ;taxonomy of clinics
+SCLN ;EP - taxonomy of clinics
  S X="CLINIC",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OOPS - QMAN NOT CURRENT - QUITTING" G XIT
  D PEP^AMQQGTX0(+Y,"APCDCLNS(")
  I '$D(APCDCLNS) S APCDQ="" Q

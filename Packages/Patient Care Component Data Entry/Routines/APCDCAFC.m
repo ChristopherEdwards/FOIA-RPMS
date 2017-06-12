@@ -1,5 +1,5 @@
 APCDCAFC ; IHS/CMI/LAB - report on T/C VISITS WITH ANCILLARY ;
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,11**;MAY 14, 2009;Build 58
  ;IHS/CMI/LAB - patch 1 Y2K
  ;
  ;
@@ -65,7 +65,7 @@ PROCESS ;EP - called from XBDBQUE
  ... Q:'I
  ... Q:'$D(^ICD9(I,0))
  ... S I=$P(^ICD9(I,0),U)
- ... I I=".9999" S V=1
+ ... I I=".9999"!(I="ZZZ.999") S V=1
  .. I V Q  ;has a .9999
  .. S X=$$PRIMPROV^APCLV(APCDV) I X="" Q  ;no primary provider
  .. D ^XBFMK
@@ -184,7 +184,7 @@ INTRO ;;
  ;;
  ;;The visits to the clinic you select must meet the following
  ;;criteria:
- ;;    - Have valid (non .9999) POVs
+ ;;    - Have valid (non .9999/ZZZ.999) POVs
  ;;    - Have a primary provider
  ;;    - Match the clinic code you select
  ;;

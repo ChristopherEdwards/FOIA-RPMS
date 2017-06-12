@@ -1,5 +1,5 @@
-BGP7D51 ; IHS/CMI/LAB - measure I2 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7D51 ; IHS/CMI/LAB - measure I2 26 Mar 2015 10:09 AM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
 ICRSAMM ;EP
  K ^TMP($J,"A"),^TMP($J,"MEDS")
@@ -15,18 +15,20 @@ ICRSAMM ;EP
  I BGPC2="" S BGPSTOP=1 Q  ;no prescription filled, therefore does not meet criteria 2 for denominator
  S BGPE=$$EXCL(DFN,$P(BGPC1,U),$P(BGPC2,U),$P(BGPC1,U,2))
  I BGPE S BGPSTOP=1 Q  ;met an exclusion criteria so don't count in denominator
- S BGPN1=$$OPC(DFN,$$FMADD^XLFDT($P(BGPC1,U,2),1),$$FMADD^XLFDT($P(BGPC1,U,2),84))
+ ;S BGPN1=$$OPC(DFN,$$FMADD^XLFDT($P(BGPC1,U,2),1),$$FMADD^XLFDT($P(BGPC1,U,2),84))
  S BGPN2=$$EAPT^BGP7D52(DFN,$P(BGPC2,U),$$FMADD^XLFDT($P(BGPC2,U),114),84,30,114)
  S BGPN3=$$EAPT^BGP7D52(DFN,$P(BGPC2,U),$$FMADD^XLFDT($P(BGPC2,U),231),180,51,231)
- I BGPACTCL S BGPD1=1
+ I BGPACTCB S BGPD1=1
  I BGPACTUP S BGPD2=1
- S BGPVALUE=$S($G(BGPRTYPE)=3:"AC",BGPD1:"UP,AC",1:"UP")
- S BGPV=$S(BGPN1:"OPC",1:"NOT OPC")
- I BGPN2 S BGPV=BGPV_$S(BGPV]"":";",1:"")_" APT"
- I 'BGPN2 S BGPV=BGPV_$S(BGPV]"":";",1:"")_"NOT APT: "_$P(BGPN2,U,2)
- I BGPN3 S BGPV=BGPV_$S(BGPV]"":";",1:"")_"CONPT"
- I 'BGPN3 S BGPV=BGPV_$S(BGPV]"":";",1:"")_"NOT CONPT: "_$P(BGPN3,U,2)
- S BGPVALUE=BGPVALUE_" IESD: "_$$DATE^BGP7UTL($P(BGPC1,U,2))_"|||"_BGPV
+ S BGPVALUE=$S($G(BGPRTYPE)=3:"AC+BH",BGPD1:"UP,AC+BH",1:"UP")
+ S BGPV="IPSD: "_$$DATE^BGP7UTL($P(BGPC1,U,2))
+ ;S BGPV=BGPV_$S(BGPN1:"; OPC",1:"; NOT OPC")
+ I BGPN2 S BGPV=BGPV_$S(BGPV]"":"; ",1:"")_"APT"
+ I 'BGPN2 S BGPV=BGPV_$S(BGPV]"":"; ",1:"")_"NOT APT: "_$P(BGPN2,U,3)
+ I BGPN3 S BGPV=BGPV_$S(BGPV]"":"; ",1:"")_"CONPT"
+ I 'BGPN3 S BGPV=BGPV_$S(BGPV]"":"; ",1:"")_"NOT CONPT: "_$P(BGPN3,U,3)
+ ;S BGPVALUE=BGPVALUE_" IPSD: "_$$DATE^BGP7UTL($P(BGPC1,U,2))_"|||"_BGPV
+ S BGPVALUE=BGPVALUE_"|||"_BGPV
  K %,A,B,C,D,E,F,G,H,J,K,M,N,O,P,Q,R,S,T,T1,T2,V,W,X,Y,Z
  Q
 NDC(A,B) ;
@@ -50,7 +52,7 @@ CRIT1DEN(P,BDATE,EDATE) ;
  .Q:"EC"[$P(^AUPNVSIT(V,0),U,7)
  .Q:'$D(^AUPNVPOV("AD",V))  ;NO POVS
  .S Y=$$PRIMPOV^APCLV(V,"I") ;get primary pov
- .I $$ICD^ATXCHK(Y,T,9) S S($P($P(^AUPNVSIT(V,0),U),"."))=$S($P(^AUPNVSIT(V,0),U,7)'="H":$P($P(^AUPNVSIT(V,0),U),"."),1:$$DSCHDATE^APCLV(V,"I"))_U_V,G=1 Q  ;had one primary dx of major depression
+ .I $$ICD^BGP7UTL2(Y,T,9) S S($P($P(^AUPNVSIT(V,0),U),"."))=$S($P(^AUPNVSIT(V,0),U,7)'="H":$P($P(^AUPNVSIT(V,0),U),"."),1:$$DSCHDATE^APCLV(V,"I"))_U_V,G=1 Q  ;had one primary dx of major depression
  .K Q S (C,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y  D
  ..Q:'$D(^AUPNVPOV(Y,0))
  ..S C=C+1
@@ -60,7 +62,7 @@ CRIT1DEN(P,BDATE,EDATE) ;
  .I '$O(Q(0)) Q  ;no more povs left
  .I 'F S Y=$O(Q(0)) I Y K Q(Y)  ;kill off first one if none marked as primary
  .;now go through and see if any are depression
- .S F=0 F  S Y=$O(Q(Y)) Q:Y'=+Y  I $$ICD^ATXCHK($P(Q(Y),U,3),T,9) S F=1
+ .S F=0 F  S Y=$O(Q(Y)) Q:Y'=+Y  I $$ICD^BGP7UTL2($P(Q(Y),U,3),T,9) S F=1
  .I F=1,$P(^AUPNVSIT(V,0),U,7)="H" S S($P($P(^AUPNVSIT(V,0),U),"."))=$$DSCHDATE^APCLV(V,"I")_U_V,G=1 Q
  .I F=1 S D=$P($P(^AUPNVSIT(V,0),U,1),".") I '$D(S(D)) S S(D)=D_U_V,S=S+1
  .Q
@@ -79,6 +81,7 @@ CRIT2DEN(P,BDATE,EDATE) ;
  S T2=$O(^ATXAX("B","BGP HEDIS ANTIDEPRESSANT NDC",0))
  S X=0 F  S X=$O(^TMP($J,"MEDS",X)) Q:X'=+X!(BGPG]"")  S Y=+$P(^TMP($J,"MEDS",X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S V=$P(^AUPNVMED(Y,0),U,3)
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
@@ -90,8 +93,8 @@ CRIT2DEN(P,BDATE,EDATE) ;
  Q BGPG
 EXCL(P,ISD,PSD,ISD1) ;
  K Y,V,T,X,T2,D,BGPG,G,S,T1,A,B,F,W,%,Q,Z
- S %=P_"^ALL DX [BGP MAJOR DEPRESSION PRIOR;DURING "_$$FMADD^XLFDT(ISD,-120)_"-"_$$FMADD^XLFDT(ISD,-1),E=$$START1^APCLDF(%,"BGPG(")
- I $D(BGPG(1)) Q 1  ;HAD A VISIT PRIOR WITH DX
+ ;S %=P_"^ALL DX [BGP MAJOR DEPRESSION PRIOR;DURING "_$$FMADD^XLFDT(ISD,-120)_"-"_$$FMADD^XLFDT(ISD,-1),E=$$START1^APCLDF(%,"BGPG(")
+ ;I $D(BGPG(1)) Q 1  ;HAD A VISIT PRIOR WITH DX
  ;now check for prescriptions
  K ^TMP($J,"MEDS")
  S BGPG=""
@@ -100,6 +103,7 @@ EXCL(P,ISD,PSD,ISD1) ;
  S T2=$O(^ATXAX("B","BGP HEDIS ANTIDEPRESSANT VA CLASS",0))
  S X=0 F  S X=$O(^TMP($J,"MEDS",X)) Q:X'=+X!(BGPG]"")  S Y=+$P(^TMP($J,"MEDS",X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S V=$P(^AUPNVMED(Y,0),U,3)
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
@@ -109,32 +113,6 @@ EXCL(P,ISD,PSD,ISD1) ;
  .;I C]"",T2,$D(^ATXAX(T2,21,"B",C)) S BGPG=$P($P(^AUPNVSIT(V,0),U),".")_U_V_U_Y Q
  K ^TMP($J,"MEDS")
  I BGPG]"" Q 1
- ;now check for hospital stay
- K ^TMP($J,"A")
- S G="",S=0
- S T=$O(^ATXAX("B","BGP ACUTE MENTAL HEALTH",0))
- S T1=$O(^ATXAX("B","BGP SUBSTANCE ABUSE",0))
- S T2=$O(^ATXAX("B","BGP POISONINGS SUBSTANCE ABUSE",0))
- S A="^TMP($J,""A"",",B=P_"^ALL VISITS;DURING "_$$FMADD^XLFDT(ISD1,1)_"-"_$$FMADD^XLFDT(ISD1,245),E=$$START1^APCLDF(B,A)
- S X=0,G="" F  S X=$O(^TMP($J,"A",X)) Q:X'=+X!(G]"")  S V=$P(^TMP($J,"A",X),U,5) D
- .Q:'$D(^AUPNVSIT(V,0))
- .Q:'$P(^AUPNVSIT(V,0),U,9)
- .Q:$P(^AUPNVSIT(V,0),U,11)
- .Q:$P(^AUPNVSIT(V,0),U,7)'="H"
- .Q:'$D(^AUPNVPOV("AD",V))  ;NO POVS
- .S Y=$$PRIMPOV^APCLV(V,"I") ;get primary pov
- .I $$ICD^ATXCHK(Y,T,9) S G=$P($P(^AUPNVSIT(V,0),U),".")_U_V Q  ;had one primary dx of major depression
- .I $$ICD^ATXCHK(Y,T1,9) S G=$P($P(^AUPNVSIT(V,0),U),".")_U_V Q
- .I $$ICD^ATXCHK(Y,T2,9) D  Q
- ..;CHECK SECONDARY POVS FOR SUBSTANCE ABUSE
- ..S Q=$$PRIMPOV^APCLV(V,"I")
- ..S (F,W,Z)=0 F  S W=$O(^AUPNVPOV("AD",V,W)) Q:W'=+W  D
- ...Q:'$D(^AUPNVPOV(W,0))
- ...S Z=$P(^AUPNVPOV(W,0),U)
- ...Q:W=Q
- ...I $$ICD^ATXCHK(Z,T1,9) S G=$P($P(^AUPNVSIT(V,0),U),".")_U_V Q
- K ^TMP($J,"A")
- I G]"" Q 1
  Q ""
 OPC(P,BDATE,EDATE) ;
  ;3 visits or 2 visits and a telephone call
@@ -180,11 +158,11 @@ CPTV(V,T) ;does this visit have a cpt code in taxonomy T
  I '$G(T) W BGPBOMB Q ""
  I '$D(^AUPNVSIT(V,0)) Q ""
  S G=0
- S X=$P(^AUPNVSIT(V,0),U,17) I X,$$ICD^ATXCHK(X,T,1) Q 1
+ S X=$P(^AUPNVSIT(V,0),U,17) I X,$$ICD^BGP7UTL2(X,T,1) Q 1
  S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
  .Q:'$D(^AUPNVCPT(X,0))
  .S Z=$P(^AUPNVCPT(X,0),U)
- .I $$ICD^ATXCHK(Z,T,1) S G=1
+ .I $$ICD^BGP7UTL2(Z,T,1) S G=1
  .Q
  Q G
 POVV(V,T) ;does this visit have a pov of a code in taxonomy T
@@ -198,7 +176,7 @@ POVV(V,T) ;does this visit have a pov of a code in taxonomy T
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X!(G)  D
  .Q:'$D(^AUPNVPOV(X,0))
  .S Z=$P(^AUPNVPOV(X,0),U)
- .I $$ICD^ATXCHK(Z,T,9) S G=1
+ .I $$ICD^BGP7UTL2(Z,T,9) S G=1
  .Q
  Q G
 PRVV(V,T) ;does this visit have a primary provider with a class in taxonomy T
@@ -241,7 +219,7 @@ BHCPTV(V,T) ;does this visit have a cpt code in taxonomy T
  S X=0 F  S X=$O(^AMHRPROC("AD",V,X)) Q:X'=+X!(G)  D
  .Q:'$D(^AMHRPROC(X,0))
  .S Z=$P(^AMHRPROC(X,0),U)
- .I $$ICD^ATXCHK(Z,T,1) S G=1
+ .I $$ICD^BGP7UTL2(Z,T,1) S G=1
  .Q
  Q G
 BHPOVV(V,T) ;does this visit have a pov of a code in taxonomy T
@@ -259,9 +237,9 @@ BHPOVV(V,T) ;does this visit have a pov of a code in taxonomy T
  .S Z=$P($G(^AMHPROB(Z,0)),U,5)
  .I Z="" Q
  .;S Z=$O(^ICD9("AB",Z,0))
- .S Z=+$$CODEN^ICDCODE(Z,80)
- .I Z="" Q
- .I $$ICD^ATXCHK(Z,T,9) S G=1
+ .S Z=+$$CODEN^BGP7UTL2(Z,80)
+ .I Z'>0 Q
+ .I $$ICD^BGP7UTL2(Z,T,9) S G=1
  .Q
  Q G
 BHPRVV(V,T) ;does this visit have a primary provider with a class in taxonomy T

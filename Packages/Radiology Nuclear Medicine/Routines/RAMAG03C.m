@@ -1,5 +1,5 @@
-RAMAG03C ;HCIOFO/SG - ORDERS/EXAMS API (REGISTR. UTILS) ; 2/6/09 11:02am
- ;;5.0;Radiology/Nuclear Medicine;**90,47**;Mar 16, 1998;Build 21
+RAMAG03C ;HCIOFO/SG - ORDERS/EXAMS API (REGISTR. UTILS) ; 06 Oct 2013  11:03 AM
+ ;;5.0;Radiology/Nuclear Medicine;**90,47,1005**;Mar 16, 1998;Build 13
  ;
  Q
  ;
@@ -62,7 +62,10 @@ EXAM() ;
  . S RAFDA(70.03,IENS,25)=RAMOS                  ; MEMBER OF SET
  . S RAFDA(70.03,IENS,26)=RACRM                  ; CREDIT METHOD
  . ;---Pregnancy Screen and Pregnancy Screen Comment for female pt ages 12-55
- . I $$PTSEX^RAUTL8(RADFN)="F",(($$PTAGE^RAUTL8(RADFN,"")>11)!($$PTAGE^RAUTL8(RADFN,"")<56)) D
+ . ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ . ;I $$PTSEX^RAUTL8(RADFN)="F",(($$PTAGE^RAUTL8(RADFN,"")>11)!($$PTAGE^RAUTL8(RADFN,"")<56)) D
+ . I $$PTSEX^RAUTL8(RADFN)'="M",$$PTAGE^RAUTL8(RADFN,"")>11,$$PTAGE^RAUTL8(RADFN,"")<56 D
+ .. ;
  .. S RAFDA(70.03,IENS,32)="u"
  .. S RAFDA(70.03,IENS,80)="OUTSIDE STUDY"
  . ;--- SITE ACCESSION NUMBER

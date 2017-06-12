@@ -1,5 +1,5 @@
-LRUTT ;AVAMC/REG/CYM - LAB TEST TURNAROUND TIME; 2/19/98 ;
- ;;5.2;LAB SERVICE;**153,1018,354,1031,1032**;NOV 1, 1997
+LRUTT ;AVAMC/REG/CYM - LAB TEST TURNAROUND TIME; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**153,1018,354,1031,1032,1034**;NOV 1, 1997;Build 88
  ;
  D END W !!?24,"Laboratory Test Turnaround Times"
 AT S DIC=60,DIC(0)="AEQM" D ^DIC K DIC I Y>0 S LRT(+Y)=$P(Y,U,2) G AT
@@ -24,7 +24,18 @@ QUE U IO K ^TMP($J) D L^LRU,S^LRU,H S LR("F")=1 F A=0:0 S A=$O(LRT(A)) Q:'A  S (
  ; F A=0:0 S A=$O(^TMP($J,A)) Q:'A  S X=^LR(A,0),Y=$P(X,"^",3),X=$P(X,"^",2),X=^DIC(X,0,"GL"),X=@(X_Y_",0)") S ^TMP($J,"B",$P(X,"^"),A)=$P(X,"^",9)
  ; W ! S LRP=0 F Q=0:0 S LRP=$O(^TMP($J,"B",LRP)) Q:LRP=""!(LR("Q"))  F A=0:0 S A=$O(^TMP($J,"B",LRP,A)) Q:'A!(LR("Q"))  S SSN=^(A),LRDPF=$P(^LR(A,0),U,2) D SSN^LRU D:$Y>(IOSL-6) H Q:LR("Q")  W !,LRP,?31,SSN D L
  ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031 - Restoring LR*5.2*1018 modifications
- F A=0:0 S A=$O(^TMP($J,A)) Q:'A  S X=^LR(A,0),Y=$P(X,"^",3),X=$P(X,"^",2),X=^DIC(X,0,"GL"),X=@(X_Y_",0)"),HRCN=$S($P($G(^AUPNPAT(+$G(Y),41,+$G(DUZ(2)),0)),"^",2):$P(^(0),"^",2),1:"??") S ^TMP($J,"B",$P(X,"^"),A)=HRCN  ;IHS/ANMC/CLS 08/18/96
+ ; F A=0:0 S A=$O(^TMP($J,A)) Q:'A  S X=^LR(A,0),Y=$P(X,"^",3),X=$P(X,"^",2),X=^DIC(X,0,"GL"),X=@(X_Y_",0)"),HRCN=$S($P($G(^AUPNPAT(+$G(Y),41,+$G(DUZ(2)),0)),"^",2):$P(^(0),"^",2),1:"??") S ^TMP($J,"B",$P(X,"^"),A)=HRCN  ;IHS/ANMC/CLS 08/18/96
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ F A=0:0 S A=$O(^TMP($J,A)) Q:'A  D
+ . S X=$G(^LR(A,0))
+ . Q:$L(X)<1
+ . S Y=$P(X,"^",3)
+ . S X=$P(X,"^",2)
+ . S X=^DIC(X,0,"GL")
+ . S X=@(X_Y_",0)")
+ . S HRCN=$S($P($G(^AUPNPAT(+$G(Y),41,+$G(DUZ(2)),0)),"^",2):$P($G(^(0)),"^",2),1:"??")
+ . S ^TMP($J,"B",$P(X,"^"),A)=HRCN  ; Naked Reference Fix
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
  W ! S LRP=0 F Q=0:0 S LRP=$O(^TMP($J,"B",LRP)) Q:LRP=""!(LR("Q"))  F A=0:0 S A=$O(^TMP($J,"B",LRP,A)) Q:'A!(LR("Q"))  S HRCN=^(A),LRDPF=$P(^LR(A,0),U,2) D SSN^LRU D:$Y>(IOSL-6) H Q:LR("Q")  W !,LRP,?31,HRCN D L  ;IHS/ANMC/CLS
  ; ----- END IHS/MSC/MKK - LR*5.2*1031
  D END^LRUTL,END Q

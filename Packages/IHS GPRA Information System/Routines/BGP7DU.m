@@ -1,5 +1,5 @@
 BGP7DU ; IHS/CMI/LAB - gpra utility calls ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
 WH(P,BDATE,EDATE,T,F) ;EP
@@ -9,14 +9,16 @@ WH(P,BDATE,EDATE,T,F) ;EP
  I $G(EDATE)="" Q ""
  I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
  ;go through procedures in a date range for this patient, check proc type
- NEW D,X,Y,G,V
- S (G,V)=0 F  S V=$O(^BWPCD("C",P,V)) Q:V=""!(G)  D
+ NEW D,X,Y,G,V,O
+ S (G,V)=0,I="" F  S V=$O(^BWPCD("C",P,V)) Q:V=""  D
  .Q:'$D(^BWPCD(V,0))
  .I $P(^BWPCD(V,0),U,4)'=T Q
+ .Q:$$UP^XLFSTR($$VAL^XBDIQ1(9002086.1,V,.05))="ERROR/DISREGARD"
  .S D=$P(^BWPCD(V,0),U,12)
  .Q:D<BDATE
  .Q:D>EDATE
- .S G=V
+ .S I=$O(G(0)) I I>D Q
+ .S G=V,G(D)=""
  .Q
  I 'G Q ""
  I F=1 Q $S(G:1,1:"")
@@ -29,21 +31,109 @@ PLCODE(P,A) ;EP
  I $G(A)="" Q ""
  N T
  ;S T=$O(^ICD9("AB",A,0))
- S T=+$$CODEN^ICDCODE(A,80)
- I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ S T=+$$CODEN^BGP7UTL2(A,80)
+ I T'>0 Q ""
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D",$P(^AUPNPROB(X,0),U,12)'="I" S Y=$P(^AUPNPROB(X,0),U) I Y=T S I=1
  Q I
 PLTAX(P,A) ;EP - is DX on problem list 1 or 0
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  N T S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D",$P(^AUPNPROB(X,0),U,12)'="I" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^BGP7UTL2(Y,T,9) S I=1
  Q I
-CPT(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
+PLTAXND(P,A,E)  ;EP - is dx on problem list as either active or inactive?
+  ;P is dfn
+  ;a is taxonomy name
+  I $G(P)="" Q ""
+  I $G(A)="" Q ""
+  S E=$G(E)
+  NEW T S T=$O(^ATXAX("B",A,0))
+  I 'T Q ""  ;bad taxonomy??
+  NEW X,Y,I,D
+  S (X,Y,I)=0
+  F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+  .Q:'$D(^AUPNPROB(X,0))
+  .Q:$P(^AUPNPROB(X,0),U,12)="D"
+  .S Y=$P(^AUPNPROB(X,0),U)
+  .I E,$P(^AUPNPROB(X,0),U,13)>E Q  ;if there is a doo and it is after report period skip
+  .I E,$P(^AUPNPROB(X,0),U,8)>E Q  ;entered after report period, skip
+  .Q:'$$ICD^BGP7UTL2(Y,T,9)
+  .S D=$P(^AUPNPROB(X,0),U,13)
+  .I 'D S D=$P(^AUPNPROB(X,0),U,3)
+  .S I=1_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)_U_D
+  .Q
+  Q I
+IPLSNOND(P,T,E) ;EP - any problem list entry with a SNOMED in T
+ ;LOOP PROBLEM LIST
+ NEW G,X,Y
+ S (X,G)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..Q:'$D(^XTMP("BGPSNOMEDSUBSET",$J,T,X))
+ ..I E,$P(^AUPNPROB(Y,0),U,13)>E Q  ;if there is a doo and it is after report period skip
+ ..I E,$P(^AUPNPROB(Y,0),U,8)>E Q  ;entered after report period, skip
+ ..S D=$P(^AUPNPROB(Y,0),U,13)
+ ..I 'D S D=$P(^AUPNPROB(Y,0),U,3)
+ ..S G=1_U_"Problem List: "_X_U_D  ;$$CONCPT^AUPNVUTL(X)
+ Q G
+PLTAXID(P,A,B,E)  ;EP - is dx on problem list as either active or inactive?
+ ;P is dfn
+ ;a is taxonomy name
+ I $G(P)="" Q ""
+ I $G(A)="" Q ""
+ S E=$G(E)
+ S B=$G(B)
+ NEW T S T=$O(^ATXAX("B",A,0))
+ I 'T Q ""  ;bad taxonomy??
+ NEW X,Y,I,D,M,O
+ S (X,Y,I)=0
+ F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+ .Q:'$D(^AUPNPROB(X,0))
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .S O=$P(^AUPNPROB(X,0),U,13)
+ .S M=$P(^AUPNPROB(X,0),U,3)
+ .S D=$P(^AUPNPROB(X,0),U,8)
+ .I D'<B,D'>E G CHK
+ .I O,O'<B,O'>E G CHK
+ .I M,M'<B,M'>E G CHK
+ .Q
+CHK .;
+ .Q:'$$ICD^BGP7UTL2(Y,T,9)
+ .S I=1_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)_U_$S(O="":M,1:O)_U_X
+ .Q
+  Q I
+IPLSNOID(P,T,B,E) ;EP - any problem list entry with a SNOMED in T
+ ;LOOP PROBLEM LIST
+ NEW X,G,Y,O,M
+ S B=$G(B)
+ S E=$G(E)
+ S (X,G)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:'$D(^XTMP("BGPSNOMEDSUBSET",$J,T,X))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="I"
+ ..S O=$P(^AUPNPROB(Y,0),U,13)
+ ..S M=$P(^AUPNPROB(Y,0),U,3)
+ ..S D=$P(^AUPNPROB(Y,0),U,8)
+ ..I D'<B,D'>E G S
+ ..I O,O'<B,O'>E G S
+ ..I M,M'<B,M'>E G S
+ ..Q
+S ..;one of the above dates has to be in the time period B TO E
+ ..S G=1_U_"Problem List: "_X_U_$S(O="":M,1:O)_U_X ;$$CONCPT^AUPNVUTL(X)
+ Q G
+CPT(P,BDATE,EDATE,T,F,SCEX) ;EP - return ien of CPT entry if patient had this CPT
  I '$G(P) Q ""
  I '$G(T) Q ""
  I '$G(F) S F=1
+ S SCEX=$G(SCEX)
  I $G(EDATE)="" Q ""
  I $G(BDATE)="" S BDATE=$$FMADD^XLFDT(EDATE,-365)
  ;go through visits in a date range for this patient, check cpts
@@ -53,8 +143,9 @@ CPT(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V!(G)  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
+ ..I SCEX]"",SCEX[$P(^AUPNVSIT(V,0),U,7) Q
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^BGP7UTL2($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -81,7 +172,7 @@ RAD(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVRAD("AD",V))
  ..S X=0 F  S X=$O(^AUPNVRAD("AD",V,X)) Q:X'=+X!(G)  D
  ...S C=$P(^AUPNVRAD(X,0),U) Q:C=""  S C=$P($G(^RAMIS(71,C,0)),U,9) Q:C=""
- ...I $$ICD^ATXCHK(C,T,1) S G=X
+ ...I $$ICD^BGP7UTL2(C,T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -93,16 +184,31 @@ RAD(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  I F=5 S V=$P(^AUPNVRAD(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P(^RAMIS(71,$P(^AUPNVRAD(G,0),U),0),U,9)
  I F=6 S V=$P(^AUPNVRAD(G,0),U,3) I V Q 1_"^"_$P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P(^RAMIS(71,$P(^AUPNVRAD(G,0),U),0),U)_"^"_G
  Q ""
-CPTI(P,BDATE,EDATE,CPTI) ;EP - did patient have this cpt (ien) in date range
+CPTI(P,BDATE,EDATE,CPTI,SCEX,SCLN,SMOD) ;EP - did patient have this cpt (ien) in date range
  I '$G(P) Q ""
  I $G(CPTI)="" Q ""
  I $G(BDATE)="" Q ""
  I $G(EDATE)="" Q ""
+ S SCEX=$G(SCEX)
+ S SCLN=$G(SCLN)
+ S SMOD=$G(SMOD)
  I '$D(^ICPT(CPTI)) Q ""  ;not a valid cpt ien
  I '$D(^AUPNVCPT("AA",P)) Q ""  ;no cpts for this patient
- NEW D,BD,ED,X,Y,D,G,V
+ NEW D,BD,ED,X,Y,D,G,V,I,M,M1,Z,J,K,Q
  S ED=9999999-EDATE-1,BD=9999999-BDATE,G=""
- F  S ED=$O(^AUPNVCPT("AA",P,CPTI,ED)) Q:ED=""!($P(ED,".")>BD)!(G)  S G="1"_"^"_(9999999-ED)
+ F  S ED=$O(^AUPNVCPT("AA",P,CPTI,ED)) Q:ED=""!($P(ED,".")>BD)!(G)  D
+ .S I=0 F  S I=$O(^AUPNVCPT("AA",P,CPTI,ED,I)) Q:I'=+I!(G)  D
+ ..S V=$P($G(^AUPNVCPT(I,0)),U,3)
+ ..I SCEX]"",SCEX[$P(^AUPNVSIT(V,0),U,7) Q
+ ..I SCLN]"",$$CLINIC^APCLV(V,"C")=SCLN Q
+ ..S M=$$VAL^XBDIQ1(9000010.18,I,.08)
+ ..S M1=$$VAL^XBDIQ1(9000010.18,I,.09)
+ ..S Q=0
+ ..I SMOD]"" F J=1:1 S K=$P(SMOD,";",J) Q:K=""  I K=M S Q=1
+ ..Q:Q
+ ..I SMOD]"" F J=1:1 S K=$P(SMOD,";",J) Q:K=""  I K=M1 S Q=1
+ ..Q:Q
+ ..S G="1"_"^"_(9999999-ED)_"^"_$$VALI^XBDIQ1(9000010.18,I,.03)
  Q G
  ;
 TRANI(P,BDATE,EDATE,CPTI) ;EP
@@ -121,7 +227,7 @@ TRANI(P,BDATE,EDATE,CPTI) ;EP
  .S V=$P($P($G(^AUPNVSIT(V,0)),U),".")
  .Q:V<BDATE
  .Q:V>EDATE
- .S G="1"_"^"_V
+ .S G="1"_"^"_V_"^"_$$VALI^XBDIQ1(9000010.33,X,.03)
  Q G
 TRAN(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT IN A TRAN CODE
  I '$G(P) Q ""
@@ -137,7 +243,7 @@ TRAN(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT IN
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVTC("AD",V))
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVTC(X,0),U,7),T,1) S G=X
+ ...I $$ICD^BGP7UTL2($P(^AUPNVTC(X,0),U,7),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -146,9 +252,19 @@ TRAN(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT IN
  I F=2 Q G
  I F=3 S V=$P(^AUPNVTC(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")
  I F=4 S V=$P(^AUPNVTC(G,0),U,3) I V Q $$FMTE^XLFDT($P($P($G(^AUPNVSIT(V,0)),U),"."))
- I F=5 S V=$P(^AUPNVTC(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P($$CPT^ICPTCOD($P(^AUPNVTC(G,0),U)),U,7)
- I F=6 S V=$P(^AUPNVTC(G,0),U,3) I V Q 1_"^"_$P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P($$CPT^ICPTCOD($P(^AUPNVTC(G,0),U)),U,7)_"^"_G
+ I F=5 S V=$P(^AUPNVTC(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P($$CPT^ICPTCOD($P(^AUPNVTC(G,0),U,7)),U,2)
+ I F=6 S V=$P(^AUPNVTC(G,0),U,3) I V Q 1_"^"_$P($P($G(^AUPNVSIT(V,0)),U),".")_"^"_$P($$CPT^ICPTCOD($P(^AUPNVTC(G,0),U,7)),U,2)_"^"_G
  Q ""
+ ;
+LASTITEM(P,BD,ED,BGPT,BGPV) ;PEP - return last item APCLV OF TYPE APCLT DURING BD TO ED IN FORM APCLF
+ I $G(BD)="" S BD=$$DOB^AUPNPAT(P)
+ I $G(ED)="" S ED=DT
+ I $G(BGPT)="" Q ""
+ I $G(BGPV)="" Q ""
+ NEW BGPR,%,E,Y K R S %=P_"^LAST "_BGPT_" "_BGPV_";DURING "_BD_"-"_ED,E=$$START1^APCLDF(%,"BGPR(")
+ I '$D(BGPR(1)) Q ""
+ Q 1_U_$P(BGPR(1),U,1)_U_$P(BGPR(1),U,3)_U_$P(BGPR(1),U,2)
+ ;
 BANNER ;EP
 V ; GET VERSION
  S BGP("VERSION")="2.0  January, 2003"
@@ -160,6 +276,10 @@ PRINT W:$D(IOF) @IOF
 SITE G XIT:'$D(DUZ(2)) G:'DUZ(2) XIT S BGP("SITE")=$P(^DIC(4,DUZ(2),0),"^") W !!?80-$L(BGP("SITE"))\2,BGP("SITE")
 XIT ;
  K BGPJ,BGPX,BGPTEXT,BGPLINE,BGP("SITE"),BGP("VERSION")
+ Q
+PAUSE ;EP - pause
+ K DIR,DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
+ S DIR("A")="Press Enter to Continue",DIR(0)="E" D ^DIR KILL DIR
  Q
 TEXT ;
  ;;*******************************************************

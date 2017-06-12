@@ -1,5 +1,6 @@
 AGAGERP1 ; VNGT/IHS/DLS - Patient Age Specific Report ; April 29, 2010
- ;;7.1;PATIENT REGISTRATION;**8,9**;AUG 25, 2005
+ ;;7.1;PATIENT REGISTRATION;**8,9,11**;AUG 25, 2005;Build 1
+ ;IHS/OIT/NKD AG*7.1*11 REMOVED FILTERING IF NO AR WAS SELECTED
  ;
  Q
 GETDATA ; Extracting Records based on the Selection Criteria
@@ -50,7 +51,8 @@ GETAR ; Get Alternate Resource records
  I AR1=4 D GETINSR Q
  I AR1=6 D GETWRKC Q
  I AR1=8 D GETCHIP Q
- D GETNOAR
+ ;IHS/OIT/NKD AG*7.1*11 REMOVED FILTERING IF NO AR WAS SELECTED
+ ;D GETNOAR
  Q
  ;
 GETDT ; Check Visit Date Rang

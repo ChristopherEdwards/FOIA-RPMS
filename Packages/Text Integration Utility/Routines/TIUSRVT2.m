@@ -1,5 +1,5 @@
-TIUSRVT2 ; SLC/JM - Server functions for templates ;1/19/2001
- ;;1.0;TEXT INTEGRATION UTILITIES;**80,105**;Jun 20, 1997
+TIUSRVT2 ; SLC/JM - Server functions for templates ;5/11/2009
+ ;;1.0;TEXT INTEGRATION UTILITIES;**80,105,249**;Jun 20, 1997;Build 48
 TACCESS(TIUY,ROOT,USER,LOC) ;Returns Template Access level of User
  ;
  ;Return Values:
@@ -79,7 +79,8 @@ REMDLGOK(TIUY,TIUIEN) ;Returns TRUE if the passed in Reminder Dialog IEN is
  N TIULST,SRV
  S TIUY=-1
  I '$D(^PXRMD(801.41,+$G(TIUIEN))) Q
- I $P(^PXRMD(801.41,+$G(TIUIEN),0),U,3)'="" Q
+ ;I $P(^PXRMD(801.41,+$G(TIUIEN),0),U,3)'="" Q
+ I +$P(^PXRMD(801.41,+$G(TIUIEN),0),U,3)>0 Q
  S TIUY=1
  D RDACCUM(.TIULST,"USR","Q")
  I $$RDINLST(.TIULST,TIUIEN) Q

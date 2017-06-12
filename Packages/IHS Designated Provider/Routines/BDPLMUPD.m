@@ -1,5 +1,5 @@
 BDPLMUPD ; IHS/CMI/TMJ - UPDATE USING LISTMAN ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10**;MAY 14, 2009;Build 88
  ;
  ;
 START ;
@@ -32,7 +32,7 @@ EN ; -- main entry point for BDP UPDATE
  ;
 HDR ; -- header code
  S VALMHDR(1)=$TR($J(" ",80)," ","-")
- S VALMHDR(2)="Designated Provider List for: "_IORVON_$P(^DPT(BDPPAT,0),U)_IOINORM_"   HRN: "_$$HRN^AUPNPAT(BDPPAT,DUZ(2),2)
+ S VALMHDR(2)="Designated Provider List for: "_$P(^DPT(BDPPAT,0),U)_"   HRN: "_$$HRN^AUPNPAT(BDPPAT,DUZ(2),2)
  S C=3
  I $$DOD^AUPNPAT(BDPPAT)]"" S VALMHDR(C)="Patient is Deceased.  DOD:  "_$$FMTE^XLFDT($$DOD^AUPNPAT(BDPPAT)) S C=C+1
  S VALMHDR(C)=$TR($J(" ",80)," ","-")
@@ -125,7 +125,8 @@ ADD ;EP - add a new dp
  ;get provider name for this category
  W !
  S DIC=200,DIC(0)="AEMQ",DIC("A")="Enter Provider Name: ",DIC("B")=$P(^VA(200,DUZ,0),U)
- S DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P($G(^VA(200,+Y,0)),U),+Y)),$P($G(^VA(200,+Y,""PS"")),U,4)="""""
+ I $$GET1^DIQ(90360.3,BDPCIEN,.01)'="MESSAGE AGENT" S DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P($G(^VA(200,+Y,0)),U),+Y)),$P($G(^VA(200,+Y,""PS"")),U,4)="""""
+ I $$GET1^DIQ(90360.3,BDPCIEN,.01)="MESSAGE AGENT" S DIC("S")="I $D(^BDPMSGA(+Y,0)),'$P(^BDPMSGA(+Y,0),U,3)" K DIC("B")
  D ^DIC K DIC
  I Y<0 W !,"No updating done...." D PAUSE,BACK Q
  S BDPPROV=+Y
@@ -148,7 +149,9 @@ CHANGE ;EP - change existing DP
  I '$G(BDPRIEN) D PAUSE,BACK Q
  I 'BDPRIEN W !,"No item selected to change." D PAUSE,BACK Q
  S BDPCIEN=$P(^BDPRECN(BDPRIEN,0),U)
- W ! S DIC("A")="Enter New Designated "_$$VAL^XBDIQ1(90360.1,BDPRIEN,.01)_": ",DIC="^VA(200,",DIC(0)="AEMQ",DIC("B")=$P(^VA(200,DUZ,0),U) D ^DIC K DIC,DA,DR,DLAYGO,DIADD
+ W ! S DIC("A")="Enter New Designated "_$$VAL^XBDIQ1(90360.1,BDPRIEN,.01)_": ",DIC="^VA(200,",DIC(0)="AEMQ",DIC("B")=$P(^VA(200,DUZ,0),U)
+ I $$GET1^DIQ(90360.3,BDPCIEN,.01)="MESSAGE AGENT" S DIC("S")="I $D(^BDPMSGA(+Y,0)),'$P(^BDPMSGA(+Y,0),U,3)" K DIC("B")
+ D ^DIC K DIC,DA,DR,DLAYGO,DIADD
  I Y<0 W !,"No Provider Selected." D PAUSE,BACK Q
  S BDPPROV=+Y
  I $P(^BDPRECN(BDPRIEN,0),U,3)=BDPPROV W !!,"That is the currently documented provider." D PAUSE,BACK Q

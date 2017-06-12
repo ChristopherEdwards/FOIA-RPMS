@@ -1,5 +1,5 @@
 BDGAD4 ; IHS/ANMC/LJF - A&D DISCHARGES ; 
- ;;5.3;PIMS;**1003,1005,1009,1013**;MAY 28, 2004
+ ;;5.3;PIMS;**1003,1005,1009,1013,1018,1019**;MAY 28, 2004;Build 3
  ;IHS/ITSC/LJF 06/03/2005 PATCH 1003 added code for multiple discharges per patient
  ;IHS/OIT/LJF  12/29/2005 PATCH 1005 changed AGE^BDGF2 to official API
  ;cmi/anch/maw 02/11/2008 added fix in GATHER PATCH 1009
@@ -21,7 +21,8 @@ GATHER ; gather info on discharges and put counts into arrays
  S D0=ADM D EN^DGPMLOS S LOS=$P(X,U,5)               ;length of stay
  ;
  S OLDWD=$P($G(^DGPM(+$$PRIORMVT^BDGF1(DGDT,ADM,DFN),0)),U,6)  ;old ward
- Q:'$G(OLDWD)  ;cmi/maw 2/11/2008 added for no ward being returned PATCH 1009
+ ;ihs/cmi/maw 08/07/2015 this line needs to be removed or counts will be off, interward transfers are being created without a ward causing the counts and errors
+ ;Q:'$G(OLDWD)  ;cmi/maw 2/11/2008 added for no ward being returned PATCH 1009
  ;
  S OLDSV=$P(^DGPM(+$$PRIORTXN^BDGF1(DGDT,ADM,DFN),0),U,9)  ;old srv
  S OLDSVN=$$GET1^DIQ(45.7,OLDSV,.01)
@@ -29,6 +30,7 @@ GATHER ; gather info on discharges and put counts into arrays
  ;
  ;  collect patient data for report
  S NAME=$$GET1^DIQ(2,DFN,.01),X=$S(OLDSVN["OBSERVATION":"O",OLDSVN="DAY SURGERY":"D",1:"I")
+ Q:$$DEMO^APCLUTL(DFN,"E")  ;ihs/cmi/maw patch 1019
  S DATA=OLDSV_U_OLDWD
  ;IHS/OIT/LJF 12/29/2005 PATCH 1005 changed AGE call to official API
  ;I BDGFRM="D" S DATA=DATA_U_$$LASTPRV^BDGF1(ADM,DFN)_U_$$AGE^BDGF2(DFN,+$G(^DGPM(ADM,0)))  ;add provider and age at admission

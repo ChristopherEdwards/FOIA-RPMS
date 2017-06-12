@@ -1,8 +1,12 @@
 ABMURCN1 ; IHS/SD/SDR - 3PB/UFMS Reconcile Sessions Option   
- ;;2.6;IHS Third Party Billing;**1,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,8,19**;NOV 12, 2009;Build 300
  ;
  ; New routine - v2.5 p12 SDD item 4.9.2.4
  ; Reconcile Sessions Option
+ ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT160514 - When exporting wasn't capturing session correctly if user
+ ;  had IEN less than the number of users being exported (if the user IEN is 8 but 10 sessions
+ ;  are being exported).
  ;
 HEADER(ABMFLG) ;EP
  W !!,"The following SESSIONS are currently "_ABMFLG_" =>",!
@@ -139,7 +143,8 @@ BATCH ;EP - put bill entry in batch file
  I ABMDUZ D
  .S DIC="^ABMUTXMT("_DA(1)_",1,"
  .S DIC("P")=$P(^DD(9002274.46,1,0),U,2)
- .S X="`"_ABMDUZ
+ .;S X="`"_ABMDUZ  ;abm*2.6*19 IHS/SD/SDR HEAT160514
+ .S X=$$GET1^DIQ(200,ABMDUZ,".01","E")  ;abm*2.6*19 IHS/SD/SDR HEAT160514
  I 'ABMDUZ D
  .S DIC="^ABMUTXMT("_DA(1)_",2,"
  .S DIC("P")=$P(^DD(9002274.46,2,0),U,2)

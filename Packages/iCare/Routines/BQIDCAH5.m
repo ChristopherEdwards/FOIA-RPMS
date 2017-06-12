@@ -1,0 +1,205 @@
+BQIDCAH5 ;GDIT/HS/ALA-Ad Hoc Logic Continued ; 18 Jan 2013  6:42 AM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
+ ;
+DOB(FGLOB,TGLOB,DBFROM,DBTHRU) ;EP - Date of Birth search
+ I $G(TGLOB)="" Q
+ I $G(DBFROM)="" Q
+ ;
+ NEW IEN,PDOB
+ S IEN=0
+ I $G(FGLOB)'="" D
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. S PDOB=$P($G(^DPT(IEN,0)),U,3) I PDOB="" Q
+ .. I PDOB<DBFROM!(PDOB>DBTHRU) Q
+ .. S @TGLOB@(IEN)=""
+ ;
+ I $G(FGLOB)="" D
+ . NEW FDT,TDT
+ . S FDT=DBFROM-.001,TDT=DBTHRU F  S FDT=$O(^DPT("ADOB",FDT)) Q:FDT=""!(FDT>TDT)  D
+ .. S IEN="" F  S IEN=$O(^DPT("ADOB",FDT,IEN)) Q:'IEN  S @TGLOB@(IEN)=""
+ Q
+ ;
+GEN(FGLOB,TGLOB,GEN) ;EP - Gender search
+ I $G(TGLOB)="" Q
+ I $G(GEN)="" Q
+ ;
+ NEW IEN
+ S IEN=0
+ I $G(FGLOB)'="" D
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D GCHK
+ ;
+ I $G(FGLOB)="" D
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D GCHK
+ Q
+ ;
+GCHK ;EP  Gender check
+ I $P($G(^DPT(IEN,0)),U,2)'=GEN Q
+ S @TGLOB@(IEN)=""
+ Q
+ ;
+PCOMM(FGLOB,TGLOB,PCOMM) ;EP - Preferred Communication search
+ I $G(TGLOB)="" Q
+ I $G(PCOMM)="" Q
+ ;
+ NEW IEN
+ S IEN=0
+ I $G(FGLOB)'="" D
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D PCHK
+ ;
+ I $G(FGLOB)="" D
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D PCHK
+ Q
+ ;
+PCHK ;EP
+ I $P($G(^AUPNPAT(IEN,40)),U,2)'=PCOMM Q
+ S @TGLOB@(IEN)=""
+ Q
+ ;
+RACE(FGLOB,TGLOB,RACE,MPARMS) ;EP - Race search
+ NEW RCN
+ I $G(TGLOB)="" Q
+ I $G(RACE)]"" S RCN=$G(RACE) D RCE
+ I $D(MPARMS("RACE")) S RCN="" F  S RCN=$O(MPARMS("RACE",RCN)) Q:RCN=""  D RCE
+ Q
+ ;
+RCE ;EP
+ NEW IEN
+ I $G(FGLOB)'="" D
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D RCHK
+ ;
+ I $G(FGLOB)="" D
+ . S IEN=0
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D RCHK
+ Q
+ ;
+RCHK ;EP
+ I $G(RCN)?.N S RACE=$P(^DIC(10,RCN,0),U,1)
+ I $P($$RCE^BQIPTDMG(IEN,.01),$C(28),2)'=RACE Q
+ S @TGLOB@(IEN)=""
+ Q
+ ;
+ETHN(FGLOB,TGLOB,ETHN,MPARMS) ;EP - Ethnicity search
+ NEW EN
+ I $G(TGLOB)="" Q
+ I $G(ETHN)]"" S EN=$G(ETHN) D ETH
+ I $D(MPARMS("ETHN")) S EN="" F  S EN=$O(MPARMS("ETHN",EN)) Q:EN=""  D ETH
+ Q
+ ;
+ETH ;EP
+ NEW IEN
+ S IEN=0
+ I $G(FGLOB)'="" D
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D ECHK
+ ;
+ I $G(FGLOB)="" D
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D ECHK
+ Q
+ ;
+ECHK ;EP
+ I EN?.N S ETHN=$P(^DIC(10.2,EN,0),U,1)
+ I $P($$ETHN^BQIPTDMG(IEN,.01),$C(28),2)'=ETHN Q
+ S @TGLOB@(IEN)=""
+ Q
+ ;
+PLANG(FGLOB,TGLOB,PLANG) ;EP - Preferred Language search
+ I $G(TGLOB)="" Q
+ I $G(PLANG)="" Q
+ ;
+ NEW IEN
+ S IEN=0
+ I $G(FGLOB)'="" D
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D LCHK
+ ;
+ I $G(FGLOB)="" D
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D LCHK
+ Q
+ ;
+LCHK ;EP
+ I PLANG?.N S PLANG=$P(^AUTTLANG(PLANG,0),U,1)
+ I $$PFLNG^BQIULPT(IEN)'=PLANG Q
+ S @TGLOB@(IEN)=""
+ Q
+ ;
+EDU(FGLOB,TGLOB,EDUC,EDUTX,FDT,TDT,EDUNOT,MPARMS) ;EP - Education search
+ NEW EDPT,TREF,ETAX,NGLOB,LN,RET,TOPN,TOP
+ S NGLOB=$NA(^TMP("BQIDCEDUC",$J)) K @NGLOB
+ I $G(TGLOB)="" Q
+ I $G(EDUC)'="" D ED
+ I $G(EDUTX)'="" D
+ . S TREF=$NA(MPARMS("EDUC"))
+ . K @TREF
+ . S ETAX=$P(@("^"_$P(EDUTX,";",2)_$P(EDUTX,";",1)_",0)"),"^",1)
+ . D BLD^BQITUTL(ETAX,TREF)
+ I $G(EDUTOP)'="" D
+ . S TOPN=EDUTOP,TOP=$P(^AUTTEDMT(TOPN,0),U,2)
+ . S LN=0
+ . F  S LN=$O(^AUTTEDT(LN)) Q:'LN  D
+ .. S RET=$G(^AUTTEDT(LN,0))
+ .. I RET="" Q
+ .. I $P(RET,U,3)'="" Q
+ .. I $P(RET,U,6)'=TOP Q
+ .. S MPARMS("EDUC",LN)=""
+ I $G(EDUPICK)'="" D
+ . S LN=0
+ . F  S LN=$O(^BGOEDTPR(EDUPICK,1,"B",LN)) Q:LN=""  D
+ .. S RET=$G(^AUTTEDT(LN,0))
+ .. I RET="" Q
+ .. I $P(RET,U,3)'="" Q
+ .. S MPARMS("EDUC",LN)=""
+ ;
+ I EDUOP="!" D
+ . I $D(MPARMS("EDUC")) S EDUC="" F  S EDUC=$O(MPARMS("EDUC",EDUC)) Q:EDUC=""  D ED
+ I EDUOP="&" D
+ . K EDPT
+ . S EDUC="",CT=0 F  S EDUC=$O(MPARMS("EDUC",EDUC)) Q:EDUC=""  D ED S CT=CT+1
+ . S IEN=""
+ . F  S IEN=$O(EDPT(IEN)) Q:IEN=""  D
+ .. S MCT=0,ED=""
+ .. F  S ED=$O(EDPT(IEN,ED)) Q:ED=""  S MCT=MCT+1
+ .. I MCT=CT,'EDUNOT S @TGLOB@(IEN)="",MIEN=EDPT(IEN,ED),@CRIT@("EDUC",IEN,MIEN)="" Q
+ .. I MCT=CT,EDUNOT S @NGLOB@(IEN)="" K @CRIT@("EDUC",IEN)
+ ;
+ I EDUNOT,$G(FGLOB)'="" D
+ . S IEN="" F  S IEN=$O(@FGLOB@(IEN)) Q:IEN=""  D
+ .. I '$D(@NGLOB@(IEN)) S @TGLOB@(IEN)=""
+ I EDUNOT,$G(FGLOB)="" D
+ . S IEN=0 F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  I '$D(@NGLOB@(IEN)) S @TGLOB@(IEN)=""
+ K @NGLOB
+ Q
+ ;
+ED ;EP
+ NEW DFN,IEN
+ S TDT=$S(TDT'="":TDT,1:DT)
+ I $G(FGLOB)'="" D  Q
+ . NEW IEN,EDP
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. I FDT="" D
+ ... S BDT=""
+ ... F  S BDT=$O(^AUPNVPED("AA",IEN,BDT)) Q:BDT=""  D EDDT
+ .. I FDT'="" D
+ ... S BGT=9999999-FDT,ENT=9999999-TDT,BDT=ENT-1
+ ... F  S BDT=$O(^AUPNVPED("AA",IEN,BDT)) Q:BDT=""!(BDT>BGT)  D EDDT
+ ;
+ S IEN=""
+ F  S IEN=$O(^AUPNVPED("B",EDUC,IEN)) Q:IEN=""  D
+ . I $G(^AUPNVPED(IEN,0))="" Q
+ . S DFN=$P(^AUPNVPED(IEN,0),U,2),VIS=$P(^AUPNVPED(IEN,0),U,3) I VIS="" Q
+ . I $G(^AUPNVSIT(VIS,0))="" Q
+ . Q:"DXCTI"[$P(^AUPNVSIT(VIS,0),U,7)
+ . S VSDTM=$P(^AUPNVSIT(VIS,0),U,1)\1
+ . I FDT'="",VSDTM<FDT!(VSDTM>TDT) Q
+ . I DFN'="",EDUOP="!",EDUNOT S @NGLOB@(DFN)="" Q
+ . I DFN'="",EDUOP="!",'EDUNOT S @TGLOB@(DFN)="",@CRIT@("EDUC",DFN,IEN)="" Q
+ . I DFN'="",EDUOP="&" S EDPT(DFN,EDUC)=IEN
+ Q
+ ;
+EDDT ;EP
+ S MIEN=""
+ F  S MIEN=$O(^AUPNVPED("AA",IEN,BDT,MIEN)) Q:MIEN=""  D
+ . S EDP=$P($G(^AUPNVPED(MIEN,0)),U,1)
+ . I EDUOP="!",EDP=EDUC,EDUNOT S @NGLOB@(IEN)="" Q
+ . I EDUOP="!",EDP=EDUC,'EDUNOT S @TGLOB@(IEN)="",@CRIT@("EDUC",IEN,MIEN)="" Q
+ . I EDUOP="&",EDP=EDUC S EDPT(IEN,EDUC)=MIEN
+ Q

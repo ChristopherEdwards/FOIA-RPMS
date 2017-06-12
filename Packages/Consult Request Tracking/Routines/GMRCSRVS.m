@@ -1,5 +1,5 @@
-GMRCSRVS ;SLC/DCM,JFR - Add/Edit services in File 123.5. ;6/14/00 12:00
- ;;3.0;CONSULT/REQUEST TRACKING;**1,16,40,53,63**;DEC 27, 1997;Build 10
+GMRCSRVS ;SLC/DCM,JFR - Add/Edit services in File 123.5. ;30-Jul-2013 17:56;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,16,40,53,63,1004**;DEC 27, 1997;Build 12
  ;
 EN ;set up services entry point
  ;GMRCOLDU=Service Usage field. If changed, GMRCOLDU shows the change (See ^DD(123.5,2,0) for field description).
@@ -11,7 +11,7 @@ EN ;set up services entry point
  .S GMRCSAFE=+$G(^GMR(123.5,+Y,"INT"))
  .S (DA,GMRCSRVC)=+Y,GMRCOSNM=$P(Y,"^",2),(GMRCOLDU,GMRCOLDS)=""
  .S GMRCACT=$S('$O(^GMR(123.5,+Y,0)):"MAD",1:"MUP"),GMRCOLDU=$P(^(0),"^",2),GMRCOLDN=$P(^(0),"^",1) S ND=0,GMRCOLDS="" F  S ND=$O(^GMR(123.5,+Y,2,ND)) Q:ND?1A.E!(ND="")  S GMRCOLDS=GMRCOLDS_^GMR(123.5,+Y,2,ND,0)_"^"
- .S DIE=DIC,DR="[GMRC SETUP REQUEST SERVICE]",DIE("NO^")="OUTOK"
+ .S DIE=DIC,DR="[GMRC SETUP REQUEST MU]",DIE("NO^")="OUTOK"
  .D ^DIE
  .Q
  I $D(DA) S GMRCACT=$S($P(^GMR(123.5,GMRCSRVC,0),"^",2)=9:"MDC",$P(^(0),"^",2)=1:"MDC",1:GMRCACT) D
@@ -23,6 +23,44 @@ EN ;set up services entry point
  .I $S(GMRCACT="MAD":1,GMRCACT="MUP":1,GMRCACT="MDC":1,1:0) D SVC^GMRC101H(GMRCSRVC,GMRCSSNM,GMRCACT),MSG^XQOR("GMRC ORDERABLE ITEM UPDATE",.GMRCMSG)
  .D PTRCLN^GMRCU
  .Q
+ ;IHS/MSC/MGH Patch 1004 for Meaningful Use
+ ;Find and/or add the SNOMED CONCEPT CT for this referral
+ K ^TMP("GMRCSNO",$J),^TMP($J)
+ N IN,OUT,DIC,X,CNT,CT,CCT,SNOMED,DIC,DIE,SCODE,VAR,DESC
+ S CT=0,DESC=""
+ S CCT=$$GET1^DIQ(123.5,GMRCSRVC,9999999.01)
+ S IN=CCT_"^30^^1"
+ S OUT="VAR"
+ S X=$$CNCLKP^BSTSAPI(.OUT,.IN)
+ I X>0 D
+ .S DESC=$G(VAR(1,"PRE","TRM"))
+ .I DESC="" S DESC=CCT
+ W !!,"SNOMED Consult Type"
+ W !,"Current value is: "_DESC,!
+ S DIR(0)="Y",DIR("A")="Would you like to edit"
+ S DIR("?")="Enter 'Yes' or 'No'" D ^DIR K DIR
+ Q:$D(DTOUT)
+ I X="Y" D
+ .S IN="EHR REFERRAL TYPE^30^1"
+ .S OUT="^TMP(""GMRCSNO"",$J)"
+ .S X=$$SUBLST^BSTSAPI(.OUT,.IN)
+ .S CNT="" F  S CNT=$O(@OUT@(CNT)) Q:CNT=""  D
+ ..S ^TMP($J,CNT,0)=$P(@OUT@(CNT),U,3)
+ ..S ^TMP($J,"B",$P(@OUT@(CNT),U,3))=CNT
+ ..S CT=CT+1
+ .S ^TMP($J,0)=U_U_CT_U_CT
+ .W !!,"Enter ? to see the list of SNOMED Consult Types"
+ .W !,"Enter ^ to quit the selection",!
+ .S DIC="^TMP($J," S DIC(0)="AEQ",DIC("A")="Select SNOMED TYPE: "
+ .S DIC("B")=DESC
+ .D ^DIC
+ .S SNOMED=Y
+ .I SNOMED'=-1 D
+ ..K Y,DIE,DA,DR
+ ..S SCODE=$P(^TMP("GMRCSNO",$J,$P(SNOMED,U,1)),U,1)
+ ..S DIE="^GMR(123.5,",DA=GMRCSRVC,DR="9999999.01///"_SCODE
+ ..D ^DIE
+ ;end IHS MOD
  K GMRCMSG,GMRCSSNM,GMRCSRVS,GMRCOLDN,GMRCOLDS,GMRCOLDU,ND
  ;Ask to continue...
  ;
@@ -201,3 +239,32 @@ YESNO(X,Y) ;YES/NO QUESTION/RESPONSE
  D ^DIR Q:($G(DTOUT))!($G(DUOUT))!($G(DIROUT))
  I Y=1 S GMRCON=1
  Q
+ ;IHS/MSC/MGH Patch 1004 See if the alert has a note
+CONFIN(RET,XQAID) ;EP
+ N TYPE,AIEN,FDA,IEN,ERR,ORY
+ S RET="",ORY=""
+ ;D GETDATA^ORWORB(.ORY,XQAID)
+ S ORY=$P(XQAID,"|",1)
+ I $D(^GMR(123,+ORY,50))>1 D
+ .;See if the viewer is the ordering provider
+ .I DUZ=$$GET1^DIQ(123,+ORY,10,"I") D
+ ..;DO LOOKUP INTO NEW FILE HERE
+ ..F TYPE=371530004,371531000 D
+ ...S AIEN="+1,"_+ORY_","
+ ...S FDA(123.999999911,AIEN,.01)=TYPE
+ ...S FDA(123.999999911,AIEN,2)=$$NOW^XLFDT
+ ...S FDA(123.999999911,AIEN,1)=DUZ
+ ...D UPDATE^DIE(,"FDA","IEN","ERR")
+ ...I $D(ERR) S RET="-1^Error on storing SNOMED terms"
+ ...E  S RET=0
+ ...K FDA,IEN,ERR
+ Q
+IND() ;Change choices on clin indication
+ N DIR,Y,DEF
+ S DIR(0)="SO^O:Optional"
+ S DIR("A")="CLINICAL INDICATION"
+ S DIR("B")=$S($P($G(^GMR(123.5,DA,1)),"^",1)="O":"O",1:"")
+ S DIR("?")="Enter O if clinical indication is optional, otherwise required."
+ D ^DIR
+ I Y="" S Y="@"
+ Q Y

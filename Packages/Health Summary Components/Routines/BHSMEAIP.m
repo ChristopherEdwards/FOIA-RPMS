@@ -1,5 +1,5 @@
-BHSMEAIP ;IHS/CIA/MGH - Health Summary for Inpt Measurements ;13-Aug-2012 09:46;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**7**;March 17, 2006;Build 12
+BHSMEAIP ;IHS/CIA/MGH - Health Summary for Inpt Measurements ;21-Apr-2014 17:24;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**7,9**;March 17, 2006;Build 16
  ;===================================================================
  ;Taken from APCHS2
  ; IHS/TUCSON/LAB - PART 2 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
@@ -92,7 +92,13 @@ MEASDSP2 ;
  D REST
  Q
 REST ;
- W ?29,$P(^AUPNVMSR(BHSDFN,0),U,4)
+ N VALUE,PREG
+ S VALUE=$P(^AUPNVMSR(BHSDFN,0),U,4)
+ S VALUE=+$J(VALUE,0,2)
+ I BHSMT="BMI" D
+ .S PREG=$$PREG^BHSMEA(DFN,"",BHSDFN)
+ .I PREG=1 S VALUE=VALUE_"*"
+ W ?29,VALUE
  I $$VAL^XBDIQ1(9000010.01,BHSDFN,.01)="O2" D
  .Q:$P(^AUPNVMSR(BHSDFN,0),U,10)=""
  .W ?41,"Supplemental O2: ",$P(^AUPNVMSR(BHSDFN,0),U,10),!

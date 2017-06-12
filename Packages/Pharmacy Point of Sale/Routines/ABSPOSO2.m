@@ -1,5 +1,5 @@
 ABSPOSO2 ; IHS/FCS/DRS - NCPDP Override-Fman utils ;  [ 09/03/2002  11:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUN 21, 2001;Build 15
  Q
  ; EDIT,EDITGEN are called from the menus in ABSPOSO1,
  ;   typically reached from the pharmacy package's call

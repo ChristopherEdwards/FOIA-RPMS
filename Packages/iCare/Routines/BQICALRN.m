@@ -1,5 +1,5 @@
 BQICALRN ;GDIT/HS/ALA-Expanded Community Alerts ; 13 Oct 2011  3:42 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
 FND ;EP - Find alerts
  ; Get the lab taxonomies for Community Alerts
@@ -29,21 +29,8 @@ FND ;EP - Find alerts
  NEW N,OPER,OPER2,OVALUE,RES,RES2,RN,TIEN,TYP,VCAT,VDATE,VFL,X,Y,ZZ
  ; Need to get the program for the GPRA year to check active population
  NEW BGPHOME,BQIH,BQIINDF,BQIINDG,BQIMEASF,BQIMEASG,BQIY,BQIYR,BQIROU
- D INP^BQINIGHT
- I $G(BQIROU)="" Q
- I BQIROU["D10" S BQIROU=$E(BQIROU,1,$L(BQIROU)-1)
- I $T(@("ACTUPAP^"_BQIROU))="" Q
  ;
  I $G(DT)="" D DT^DICRW
- ; Get primary clinic list
- S PREF=$NA(^TMP("BQIPRCR",UID))
- K @PREF
- S BGDA=$O(^BGPCTRL("B",BQIYR,"")) I BGDA="" Q
- S BGI=0
- F  S BGI=$O(^BGPCTRL(BGDA,12,BGI)) Q:'BGI  D
- . S BGPC=$P(^BGPCTRL(BGDA,12,BGI,0),U,1)
- . S BGPCI=$O(^DIC(40.7,"C",BGPC,"")) I BGPCI="" Q
- . S @PREF@(BGPCI)=BGPC
  ;
  ; Set the alert temporary global
  NEW TDATA
@@ -68,13 +55,9 @@ FND ;EP - Find alerts
  .. S VISIT=""
  .. F  S VISIT=$O(^AUPNVSIT("B",BGDT,VISIT)) Q:VISIT=""  D
  ... I $P(^AUPNVSIT(VISIT,0),U,11)=1 Q
- ... ; Check for primary clinic
- ... S VCLIN=$P(^AUPNVSIT(VISIT,0),U,8)
- ... I VCLIN'="",'$D(@PREF@(VCLIN)) Q
- ... S VCAT=$P(^AUPNVSIT(VISIT,0),U,7)  I "AH"']VCAT Q
+ ... S VCAT=$P(^AUPNVSIT(VISIT,0),U,7)
+ ... I VCAT'="A",VCAT'="C",VCAT'="H",VCAT'="T" Q
  ... S DFN=$P(^AUPNVSIT(VISIT,0),U,5) I DFN="" Q
- ... S EXEC="S OK=$$ACTUPAP^"_BQIROU_"("_DFN_","_STDT_","_ENDT_","""")"
- ... X EXEC I 'OK Q
  ... S VDATE=$P($G(^AUPNVSIT(VISIT,0)),U,1)\1 I VDATE=0 Q
  ... S @TDATA@("PT",DFN,VISIT)=VDATE
  ;
@@ -95,10 +78,7 @@ FND ;EP - Find alerts
  ... S ATIEN=0,QFL=1
  ... F  S ATIEN=$O(@TREF@(ATIEN)) Q:ATIEN=""  D SRN(ATIEN,PT)
  .. Q:QFL
- .. ; Check for ICD codes
- .. S ATIEN=""
- .. F  S ATIEN=$O(^BQI(90507.8,ALRT,10,"B",ATIEN)) Q:ATIEN=""  D
- ... D SRN(ATIEN,PT)
+ .. Q
  ;
  D EN^BQICAVAL
  Q

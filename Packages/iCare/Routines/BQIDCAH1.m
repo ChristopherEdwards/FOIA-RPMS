@@ -1,5 +1,5 @@
 BQIDCAH1 ;PRXM/HC/ALA-Ad Hoc Search continued ; 01 Aug 2007  11:27 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  Q
  ;
 ACHK(IEN) ;EP - Age check
@@ -152,7 +152,7 @@ DIAG(FGLOB,TGLOB,DIAG,MPARMS) ;EP - Diagnosis Category search
  . S IEN="" F  S IEN=$O(DXPT(IEN)) Q:IEN=""  I DXPT(IEN)'=CT K DXPT(IEN)
  . I $G(FGLOB)="" S IEN="" F  S IEN=$O(DXPT(IEN)) Q:IEN=""  S @TGLOB@(IEN)=""
  . I $G(FGLOB)'="" S IEN="" F  S IEN=$O(@FGLOB@(IEN)) Q:IEN=""  I $D(DXPT(IEN))>0 S @TGLOB@(IEN)=""
- K MAPARMS
+ K MAPARMS("DXCAT")
  Q
  ;
 DXC ;
@@ -203,3 +203,92 @@ BEN1 ;
  S DFN=""
  F  S DFN=$O(^AUPNPAT("AD",BEN,DFN)) Q:DFN=""  S @TGLOB@(DFN)=""
  Q
+ ;
+RANGE(VAL,ENT,RTYP) ; EP - Load relative from and through dates when RANGE, LRANGE, MRANGE
+ ;                    parameter or filter has been selected.
+ ; Input:
+ ;   VAL - Range value - e.g. last week
+ ;   ENT - Entry in file 90506
+ ;
+ Q:$G(VAL)=""
+ Q:$G(ENT)=""
+ N RNGIEN,CHOICE
+ S RNGIEN=$O(^BQI(90506,ENT,3,"B",RTYP,""))
+ I RNGIEN D
+ . S CHOICE=$O(^BQI(90506,ENT,3,RNGIEN,3,"B",VAL,""))
+ . I CHOICE D  Q
+ .. N DA,IENS,EXEC
+ .. S DA=CHOICE,DA(1)=RNGIEN,DA(2)=ENT S IENS=$$IENS^DILF(.DA)
+ .. S EXEC=$$GET1^DIQ(90506.33,IENS,.02,"I")
+ .. Q:EXEC=""
+ .. I EXEC["RFROM="!(EXEC["RTHRU=") D  Q
+ ... S RFROM=$$DATE^BQIUL1($P($P(EXEC,"RFROM=",2),"~"))
+ ... S RTHRU=$$DATE^BQIUL1($P($P(EXEC,"RTHRU=",2),"~"))
+ .. X EXEC
+ . S TN=""
+ . F  S TN=$O(^BQI(90506.9,"B",VAL,TN)) Q:TN=""  D
+ .. I '$D(^BQI(90506.9,TN,1,"B",RTYP)) Q
+ .. I $P(^BQI(90506.9,TN,0),U,4)'="" D  Q
+ ... S RFROM=$$DATE^BQIUL1($P(^BQI(90506.9,TN,0),U,3))
+ ... S RTHRU=$$DATE^BQIUL1($P(^BQI(90506.9,TN,0),U,4))
+ .. S EXEC=$P(^BQI(90506.9,TN,0),U,5) I EXEC="" Q
+ .. X EXEC
+ Q
+ ;
+CUR(RTY) ; Current Range for week
+ ; RTY = 'L' is Last, 'T' is This, and 'N' is Next
+ NEW CDOW
+ S CDOW=$$DOW^XLFDT(DT,1)
+ S RFROM=$$FMADD^XLFDT(DT,(0-CDOW))
+ S RTHRU=$$FMADD^XLFDT(DT,(6-CDOW))
+ I RTY="T" Q
+ I RTY="L" D
+ . S RTHRU=$$FMADD^XLFDT(RFROM,-1)
+ . S RFROM=$$FMADD^XLFDT(RTHRU,-6)
+ I RTY="N" D
+ . S RFROM=$$FMADD^XLFDT(RTHRU,1)
+ . S RTHRU=$$FMADD^XLFDT(RFROM,6)
+ Q
+ ;
+MON(RTY) ; Current range for month
+ NEW BQMON,CYR,PYR,NYR,BQDTE,EDAY
+ ; RTY = 'L' is Last, 'T' is This, and 'N' is Next
+ S BQMON=$E(DT,4,5),CYR=$E(DT,1,3),PYR=CYR-1,NYR=CYR+1
+ S BQDTE=$P($T(MQ+BQMON),";;",2)
+ S BQMON=$P(BQDTE,U,1)
+ I $L(BQMON)=1 S BQMON="0"_BQMON
+ I RTY="N" D
+ . S RFROM=@($P(BQDTE,U,4))_$P(BQDTE,U,3)_"01"
+ . S EDAY="31^"_($$LEAP^XLFDT2(CYR)+28)_"^31^30^31^30^31^31^30^31^30^31"
+ . S RTHRU=@($P(BQDTE,U,4))_$P(BQDTE,U,3)_$P(EDAY,U,+$P(BQDTE,U,1))
+ I RTY="L" D
+ . S RFROM=@($P(BQDTE,U,6))_$P(BQDTE,U,5)_"01"
+ . S EDAY="31^"_($$LEAP^XLFDT2(CYR)+28)_"^31^30^31^30^31^31^30^31^30^31"
+ . S RTHRU=@($P(BQDTE,U,6))_$P(BQDTE,U,5)_$P(EDAY,U,+$P(BQDTE,U,1))
+ I RTY="T" D
+ . S RFROM=@($P(BQDTE,U,2))_$P(BQDTE,U,1)_"01"
+ . S EDAY="31^"_($$LEAP^XLFDT2(CYR)+28)_"^31^30^31^30^31^31^30^31^30^31"
+ . S RTHRU=@($P(BQDTE,U,2))_$P(BQDTE,U,1)_$P(EDAY,U,+$P(BQDTE,U,1))
+ Q
+ ;
+YR(RTY) ; Current range for year
+ NEW CYR,PYR,NYR
+ S CYR=$E(DT,1,3),PYR=CYR-1,NYR=CYR+1
+ I RTY="L" S RFROM=PYR_"0101",RTHRU=PYR_"1231"
+ I RTY="T" S RFROM=CYR_"0101",RTHRU=CYR_"1231"
+ I RTY="N" S RFROM=NYR_"0101",RTHRU=NYR_"1231"
+ Q
+ ;
+MQ ;
+ ;;01^CYR^02^CYR^12^PYR
+ ;;02^CYR^03^CYR^01^CYR
+ ;;03^CYR^04^CYR^02^CYR
+ ;;04^CYR^05^CYR^03^CYR
+ ;;05^CYR^06^CYR^04^CYR
+ ;;06^CYR^07^CYR^05^CYR
+ ;;07^CYR^08^CYR^06^CYR
+ ;;08^CYR^09^CYR^07^CYR
+ ;;09^CYR^10^CYR^08^CYR
+ ;;10^CYR^11^CYR^09^CYR
+ ;;11^CYR^12^CYR^10^CYR
+ ;;12^CYR^01^NYR^11^CYR

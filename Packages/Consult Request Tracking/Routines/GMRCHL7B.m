@@ -1,6 +1,7 @@
-GMRCHL7B ;SLC/DCM,MA,JFR - Process data from GMRCHL7A ; 3/7/03 14:42
- ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,21,17,22,33**;DEC 27, 1997
- ;
+GMRCHL7B ;SLC/DCM,MA,JFR - Process data from GMRCHL7A ;16-Apr-2014 14:23;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,21,17,22,33,1004**;DEC 27, 1997;Build 12
+ ;IHS/MSC/MGH major changes in patch 1004 to accomodate SNOMED and
+ ;V CarePlaning files for MU stage II
  ; This routine invokes IA #3991
  ;
 NEW(MESSAGE) ;Add new order
@@ -14,17 +15,18 @@ NEW(MESSAGE) ;Add new order
  ;GMRCRFQ=reason for request array - word processing fields
  ;GMRCOTXT=order display text from dialog or orderable item
  ;GMRCPRDG=provisional DX
- ;GMRCPRCD=provisional DX code 
+ ;GMRCPRCD=provisional DX code
+ ;GMRCPRPB=problem IEN
  ;
  ; Output:
  ;    MESSAGE = rejection message if problems encountered while filing
  ;
  ;    check for inactive ICD-9 code in Prov. DX
- I $L($G(GMRCPRCD)) D  I $D(MESSAGE) Q  ; rejected due to inactive code
- . I +$$STATCHK^ICDAPIU(GMRCPRCD,DT) Q  ;code is OK
- . S MESSAGE="Provisional DX code is inactive. Unable to file request."
+ ;I $L($G(GMRCPRCD)) D  I $D(MESSAGE) Q  ; rejected due to inactive code
+ ;. I +$$STATCHK^ICDAPIU(GMRCPRCD,DT) Q  ;code is OK
+ ;. S MESSAGE="Provisional DX code is inactive. Unable to file request."
  ;
- N DIC,DLAYGO,X,DR,DIE,GMRCADUZ,GMRCCP
+ N DIC,DLAYGO,X,DR,DIE,GMRCADUZ,GMRCCP,SNOMED
  S DIC="^GMR(123,",DIC(0)="L",X="""N""",DLAYGO=123 D ^DIC K DLAYGO Q:Y<1
  ; Patch #21 changed GMRCA=1 to GMRCA=2
  S (DA,GMRCO)=+Y,GMRCSTS=5,GMRCA=2,DIE=DIC
@@ -35,7 +37,7 @@ NEW(MESSAGE) ;Add new order
  ;Added new field .1 to DR on 7/11/98 to save the order text
  S DR="6////^S X=GMRCPLI;8////^S X=GMRCSTS;9////^S X=GMRCA;10////^S X=GMRCORNP;13////^S X=GMRCTYPE;14////^S X=$G(GMRCSBR);30////^S X=$G(GMRCPRDG);.1////^S X=$G(GMRCOTXT)"
  I $D(GMRCPRCD) S DR=DR_";30.1///^S X=GMRCPRCD"
- S GMRCCP=$P($G(^GMR(123.3,+GMRCPRI,0)),U,4) I GMRCCP D  ;file CP 
+ S GMRCCP=$P($G(^GMR(123.3,+GMRCPRI,0)),U,4) I GMRCCP D  ;file CP
  . S DR=DR_";1.01///^S X=GMRCCP"
  D  ;check to see if an IFC and add .07 ROUTING FACILITY
  . I $G(GMRCPRI) D  Q  ;see if procedure is mapped
@@ -53,6 +55,12 @@ NEW(MESSAGE) ;Add new order
  . Q
  D ^DIE
  I $O(GMRCRFQ(0)) D REASON
+ ;IHS/MSC/MGH Patch 1004 Add SNOMED CT if stores
+ S SNOMED=$$GET1^DIQ(123.5,GMRCSS,9999999.01)
+ I SNOMED'="" D
+ .I '$D(GMRCPRPB) S GMRCPRPB=""
+ .S DR="9999999.01////"_SNOMED_";9999999.02////"_GMRCPRPB
+ .D ^DIE
  L -^GMR(123,GMRCO)
  S GMRCA=1 D AUDIT0^GMRCHL7U
  I $D(GMRCXMF),$D(GMRCOFN) S $P(^GMR(123,GMRCO,0),"^",21)=GMRCOFN
@@ -65,7 +73,7 @@ DC(GMRCO,ACTRL) ;Discontinue request from OERR
  ;Denied request also gets this action. Deny request updates status to dc
  ;GMRCO=IEN of record in file ^GMR(123, i.e., ^GMR(123,DA,
  ;ACTRL=GMRCCTRL=control code defining action -
- ;         DC control code = action DC for discontinued 
+ ;         DC control code = action DC for discontinued
  ;         CA control code = action DY for denied
  ;Update the last action taken, order status, and processing activity
  Q:'$L(GMRCO)

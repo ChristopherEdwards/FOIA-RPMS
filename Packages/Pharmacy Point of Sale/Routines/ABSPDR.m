@@ -1,5 +1,5 @@
 ABSPDR ; IHS/OIT/CASSEVER/RAN - Parse Claim D.0 Response ;    [ 03/04/2011  12:56 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001 Copied from ABSPOSH4 for 5.1 claims and modified
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001 Copied from ABSPOSH4 for 5.1 claims and modified;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Parse ASCII Response Claim Record and Sup FDATA() Array

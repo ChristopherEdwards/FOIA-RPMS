@@ -1,26 +1,21 @@
 AUMSCBU  ;IHS/OIT/NKD - SCB UPDATE - UTILITY 12/07/2012 ;
- ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
- ; 12/12/12 - Added State Pre-routine
- ; 03/08/13 - Added Health Factor, Language, and Patient Status Code Pre-routine
- ;          - Added Display for County and Service Unit Inactivation
- ;          - Added Patient Status Code Post-routine
- ; 05/20/13 - Modified Education Topic and Major Education Topic processing
- ;          - Modified processing for new import formats: Area/Service Unit/County/State
- ;          - Removed County and Service Unit custom inactivation
- ; 12/10/13 - Modified Inactivate processing for ASuFac/StCtyCom tables
- ;          - Removed Education Topic custom inactivation
- ;          - Added Clinic Stop pre-routine
+ ;;16.0;TABLE MAINTENANCE;**4**;OCT 16,2015;Build 1
  ; 03/12/14 - Modified Inactivate processing for Education tables
  ; 05/28/14 - Added Tribe pre-routine for Inactivate processing
  ;          - Corrected condition to trigger Patient Current Community change
+ ; 12/16/14 - Removed old/unused code
+ ; 05/29/15 - Added Clinic Stop Inactivate processing
+ ;          - Added Clinic report
+ ; 12/22/15 - Added Health Factor tag for New processing
+ ; 08/22/16 - Modified Inactivate processing for Patient Status Code
  ;
  Q
  ; CUSTOM PRE-ROUTINES
 CNTYPRE ; EP - COUNTY - INPUT TRANSFORMS
  S L1=P1_P2
  S:P1]"" P1A=$O(^DIC(5,"C",P1,0))
- S P7=$S(P7]"":P7-17000000,1:"") ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1 ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  I 'P1A,'INA D ERR^AUMSCBD("Invalid STATE code: "_P1)
  Q
 COMPRE ; EP - COMMUNITY - INPUT TRANSFORMS
@@ -38,8 +33,8 @@ COMPRE ; EP - COMMUNITY - INPUT TRANSFORMS
  . N L1
  . S L1=P5_P6
  . S:P6]"" P6A=$$SEARCH^AUMSCBD(AUMR)
- S P7=$S(P7]"":P7-17000000,1:"")  ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1  ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  I 'P1A,'INA D ERR^AUMSCBD("Invalid STATE code: "_P1)
  I 'P2A,'INA D ERR^AUMSCBD("Invalid COUNTY code: "_P1_P2)
  I 'P5A,'INA D ERR^AUMSCBD("Invalid AREA code: "_P5)
@@ -68,8 +63,8 @@ LOCPRE ; EP - LOCATION - INPUT TRANSFORMS
  . N L1
  . S L1=P1_P2
  . S:P2]"" P2A=$$SEARCH^AUMSCBD(AUMR)
- S P7=$S(P7]"":P7-17000000,1:"")  ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1  ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  I 'P1A,'INA D ERR^AUMSCBD("Invalid AREA code: "_P1)
  I 'P2A,'INA D ERR^AUMSCBD("Invalid SERVICE UNIT code: "_P1_P2)
  Q
@@ -97,14 +92,14 @@ STNMPRE ; EP - STATION NUMBER - INPUT TRANSFORMS AND LOOKUP
 SUPRE ; EP - SERVICE UNIT - INPUT TRANSFORMS
  S L1=P1_P2
  S:P1]"" P1A=$O(^AUTTAREA("C",P1,0))
- S P7=$S(P7]"":P7-17000000,1:"") ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1 ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  I 'P1A,'INA D ERR^AUMSCBD("Invalid AREA code: "_P1)
  Q
 STPRE ; EP - STATE - LOOKUP
  N CNT,AUMR
- S P7=$S(P7]"":P7-17000000,1:"") ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1 ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  D FIND^DIC(5,"","@;.01","PX",P1,,"B",,,"AUMR")
  S CNT=$P($G(AUMR("DILIST",0)),U,1)
  S AUMI=$S(CNT=1:$P($G(AUMR("DILIST",1,0)),U,1),CNT>1:$P($G(AUMR("DILIST",$P($G(AUMR("DILIST",0)),U,1),0)),U,1),1:"")
@@ -126,42 +121,30 @@ HFPRE ; EP - HEALTH FACTOR - INPUT TRANSFORMS
  . D FIND^DIC(9999999.64,"","@;.01","PX",P3,,"B","I $P(^(0),U,10)'=""F""",,"AUMR")
  . S CNT=$P($G(AUMR("DILIST",0)),U,1)
  . S P3A=$S(CNT=1:$P($G(AUMR("DILIST",1,0)),U,1),CNT>1:$P($G(AUMR("DILIST",$P($G(AUMR("DILIST",0)),U,1),0)),U,1),1:"")
- I 'P3A,'INA D ERR^AUMSCBD("Invalid CATEGORY code: "_P3)
+ ;I 'P3A,'INA D ERR^AUMSCBD("Invalid CATEGORY code: "_P3)  ; IHS/OIT/NKD AUM*16.0*1 - LOGIC CHANGE FOR HF CATEGORY CREATION
+ I 'P3A,'INA,P4'="C" D ERR^AUMSCBD("Invalid CATEGORY code: "_P3)
  Q
 LANGPRE ; EP - LANGUAGES - INPUT TRANSFORMS
  S P2=$$UP^XLFSTR(P2),P3=$$UP^XLFSTR(P3)
  Q
 PSCPRE ; EP - PATIENT STATUS CODE - INPUT TRANSFORMS
  S P1A=P1_" "
+ S:P4]"" AUMA="INA",INA=1  ; IHS/OIT/NKD AUM*16.0*4 - INACTIVATE PROCESSING
  Q
 AREAPRE ; EP - AREA - INPUT TRANSFORMS
- S P7=$S(P7]"":P7-17000000,1:"") ; IHS/OIT/NKD AUM*14.0*1
- S:P7]"" AUMA="INA",INA=1 ; IHS/OIT/NKD AUM*14.0*1
+ S P7=$S(P7]"":P7-17000000,1:"")
+ S:P7]"" AUMA="INA",INA=1
  Q
- ; IHS/OIT/NKD AUM*14.0*1 - ADDED CLINIC STOP PRE
 CLINPRE ; EP - CLINIC STOP - INPUT TRANSFORMS
  S P4A=$S(P4="Y":ONE,P4="N":AT,1:"")
+ S P7=$S(P7]"":P7-17000000,1:"")  ; IHS/OIT/NKD AUM*15.0*3 - INACTIVATE PROCESSING
+ S:P7]"" AUMA="INA",INA=1,P2="x"_P2
  Q
  ; IHS/OIT/NKD AUM*14.0*3 - ADDED TRIBE PRE
 TRIPRE ; EP - TRIBE - INPUT TRANSFORMS
  S P7=$S(P7]"":"Y",1:"")
  S:P7]"" AUMA="INA",INA=1
  Q
- ; CUSTOM INACTIVATE-ROUTINES
- ; IHS/OIT/NKD AUM*14.0*1 - REMOVED EDT INA TAG - START OLD CODE
- ;EDTINA ; EP - EDUCATION TOPIC - INACTIVATE AND POST
- ;N FDA,ERR
- ;S FDA(9999999.09,AUMI_",",.03)=ONE
- ;; IHS/OIT/NKD AUM*13.0*3 - NEW IMPORT FORMAT FOR EDUCATION TOPICS AND "MODIFIED" CHECK - START NEW CODE
- ;S FDA(9999999.09,AUMI_",",.05)=P6
- ;S:$$GET1^DIQ(9999999.09,AUMI,.03,"I")'=ONE AUML=AUML_".03|"_$$GET1^DIQ(9999999.09,AUMI,.03,"I")_"|"_ONE_U
- ;S:$$GET1^DIQ(9999999.09,AUMI,.05,"I")'=P6 AUML=AUML_".05|"_$$GET1^DIQ(9999999.09,AUMI,.05,"I")_"|"_P6_U
- ;; IHS/OIT/NKD AUM*13.0*3 - END NEW CODE
- ;D UPDATE^DIE(,"FDA",,"ERR")
- ;I $D(ERR) D ERR^AUMSCBD("SYSTEM ERROR - Inactivate failed")
- ;D EDTPOST
- ;Q
- ; IHS/OIT/NKD AUM*14.0*1 - END OLD CODE
  ; CUSTOM NEW-ROUTINES
 LOCNEW ; EP - LOCATION - CREATE INSTITUTION AND LOCATION ENTRIES
  N FDA,NEWIEN,ERR,DINUM
@@ -183,13 +166,25 @@ LOCNEW ; EP - LOCATION - CREATE INSTITUTION AND LOCATION ENTRIES
  . I $D(ERR) D ERR^AUMSCBD("SYSTEM ERROR - New LOCATION failed") Q
  . I AUMI'=NEWIEN(1) D ERR^AUMSCBD("SYSTEM ERROR - INSTITUTION/LOCATION IEN mismatch") Q
  Q
+ ; IHS/OIT/NKD AUM*16.0*1 - ADDED HEALTH FACTORS NEW
+HFNEW ; EP - HEALTH FACTORS - CREATE HEALTH FACTOR ENTRY
+ N FDA,NEWIEN,ERR,DINUM
+ F DINUM=+$P($G(^AUTTHF(0)),U,3):1:100000 Q:'$D(^AUTTHF(DINUM))  I DINUM>99999 D ERR^AUMSCBD("SYSTEM ERROR - DINUM FOR HEALTH FACTOR TOO BIG") Q
+ Q:DINUM>99999
+ S FDA(9999999.64,"+1,",.01)=P1
+ S FDA(9999999.64,"+1,",.03)=$S('P3A:DINUM,1:P3A)
+ S FDA(9999999.64,"+1,",.1)=P4
+ S NEWIEN(1)=DINUM
+ D UPDATE^DIE(,"FDA","NEWIEN","ERR")
+ I $D(ERR) D ERR^AUMSCBD("SYSTEM ERROR - New HEALTH FACTOR failed") Q
+ S AUMI=NEWIEN(1)
+ Q
  ; CUSTOM POST-ROUTINES
 COMPOST ; EP - COMMUNITY - UPDATE PATIENT FILE CURRENT COMMUNITY IF NAME CHANGE
  N CNT,CNT2,CNT3,AUMR
  I $D(AUMD("DSP")) D DISP^AUMSCBD
  ;F CNT=1:1:$L(AUML,U) S AUMR=$P(AUML,U,CNT) Q:'AUMR  D  ; IHS/OIT/NKD AUM*14.0*3 - CORRECTED CONDITION
  F CNT=1:1:$L(AUML,U) S AUMR=$P(AUML,U,CNT) Q:AUMR']""  D
- . ;Q:$P(AUMR,"|",1)'=.01  ; IHS/OIT/NKD AUM*14.0*1 - CHANGED TO EXTERNAL FIELD
  . Q:$P(AUMR,"|",1)'="NAME"
  . Q:$P(AUMR,"|",2)']""  ; IHS/OIT/NKD AUM*14.0*3 - CORRECTED CONDITION
  . S (CNT2,CNT3)=0
@@ -238,7 +233,8 @@ LOCPOST ; EP - LOCATION - UPDATE INSTITUTION NAME
 PSCPOST ; EP - PATIENT STATUS CODE - (TEMPORARY FIX) REMOVE INACTIVE FLAG IN OLD GLOBAL
  I $D(AUMD("DSP")) D DISP^AUMSCBD
  Q:'$D(^AUTPSC(AUMI,0))
- S $P(^AUTPSC(AUMI,0),U,3)=""
+ ;S $P(^AUTPSC(AUMI,0),U,3)=""  ; IHS/OIT/NKD AUM*16.0*4 - INACTIVATE PROCESSING
+ S $P(^AUTPSC(AUMI,0),U,3)=$S(INA:1,1:"")
  Q
 PKLST ; EP - Check to see what EHR pick lists might be affected
  N PKNAM,PK1,PK2,PK3,PXEDT,AUMDSP
@@ -259,4 +255,27 @@ PKLST ; EP - Check to see what EHR pick lists might be affected
  . . . Q
  . . Q
  . Q
+ Q
+ ; IHS/OIT/NKD AUM*15.0*3 - ADDED CLINIC REPORT
+CLINIC  ; EP - Check to see what HOSPITAL LOCATIONS might be affected by inactive CLINIC STOP codes
+ N STOP,DATE,CLINIC,RES
+ D RSLT^AUMSCBD(""),RSLT^AUMSCBD("  The following report displays CLINIC STOP file (#40.7) entries next to their")
+ D RSLT^AUMSCBD("inactivation date. Appropriate measures should be taken to review this list and")
+ D RSLT^AUMSCBD("make any necessary local modifications. For example, if visits are created using")
+ D RSLT^AUMSCBD("inactive CLINIC STOP codes, it might require a review of the CLINIC STOP field")
+ D RSLT^AUMSCBD("in the HOSPITAL LOCATION file (#44). This particular scenario is included in the")
+ D RSLT^AUMSCBD("report and displays after each CLINIC STOP code.")
+ D RSLT^AUMSCBD(""),RSLT^AUMSCBD("***  This report also runs at the programmer prompt with: D CLINIC^AUMSCBU   ***")
+ D RSLT^AUMSCBD(""),RSLT^AUMSCBD("       CODE NAME (INACTIVATION DATE)")
+ D RSLT^AUMSCBD("              HOSPITAL LOCATION - DIVISION (IEN)")
+ D RSLT^AUMSCBD("       ==== ========================")
+ S STOP=0 F  S STOP=$O(^DIC(40.7,STOP)) Q:'STOP  D
+ . S DATE=$$GET1^DIQ(40.7,STOP,2,"I") Q:'DATE
+ . S RES=$J("",7)_$$GET1^DIQ(40.7,STOP,1,"I"),$E(RES,13,80)=$$GET1^DIQ(40.7,STOP,.01,"I")_" ("_$$FMTE^XLFDT(DATE,5)_")"
+ . D RSLT^AUMSCBD(RES)
+ . S CLINIC=0 F  S CLINIC=$O(^SC("ASTOP",STOP,CLINIC)) Q:'CLINIC  D
+ . . Q:$P($G(^SC(CLINIC,0)),U,7)'=STOP  Q:$$GET1^DIQ(44,CLINIC,2,"I")'="C"
+ . . Q:$S($P($G(^SC(CLINIC,"I")),U)="":1,$P(^("I"),U)>DATE:1,$P(^("I"),U,2)="":0,$P(^("I"),U,2)'>DATE:1,1:0)
+ . . S RES=$J("",14)_$$GET1^DIQ(44,CLINIC,.01,"I")_" - "_$$GET1^DIQ(44,CLINIC,3)_" (IEN "_CLINIC_")"
+ . . D RSLT^AUMSCBD(RES)
  Q

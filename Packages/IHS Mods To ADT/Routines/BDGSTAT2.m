@@ -1,9 +1,10 @@
 BDGSTAT2 ; IHS/ANMC/LJF - INPT STATS BY WARD ; 
- ;;5.3;PIMS;**1009,1013**;APR 26, 2002
+ ;;5.3;PIMS;**1009,1013,1018**;MAY 28, 2004;Build 27
  ;
  ;
  ;cmi/anch/maw  04/08/2007 PATCH 1009 requirement 24 added code to count swing beds
  ;ihs/cmi/maw 04/15/2011 PATCH 1013 RQMT155 add day surgery
+ ;IHS/OIT/CLS  03/31/2015 PATCH 1018 changed '=' to '[' DAY SURGERY to allow for subspecialties
  ;
  NEW BDGBD,BDGED,BDGIA,BDGTYP
  ;
@@ -130,8 +131,11 @@ ONLY(WARD,NAME,DATE) ;  find data by inpt service
  S SRV=0 F  S SRV=$O(^BDGCWD(WARD,1,DATE,1,SRV)) Q:'SRV  D
  . S SRVNM=$$GET1^DIQ(45.7,SRV,.01)
  . I BDGTYP=1 Q:SRVNM["OBSERVATION"
+ . ;I BDGTYP=1 Q:SRVNM="DAY SURGERY"  ;ihs/cmi/maw 02/26/2014 for claremore to test
+ . I BDGTYP=1 Q:SRVNM["DAY SURGERY"  ;ihs/cmi/maw 02/26/2014 for claremore to test; IHS/OIT/CLS 03/31/2015 patch 1018
  . I BDGTYP=2 Q:SRVNM'["OBSERVATION"
- . I BDGTYP=3 Q:SRVNM'="DAY SURGERY"  ;ihs/cmi/maw 04/15/2011 PATCH 1013 RQMT155
+ . ;I BDGTYP=3 Q:SRVNM'="DAY SURGERY"  ;ihs/cmi/maw 04/15/2011 PATCH 1013 RQMT155
+ . I BDGTYP=3 Q:SRVNM'["DAY SURGERY"  ;ihs/cmi/maw 04/15/2011 PATCH 1013 RQMT155;  IHS/OIT/CLS 03/31/2015 patch 1018
  . ;
  . S X=$G(^BDGCWD(WARD,1,DATE,1,SRV,0))      ;grab data node
  . ;

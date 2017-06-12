@@ -1,12 +1,11 @@
 BAR50P01 ; IHS/SD/LSL - EDI PARSING ; 
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,3,21**;OCT 26, 2005
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,3,21,26**;OCT 26, 2005;Build 17
  ;;
- ; IHS/ASDS/LSL - O6/15/2001 - V1.5 Patch 1 - HQW-0201-100027
- ;     FM 22 issue.  Modified to include E in DIC(0).
+ ; IHS/ASDS/LSL - O6/15/2001 - V1.5 Patch 1 - HQW-0201-100027 - FM 22 issue.  Modified to include E in DIC(0).
  ;
- ; IHS/SD/LSL - 08/19/2002 - V1.7 Patch 4 - HIPAA
- ;     Modified FILE and LOOP to accomodate X12 loops on segments
- ;     with the same ID.
+ ; IHS/SD/LSL - 08/19/2002 - V1.7 Patch 4 - HIPAA - Modified FILE and LOOP to accomodate X12 loops on segments with the same ID.
+ ;
+ ;IHS/SD/POT - 1.8*26 - HEAT158770 04/09/2014 Allow more than 1 SVC segment per claim to avoid <SUBSCRIPT>IDENT+32^BAR50P01 *SEGID("SVC","")
  ; *********************************************************************
  ;
 EN(TRDA,IMPDA)     ; EP -- Process the file loaded into Image
@@ -163,6 +162,7 @@ IDENT ; logic to locate segment from ID
  . S CURSEG=LSTSEG
  . S CURUSE=LSTUSE
  ;
+ I CURID="SVC" Q  ;bar*1.8*26 IHS/SD/POT HEAT158770  
  S CURSEG=$O(SEGID(CURID,LSTSEG))
  S CURUSE=SEGID(CURID,CURSEG)
  Q

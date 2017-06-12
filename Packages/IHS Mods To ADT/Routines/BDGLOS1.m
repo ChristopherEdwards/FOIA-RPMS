@@ -1,5 +1,5 @@
 BDGLOS1 ; IHS/ANMC/LJF - LOS BY WARD BY MONTH ;  [ 09/30/2004  11:32 AM ]
- ;;5.3;PIMS;**1001**;APR 26, 2002
+ ;;5.3;PIMS;**1001,1019**;APR 26, 2002;Build 3
  ;
 EN ; -- main entry point for BDG LOS BY WARD & MONTH
  NEW VALMCNT
@@ -37,6 +37,7 @@ INIT ; -- init variables and list array
  .... Q:'$G(^DGPM(IEN,0))               ;bad xref entry
  .... Q:$P(^DGPM(IEN,0),U,2)=3          ;discharge movement
  .... S WARD=$$GET1^DIQ(405,IEN,.06)    ;find ward for this movement
+ .... Q:WARD=""  ;ihs/cmi/maw 01/29/2016 PATCH 1019
  .... S ENDDT=$$NEXTDT(DFN,CA,DATE)     ;find date pat left ward
  .... S NAME=$$GET1^DIQ(2,DFN,.01)      ;patient name
  .... ;

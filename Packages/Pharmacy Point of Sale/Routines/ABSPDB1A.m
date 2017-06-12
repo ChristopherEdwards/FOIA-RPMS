@@ -1,5 +1,5 @@
 ABSPDB1A ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for D.0 (Claim Segment)
- ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001;Build 15
  ;
 CLAIM ;EP CALLED FROM ABSPDB1 to set up CLAIM SEGMENT
  N FIELD

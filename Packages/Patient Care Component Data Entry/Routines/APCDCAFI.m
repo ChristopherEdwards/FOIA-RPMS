@@ -1,5 +1,5 @@
 APCDCAFI ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11**;MAY 14, 2009;Build 58
  ;
 START ;
  D XIT
@@ -123,7 +123,7 @@ PROCESS ;
  .S Y=0,C=0 F  S Y=$O(APCDCDRS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$E($P(^AUTTCDR(Y,0),U),1,15)
 SORT ;how to sort list of visits
  S APCDSORT=""
- S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status;R:Chart Deficiency Reason (Last one entered)"
+ S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status"
  S DIR("A")="How would you like the list of visits sorted",DIR("B")="D" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G XIT
  S APCDSORT=Y

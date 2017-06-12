@@ -1,23 +1,12 @@
 AUMSCBM  ;IHS/OIT/NKD - SCB UPDATE - MAP 12/12/2012 ;
- ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
- ; 12/12/12 - Added "internal" update flag to CLINIC STOP
- ; 03/08/13 - Added Languages and Patient Status Code processing
- ;          - Modified processing for Health Factors
- ;          - Modified Tribe display to 42 chars
- ; 05/20/13 - Modified Measurement Type processing
- ;          - Modified Education Topic and Education Major Topic processing
- ;          - Modified Inactivate processing for Area/Service Unit/County/State
- ; 08/13/13 - Removed State Inactivate (set for later patch)
- ;          - Modified Clinic Stop display
- ; 12/10/13 - Modified all displays to use new format
- ;          - Modified processing for ASuFac/StCtyCom tables
- ;          - Modified Location "MODIFIED DATE" processing
- ;          - Removed ACT processing
- ;          - Modified inactivate tags for new processing
- ;          - Re-organized listing of tables
- ;          - Modified Clinic Stop processing
+ ;;16.0;TABLE MAINTENANCE;**2**;OCT 16,2015;Build 1
  ; 03/12/14 - Modified Inactivate processing for Education tables
  ; 05/28/14 - Added Tribe Inactivate and Pre processing
+ ; 12/16/14 - Removed old/unused code
+ ; 03/10/15 - Modified display of Provider Class table
+ ; 05/29/15 - Added Clinic Stop Inactivate processing
+ ; 12/22/15 - Modified Health Factor New processing
+ ; 03/07/16 - Added Service Category table
  ;
  Q
  ;
@@ -118,9 +107,10 @@ CLIN ;; CLINIC STOP FILE
  ;;PRE;;CLINPRE^AUMSCBU
  ;;SEA;;40.7^P1|C
  ;;NEW;;40.7^.01|P2;1|P1;999999901|P3;90000.01|P5;999999902|P4A^I
- ;;UPD;;40.7^.01|P2;1|P1;999999901|P3;90000.01|P5;999999902|P4A^I
- ;;HDR;;AUMT;CLINIC STOP FILE ENTRIES^CODE|7;NAME|12;PC|43;1A|46
- ;;DSP;;AUMM|6;P1|4;P2|30;P4|2;P5|2
+ ;;UPD;;40.7^.01|P2;1|P1;2|AT;999999901|P3;90000.01|P5;999999902|P4A^I
+ ;;INA;;40.7^.01|P2;1|P1;2|P7;999999901|P3;90000.01|P5;999999902|P4A^I
+ ;;HDR;;AUMT;CLINIC STOP FILE ENTRIES^CODE|7;NAME|12;PC|70;1A|73;INA|76
+ ;;DSP;;AUMM|6;P1|4;P2|30;P4|2|70;P5|2;INAD|3|76
  ;;END
 EXAM ;; EXAM FILE
  ;;SEA;;9999999.15^P2|C
@@ -133,11 +123,11 @@ EXAM ;; EXAM FILE
 HF ;; HEALTH FACTORS FILE
  ;;PRE;;HFPRE^AUMSCBU
  ;;SEA;;9999999.64^P1|B;P2|C
- ;;NEW;;9999999.64^.01|P1;.02|P2;.03|P3A;.1|P4;.14|P5^I
+ ;;NEW;;HFNEW^AUMSCBU
  ;;UPD;;9999999.64^.01|P1;.02|P2;.03|P3A;.1|P4;.14|P5;.13|AT;.15|AT^I
  ;;INA;;9999999.64^.13|ONE;.15|P6
  ;;HDR;;AUMT;HEALTH FACTORS FILE ENTRIES^NAME|7;CODE|40;TYPE|45;HS|50;CATEGORY|53;INA|76
- ;;DSP;;AUMM|6;P1|32;P2|4;P4|4;P5|2;P3|26;INAD|3|76
+ ;;DSP;;AUMM|6;P1|32;P2|4;P4|4;P5|2;P3|22;INAD|3|76
  ;;END
 INS ;; INSURER TYPE FILE
  ;;SEA;;9999999.181^P1|C
@@ -164,13 +154,13 @@ MEAS ;; MEASUREMENT TYPE FILE
  ;;HDR;;AUMT;MEASUREMENT TYPE FILE ENTRIES^CODE|7;TYPE|12;DESC|17;INA|76
  ;;DSP;;AUMM|6;P1|4;P2|4;P3|30;INAD|3|76
  ;;END
-PCLAS ;; PROVIDER CLASS FILE - SCREEN ON SEARCH???
+PCLAS ;; PROVIDER CLASS FILE
  ;;SEA;;7^P1|D
  ;;NEW;;7^.01|P2;1|P3;9999999.01|P1;9999999.03|P4;9999999.05|P5^I
  ;;UPD;;7^.01|P2;1|P3;9999999.01|P1;9999999.03|P4;9999999.05|P5^I
  ;;INA;;7^9999999.06|DT
- ;;HDR;;AUMT;PROVIDER CLASS FILE ENTRIES^CODE|7;TYPE|12;ABBR|45;INA|76
- ;;DSP;;AUMM|6;P1|4;P2|32;P3|4;INAD|3|76
+ ;;HDR;;AUMT;PROVIDER CLASS FILE ENTRIES^CODE|7;TYPE|12;ABBR|45;PCP|51;WL|55;INA|76
+ ;;DSP;;AUMM|6;P1|4;P2|32;P3|5;P4|3;P5|2;INAD|3|76
  ;;END
 PSC ;; PATIENT STATUS CODE (NUBC) FILE
  ;;PRE;;PSCPRE^AUMSCBU
@@ -199,4 +189,11 @@ TRIBE ;; TRIBE FILE
  ;;INA;;9999999.03^.04|P7^I
  ;;HDR;;AUMT;TRIBE FILE ENTRIES^CODE|7;NAME|12
  ;;DSP;;AUMM|6;P1|4;P2|42
+ ;;END
+SC ;; SERVICE CATEGORY FILE
+ ;;SEA;;9999999.26^P1|C
+ ;;NEW;;9999999.26^.01|P2;.02|P1^I
+ ;;UPD;;9999999.26^.01|P2;.02|P1^I
+ ;;HDR;;AUMT;SERVICE CATEGORY FILE ENTRIES^ABBR|7;NAME|12
+ ;;DSP;;AUMM|6;P1|4;P2|30
  ;;END

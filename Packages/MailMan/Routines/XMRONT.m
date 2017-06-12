@@ -1,5 +1,5 @@
 XMRONT ;(SF-ISC)/RWF - OpenM-NT TCP/IP INETD and Front End ;04/30/2002  07:24
- ;;8.0;MailMan;;Jun 28, 2002
+ ;;8.0;MailMan;**27**;Jun 28, 2002;Build 1
  ; Entry points used by MailMan options (not covered by DBIA):
  ; GO   XMRONT
  ;This routine starts a listener for TCP mail Connects.
@@ -15,7 +15,7 @@ SOC25 ;This entry point is started as a new process by %ZISTCPS.
  S (XMRPORT,IO,IO(0))=$IO,IOT="TCP"
  I $$NEWERR^%ZTER N $ETRAP,$ESTACK S $ETRAP="D TRP^XMCTRAP"
  E  S X="TRP^XMCTRAP",@^%ZOSF("TRAP")
- S DIQUIET=1 D DT^DICRW,DUZ^XUP(.5)
+ N DIQUIET S DIQUIET=1 D DT^DICRW,DUZ^XUP(.5)
  S ER=0,XMCHAN="TCP/IP-MAILMAN",XMNO220=""
  U IO
  D ENT^XMR

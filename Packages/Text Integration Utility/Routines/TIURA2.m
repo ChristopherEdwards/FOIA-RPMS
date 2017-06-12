@@ -1,9 +1,9 @@
-TIURA2 ; SLC/JER - More review screen actions ;11-Sep-2012 13:51;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**88,58,100,123,1002,112,1009,182,1010**;Jun 20, 1997;Build 24
+TIURA2 ; SLC/JER - More review screen actions ;26-Mar-2014 17:13;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**88,58,100,123,1002,112,1009,182,1010,269,1013**;Jun 20, 1997;Build 33
  ; 6/20/00: Moved DISPLAY, BROWSE, & BROWS1 from TIURA to TIURA2
  ;IHS/ITSC/LJF 7/30/2003 bypass rebuild if called by BTIURPT
  ;IHS/OIT/LJF 03/17/2005 PATCH #1002 - added PEP to BROWS1 subroutine
- ;                                     to be called by PCC Audit function
+ ;to be called by PCC Audit function
 DISPLAY ; Detailed Display
  N TIUDA,TIUD,TIUDATA,TIUI,Y,DIROUT,TIUQUIT,RSTRCTD
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
@@ -50,15 +50,15 @@ BROWSE(TIULTMP) ; Browse selected documents
  ; -- Update or Rebuild list: --
  I $G(TIUCHNG("DELETE"))!$G(TIUCHNG("ADDM")) S TIUCHNG("RBLD")=1
  S TIUCHNG("UPDATE")=1 ; default
- ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY   ;IHS/ITSC/LJF 7/20/2003
- K VALMY                                    ;IHS/ITSC/LJF 7/20/2003
+ ;D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY    ;IHS/ITSC/LJF 7/20/2003
+ K VALMY
  S VALMBCK="R"
  Q
 GETSORT(PRMSORT,EXPSORT) ; Get order for ID entries
  Q $S($G(EXPSORT)'="":EXPSORT,1:PRMSORT)
  ;
-BROWS1(TIULTMP,TIUDA,TIUGDATA) ;PEP Browse single document IHS/OIT/LJF 3/17/2005 PATCH #1002
- ;Calls EN^VALM
+BROWS1(TIULTMP,TIUDA,TIUGDATA) ; PEP Browse single document IHS/OIT/LJF 3/17/2005
+ ;  Calls EN^VALM
  N %DT,C,D0,DIQ2,FINISH,TIU,TIUVIEW
  I '$D(TIUGDATA) S TIUGDATA=$$IDDATA^TIURECL1(TIUDA)
  I TIULTMP="TIU COMPLETE NOTES",$P(TIUGDATA,U,2) W !!,"You are completing the PARENT ENTRY of this interdisciplinary note."
@@ -87,7 +87,9 @@ PRNTSCRN(VALMY) ; Evaluate whether a record may be printed
  F  S TIUI=$O(VALMY(TIUI)) Q:+TIUI'>0  D  Q:$D(DIROUT)
  . N TIUPMTHD,TIUDTYP,TIUPFHDR,TIUPFNBR,TIUPGRP,TIUPRINT,TIUFLAG,RSTRCTD,TIUTYP
  . S RSTRCTD=0,TIUDATA=$G(^TMP("TIURIDX",$J,TIUI))
- . S TIUDA=+$P(TIUDATA,U,2),TIUTYP=$P(^TIU(8925,TIUDA,0),U)
+ . ; *269 vmp/djh - Check if file exists
+ . S TIUDA=+$P(TIUDATA,U,2),TIUTYP=+$G(^TIU(8925,TIUDA,0))
+ . Q:TIUTYP'>0
  . ; Evaluate whether user can print record
  . S TIUPRINT=$$CANDO^TIULP(TIUDA,"PRINT RECORD")
  . I +TIUPRINT'>0 D  Q

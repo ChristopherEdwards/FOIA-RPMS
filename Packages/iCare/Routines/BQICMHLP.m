@@ -1,5 +1,5 @@
 BQICMHLP ;VNGT/HS/ALA-Care Mgmt Help ; 15 Apr 2009  3:57 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
 EN(DATA,TYPE) ; EP -- BQI GET CARE MGMT HELP TEXT
  ; Input
@@ -50,6 +50,9 @@ RET ;
  F  S ORD=$O(^BQI(90506.1,"AD",TTYPE,ORD)) Q:ORD=""  D
  . S IEN=""
  . F  S IEN=$O(^BQI(90506.1,"AD",TTYPE,ORD,IEN)) Q:IEN=""  D GETDATA(IEN)
+ ;
+ ; Check for site-populated fields
+ D CMGT
  Q
  ;
 CMGT ; Additional Care Mgmt columns

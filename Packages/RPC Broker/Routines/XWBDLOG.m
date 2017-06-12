@@ -1,5 +1,5 @@
 XWBDLOG ;ISF/RWF - Debug Logging for Broker ;12/08/2004  08:54
- ;;1.1;RPC BROKER;**35**;Mar 28, 1997
+ ;;1.1;RPC BROKER;**35**;Mar 28, 1997;Build 13
  Q
  ;
  ;Setup the log, Clear the log location.

@@ -1,5 +1,5 @@
 BGP5ELLU ; IHS/CMI/LAB - print ind ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 I1AGEP ;EP
 BL ; 
@@ -42,9 +42,12 @@ BL ;
  F X=1:1:3 S V=$P(BGPDAB(X),U,18) S Y=V D S(Y,,X+1)
  S X="H. % w/pain med Rx w/ % of total meds" D S(X,1,1)
  F X=1:1:3 S V=$P(BGPDAB(X),U,19) S Y=$$SB^BGP5ELL2($J(V,6,1)) D S(Y,,X+1)
+ ;
  S X=" " D S(X,1,1) S X="I. # w/skeletal muscle relaxant Rx" D S(X,1,1)
  F X=1:1:3 S V=$P(BGPDAB(X),U,28) S Y=V D S(Y,,X+1)
  S X="I. % w/skeletal muscle relaxant Rx w/ % of total meds" D S(X,1,1)
+ F X=1:1:3 S V=$P(BGPDAB(X),U,29) S Y=$$SB^BGP5ELL2($J(V,6,1)) D S(Y,,X+1)
+ ;
  S X=" " D S(X,1,1) S X="# w/ exposure to multiple high-risk meds" D S(X,1,1)
  F X=1:1:3 S V=$P(BGPDAB(X),U,40) S Y=V D S(Y,,X+1)
  S X="% w/ exposure to multiple high-risk meds" D S(X,1,1)

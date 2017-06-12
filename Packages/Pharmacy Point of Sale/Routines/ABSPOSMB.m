@@ -1,5 +1,5 @@
 ABSPOSMB ; IHS/FCS/DRS - General Inquiry/Report .57; [ 09/12/2002  10:14 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
 JOIN ;EP - various options from ABSPOSMA join here
  N X,DEFDATES

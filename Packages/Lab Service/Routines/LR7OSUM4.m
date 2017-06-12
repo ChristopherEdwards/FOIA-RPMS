@@ -1,7 +1,5 @@
-LR7OSUM4 ;VA/SLC/DCM - Silent Patient cum cont. ; [ 8/11/97 ]
- ;;5.2;LR;**1002,1018,1021,1028,1031**;NOV 01, 1997
- ;
- ;;VA LR Patchs: 121,187,228,241,251
+LR7OSUM4 ;VA/SLC/DCM - Silent Patient cum cont. ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LR;**1002,121,187,228,241,251,1018,1021,1028,1031,1033,1034**;NOV 01, 1997;Build 88
  ;
 BS ; EP -- from LR7OSUM3
  ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1021
@@ -94,6 +92,9 @@ BS2RRCHK ; EP - Reference Range double-check: make sure they reflect values in F
  S LRSS=$S($L(LRSS):LRSS,1:"<NO>")       ; Make sure LRSS has a value
  S DATANAME=+$P($P(LRG,"^",5),";",2)
  S STR=$P($G(^LR(+LRDFN,LRSS,+LRLFDT,DATANAME)),"^",5)
+ ;
+ Q:STR["$S"   ; IHS/MSC/MKK - LR*5.2*1033 DEBUG - Skip if $SELECT statment -- cannot parse for all sites.
+ Q:$L(STR)<1&(($G(REFLO)["$")!($G(REFHI)["$"))   ; IHS/MSC/MKK - LR*5.2*1034
  ;
  I $L(STR) D
  . S REFLO=$P(STR,"!",2)

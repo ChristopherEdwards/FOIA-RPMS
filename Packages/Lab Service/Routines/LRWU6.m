@@ -1,15 +1,11 @@
-LRWU6 ;SLC/RWF/BA - MODIFY AN EXISTING DATA NAME ;JUL 06, 2010 3:14 PM;
- ;;5.2;LAB SERVICE;**1013,1021,1027,1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**316**;NOV 01, 1997
+LRWU6 ;SLC/RWF/BA - MODIFY AN EXISTING DATA NAME ; 13-Aug-2013 09:14 ; MKK
+ ;;5.2;LAB SERVICE;**1013,1021,316,1027,402,1033**;NOV 01, 1997
+ ;
 ACCESS I '$D(^XUSEC("LRLIASON",DUZ)) W $C(7),!,"You do not have access to this option" Q
 BEGIN S U="^",DTIME=$S($D(DTIME):DTIME,1:300) W !!,"This option allows modifying an existing data name." D DT^LRX,TEST
 END K %,DA,DIC,DIK,I,LRDEC,LRHI,LRLO,LRMAX,LRMIN,LRNAME,LROK,LRPIECE,LRSET,LRTYPE,LROK1,Q1,Q2,Q3,Q4,Q5,X,Y
  Q
-TEST S LROK=1,DIC="^DD(63.04,",DIC(0)="AEM" D ^DIC Q:Y'>0  S DA=+Y,LRNAME=$P(^DD(63.04,DA,0),U)
- ;----- BEGIN IHS/OIT/MKK LR*5.2*1030 -- DO NOT allow Modification of COMMENT node
- I +$G(Y)=.99 D  G TEST
- . W !!,?5,"--> CANNOT EDIT COMMENT <--",!
- ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1030
+TEST S LROK=1,DIC="^DD(63.04,",DIC(0)="AEM",DIC("S")="I Y>1.999999" D ^DIC Q:Y'>0  S DA=+Y,LRNAME=$P(^DD(63.04,DA,0),U)
  D DISPLAY W ! F I=0:0 W !,"Do you wish to modify this data name" S %=2 D YN^DICN Q:%  W "Answer 'Y'es or 'N'o"
  Q:%'=1
  F I=0:0 W !,"Enter data type for ",LRNAME,": (N)umeric, (S)et of Codes, or (F)ree text? " R X:DTIME Q:X[U!(X="")!(X="N")!(X="S")!(X="F")  W !,"Enter 'N', 'S', 'F', or '^'"

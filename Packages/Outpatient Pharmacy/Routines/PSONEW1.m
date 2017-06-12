@@ -1,5 +1,5 @@
-PSONEW1 ;BIR/DSD - new Rx order entry ;29-May-2012 14:55;PLS
- ;;7.0;OUTPATIENT PHARMACY;**46,104,117,1006,1008,143,1015**;DEC 1997;Build 62
+PSONEW1 ;BIR/DSD - new Rx order entry ;04-Jun-2013 12:32;DU
+ ;;7.0;OUTPATIENT PHARMACY;**46,104,117,1006,1008,143,1015,1017**;DEC 1997;Build 40
  ;External reference ^PS(55 supported by DBIA 2228
  ;
  ; Modified - IHS/CIA/PLS - 01/02/04 -  New jump labels, END+2 and JUMP+2
@@ -7,6 +7,7 @@ PSONEW1 ;BIR/DSD - new Rx order entry ;29-May-2012 14:55;PLS
  ;            IHS/MSC/PLS - 08/20/07 -  Line label 35 changed to call TRPDCLS^APSPDIR entry point.
  ;                          03/13/08 -  Added label 218 for SUBSTITUTION
  ;                          01/23/09 -  Added label 220 for CASH DUE
+ ;                          06/04/13 -  Added label 219 for Discharge Medication
 START ;
  S (PSONEW("DFLG"),PSONEW("FIELD"),PSONEW1)=0
  ;
@@ -118,6 +119,10 @@ START ;
  ;
 218 ; IHS/MSC/PLS - 03/13/08 - Get Substitution
  S PSONEW("FLD")=218 D SUBS^APSPDIR(.PSONEW)
+ G:PSONEW("DFLG") END G:PSONEW("FIELD") @PSONEW("FIELD")
+ ;
+219 ; IHS/MSC/PLS - 06/04/13 - Get Discharge Medication
+ S PSONEW("FLD")=219 D DSCMED^APSPDIR(.PSONEW)
  G:PSONEW("DFLG") END G:PSONEW("FIELD") @PSONEW("FIELD")
  ;
 220 ; IHS/MSC/PLS - 01/23/09 - Get Cash Due

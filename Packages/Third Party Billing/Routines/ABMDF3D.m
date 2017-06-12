@@ -1,5 +1,5 @@
 ABMDF3D ; IHS/ASDST/DMJ - Set HCFA1500 Print Array - Part 4 ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**14**;NOV 12, 2009;Build 238
  ;Original;TMD;
  ; IHS/SD/LSL - 11/18/02 - V2.5 Patch 2 - NOIS CGA-1102-110054
  ;      Resolve <UNDEF>54+2^ABMDBLK
@@ -11,6 +11,7 @@ ABMDF3D ; IHS/ASDST/DMJ - Set HCFA1500 Print Array - Part 4 ;
  ;   Made change for number of line items printing per page
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - Updated DX^ABMCVAPI call to be numeric
  ;
  ; ********************************************************************
  ; 
@@ -23,7 +24,8 @@ DX ; Diagnosis Info
  .S ABM("ID")=$S(ABM("I")=32:33,ABM("I")=34:33,1:31)
  .S ABM("TB")=$S(ABM("I")<33:1,1:2)
  .S ABM(9)=""
- .S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ;CSV-c
+ .;S ABM("DIAG")=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 updated API call
+ .S ABM("DIAG")=$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 updated API call
  .S $P(ABMF(ABM("ID")),U,ABM("TB"))=ABM("DIAG")_" "_ABM(9)
  .S ABMP("DX",ABM("DIAG"))=ABM("I")-30
  ;

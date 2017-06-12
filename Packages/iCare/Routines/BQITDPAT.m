@@ -1,5 +1,5 @@
 BQITDPAT ;PRXM/HC/ALA - Calculate DX Cat for single patient ; 26 Jul 2006  10:35 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -84,6 +84,7 @@ CHK(BQTGLB,DFN) ; Check whether met criteria or not
  NEW DA,DIK
  S DA(2)=DFN,DA(1)=BQTN,DA=0,DIK="^BQIPAT("_DA(2)_",20,"_DA(1)_",1,"
  F  S DA=$O(^BQIPAT(DFN,20,BQTN,1,DA)) Q:'DA  D ^DIK
+ K ^BQIPAT(DFN,20,BQTN,1,"B")
  Q
  ;
 FIL(BQGLB,DFN) ;EP - File diagnosis category

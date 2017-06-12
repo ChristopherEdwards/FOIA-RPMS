@@ -1,5 +1,5 @@
-XUSNPIXU ;OAK_BP/DLS - NPI Extract Utilities ;
- ;;8.0;KERNEL;**438,453**; Jul 10, 1995;Build 36
+XUSNPIXU ;OAK_BP/DLS - NPI Extract Utilities ; 6/17/09
+ ;;8.0;KERNEL;**438,453,528,548**; Jul 10, 1995;Build 27
  ;;Per VHA Directive 10-93-142, this routine should not be modified.
  ;
  Q
@@ -77,24 +77,30 @@ PRACID(NPIEN,INS) ; Get Practitioner IDs
  ;
  ; Output Parameter
  ;               INS - Array-Passed by Reference
- N BIEN,PRAC,A
+ N BIEN,PRAC,A,A1,A2
  K INS
  S BIEN=NPIEN_";VA(200,"
  S PRAC=""
  F  S PRAC=$O(^IBA(355.9,"B",BIEN,PRAC)) Q:'PRAC  D
- . S A=$$BCBSTR(PRAC) I A'="" S INS(A)=""
+ . S A=$$BCBSTR(PRAC) I A="" Q  ;P 528
+ . S A1=$P(A,"^"),A2=$P(A,"^",2) I A1="" Q  ;add p 528
+ . I $D(INS(A1)) S INS(A1_" ")=A2 Q  ;add p 528
+ . S INS(A1)=A2  ;add p 528
  Q
  ;
 NNVAID(NPIEN,INS) ; Get Non-VA Provider IDS
  ;
  ; Output Parameter
  ;               INS - Array-Passed by Reference             
- N BIEN,PRAC,A
+ N BIEN,PRAC,A,A1,A2
  K INS
  S BIEN=NPIEN_";IBA(355.93,"
  S PRAC=""
  F  S PRAC=$O(^IBA(355.9,"B",BIEN,PRAC)) Q:'PRAC  D
- . S A=$$BCBSTR(PRAC) I A'="" S INS(A)=""
+ . S A=$$BCBSTR(PRAC) I A="" Q  ;p 528
+ . S A1=$P(A,"^"),A2=$P(A,"^",2) I A1="" Q  ;add p 528
+ . I $D(INS(A1)) S INS(A1_" ")=A2 Q  ;add p 528
+ . S INS(A1)=A2  ;add p 528
  Q
  ;
 INSTID(INSARRAY) ; Get Institution IDs
@@ -106,8 +112,8 @@ INSTID(INSARRAY) ; Get Institution IDs
  S INS=0
  ; 12/13/2007 DLS - Change array structure from INSARRAY(A)="" to INSARRAY($P(A,U,1))=$P(A,U,2)
  F  S INS=$O(^TMP("XUSNPIXU",$J,INS)) Q:INS=""  D
- . S A=^TMP("XUSNPIXU",$J,INS)
- . S INSARRAY($P(A,U,1))=$P(A,U,2)
+ . S A=$G(^TMP("XUSNPIXU",$J,INS))
+ . I A'="" S INSARRAY($P(A,U,1))=$P(A,U,2)
  Q
  ;
  ;
@@ -149,4 +155,34 @@ INIT ;Initialize ^XTMP
  K ^XTMP("XUSNPIX1NV")
  K ^XTMP("XUSNPIX2NV")
  K ^XTMP("XUSNPIXT")
+ Q
  ;
+P2PBASE(XUSTMP) ;
+ N XUSNP2P,IBSIEN,ZN19,P2PVAL,XUSDEF
+ S XUSNP2P=0
+ F  S XUSNP2P=$O(^IBE(350.9,1,19,"B",XUSNP2P)) Q:XUSNP2P=""  D
+ . S IBSIEN=$O(^IBE(350.9,1,19,"B",XUSNP2P,""))
+ . S ZN19=^IBE(350.9,1,19,IBSIEN,0),P2PVAL=$P(ZN19,U,5)
+ . I P2PVAL S XUSTMP("P2P",XUSNP2P)=P2PVAL
+ . E  S XUSTMP("P2P",XUSNP2P)=IBSIEN
+ S XUSDEF=$P($G(^IBE(350.9,1,11)),U,3)
+ I XUSDEF="" G P2PBASEX
+ I '$D(^IBE(350.9,1,19,XUSDEF)) S XUSDEF=""
+P2PBASEX ;
+ I XUSDEF'="" S XUSTMP("P2P","DEFAULT")=XUSDEF
+ Q
+ ;
+P2PEXP(IEN,XUSPT) ;
+ N IBE35090,IBE35091,P2PVAL,I
+ S IBE35090=$G(^IBE(350.9,1,19,IEN,0))
+ F I=1:1:6 S XUSPT(I)=""
+ I IBE35090]"" S XUSPT(1)=$P(IBE35090,U,2)
+ S IBE35091=$G(^IBE(350.9,1,19,IEN,1))
+ I IBE35091]"" D
+ . S XUSPT(2)=$P(IBE35091,U,1)
+ . S XUSPT(3)=$P(IBE35091,U,2)
+ . S XUSPT(4)=$P(IBE35091,U,3)
+ . S XUSPT(5)=$P(IBE35091,U,4)
+ . I XUSPT(5)?1N.N S XUSPT(5)=$P($G(^DIC(5,XUSPT(5),0)),U,2)
+ . S XUSPT(6)=$P(IBE35091,U,5)
+ Q XUSPT(1)_U_XUSPT(2)_U_XUSPT(3)_U_XUSPT(4)_U_XUSPT(5)_U_XUSPT(6)

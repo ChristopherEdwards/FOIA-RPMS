@@ -1,5 +1,5 @@
-PSIVUDL ;BIR/PR,MLM-IV ORDER INFORMATION FOR UNIT DOSE LABEL ;29-May-2012 14:37;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**21,58,110,1015**;16 DEC 97;Build 62
+PSIVUDL ;BIR/PR,MLM-IV ORDER INFORMATION FOR UNIT DOSE LABEL ;28-Feb-2014 14:12;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**21,58,110,1015,1018**;16 DEC 97;Build 21
  ;
  ; References to ^PS(52.6 supported by DBIA #1231
  ; References to ^PS(52.7 supported by DBIA #2173
@@ -32,7 +32,8 @@ ENP ; Print MAR label for IV order.
  E  S X=$S(P(2)]"":$E(P(2),1,5)_$E(P(2),9,14),1:"           ")_" |"_P(3)
  ; IHS/CIA/PLS - 12/05/03 - Commented out next line and changed from SSN to HRN
  ;W $C(13),?1,$E(P("LOG"),1,5)," |",X,?36,"(",$E(VADM(1),1),$E(VADM(2),6,9),")",?42,"|",$G(PSJLAT(1)),?52,VADM(1),?88,$J($S(PSJLRB]"":PSJLRB,1:"*NF*"),12)
- W $C(13),?1,$E(P("LOG"),1,5)," |",X,?36,"(",$G(PSJPBID),")",?42,"|",$G(PSJLAT(1)),?52,VADM(1),?88,$J($S(PSJLRB]"":PSJLRB,1:"*NF*"),12)
+ ;W $C(13),?1,$E(P("LOG"),1,5)," |",X,?36,"(",$G(PSJPBID),")",?42,"|",$G(PSJLAT(1)),?52,VADM(1),?88,$J($S(PSJLRB]"":PSJLRB,1:"*NF*"),12)
+ W $C(13),?1,$E(P("LOG"),1,5)," |",X,?36,"(",$S($G(PSJPBID):PSJPBID,$G(PSGLBID):PSGLBID,$G(PSGLSSN):PSGLSSN,1:$$HRN^AUPNPAT(DFN,$G(DUZ(2)))),")",?42,"|",$G(PSJLAT(1)),?52,VADM(1),?88,$J($S(PSJLRB]"":PSJLRB,1:"*NF*"),12)
  S:'+PSGLRN PSGLRN="_____"
  I +PSGLRN,$D(^VA(200,+PSGLRN,0))#2 S X=^(0),X=$S($P(X,"^",2)]"":$P(X,"^",2),1:$P(X,"^")),PSGLRN=$S(X'[",":X,1:$E(X,$F(X,","))_$E(X))
  S PSJCNT=2,X=0,MSG="",PSJCONT="See next label for continuation"

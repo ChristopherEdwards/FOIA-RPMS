@@ -1,5 +1,5 @@
-BHSLAB1 ;IHS/CIA/MGH - Health Summary for V LAB file ;12-Feb-2008 15:25;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2**;March 17, 2006
+BHSLAB1 ;IHS/CIA/MGH - Health Summary for V LAB file ;30-May-2014 15:47;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,9**;March 17, 2006;Build 16
  ;===================================================================
  ;Most recent labs for VA health summary from IHS V LABs
  ;Taken from APCHS3A
@@ -76,7 +76,7 @@ LPRT2 ;
 EKGLAB ;ENTRY POINT - EKG display in most recent lab panel
  Q:'$D(^AUPNVDXP("AC",BHSPAT))
  K BHS
- S BHSERR=$$^APCLDF(BHSPAT_"^LAST DIAGNOSTIC ECG SUMMARY","BHS(")
+ S BHSERR=$$START1^APCLDF(BHSPAT_"^LAST DIAGNOSTIC ECG SUMMARY","BHS(")
  G:BHSERR EKGLABX
  ; *array BHS(1)="DATE^RESULT^DIAG PROC^VDIAG PROCEDURE IEN^AUPNVDXP^VISIT IEN"
  K BHSERR

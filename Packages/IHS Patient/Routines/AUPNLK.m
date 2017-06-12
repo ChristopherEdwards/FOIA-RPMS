@@ -1,5 +1,5 @@
 AUPNLK ; IHS/CMI/LAB - IHS PATIENT LOOKUP MAIN ROUTINE 24-MAY-1993 ; [ 03/16/2004  7:43 AM ]
- ;;99.1;IHS DICTIONARIES (PATIENT);**5,6,9,10,12,13**;JUN 13, 2003
+ ;;99.1;IHS DICTIONARIES (PATIENT);**5,6,9,10,12,13**;JUN 13, 2003;Build 9
  ;patch 5 - fm v22
  ;'Modified' MAS Patient Look-up Routine for ADT Version 3.6, June 1987
  ; This routine will not be executed if DIC(0)["I" or caller

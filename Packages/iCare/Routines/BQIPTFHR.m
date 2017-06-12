@@ -1,5 +1,5 @@
 BQIPTFHR ;VNGT/HS/BEE-Family History Display ; 12 Sep 2008  12:30 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -39,25 +39,30 @@ EN(DATA,DFN) ; EP -- BQI GET FAM HIST DISPLAY
  . ;DX Code (Condition)
  . S DIEN=$$GET1^DIQ(9000014,FHCIEN_",",.01,"I") ;Using $$GET1^DIQ as GETS^DIQ sometimes omits .01 entry
  . I DIEN="" Q
- . I $T(ICDDX^ICDCODE)'="" S FHCDX=$$ICD9^BQIUL3(DIEN,FHCDTN,2)_"-"_$$ICD9^BQIUL3(DIEN,FHCDTN,4) ; csv
- . I $T(ICDDX^ICDCODE)="" S FHCDX=$$GET1^DIQ(80,DIEN_",",.01,"E")_"-"_$$GET1^DIQ(80,DIEN_",",3,"E")
+ . I $$VERSION^XPDUTL("BCSV") S FHCDX=$$ICD9^BQIUL3(DIEN,FHCDTN,2)_"-"_$$ICD9^BQIUL3(DIEN,FHCDTN,4) ; csv
+ . I '$$VERSION^XPDUTL("BCSV") S FHCDX=$$GET1^DIQ(80,DIEN_",",.01,"E")_"-"_$$GET1^DIQ(80,DIEN_",",3,"E")
  . S FHCDX=DIEN_$C(28)_FHCDX S:$P(FHCDX,$C(28))="-" FHCDX=""
  . ;
  . ;Diagnosis Narrative (Provider Narrative)
- . S FHCNAR=$G(BQICND(9000014,FHCIEN_",",".04","E"))
+ . ;S FHCNAR=$G(BQICND(9000014,FHCIEN_",",".04","E"))
  . ;
  . ;Narrative
- . S APCDTNQ=$G(BQICND(9000014,FHCIEN_",",".04","I"))_$C(28)_FHCNAR
-    . S:$P(APCDTNQ,$C(28))="" APCDTNQ=""
-    . ;
-    . ;Age at Onset
-    . S FHCAAO=$G(BQICND(9000014,FHCIEN_",",".11","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".11","E"))
-    . S:$P(FHCAAO,$C(28))="" FHCAAO=""
-    . ;
-    . ;Provider
-    . S FHCPRV=$G(BQICND(9000014,FHCIEN_",",".08","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".08","E"))
-    . S:$P(FHCPRV,$C(28))="" FHCPRV=""
-    . ;
+ . NEW NIEN
+ . S APCDTNQ=""
+ . S NIEN=$G(BQICND(9000014,FHCIEN_",",".04","I"))
+ . I $$PATCH^XPDUTL("BJPC*2.0*10") S FHCNAR=$$PNPROB^AUPNVUTL(NIEN)
+ . E  S FHCNAR=$G(BQICND(9000014,FHCIEN_",",".04","E"))
+ . S APCDTNQ=NIEN_$C(28)_FHCNAR
+ . S:$P(APCDTNQ,$C(28))="" APCDTNQ=""
+ . ;
+ . ;Age at Onset
+ . S FHCAAO=$G(BQICND(9000014,FHCIEN_",",".11","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".11","E"))
+ . S:$P(FHCAAO,$C(28))="" FHCAAO=""
+ . ;
+ . ;Provider
+ . S FHCPRV=$G(BQICND(9000014,FHCIEN_",",".08","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".08","E"))
+ . S:$P(FHCPRV,$C(28))="" FHCPRV=""
+ . ;
  . ;Relation IEN
  . S FHRIEN=$G(BQICND(9000014,FHCIEN_",",".09","I"))
  . I FHRIEN'="" S FAM(FHRIEN)=""

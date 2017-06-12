@@ -1,12 +1,13 @@
-LA7VHLU ;VA/DALOI/JMC - HL7 segment builder utility ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,62,64,1027**;NOV 01, 1997
+LA7VHLU ;VA/DALOI/JMC - HL7 segment builder utility ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,62,1018,64,1027,68,1033**;NOV 1, 1997
  ;
  ; Reference to PROTOCOL file (#101) supported by DBIA #872
  ;
-STARTMSG(LA7EVNT,LA76249) ; Create/initialize HL message
+STARTMSG(LA7EVNT,LA76249,LA7NOMSG) ; Create/initialize HL message
  ;
  ; Call with LA7EVNT = Lab event protocol in file (#101)
  ;           LA76249 = if entry already exists, do not create new entry
+ ;          LA7NOMSG = flag to not store MSH segment in file #62.49
  ;
  N LA7MSH,X
  ;
@@ -24,7 +25,7 @@ STARTMSG(LA7EVNT,LA76249) ; Create/initialize HL message
  S:$D(HL("ACAT")) $P(X,LA7FS,15)=HL("ACAT")
  S:$D(HL("APAT")) $P(X,LA7FS,16)=HL("APAT")
  S LA7MSH(0)=X
- D FILE6249^LA7VHLU(LA76249,.LA7MSH)
+ I '$G(LA7NOMSG) D FILE6249^LA7VHLU(LA76249,.LA7MSH)
  ;
  Q
  ;
@@ -127,37 +128,43 @@ FILESEG(LA7ROOT,LA7DATA) ; File HL segment in global
  ;
 INIT6249() ; Create stub entry in file #62.49
  ; Returns ien of entry in #62.49 that was created
- ; NOTE: set lock on entry in #62.49, does not release it.
- ;       calling process should release lock
+ ; NOTE: set lock on entry in #62.49, does not release it - calling process should release lock
  ;
- N LA7ERR,LA7FDA,LA7IEN,X,Y
+ D ENTRYAUD^BLRUTIL("FILE6249^LA7VHLU 0.0","LA7DATA")
+ ;
+ N LA7ERR,LA7FDA,ZERO
  ;
  ; Lock zeroth node of file.
  L +^LAHM(62.49,0):99999
  I '$T Q -1
  ;
- F LA76249=$P(^LAHM(62.49,0),"^",3):1 Q:'$D(^LAHM(62.49,LA76249))
- ; Lock entry in file 62.49 - Calling process is responsible for releasing
- ; lock when no longer needed.
- L +^LAHM(62.49,LA76249):99999
- I '$T Q -1
- ;
- S LA7DT=$$NOW^XLFDT
- S LA7FDA(1,62.49,"+1,",.01)=LA76249 ; message number
- S LA7FDA(1,62.49,"+1,",2)="B" ; status =(B)uilding
- S LA7FDA(1,62.49,"+1,",4)=LA7DT ; Date/time entered
- S LA7IEN(1)=LA76249
- D UPDATE^DIE("S","LA7FDA(1)","LA7IEN","LA7ERR")
- I $D(LA7ERR) S LA76249=-1
+ S ZERO=$G(^LAHM(62.49,0))
+ F LA76249=$P(ZERO,"^",3):1 I '$D(^LAHM(62.49,LA76249)) D  Q
+ . S $P(^LAHM(62.49,LA76249,0),"^")=LA76249,^LAHM(62.49,"B",LA76249,LA76249)=""
+ . S $P(ZERO,"^",3)=LA76249,$P(ZERO,"^",4)=$P(ZERO,"^",4)+1,^LAHM(62.49,0)=ZERO
  ;
  ; Unlock zero node
  L -^LAHM(62.49,0)
+ ;
+ ; Lock entry in file 62.49 - Calling process is responsible for releasing lock when no longer needed.
+ L +^LAHM(62.49,LA76249):99999
+ I '$T L -^LAHM(62.49,0) Q -1
+ ;
+ S LA7FDA(1,62.49,LA76249_",",2)="B" ; status =(B)uilding
+ S LA7FDA(1,62.49,LA76249_",",4)=$$NOW^XLFDT ; Date/time entered
+ D FILE^DIE("","LA7FDA(1)","LA7ERR(1)")
+ I $D(LA7ERR) S LA76249=-1
+ ;
+ D:$D(LA7ERR) ENTRYAUD^BLRUTIL("INIT6249^LA7VHLU 9.0 ERROR","LA7DATA")
+ ;
  Q LA76249
  ;
  ;
 FILE6249(LA76249,LA7DATA) ; File HL segment in LAHM(62.49) global
  ; Call with  LA76249 = ien of entry in file # 62.49
  ;            LA7DATA = array with data to file (pass by reference)
+ ;
+ D ENTRYAUD^BLRUTIL("FILE6249^LA7VHLU 0.0","LA7DATA")
  ;
  N LA7I,LA7J,LA7WP
  I '$G(LA76249) Q  ; no entry passed.
@@ -266,6 +273,7 @@ RETOBR(LA74,LA7UID,LA7NLT,LA7Y) ; Retrieve placer's various OBR's that were tran
  ;               LA7Y("FS")     - original field separator
  ;               LA7Y("ECH")    - original encoding characters used
  ;               LA7Y("OBR-4")  - original OBR-4 sequence
+ ;               LA7Y("OBR-17)  - modified info from OBR-17
  ;               LA7Y("OBR-18") - original OBR-18 sequence
  ;               LA7Y("OBR-19") - original OBR-19 sequence
  ;
@@ -287,6 +295,7 @@ RETOBR(LA74,LA7UID,LA7NLT,LA7Y) ; Retrieve placer's various OBR's that were tran
  I LA76964<1 Q
  ;
  S LA7Y("OBR-4")=$G(^LRO(69.6,LA7696,2,LA76964,700.04))
+ S LA7Y("OBR-17")=$P($G(^LRO(69.6,LA7696,2,LA76964,1)),"^")
  S LA7Y("OBR-18")=$G(^LRO(69.6,LA7696,2,LA76964,700.18))
  S LA7Y("OBR-19")=$G(^LRO(69.6,LA7696,2,LA76964,700.19))
  ;

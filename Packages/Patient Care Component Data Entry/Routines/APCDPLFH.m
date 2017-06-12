@@ -1,0 +1,124 @@
+APCDPLFH ;IHS/CMI/LAB - UPDATE ICD CODE FROM BSTS
+ ;;2.0;IHS PCC SUITE;**11,15**;MAY 14, 2009;Build 11
+ ;; ;
+ ;
+ W !!,"This option is used to update the diagnosis on Problem List"
+ W !,"and family history entires when you first switch to ICD-10 from ICD-9",!,"or when a DTS upgrade with updated mappings is received.",!!
+ S APCDIMP=$$IMP^AUPNSICD(DT)
+ W !!,"Your system's ICD files are set to ",$S(APCDIMP=30:"ICD10",1:"ICD9")," when this runs it will ",!,"put ",$S(APCDIMP=30:"ICD10",1:"ICD9")," codes as the diagnosis on the Problem and Family History entries.",!!
+ S DIR(0)="Y",DIR("A")="Do you wish to continue",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I 'Y Q
+ ;S XBRP="",XBRC="QUEUE^APCDPLFH",XBNS="APCD*",XBRX="XIT^APCDPLFH"
+ ;D ^XBDBQUE
+ W !!,"Hold on..this may take a few minutes.."
+ D QUEUE
+ D XIT
+ Q
+XIT ;
+ D EN^XBVK("APCD")
+ Q
+QUEUE ;EP
+ S APCDIMP=$$IMP^AUPNSICD(DT)
+ I '$D(ZTQUEUED) W !,"Looping through Problem entries....."
+ S APCDX=0,APCDCNT=0
+ F  S APCDX=$O(^AUPNPROB(APCDX)) Q:APCDX'=+APCDX  D
+ .S APCDCNT=APCDCNT+1
+ .W:'(APCDCNT#1000) "."
+ .Q:'$D(^AUPNPROB(APCDX,0))
+ .S APCDCI=$P($G(^AUPNPROB(APCDX,800)),U)  ;only snomed coded problems
+ .Q:APCDCI=""
+ .Q:$P(^AUPNPROB(APCDX,0),U,12)="D"  ;SKIP DELETED PROBLEMS
+ .S APCDICDS=$P($$CONC^AUPNSICD(APCDCI_"^^"_DT_"^1^^PRB="_APCDX),U,5)  ;ALL ICD CODES
+ .S APCDO01=$P(^AUPNPROB(APCDX,0),U,1)  ;old .01
+ .S APCDOA=""  ;old additional, ":" delimited
+ .S X=0 F  S X=$O(^AUPNPROB(APCDX,12,X)) Q:X'=+X  D
+ ..S Y=$P($G(^AUPNPROB(APCDX,12,X,0)),U)
+ ..Q:'Y
+ ..I APCDIMP=30 S Y=$P($$ICDDX^ICDEX(Y,,,"I"),U,2)
+ ..I APCDIMP=1 S Y=$P($$ICDDX^ICDCODE(Y),U,2)
+ ..S APCDOA=APCDOA_Y_":"
+ .;update PROBLEM entry and the change log
+ .S APCDN01=$P(APCDICDS,";")
+ .I APCDIMP=30 S APCDN01=+$$CODEABA^ICDEX(APCDN01,80,30)
+ .I APCDIMP=1 S APCDN01=+$$CODEN^ICDCODE(APCDN01,80)
+ .I 'APCDN01 Q
+ .I APCDN01=-1 Q  ;Can't change it if it isn't in file 80
+ .K APCDNA
+ .S APCDNA=$P(APCDICDS,";",2,999)  ;new addtional codes
+ .;update my log to save my ....
+ .K DIC,DD,D0,DO,DO
+ .S DIADD=1,DLAYGO=9001040.1,DIC(0)="L",DIC="^APCDPLMD("
+ .S X=DT,DIC("DR")=".02////"_APCDX_";.03////"_APCDO01_";.04////"_APCDN01_";.05////"_APCDOA_";.06////"_$TR(APCDNA,";",":")_";.07////9000011;.08////"_APCDCI
+ .D FILE^DICN
+ .K DIC,DIADD,DLAYGO
+ .S APCDLOGE=+Y
+ .;now set AUPNPROB
+ .K DIE,DA,DR S DA=APCDX,DR=".01////"_APCDN01,DIE="^AUPNPROB(" D ^DIE K DIE,DA,DR
+ .;ADDITIONAL MULTIPLE
+ .;DELETE OUT OLD ADDITIONAL MULTIPLE
+ .S APCDZ=0 F  S APCDZ=$O(^AUPNPROB(APCDX,12,APCDZ)) Q:APCDZ'=+APCDZ  D
+ ..S DIE="^AUPNPROB("_APCDX_",12,",DA=APCDZ,DA(1)=APCDX,DR=".01///@" D ^DIE K DIE,DA,DR
+ .;SET 12 NODES
+ .S APCDFNUM=9000011.12
+ .S APCDNODE=12,APCDE=""
+ .F APCDZ=1:1 S APCDY=$P(APCDNA,";",APCDZ) Q:APCDY=""  D
+ ..I APCDIMP=30 S APCDP=+$$CODEABA^ICDEX(APCDY,80,30)
+ ..I APCDIMP=1 S APCDP=+$$CODEN^ICDCODE(APCDY,80)
+ ..Q:'APCDP
+ ..Q:APCDP=-1
+ ..K APCDFDA
+ ..S APCDFDA(APCDFNUM,"+2,"_APCDX_",",.01)=APCDP
+ ..D UPDATE^DIE("","APCDFDA","","ERR")
+ ..I $G(ERR("DIERR",1)) D SETE
+FH ;
+ I '$D(ZTQUEUED) W !,"Now looping through Family History entries.."
+ S APCDX=0,APCDCNT=0
+ F  S APCDX=$O(^AUPNFH(APCDX)) Q:APCDX'=+APCDX  D
+ .S APCDCNT=APCDCNT+1
+ .W:'(APCDCNT#1000) "."
+ .Q:'$D(^AUPNFH(APCDX,0))
+ .S APCDCI=$P($G(^AUPNFH(APCDX,0)),U,13)  ;only snomed coded fh ENTRIES
+ .Q:APCDCI=""
+ .S APCDICDS=$P($$CONC^AUPNSICD(APCDCI_"^^"_DT_"^1^^FH="_APCDX),U,5)  ;ALL ICD CODES
+ .S APCDO01=$P(^AUPNFH(APCDX,0),U,1)
+ .S APCDOA=""
+ .S X=0 F  S X=$O(^AUPNFH(APCDX,11,X)) Q:X'=+X  D
+ ..S Y=$P($G(^AUPNFH(APCDX,11,X,0)),U)
+ ..Q:'Y
+ ..I APCDIMP=30 S Y=$P($$ICDDX^ICDEX(Y,,,"I"),U,2)
+ ..I APCDIMP=1 S Y=$P($$ICDDX^ICDCODE(Y),U,2)
+ ..S APCDOA=APCDOA_Y_":"
+ .;update fh entry and the log
+ .S APCDN01=$P(APCDICDS,";")
+ .I APCDIMP=30 S APCDN01=+$$CODEABA^ICDEX(APCDN01,80,30)
+ .I APCDIMP=1 S APCDN01=+$$CODEN^ICDCODE(APCDN01,80)
+ .I 'APCDN01 Q
+ .I APCDN01=-1 Q
+ .K APCDNA
+ .S APCDNA=$P(APCDICDS,";",2,999)
+ .K DIC,DD,D0,DO,DO
+ .S DIADD=1,DLAYGO=9001040.1,DIC(0)="L",DIC="^APCDPLMD("
+ .S X=DT,DIC("DR")=".02////"_APCDX_";.03////"_APCDO01_";.04////"_APCDN01_";.05////"_APCDOA_";.06////"_$TR(APCDNA,";",":")_";.07////9000014;.08////"_APCDCI
+ .D FILE^DICN
+ .K DIC,DIADD,DLAYGO
+ .S APCDLOGE=+Y
+ .;now set AUPNFH
+ .K DIE,DA,DR S DA=APCDX,DR=".01////"_APCDN01,DIE="^AUPNFH(" D ^DIE K DIE,DA,DR
+ .S APCDZ=0 F  S APCDZ=$O(^AUPNFH(APCDX,11,APCDZ)) Q:APCDZ'=+APCDZ  D
+ ..S DIE="^AUPNFH("_APCDX_",11,",DA=APCDZ,DA(1)=APCDX,DR=".01///@" D ^DIE K DIE,DA,DR
+ .;SET 11 NODES
+ .S APCDFNUM=9000014.11
+ .F APCDZ=1:1 S APCDY=$P(APCDNA,";",APCDZ) Q:APCDY=""  D
+ ..I APCDIMP=30 S APCDP=+$$CODEABA^ICDEX(APCDY,80,30)
+ ..I APCDIMP=1 S APCDP=+$$CODEN^ICDCODE(APCDY,80)
+ ..Q:'APCDP
+ ..Q:APCDP=-1
+ ..K APCDFDA
+ ..S APCDFDA(APCDFNUM,"+2,"_APCDX_",",.01)=APCDP
+ ..D UPDATE^DIE("","APCDFDA","","ERR")
+ ..I $G(ERR("DIERR",1)) D SETE
+ Q
+SETE ;
+ S DA=APCDLOGE,DIE="^APCDPLMD(",DR="1///"_ERR("DIERR",1)
+ Q

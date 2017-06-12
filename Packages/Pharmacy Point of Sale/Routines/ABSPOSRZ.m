@@ -1,5 +1,5 @@
 ABSPOSRZ  ;IHS/OIT/SCR - REJECTION REPORT BY REJECTION REASON
- ;;1.0;PHARMACY POINT OF SALE;**29,30,34,35,39,40,41,44,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**29,30,34,35,39,40,41,44,46**;JUN 21, 2001;Build 15
  ;IHS/OIT/CNI/RAN - Rewritten for patch 40 to run WITHOUT Report Master
  ;OIT/CAS/RCS - Fix report to look at only latest claim data not earlier claims, patch 44
  ;IHS/OIT/RCS - Fix program error when Reject code is not in table, patch 46

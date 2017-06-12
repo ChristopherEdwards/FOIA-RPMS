@@ -1,8 +1,10 @@
 ABMDF35X ; IHS/SD/SDR - New HCFA-1500 (02/12) Format ;   
- ;;2.6;IHS Third Party Billing;**13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**13,14,17**;NOV 12, 2009;Build 272
  ;
  ; Objective: Print designated form using data contained in the
  ;            ABMF array.
+ ;IHS/SD/SDR - 2.6*14 - HEAT164158 - fixed format of lines 31, 32, and 33; had extra '^' that was throwing things off
+ ;IHS/SD/SDR - 2.6*17 - HEAT238640 - Expanded DX fields from 7 to 8 characters
  ;
 MARG ;Set left and top margins
  S (ABM("LM"),ABM("TM"),ABM("LN"))=0
@@ -149,9 +151,15 @@ TEXT ;;TABS;;FIELD LENGTH
 27 ;;2^32^54^68;;26^10^10D^10D
 29 ;;1^52^57^62;;48^1^1^8$
 30 ;;42;;1
-31 ;;3^16^29^42^50;;^7^7^7^7^29
-32 ;;3^16^29^42;;^7^7^7^7
-33 ;;3^16^29^42^50;;^7^7^7^7^29C
+31 ;;3^16^29^42^50;;8^8^8^8^29
+ ;;3^16^29^42^50;;7^7^7^7^29  ;abm*2.6*17 IHS/SD/SDR HEAT238640 original line
+ ;;3^16^29^42^50;;^7^7^7^7^29  ;abm*2.6*14 IHS/SD/AML 5/6/14 HEAT164158 original line
+32 ;;3^16^29^42;;8^8^8^8
+ ;;3^16^29^42;;7^7^7^7  ;abm*2.6*17 IHS/
+ ;;3^16^29^42;;^7^7^7^7  ;abm*2.6*14 IHS/SD/AML 5/6/14 HEAT164158 original line
+33 ;;3^16^29^42^50;;8^8^8^8^29C
+ ;;3^16^29^42^50;;7^7^7^7^29C  ;abm*2.6*17 IHS/SD/SDR HEAT238640
+ ;;3^16^29^42^50;;^7^7^7^7^29C  ;abm*2.6*14 IHS/SD/AML 5/6/14 HEAT164158 original line
 36 ;;1^65^68;;61^2^12
 37 ;;1^10^19^22^23^45^50^59^63^65^68;;8T^8T^2R^1R^19^4^8$^4C^2R^2R^10 
 49 ;;1^17^19^23^38^43^51^61;;15^1^1^14C^1^1^9$^8$

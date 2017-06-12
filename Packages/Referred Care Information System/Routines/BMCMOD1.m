@@ -1,16 +1,18 @@
 BMCMOD1 ;IHS/OIT/FCJ - MODIFY A REFERRAL 2 OF 2; 
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3,9**;JAN 09, 2006;Build 51
  ;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES
  ;
 DISPDX ;ENTRY POINT
  I '$O(^BMCDX("AD",BMCRIEN,0)) S BMCNONE=1 Q
  W !
  S (X,BMCC)=0 F  S X=$O(^BMCDX("AD",BMCRIEN,X)) Q:X'=+X  S BMCC=BMCC+1,BMCRDX(BMCC)=X D
- .;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES NXT 4 LINES
+ .;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES NXT 4 LINES;BMC*4.0*9 CHNG CSV TO ICD10 CALLS
  .;W !?2,BMCC,") ",$P(^ICD9($P(^BMCDX(X,0),U),0),U)
- .W !?2,BMCC,") ",$P($$ICDDX^ICDCODE($P(^BMCDX(X,0),U),0),U,2)
+ .;W !?2,BMCC,") ",$P($$ICDDX^ICDCODE($P(^BMCDX(X,0),U),0),U,2)
  .;W ?12,$S($P(^BMCDX(X,0),U,6):$P(^AUTNPOV($P(^BMCDX(X,0),U,6),0),U,1,50),1:$E($P(^ICD9($P(^BMCDX(X,0),U),0),U,3),1,50)),?65,"(",$S($P(^BMCDX(X,0),U,4)="P":"Provisional",$P(^BMCDX(X,0),U,4)="F":"Final",1:"??"),")"
- .W ?12,$S($P(^BMCDX(X,0),U,6):$P(^AUTNPOV($P(^BMCDX(X,0),U,6),0),U,1,50),1:$E($P($$ICDDX^ICDCODE($P(^BMCDX(X,0),U),0),U,4),1,50)),?65,"(",$S($P(^BMCDX(X,0),U,4)="P":"Provisional",$P(^BMCDX(X,0),U,4)="F":"Final",1:"??"),")"
+ .;W ?12,$S($P(^BMCDX(X,0),U,6):$P(^AUTNPOV($P(^BMCDX(X,0),U,6),0),U,1,50),1:$E($P($$ICDDX^ICDCODE($P(^BMCDX(X,0),U),0),U,4),1,50)),?65,"(",$S($P(^BMCDX(X,0),U,4)="P":"Provisional",$P(^BMCDX(X,0),U,4)="F":"Final",1:"??"),")"
+ .W !?2,BMCC,") ",$P($$ICDDX^ICDEX($P(^BMCDX(X,0),U),BMCDOS,,"I"),U,2)
+ .W ?15,$S($P(^BMCDX(X,0),U,6):$P(^AUTNPOV($P(^BMCDX(X,0),U,6),0),U,1,50),1:$$SD^ICDEX(80,$P(^BMCDX(X,0),U),BMCDOS,,50)),?65,"(",$S($P(^BMCDX(X,0),U,4)="P":"Provisional",$P(^BMCDX(X,0),U,4)="F":"Final",1:"??"),")"
  Q
  ;
 DISPPROC ;ENTRY POINT
@@ -45,3 +47,37 @@ DISPCOM ;EP;CASE COMMENT
  K ^UTILITY($J,"W")
  Q
  ;
+ADDDX ;EP-BMCMOD;BMC*4.0*9-ADD DX CALL
+ I BMCDOS<$$IMPDATE^LEXU("10D") S (BMCICD,BMCICD1)="ICD"
+ E  S (BMCICD,BMCICD1)="10D"
+ S BMCLEX=+($$CSYS^LEXU(BMCICD))             ;Get Coding System
+ S BMCQ=0 F  D  Q:BMCQ
+ . D CONFIG^LEXSET(BMCICD,BMCICD1,BMCDOS)
+ . W !! S DIC("A")="Enter ICD DX code: " K X D ^LEXA1
+ . I +Y<0 S BMCQ=1 Q
+ . S X=$P($$CODEN^ICDEX($G(Y(+BMCLEX)),80),"~")
+ . I +X<1 W !!,"INVALID CODE cannot add." Q
+ . K DIC,Y
+ . S DIC(0)="L",DIC="^BMCDX(",DLAYGO=90001.01 D FILE^DICN
+ . I +Y<0 W !,"Unable to add DX code." S BMCQ=1 Q
+ . S DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04;.05;.06"
+ . S DIE="^BMCDX("
+ . D DIE^BMCFMC
+ . K BMCLOOK
+ . W !
+ K DLAYGO,BMCDX,DIC,DIE,DR,DA,X,LEXQ,LEXVDT,ICDV,BMCLEX
+ Q
+ ;
+ADDPX ;EP-BMCMOD;BMC*4.0*9-ADD PX CALL
+ S DIC="^ICPT(",DIC(0)="AMEQ",DIC("A")="Enter RCIS CPT Procedure code: "
+ S DIC("S")="I '$P(^(0),U,4)"
+ D ^DIC
+ I Y=-1 S BMCQ=1 K DIC Q
+ S DIC(0)="L",DIC="^BMCPX(",DLAYGO=90001.02 D FILE^DICN
+ I +Y<0 W !,"Unable to add CPT Procedure code." S BMCQ=1 Q
+ S DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P"_";.05;.06"
+ S DIE="^BMCPX("
+ D DIE^BMCFMC
+ K DLAYGO,BMCDX,DIC,DIE,DR,DA,X
+ Q
+ ; 

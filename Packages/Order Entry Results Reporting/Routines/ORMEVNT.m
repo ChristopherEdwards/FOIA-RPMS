@@ -1,4 +1,4 @@
-ORMEVNT ;SLC/MKB-Trigger HL7 msg off MAS events ;3/31/04  09:21
+ORMEVNT ;SLC/MKB-Trigger HL7 msg off MAS events ;26-Mar-2015 12:36;PLS
  ;;3.0;ORDER ENTRY/RESULTS REPORTING;**24,45,70,79,141,165,177,186,195,278,243**;Dec 17, 1997;Build 242
  ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
@@ -32,13 +32,13 @@ A ;
  S ORCURRNT=$$CURRENT,OREVENT=$$PATEVT,ORACT=$S($G(DGPMP):"ED",1:"NW") ; Lock
  I OREVENT=-1 D EN1 Q  ;195 Can't lock, retry
  S OREVNTLK=OREVENT  ; save routine copy of ifn JEH
- I $G(DGPMP),$D(^ORE(100.2,"ADT",DGPMDA)) D   ;edited 
+ I $G(DGPMP),$D(^ORE(100.2,"ADT",DGPMDA)) D   ;edited
  . N LAST,OREVT,DA,X,I S LAST=+$O(^ORE(100.2,"ADT",DGPMDA,""),-1) Q:LAST<1
  . S OREVT=+$O(^ORE(100.2,"ADT",DGPMDA,LAST,0)),DA=+$O(^(OREVT,0))
  . S X=$G(^ORE(100.2,OREVT,10,DA,0)) ;last activity on movement
  . I $P(X,U,5)=+$G(VAIP(4)),$P(X,U,6)=+$G(VAIP(8)),$P(X,U,7)=+$G(VAIP(5)) S DONE=1 Q  ;no change
  . I 'OREVENT D ACTLOG^OREVNTX(OREVT,"ED",$$TYPE(DGPMT),1) S DONE=1
- I $G(DONE) D FINISHED Q  ; unlock and clean up before quit IFNjeh 
+ I $G(DONE) D FINISHED Q  ; unlock and clean up before quit IFNjeh
 B ;
  I '$G(DGPMP),ORCURRNT D  ;new mvt - autoDC
  . I $D(^ORE(100.2,"ADT",DGPMDA)) D  Q:$G(DONE)  ;ReEntered
@@ -60,7 +60,7 @@ C ;
  I $O(ORPRINT(0)),$G(ORL) D PRINTS^ORWD1(.ORPRINT,+ORL)
  I DGPMT=3,ORCURRNT,'$G(DGPMP) D DISCH ;lapse remaining events
  I '$G(DFN),$G(ORVP) S DFN=+ORVP ;just in case
-FINISHED  ; unlock and clean up JEH
+FINISHED ; unlock and clean up JEH
  D:$G(OREVNTLK) UNLEVT^ORX2(OREVNTLK) K ^XTMP("OREVENT",DFN,DGPMDA) ;195
  Q
  ;
@@ -135,12 +135,13 @@ DCEVT() ; -- Find match to event in AutoDC Rules file for [new] ORDIV,ORTS,ORL
  . S TORY=ORY
  . S EXC=+$P($G(^ORD(100.6,ORY,0)),U,6) S:EXC=2 ORY=0 ;ignore rule
  . I EXC=1,'$D(ZTQUEUED),$$READMIT S ORY=0
- . I ORY=0 D DCGEN^ORMEVNT2,TIMER^ORMEVNT2 S:"^14^41^"[("^"_$P(DGPMA,U,18)_"^") ^XTMP("ORDCOBS-"_+ORVP,"READMIT")=1 ;177,186 
+ . I ORY=0 D DCGEN^ORMEVNT2,TIMER^ORMEVNT2 S:"^14^41^"[("^"_$P(DGPMA,U,18)_"^") ^XTMP("ORDCOBS-"_+ORVP,"READMIT")=1 ;177,186
  . K:ORY ^XTMP("ORDCOBS-"_+ORVP) ;have rule -> dc, don't reinstate meds
 DCQ Q ORY
  ;
 READMIT() ; -- Return 1 or 0, if patient is being readmitted
  N X,Y,DIR
+ I $D(^TMP("ORR-READMIT",$J)) S X=+^($J) K ^($J) Q X  ;IHS/MSC/PLS - 03/26/2014 - P14
  S DIR(0)="YA",DIR("A")="Will the patient be re-admitted immediately? "
  S DIR("?")="Enter YES if the patient is to be admitted to the hospital immediately following this discharge from observation."
  D ^DIR S:$D(DTOUT)!$D(DUOUT) Y="^"
@@ -189,3 +190,9 @@ REINST ; -- Reinstate meds from observation
 EXP(ORDER,ORSTOP) G EXP^ORMEVNT1
 ACTIVE(ORDER,ORSTRT) G ACT^ORMEVNT1
 PURGE(ORDER) G PUR^ORMEVNT1
+ ;
+ ; Allows an external application to set the response to the Re-admit
+ ; question.
+READMANS(VAL) ;PEP-IHS/MSC/PLS - 03/26/2015 - P14
+ S ^TMP("ORR-READMIT",$J)=$G(VAL)
+ Q

@@ -1,5 +1,5 @@
-LA7CHKFP ;DALISC/JMC - Print Lab Messaging File Integrity Report; 2/26/97 11:00;
- ;;5.2;LAB MESSAGING;**27**;Sep 27, 1994
+LA7CHKFP ;VA/DALISC/JMC - Print Lab Messaging File Integrity Report; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;LAB MESSAGING;**27,1033**;NOV 1, 1997
  ;This routine prints file integrity report for Lab Messaging.
 EN ; Select report to print
  K ^TMP($J,"LA7ICLIST")

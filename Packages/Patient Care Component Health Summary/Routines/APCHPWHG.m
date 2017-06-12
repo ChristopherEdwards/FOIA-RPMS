@@ -1,5 +1,5 @@
 APCHPWHG ; IHS/CMI/LAB - PCC HEALTH SUMMARY ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**2,7,10**;MAY 14, 2009;Build 88
 EN ;
  W !!,$$CTR("*** Patient Wellness Handout ***"),!!
 SELTYP ;
@@ -83,7 +83,7 @@ EN1(APCHPWHT) ;EP
 PRINT ;EP
  S APCHSCVD="S:Y]"""" Y=+Y,Y=$E(Y,4,5)_""/""_$S($E(Y,6,7):$E(Y,6,7)_""/"",1:"""")_$E(Y,2,3)"
  K ^TMP($J,"APCHPWH")
- D UPDLOG(DFN,APCHPWHT,DUZ)
+ I '$G(APCHITST) D UPDLOG(DFN,APCHPWHT,DUZ)  ;D UPDLOG(DFN,APCHPWHT,DUZ)
  D EP^APCHPWH1(DFN,APCHPWHT,1) ;gather up data in ^TMP
 W ;write out array
  ;W:$D(IOF) @IOF
@@ -135,6 +135,7 @@ LOC() ;EP - Return location name from file 4 based on DUZ(2).
 UPDLOG(P,T,D) ;EP - update pwh log
  I $G(P)="" Q
  I $G(T)="" Q
+ I $T(LOG^BQINOTR)]"" D LOG^BQINOTR(P,"LETTER","","",T,"PWH","")  ;PER EMAIL 6/10/13
  NEW DIC,X,DD,DO,D0
  S X=P,DIC="^APCHPWHL(",DIC(0)="L",DIADD=1,DLAYGO=9001027
  S DIC("DR")=".02////"_T_";.03////"_D_";.04////"_DT_";.05///"_$$NOW^XLFDT_";.06////"_DUZ(2)

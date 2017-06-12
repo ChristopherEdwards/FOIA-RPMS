@@ -1,5 +1,5 @@
 AMHRDV4 ; IHS/CMI/LAB - list refusals ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**5**;JUN 02, 2010;Build 18
  ;
  ;
 INFORM ;
@@ -43,7 +43,7 @@ DATES K AMHRED,AMHRBD
  ;
 STMP ;
  S AMHRSEAT=""
- W ! S DIC("S")="I $P(^(0),U,4)=9000001" S DIC="^DIBT(",DIC("A")="Enter Patient SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
+ W ! S DIC("S")="I $P(^(0),U,4)=9000001!($P(^(0),U,4)=2)" S DIC="^DIBT(",DIC("A")="Enter Patient SEARCH TEMPLATE name: ",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DICR
  I Y=-1 G DATES
  S AMHRSEAT=+Y
 TALLY ;which items to tally

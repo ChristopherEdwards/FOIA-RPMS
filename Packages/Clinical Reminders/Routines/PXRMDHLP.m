@@ -1,5 +1,5 @@
-PXRMDHLP ; SLC/PJH - Reminder dialog main help. ;10/30/2000
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMDHLP ; SLC/PJH - Reminder dialog main help. ;07/02/2002
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ; Entry action for list PXRM DIALOG MAIN HELP 
  ;
@@ -209,8 +209,12 @@ GRCAT ;General Help text
 GDLG ;General Help text
  ;;The following actions are available:
  ;;
- ;;#   Select Sequence
- ;;    To edit,delete or add a dialog element for this reminder dialog.
+ ;;#   Select Item
+ ;;    To copy, edit or delete a component in this dialog.
+ ;;
+ ;;ADD Add Element/Group
+ ;;    Allows a dialog element or dialog group to be added to the
+ ;;    reminder dialog.
  ;;
  ;;CO  Copy Dialog
  ;;    Copy this reminder dialog to a new name.
@@ -222,7 +226,14 @@ GDLG ;General Help text
  ;;DP  Progress Note Text
  ;;    Display text that will be entered in the progress note.
  ;;
- ;;DT  Dialog Text (default)
+ ;;DS  Dialog Summary (default)
+ ;;    Display dialog element names.
+ ;;
+ ;;D0  Dialog Overview
+ ;;    Display the top-level dialog groups/elements. This option will
+ ;;    not display any nested dialog elements or group.
+ ;;
+ ;;DT  Dialog Text
  ;;    Display the dialog text as it should appear in CPRS.
  ;;
  ;;ED  Edit/Delete Dialog
@@ -232,9 +243,6 @@ GDLG ;General Help text
  ;;
  ;;INQ Inquiry/Print (for Reminder Dialogs only)
  ;;    Print details of this reminder dialog.
- ;;
- ;;RI  Reminder Inquiry (for Reminder Dialogs only)
- ;;    Display details of the associated reminder.
  ;;
  ;;QU  Quit
  ;;**End Text**

@@ -1,5 +1,5 @@
 ABSPOSBH ; IHS/SD/RLT - POS billing - HOLD ;        [ 09/12/2007  11:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**22,28**;SEP 12, 2007
+ ;;1.0;PHARMACY POINT OF SALE;**22,28**;SEP 12, 2007;Build 15
  ;
  ; Code to hold claims from being sent to 3PB if the site
  ; affiliation is IHS and the insurer does not have a tax id.

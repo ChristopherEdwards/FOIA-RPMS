@@ -1,5 +1,5 @@
 APCHPWH4 ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;
- ;;2.0;IHS PCC SUITE;**3,6,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**3,6,7,11**;MAY 14, 2009;Build 58
  ;
  ;EO MEASURES IN PWH
 EO ;EP - EO measures
@@ -241,7 +241,7 @@ OXSAT(V) ;was there ox sat at the visit
  S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(APCHG]"")  D
  .Q:'$D(^AUPNVCPT(X,0))
  .S C=$P(^AUPNVCPT(X,0),U)
- .Q:'$$ICD^ATXCHK(C,T,1)
+ .Q:'$$ICD^ATXAPI(C,T,1)
  .S M=$$VAL^XBDIQ1(9000010.18,X,.08)
  .S M1=$$VAL^XBDIQ1(9000010.18,X,.09)
  .I $P(^ICPT(C,0),U)="3028F",(M="1P"!(M="2P")!(M="3P")!(M="4P")!(M="8P")) Q  ;3028f and has modifier
@@ -255,7 +255,7 @@ OXSAT(V) ;was there ox sat at the visit
  .Q:'$D(^AUPNVTC(X,0))
  .S C=$P(^AUPNVTC(X,0),U,7)
  .Q:C=""
- .Q:'$$ICD^ATXCHK(C,T,1)
+ .Q:'$$ICD^ATXAPI(C,T,1)
  .S APCHG=$$FMTE^XLFDT(APCHD)_" MET CPT/TRAN ["_$P($$CPT^ICPTCOD(C),U,2)_"]^1"
  .Q
  I APCHG]"" Q APCHG

@@ -1,5 +1,5 @@
 ABSPOSCD ; IHS/FCS/DRS - ABSP("RX",*) ;      [ 10/28/2002  2:40 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10,12,18,19,20,21,23,32,36,40,42,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10,12,18,19,20,21,23,32,36,40,42,46**;JUN 21, 2001;Build 15
  ;---
  ;IHS/SD/lwj 8/20/02  NCPDP 5.1 changes
  ; One of the new segments in 5.1 is the DUR/PPS segment - this 

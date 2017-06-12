@@ -1,5 +1,5 @@
 PXRMDBL2 ; SLC/PJH - Reminder Dialog Generation. ;05/08/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;Process individual finding
  ;--------------------------
@@ -17,7 +17,6 @@ FIND(DATA) ;
  .S DIEN=$$OK(RESN) Q:'DIEN
  .;Create entry in array used to build reminder dialog
  .S CNT=CNT+1,ARRAY(CNT)=801.43_U_DIEN
- .;test
  .W !!,CNT,?5,"Finding item dialog "_$$FNAM(RESN)
  ;
  ;Determine names/text for non-taxonomy/orderable item findings
@@ -57,7 +56,7 @@ FNAM(FIND) ;
  ;----------------------------
 FPROMPT(FNODE,RSUB,CNT,ARRAY) ;
  ;Get all additional fields for this resolution type
- N RDATA,REXC,ROVR,RREQ,RSNL
+ N ACNT,ASUB,ATXT,DNODE,RDATA,REXC,ROVR,RREQ,RSNL
  S ASUB=0,ACNT=0
  F  S ASUB=$O(^PXRMD(801.45,FNODE,1,RSUB,5,ASUB)) Q:'ASUB  D
  .S RDATA=$G(^PXRMD(801.45,FNODE,1,RSUB,5,ASUB,0)) Q:RDATA=""
@@ -91,8 +90,10 @@ NAME(FGLOB,FITEM,POSN) ;
  S FGLOB=U_FGLOB_FITEM_",0)"
  S NAME=$P($G(@FGLOB),U,POSN)
  I NAME]"" D
- .I FGLOB["ICD9(" S NAME=NAME_" ("_$P($G(@FGLOB),U)_")"
- .I FGLOB["ICPT(" S NAME=$P($G(@FGLOB),U)_"  "_$TR(NAME,LOWER,UPPER)
+ .I FGLOB["ICD9(" S NAME=$P($$ICDDX^ICDCODE(FITEM,""),U,2)
+ .I FGLOB["ICPT(" S NAME=$P($$CPT^ICPTCOD(FITEM,""),U,2)_"  "_$TR(NAME,LOWER,UPPER)
+ .;I FGLOB["ICD9(" S NAME=NAME_" ("_$P($G(@FGLOB),U)_")"
+ .;I FGLOB["ICPT(" S NAME=$P($G(@FGLOB),U)_"  "_$TR(NAME,LOWER,UPPER)
  I NAME="" S NAME=$P($G(@FGLOB),U)
  I NAME="" S NAME=FITEM
  Q NAME
@@ -137,7 +138,6 @@ RESOL(TYP,TAX) ;
  .I RNAME="" S RNAME=$P($G(^PXRMD(801.9,RNODE,0)),U)
  .;Validate resolution
  .I TYP="HF" Q:'$$HF(RNODE)
- .;test
  .W !
  .;Create arrays
  .S CNT=CNT+1
@@ -172,7 +172,8 @@ RESOL(TYP,TAX) ;
  ;
  ;Taxonomy Dialog in #801.2
  ;-------------------------
-TAXON S TDPAR=$G(^PXD(811.2,FITEM,"SDZ")),TDTXT="",TDHTXT=""
+TAXON ;
+ S TDPAR=$G(^PXD(811.2,FITEM,"SDZ")),TDTXT="",TDHTXT=""
  S TPPAR=$G(^PXD(811.2,FITEM,"SDZ")),TPTXT="",TPHTXT=""
  S TDMOD=$P(TDPAR,U,1),TPMOD=$P(TPPAR,U,1)
  ;Check what type of taxonomy codes exist
@@ -193,11 +194,11 @@ TAXON S TDPAR=$G(^PXD(811.2,FITEM,"SDZ")),TDTXT="",TDHTXT=""
  .S ARRAY(CNT)=DSHORT_U_U_RESN
  .;Prompt text
  .S WPTXT(CNT,1)=INAME
- .;test
  .W !!,CNT,?5,WPTXT(CNT,1)
  ; 
  ;Individual Diagnoses
  I TDX,TDMOD D
+ .N NLINES,CODE,OUTPUT
  .S TSEQ=0,TTYP="POV"
  .F  S TSEQ=$O(^PXD(811.2,FITEM,"SDX","B",TSEQ)) Q:'TSEQ  D
  ..S TSUB=$O(^PXD(811.2,FITEM,"SDX","B",TSEQ,"")) Q:'TSUB
@@ -210,7 +211,9 @@ TAXON S TDPAR=$G(^PXD(811.2,FITEM,"SDZ")),TDTXT="",TDHTXT=""
  ..;Take prompt from user defined text
  ..S INAME=$P(DATA,U,2)
  ..;Otherwise use name of diagnosis
- ..S INAME=$G(^ICD9(TITEM,1))
+ ..S CODE=$$ICDDX^ICDCODE(TITEM,"")
+ ..S NLINES=$$ICDD^ICDCODE($G(CODE),"OUTPUT","")
+ ..S INAME=$G(OUTPUT(1))
  ..I INAME="" S FGLOB="ICD9(",INAME=$$NAME(FGLOB,TITEM,3)
  ..;Dialog Item name root
  ..S DNAME="POV "_INAME

@@ -1,19 +1,19 @@
 APCLSILT ;IHS/CMI/LAB - AGGREGATE ILI REPORT PRINT;  ; 10 Oct 2011  7:36 AM
- ;;3.0;IHS PCC REPORTS;**24,25,26,27,28,29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**24,25,26,27,28,29,30**;FEB 05, 1997;Build 27
 C(X,X2,X3) ;
  D COMMA^%DTC
  Q X
+ ;
  ;
 ILISEX ;EP
  D HEADER^APCLSILR Q:$D(APCLQUIT)
  W "TABLE 2:  ILI Diagnoses by Sex"
  W !,"This table provides a patient/visit count, by sex, for ILI diagnosis.  An ILI"
- W !,"diagnosis is defined as a visit with one of the following influenza ICD9"
- W !,"diagnosis codes:  487* or 488*"
+ W !,"diagnosis is defined as a visit with an diagnosis contained in the "
+ W !,"SURVEILLANCE ILI NO TMP NEEDED taxonomy."
  W !,"   OR"
- W !,"a temperature of >=100 AND one of the following ICD9 codes:"
- W !,"079.99,382.00,382.9,460,461.8,461.9,462,463,464.00,464.10,,464.20,465.0,"
- W !,"465.8,465.9,466.0,466.19,478.9,480.9,485,486,490,780.6,780.60,780.61,786.2"
+ W !,"a temperature of >=100 AND one of the ICD diagnosis in the SURVEILLANCE ILI"
+ W !,"taxonomy."
  W !!,"An unduplicated count of patients is also provided.",!!,?40,"# patients",?60,"# visits",!
  I APCLLOCT="O" G LOCSEX
  W !,"ALL FACILITIES COMBINED",!
@@ -54,12 +54,11 @@ ILIAGEP ;EP
  W "TABLE 4:  ILI Diagnoses by Age by Visit"
  W !,"This table displays a visit count by age group.  Only visits on which "
  W !,"there was at least one ILI diagnosis are counted. An ILI diagnosis"
- W !,"is defined as a visit with one of the following influenza ICD9"
- W !,"diagnosis codes:  487* or 488*"
+ W !,"is defined as a visit with one of the codes in the SURVEILLANCE ILI"
+ W !,"NO TMP NEEDED taxonomy."
  W !,"   OR"
- W !,"a temperature of >=100 AND one of the following ICD9 codes:"
- W !,"079.99,382.00,382.9,460,461.8,461.9,462,463,464.00,464.10,,464.20,465.0,"
- W !,"465.8,465.9,466.0,466.19,478.9,480.9,485,486,490,780.6,780.60,780.61,786.2"
+ W !,"a temperature of >=100 AND one of the codes in the SURVEILLANCE ILI"
+ W !,"taxonomy."
  W !,"The visits have to be defined as 'surveillance' visits.  The definition "
  W !,"of these visits is the following:"
  W !,"   - a Hospitalization"
@@ -117,9 +116,11 @@ VACAGEP ;EP
  W !,"This table displays a count for immunizations by age group.  Only visits on"
  W !,"which a Seasonal Flu immunization was dispensed are counted.  The "
  W !,"definition of the immunizations are:"
- W !," - Seasonal Flu:  Immunization CVX codes 15, 16, 88, 111, 135, 140, 141, 144"
- W !,"                  CPT 90654-90662, 90724, G0008, G8108"
- W !,"                  Procedure 99.52, Diagnoses V04.8, V04.81, V06.6"
+ W !," - Seasonal Flu:  Immunization CVX codes 15, 16, 88, 111, 135, 140, 141, 144,"
+ W !,"                  149, 151, 153, 155, 158"
+ W !,"                  CPT 90654-90662, 90672-90673, 90685-90686, 90724, G0008, G8108"
+ W !,"                  Diagnoses V04.8, V04.81, V06.6"
+ W !,"                  Procedure: 99.52"
  I APCLLOCT="O" G LOCAGE
  W !!,"ALL FACILITIES"
  W !!,"Age",?14," 6-23m",?22,"24-59m",?30,"60m-18y",?38,"19-24y",?46,"25-49y",?54,"50-64y",?62,"  65+y",?72,"TOTAL",!
@@ -171,7 +172,6 @@ LOCAGE W !
  .;W ?72,$$C($G(APCLIMML(APCLLOC,"H","A","TOTAL")),0,7),!
  .;W $$REPEAT^XLFSTR("-",79),!
  Q
-TAB7 ;EP - WRITE OUT TABLE 5
  D HEADER^APCLSILR
  W "TABLE 7:  Potential Adverse Events"
  W !!,"This table contains a tally of all patients who were seen for a"

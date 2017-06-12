@@ -1,5 +1,5 @@
 BQIUTB1 ;PRXM/HC/ALA-Table Utilities continued ; 13 Jul 2006  3:47 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.4;ICARE MANAGEMENT SYSTEM;**3**;Apr 01, 2015;Build 5
  ;
  Q
  ;
@@ -66,6 +66,9 @@ RDNE S II=II+1,@DATA@(II)=$C(31)
  ;
 SET(REG) ;EP
  N FILE,FIELD,SET,I,PC
+ I REG=3 D  Q
+ . S II=II+1,@DATA@(II)=REG_"^A^ACTIVE"_$C(30)
+ . S II=II+1,@DATA@(II)=REG_"^I^INACTIVE"_$C(30)
  S FILE=$$GET1^DIQ(90507,REG_",",.15,"E")
  S FIELD=$$GET1^DIQ(90507,REG_",",.14,"E")
  D FIELD^DID(FILE,.FIELD,,"POINTER","SET")
@@ -171,3 +174,11 @@ IUSR(DATA,TYPE) ;EP - Retrieve a list of iCare Users/Employer Health Key Holding
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
+INS(DATA) ;EP - Insurance plans
+ NEW IEN,NAME
+ S @DATA@(II)="T00060NAME"_$C(30)
+ S NAME=""
+ F  S NAME=$O(^BQIPAT("AI",NAME)) Q:NAME=""  D
+ . S II=II+1,@DATA@(II)=NAME_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q

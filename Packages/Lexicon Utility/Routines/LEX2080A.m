@@ -1,0 +1,164 @@
+LEX2080A ;ISL/KER - LEX*2.0*80 Pre/Post Install (cont) ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
+ ;               
+ ; Global Variables
+ ;    ^%ZOSF("UCI")       ICR  10096
+ ;    ^ICD0(              ICR   4486
+ ;    ^ICD0(1535)         ICR   4486
+ ;    ^ICD0(1548)         ICR   4486
+ ;    ^ICD0(366)          ICR   4486
+ ;    ^ICD9(              ICR   4485
+ ;    ^ICD9(11938)        ICR   4485
+ ;    ^ICD9(3066)         ICR   4485
+ ;    ^TMP("LEXKID")      SACC 2.3.2.5.1
+ ;               
+ ; External References
+ ;    $$FMTE^XLFDT        ICR  10103
+ ;    FIELD^DID           ICR   2052
+ ;    FILE^DID            ICR   2052
+ ;    BMES^XPDUTL         ICR  10141
+ ;    MES^XPDUTL          ICR  10141
+ ;               
+STATUS ; ICD-9/10 Status in files 80/80.1 and Lexicon
+ N LEX10,ICD10,ICD9,LEGD,LEGP,ICDATA,ICDD,ICDDT,ICDENT,ICDF,ICDFI,ICDIEN,ICDM,ICDNM,ICDNS,ICDPK,ICDPT,ICDRT,ICDRV,ICDUCI,ICDVR,ICDT,ICDX,X,Y
+ K ICDDD,ICDGBL X ^%ZOSF("UCI") S (ICDNS,ICDUCI)=Y S:ICDNS[","&($L($P(Y,",",1))) ICDNS=$P(Y,",",1) S LEGD=$$LEGD,LEGP=$$LEGP
+ S ICDX="   Checking "_$S($L(ICDNS):(ICDNS_" "),1:"")_"ICD Data Dictionary/Global/Data Status:" D BM(ICDX)
+ D FIELD^DID(80.066,60,"N","LABEL","ICD9","ICDM")
+ D FIELD^DID(80.012,.01,"N","LABEL","ICD10","ICDM")
+ D FIELD^DID(757.03,11,"N","LABEL","LEX10","ICDM")
+ D BM("     Data Dictionary:"),M(" ")
+ D:'$D(ICD9) M("       Legacy ICD Data Dictionary does not exist")
+ D:$D(ICD9) M("       Remnants of the legacy ICD Data Dictionary found") S:$D(ICD9) ICDDD(1)=""
+ D:'$D(ICD10) M("       ICD Data Dictionary updates for ICD-10 not found") S:'$D(ICD10) ICDDD(2)=""
+ D:$D(ICD10) M("       ICD Data Dictionary updates for ICD-10 found")
+ D:'$D(LEX10) M("       Lexicon Data Dictionary updates for ICD-10 not found")
+ D:$D(LEX10) M("       Lexicon Data Dictionary updates for ICD-10 found")
+ D BM("     Global:"),M(" ")
+ F ICDT=80,80.1,80.4,757,757.001,757.01,757.02,757.03,757.033,757.1,757.3,757.31 D
+ . K ICDF,ICDM D FILE^DID(ICDT,"N","DATE;GLOBAL NAME;NAME;PACKAGE REVISION DATA;VERSION;LOOKUP PROGRAM","ICDF","ICDM")
+ . N ICDRT,ICDFI,ICDNM,ICDVR,ICDPK,ICDRV,ICDDT,ICDPT,ICDIEN,ICDENT
+ . S ICDNM=$E($G(ICDF("NAME")),1,24)
+ . S ICDNM=$G(ICDF("NAME"))
+ . S ICDNM=ICDNM_$J(" ",(36-$L(ICDNM))) S ICDVR=$G(ICDF("VERSION"))
+ . S ICDFI=$G(ICDT),ICDFI=ICDFI_$J(" ",(10-$L(ICDFI)))
+ . S ICDRT=$G(ICDF("GLOBAL NAME")),ICDRT=ICDRT_$J(" ",(15-$L(ICDRT)))
+ . S ICDPK=$S($P(ICDT,".",1)=80:"ICD",$P(ICDT,".",1)=757:"LEX",1:"") Q:'$L(ICDPK)
+ . S ICDRV=$G(ICDF("PACKAGE REVISION DATA")),ICDDT=$P(ICDRV,"^",2),ICDRV=$P(ICDRV,"^",1)
+ . S ICDPT="" S:$L(ICDPK)&(+($G(ICDVR))>0)&(+($G(ICDRV))>0) ICDPT=ICDPK_"*"_ICDVR_"*"_ICDRV
+ . S ICDPT=ICDPT_$J(" ",(14-$L(ICDPT))),ICDDT=$S(ICDDT?7N:$TR($$FMTE^XLFDT(ICDDT,"5DZ"),"@"," "),1:"")
+ . D:ICDT=80 M("       Global Name                         File #     Patched      Effective")
+ . D M(("       "_ICDNM_ICDFI_ICDPT_ICDDT))
+ D BM("     Data:") I '$D(^ICD9(3066,"DRG"))&('$D(^ICD9(11938,66,3,"DRG")))&($L($G(^ICD9(3066,0)),"^")'>1) S ICDATA(80,9)="No "
+ I $D(^ICD9(3066,"DRG"))!($D(^ICD9(11938,66,3,"DRG")))!($L($G(^ICD9(3066,0)),"^")>1) S ICDGBL(1)="",ICDATA(80,9)="Yes"
+ I '$D(^ICD9(3066,7,1,0)) S ICDGBL(2)="",ICDATA(80,10)="No "
+ I $D(^ICD9(3066,7,1,0)) S ICDATA(80,10)="Yes"
+ I '$D(^ICD0(366,"MDC"))&($L($G(^ICD0(1535,0)),"^")'>1) S ICDATA(80.1,9)="No "
+ I $D(^ICD0(366,"MDC"))!($L($G(^ICD0(1535,0)),"^")>1) S ICDGBL(1)="",ICDATA(80.1,9)="Yes"
+ I '$D(^ICD0(1548,3,1,0))&($L($G(^ICD0(1548,1)),"^")'>1) S ICDGBL(2)="",ICDATA(80.1,10)="No "
+ I $D(^ICD0(1548,3,1,0))&($L($G(^ICD0(1548,1)),"^")>1) S ICDATA(80.1,10)="Yes"
+ S:+LEGD>0 ICDATA(80,9)="Yes" S:+LEGP>0 ICDATA(80.1,9)="Yes"
+ S ICDX="       ",ICDX=ICDX_$J(" ",(32-$L(ICDX)))_"Legacy ICD-9"
+ S ICDX=ICDX_$J(" ",(50-$L(ICDX)))_"Updated ICD-10" D M(ICDX)
+ S ICDX="       Coding System Data",ICDX=ICDX_$J(" ",(32-$L(ICDX)))_"Data Format"
+ S ICDX=ICDX_$J(" ",(50-$L(ICDX)))_"Data Format" D M(ICDX)
+ S ICDX="       ICD Diagnosis Data",ICDX=ICDX_$J(" ",(37-$L(ICDX)))_$G(ICDATA(80,9))
+ S ICDX=ICDX_$J(" ",(55-$L(ICDX)))_$G(ICDATA(80,10)) D M(ICDX)
+ S ICDX="       ICD Procedure Data",ICDX=ICDX_$J(" ",(37-$L(ICDX)))_$G(ICDATA(80.1,9))
+ S ICDX=ICDX_$J(" ",(55-$L(ICDX)))_$G(ICDATA(80.1,10)) D M(ICDX)
+ S ICDX="       Lexicon Data    ",ICDX=ICDX_$J(" ",(32-$L(ICDX)))_"    ICD-9"
+ S ICDX=ICDX_$J(" ",(50-$L(ICDX)))_"   ICD-10" D BM(ICDX)
+ S ICD9=$S($O(^LEX(757.02,"ASRC","ICD",0))>0:"Yes",1:"No")
+ S ICD10=$S($O(^LEX(757.02,"ASRC","10D",0))>0:"Yes",1:"No")
+ S ICDX="       ICD Diagnosis",ICDX=ICDX_$J(" ",(37-$L(ICDX)))_ICD9
+ S ICDX=ICDX_$J(" ",(55-$L(ICDX)))_ICD10 D M(ICDX)
+ S ICD9=$S($O(^LEX(757.02,"ASRC","ICP",0))>0:"Yes",1:"No")
+ S ICD10=$S($O(^LEX(757.02,"ASRC","10P",0))>0:"Yes",1:"No")
+ S ICDX="       ICD Procedures",ICDX=ICDX_$J(" ",(37-$L(ICDX)))_ICD9
+ S ICDX=ICDX_$J(" ",(55-$L(ICDX)))_ICD10 D M(ICDX)
+ Q
+LEGD(X) ; ICD 9 Legacy Data
+ N ICDI,ICD9 S (ICDI,ICD9)=0 F  S ICDI=$O(^ICD9(ICDI)) Q:+ICDI'>0  Q:ICDI>499999  Q:ICD9>0  D  Q:ICD9>0
+ . S:$D(^ICD9(ICDI,"DRG")) ICD9=1 Q:ICD9
+ . S:$D(^ICD9(ICDI,66,1,"DRG"))!($D(^ICD9(ICDI,66,3,"DRG"))) ICD9=1 Q:ICD9
+ . S:$L($G(^ICD9(ICDI,0)),"^")>1 ICD9=1
+ S X=+ICD9
+ Q X
+LEGP(X) ; ICD 0 Legacy Data
+ N ICDI,ICD0 S (ICDI,ICD0)=0 F  S ICDI=$O(^ICD0(ICDI)) Q:+ICDI'>0  Q:ICDI>499999  Q:ICD0>0  D  Q:ICD0>0
+ . S:$L($G(^ICD0(ICDI,0)),"^")>1 ICD0=1  Q:ICD0
+ . S:$L($G(^ICD0(ICDI,1)))&($P($G(^ICD0(ICDI,1)),"^",1)'?1N.N) ICD0=1  Q:ICD0
+ . S:$D(^ICD0(ICDI,"MDC")) ICD0=1 Q:ICD0
+ S X=+ICD0
+ Q X
+FL ; Flouride to Fluoride
+ Q
+ I $P($G(^ICPT(108897,0)),"^",2)="TOPICAL FLOURIDE VARNISH" D
+ . N DA,DIK S DA=108897,DIK="^ICPT(" D IX2^DIK
+ . S $P(^ICPT(108897,0),"^",2)="TOPICAL FLUORIDE VARNISH"
+ . S DA=108897,DIK="^ICPT(" D IX1^DIK
+ I $P($G(^ICPT(108897,61,2,0)),"^",2)="TOPICAL FLOURIDE VARNISH" D
+ . N DA,DIK S DA=108897,DIK="^ICPT(" D IX2^DIK
+ . S $P(^ICPT(108897,61,2,0),"^",2)="TOPICAL FLUORIDE VARNISH"
+ . S DA=108897,DIK="^ICPT(" D IX1^DIK
+ I $P($G(^ICPT(110825,0)),"^",2)="TOPICAL FLOURIDE" D
+ . N DA,DIK S DA=110825,DIK="^ICPT(" D IX2^DIK
+ . S $P(^ICPT(110825,0),"^",2)="TOPICAL FLUORIDE"
+ . S DA=110825,DIK="^ICPT(" D IX1^DIK
+ I $P($G(^ICPT(110825,61,1,0)),"^",2)="TOPICAL FLOURIDE" D
+ . N DA,DIK S DA=110825,DIK="^ICPT(" D IX2^DIK
+ . S $P(^ICPT(110825,61,1,0),"^",2)="TOPICAL FLUORIDE"
+ . S DA=110825,DIK="^ICPT(" D IX1^DIK
+ S DA(1)=306305,DA=207,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA(1)=309984,DA=21,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA(1)=306668,DA=52,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA(1)=309999,DA=22,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA(1)=312701,DA=5,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA(1)=312704,DA=7,DIK="^LEX(757.01,"_DA(1)_",5,"
+ I $D(^LEX(757.01,DA(1),5,DA)) D
+ . D ^DIK K ^LEX(757.01,DA(1),5,"B","FLOURIDE",DA)
+ . K ^LEX(757.01,"AWRD","FLOURIDE",DA(1),DA(1),DA)
+ S DA=7205819,DIK="^LEX(757.01,"
+ I $$UP^XLFSTR($G(^LEX(757.01,DA,0)))["FLOURIDE" D
+ . D IX2^DIK S ^LEX(757.01,DA,0)="Deuterium fluoride pumped carbon dioxide laser device" D IX1^DIK
+ S DA=7205820,DIK="^LEX(757.01,"
+ I $$UP^XLFSTR($G(^LEX(757.01,DA,0)))["FLOURIDE" D
+ . D IX2^DIK S ^LEX(757.01,DA,0)="Deuterium fluoride pumped carbon dioxide laser device (physical object)" D IX1^DIK
+ I $D(^LEX(757.21,"AOBJ","FLOURIDE",7102910)) D
+ . K ^LEX(757.21,"AOBJ","FLOURIDE",7102910)
+ . S ^LEX(757.21,"AOBJ","FLUORIDE",7102910)=""
+ I $D(^LEX(757.21,"ASCT","FLOURIDE",7409747)) D
+ . K ^LEX(757.21,"ASCT","FLOURIDE",7409747)
+ . S ^LEX(757.21,"ASCT","FLUORIDE",7409747)=""
+ I $D(^LEX(757.21,"C","DEUTERIUM FLOURIDE PUMPED CARBON DIOXIDE LASER DEVICE",7102910)) D
+ . K ^LEX(757.21,"C","DEUTERIUM FLOURIDE PUMPED CARBON DIOXIDE LASER DEVICE",7102910)
+ . S ^LEX(757.21,"C","DEUTERIUM FLUORIDE PUMPED CARBON DIOXIDE LASER DEVICE",7102910)=""
+ I $D(^LEX(757.21,"C","DEUTERIUM FLOURIDE PUMPED CARBON DIOXIDE LASER DEVICE",7409747)) D
+ . K ^LEX(757.21,"C","DEUTERIUM FLOURIDE PUMPED CARBON DIOXIDE LASER DEVICE",7409747)
+ . S ^LEX(757.21,"C","DEUTERIUM FLUORIDE PUMPED CARBON DIOXIDE LASER DEVICE",7409747)=""
+ K ^LEX(757.01,"ASL","FLOURIDE")
+ Q
+BL ;   Blank Line
+ D TL(" ")
+ Q
+TL(X) ;   Text Line
+ N LEXI S LEXI=$O(^TMP("LEXKID",$J," "),-1),LEXI=LEXI+1,^TMP("LEXKID",$J,LEXI)=$G(X),^TMP("LEXKID",$J,0)=LEXI
+ Q
+M(X) ;   Blank/Text
+ D MES^XPDUTL($G(X)) Q
+BM(X) ;   Blank/Text
+ D BMES^XPDUTL($G(X)) Q

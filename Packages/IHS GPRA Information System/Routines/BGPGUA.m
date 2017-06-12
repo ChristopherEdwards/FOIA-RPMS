@@ -1,5 +1,5 @@
 BGPGUA ; IHS/CMI/LAB - BGP Gui Utilities 03/11/2010 3:28:39 PM ; 16 Oct 2014  12:11 PM
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
 DEBUG(RETVAL,BGPSTR) ;run the debugger
  D DEBUG^%Serenji("SEARCH^BGPGUA(.RETVAL,.BGPSTR)")
@@ -207,7 +207,7 @@ CHKFQT(X) ;EP - check for queued task (BGP AUTO GPRA EXTRACT and BGPSITE variabl
  NEW Y
  S Y=$P($G(^BGPGUIK(X,0)),U,9)
  I '$G(Y) Q 0
- I '$D(^%ZTSK(Y,0)) Q 0
+ I '$D(^%ZTSK(Y,0)),$P($G(^BGPGUIK(X,0)),U,6)="R" Q 1  ;v16.0 check for deleted task and mark as errored if so
  I $P($G(^%ZTSK(Y,.1)),U)="C" Q 1
  I $P($G(^%ZTSK(Y,.1)),U)="E" Q 1
  Q 0

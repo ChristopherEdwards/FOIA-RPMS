@@ -1,11 +1,16 @@
-LRSPRPT1 ;AVAMC/REG/WTY - SURG PATH RPT PRINT CONT. ;10/16/01
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
+LRSPRPT1 ;AVAMC/REG/WTY - SURG PATH RPT PRINT CONT. ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1030,1031,1034**;NOV 1, 1997;Build 88
  ;
  ;;VA LR Patch(s): 1,259,315
  ;
  ;25-Jul-01;WTY;In line tag L, if being called by LRAPT2, don't do
  ;              line tag F.  Do H1^LRAPT2 instead.
  ;21-Aug-01;WTY;Removed call to LRSPRPT2 which prints SNOMED codes.
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+EP ; EP
+ NEW ACCDATE
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
  ;
  S A=0 F  S A=+$O(^LR(LRDFN,LRSS,LRI,2,A)) Q:'A!(LR("Q"))  D
  .S T=+^LR(LRDFN,LRSS,LRI,2,A,0),X=$S($D(^LAB(61,T,0)):^(0),1:"")
@@ -20,7 +25,11 @@ LRSPRPT1 ;AVAMC/REG/WTY - SURG PATH RPT PRINT CONT. ;10/16/01
  ..D:$Y>(IOSL-12) F Q:LR("Q")
  ..S X=+^LR(LRDFN,LRSS,LRI,3,A,0)
  ..N LRX
- ..S LRX=X,LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ ..; S LRX=X,LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ ..; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ .. S ACCDATE=+$P($G(^LR(LRDFN,LRSS,LRI,0)),".")
+ .. S LRX=X,LRX=$$ICDDX^ICDEX(LRX,,,"I",1)
+ ..; ----- END IHS/MSC/MKK - LR*5.2*1034
  ..S X=$P(LRX,U,4)
  ..W !,"ICD code: ",$P(LRX,U,2),?20 D:LR(69.2,.05) C^LRUA W X
  Q

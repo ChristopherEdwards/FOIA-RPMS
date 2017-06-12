@@ -1,10 +1,11 @@
-ABMDF2D ; IHS/ASDST/DMJ - Set HCFA1500 Print Array - Part 4 ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ABMDF2D ; IHS/SD/SDR - Set HCFA1500 Print Array - Part 4 ;
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,14**;NOV 12, 2009;Build 238
  ;Original;TMD;
  ;
  ;IHS/DSD/DMJ - 5/14/1999 - NOIS HQW-0599-100027 Patch 2
  ;          Y2K IV&V issues, all $$HDT^ABMDUTL changed to $$HDTO^ABMDUTL
  ;                    in line: PDT
+ ;IHS/SD/SDR - 2.6*14 - updated DX^ABMCVAPI calls to be numeric
  ;
 D53 ; Dental Diagnosis Info
  I ABMP("VTYP")'=998 G DX
@@ -23,10 +24,13 @@ DX ; Diagnosis Info
  .S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM,""))
  .S ABM(9)=$P(^AUTNPOV($P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U,3),0),U)
  .S ABM(9)=$S(ABM(9)["*ICD*":$P(ABM(9),"  "),1:ABM(9))
- .S $P(ABMF(ABM("I")),U)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)_" "_ABM(9)  ;CSV-c
+ .;S $P(ABMF(ABM("I")),U)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)_" "_ABM(9)  ;CSV-c  ;abm*2.6*14 updated API call
+ .S $P(ABMF(ABM("I")),U)=$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,2)_" "_ABM(9)  ;CSV-c  ;abm*2.6*14 updated API call
  .S ABM("DX",$P(ABMF(ABM("I"))," "))=ABM("I")-30
  ;
-ST S ABMF(36)=$S($P($G(^AUTNINS(ABMP("INS"),2)),U)="R":"CPT",$G(ABMP("PX"))="I":"ICD",ABMP("VTYP")=998:"ADA",1:"CPT")
+ST ;
+ ;S ABMF(36)=$S($P($G(^AUTNINS(ABMP("INS"),2)),U)="R":"CPT",$G(ABMP("PX"))="I":"ICD",ABMP("VTYP")=998:"ADA",1:"CPT")  ;abm*2.6*10 HEAT73780
+ S ABMF(36)=$S($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="R":"CPT",$G(ABMP("PX"))="I":"ICD",ABMP("VTYP")=998:"ADA",1:"CPT")  ;abm*2.6*10 HEAT73780
  S ABMP("GL")="^ABMDBILL(DUZ(2),"_ABMP("BDFN")_","
  D ^ABMDESM1
 HCFA I $P(^ABMDBILL(DUZ(2),ABMP("BDFN"),2),U)=0 S ABMS("TOT")=0

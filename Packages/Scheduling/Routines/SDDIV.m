@@ -1,7 +1,8 @@
 SDDIV ;BSN/GRR - MULTI-DIVISION SELECT ; 27 FEB 84  9:40 am
- ;;5.3;Scheduling;**20,1013,1015**;Aug 13, 1993;Build 21
+ ;;5.3;Scheduling;**20,1013,1015,1017**;Aug 13, 1993;Build 5
  ;IHS/ANMC/LJF 6/30/2000 changed $N to $O
  ;ihs/cmi/maw 05/02/2011 PATCH 1013 added WLLET for wait list letters
+ ;ihs/cmi/maw 08/22/2013 PATCH 1017 changed code when looking at DIV on non multi sites
  ;
 ROUT S DIC("A")="ROUTING SLIPS FOR WHICH DIVISION: " G ASK
 APLST S DIC("A")="APPOINTMENT LIST FOR WHICH DIVISION: " G ASK
@@ -34,5 +35,6 @@ ASK2 ;S (VAUTD,Y)=0 I '$D(^DG(40.8,$N(^DG(40.8,0)),0)) W !,*7,"***WARNING...MEDI
  S (VAUTD,Y)=0 I '$D(^DG(40.8,+$O(^DG(40.8,0)),0)) W !,*7,"***WARNING...MEDICAL CENTER DIVISION FILE IS NOT SET UP" G ERR  ;IHS/ANMC/LJF 6/30/2000
  I $D(^DG(43,1,"GL")),$P(^("GL"),U,2) G DIVISION^VAUTOMA
  ;S I=$N(^DG(40.8,0)) G:'$D(^DG(40.8,I,0)) ERR S VAUTD(I)=$P(^(0),U) K DIC Q  ;IHS/ANMC/LJF 6/30/2000
- S I=+$O(^DG(40.8,0)) G:'$D(^DG(40.8,I,0)) ERR S VAUTD(I)=$P(^(0),U) K DIC Q  ;IHS/ANMC/LJF 6/30/2000
+ ;S I=+$O(^DG(40.8,0)) G:'$D(^DG(40.8,I,0)) ERR S VAUTD(I)=$P(^(0),U) K DIC Q  ;IHS/ANMC/LJF 6/30/2000
+ S I=+$O(^DG(40.8,"AD",DUZ(2),0)) G:'$D(^DG(40.8,I,0)) ERR S VAUTD(I)=$P(^(0),U) K DIC Q  ;ihs/cmi/maw 08/22/2013 PATCH 1017 for sites that are not multi div but have multiple entries in the file
  ; *** Notify IB if any significant changes occur in this routine. ***

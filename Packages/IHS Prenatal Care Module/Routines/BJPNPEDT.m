@@ -1,0 +1,102 @@
+BJPNPEDT ;GDIT/HS/BEE-Prenatal Care Module PIP Edit Calls ; 08 May 2012  12:00 PM
+ ;;2.0;PRENATAL CARE MODULE;**7**;Feb 24, 2015;Build 53
+ ;
+ Q
+ ;
+SSET(DATA,PRBIEN,STAT) ;EP - BJPN SET IPL STATUS
+ ;
+ ;Update the IPL status from the PIP
+ ;
+ NEW UID,II,TMP,STAT2,IPLUPD,ERROR,CLASS,VAPR,DFN,RESULT
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPEDT",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPEDT D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ S @DATA@(II)="T00001RESULT^T00100ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input validation
+ I $G(PRBIEN)="" S II=II+1,@DATA@(II)="-1^MISSING PRBIEN"_$C(30) G XSSET
+ I $G(STAT)="" S II=II+1,@DATA@(II)="-1^MISSING STATUS"_$C(30) G XSSET
+ ;
+ S DFN=$$GET1^DIQ(9000011,PRBIEN_",",.02,"I")
+ ;
+ ;Reset CLASS value and handle personal history
+ S CLASS="@"
+ I STAT="Personal History" S CLASS="P",STAT="Inactive"
+ ;
+ S STAT2=$S(STAT="Chronic":"A",STAT="Inactive":"I",STAT="Sub-acute":"S",STAT="Episodic":"E",STAT="Social/Environmental":"O",STAT="Routine/Admin":"R",STAT="Admin":"R",1:"E")
+ S VAPR=$S(STAT2="A":"C",STAT2="S":"C",STAT2="O":"C",STAT2="E":"A",1:"@")
+ S IPLUPD(9000011,PRBIEN_",",.14)=DUZ
+ S IPLUPD(9000011,PRBIEN_",",.03)=$$NOW^XLFDT
+ S IPLUPD(9000011,PRBIEN_",",.12)=STAT2
+ S IPLUPD(9000011,PRBIEN_",",.04)=CLASS
+ S IPLUPD(9000011,PRBIEN_",",1.14)=VAPR
+ D FILE^DIE("","IPLUPD","ERROR")
+ ;
+ S RESULT="1^"
+ I $D(ERROR) S RESULT="0^Unable to update IPL status"
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ ;
+ ;Broadcast update
+ D FIREEV^BJPNPDET("","PCC."_DFN_".PIP")
+ ;
+XSSET S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+DSET(DATA,PRBIEN,ONSDT) ;EP - BJPN SET DATE OF ONSET
+ ;
+ ;Update the IPL date of onset from the PIP
+ ;
+ NEW UID,II,TMP,IPLUPD,ERROR,DFN
+ ;
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BJPNPEDT",UID))
+ K @DATA
+ I $G(DT)=""!($G(U)="") D DT^DICRW
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BJPNPEDT D UNWIND^%ZTER" ; SAC 2009 2.2.3.17
+ ;
+ S @DATA@(II)="T00001RESULT^T00100ERROR_MESSAGE"_$C(30)
+ ;
+ ;Input validation
+ I $G(PRBIEN)="" S II=II+1,@DATA@(II)="-1^MISSING PRBIEN"_$C(30) G XDSET
+ ;
+ S DFN=$$GET1^DIQ(9000011,PRBIEN_",",.02,"I")
+ ;
+ ;Convert the Date of Onset to internal
+ I ONSDT]"" D  S ONSDT=$$CVTDATE^BGOUTL(ONSDT)
+ . NEW MONTH
+ . I ONSDT?4N S ONSDT="3"_$E(ONSDT,3,4)_"0000" Q  ;Year only
+ . I $L(ONSDT,"/")=2 D  Q  ;Month and Year
+ .. S:$L($P(ONSDT,"/"))=1 ONSDT="0"_ONSDT
+ .. S ONSDT="3"_$E($P(ONSDT,"/",2),3,4)_$P(ONSDT,"/")_"00" Q  ;Month/Year
+ . S:ONSDT]"" ONSDT=$$DATE^BJPNPRUT($P(ONSDT," "))
+ S:ONSDT="" ONSDT="@"
+ ;
+ S IPLUPD(9000011,PRBIEN_",",.14)=DUZ
+ S IPLUPD(9000011,PRBIEN_",",.03)=$$NOW^XLFDT
+ S IPLUPD(9000011,PRBIEN_",",.13)=ONSDT
+ D FILE^DIE("","IPLUPD","ERROR")
+ ;
+ S RESULT="1^"
+ I $D(ERROR) S RESULT="0^Unable to update IPL Date of Onset"
+ S II=II+1,@DATA@(II)=RESULT_$C(30)
+ ;
+ ;Broadcast update
+ D FIREEV^BJPNPDET("","PCC."_DFN_".PIP")
+ ;
+XDSET S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+ERR ;
+ D ^%ZTER
+ NEW Y,ERRDTM
+ S Y=$$NOW^XLFDT() X ^DD("DD") S ERRDTM=Y
+ S II=II+1,@DATA@(II)=$C(31)
+ Q

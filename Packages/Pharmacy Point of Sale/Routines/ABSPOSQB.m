@@ -1,5 +1,5 @@
 ABSPOSQB ; IHS/FCS/DRS - POS background, Part 1 ;   [ 08/20/2002  9:01 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,3,23,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,3,23,46**;JUN 21, 2001;Build 15
  ;
  ;IHS/DSD/lwj 10/09/01 on behalf of David Slauenwhite - change 
  ; consist of one line be altered in the "C" subroutine.

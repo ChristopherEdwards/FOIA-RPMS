@@ -1,5 +1,6 @@
 AGELA ; IHS/ASDS/EFG - Add/Edit Eligibility Display ;  
- ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;;7.1;PATIENT REGISTRATION;**11**;AUG 25,2005;Build 1
+ ;IHS/OIT/NKD AG*7.1*11 MU2 UNKNOWN SEX
  ;
  ;ALLOW PROPER EXIT FROM PRIVATE SCREEN AFTER DELETING ENTRY
  Q:$G(AGELP("PH"))=""
@@ -38,8 +39,12 @@ HDR W $$S^AGVDF("IOF")
 DATA W !,"1) Policy Holder.: ",$E($P(^AUPN3PPH(AGELP("PH"),0),U),1,20) S AGEL("P")=$P(^(0),U,2)
  I AGEL("P")]"",'$D(^DPT(AGEL("P"),0)) S AGEL("P")=""
  I AGEL("P")="" W " [NOT REG]"
- W ?50,"|5)  Gender (M/F): "
- W $S($P(AGV("X2"),U,6)="M":"MALE",$P(AGV("X2"),U,6)="F":"FEMALE",1:"")
+ ;IHS/OIT/NKD AG*7.1*11 MU2 - STANDARDIZED DISPLAY OF GENDER - START NEW CODE
+ ;W ?50,"|5)  Gender (M/F): "
+ ;W $S($P(AGV("X2"),U,6)="M":"MALE",$P(AGV("X2"),U,6)="F":"FEMALE",1:"")
+ W ?50,"|5)  Gender: "
+ W $S($P(AGV("X2"),U,6)="M":"MALE",$P(AGV("X2"),U,6)="F":"FEMALE",$P(AGV("X2"),U,6)="U":"UNKNOWN",1:"")
+ ;IHS/OIT/NKD AG*7.1*11 END NEW CODE
  W !,"2) Policy or SSN.: ",$P(^AUPN3PPH(AGELP("PH"),0),U,4)
  W ?50,"|6)  Date of Birth: "
  S AGEL("DT")=$P(AGV("X2"),U,7)

@@ -1,5 +1,5 @@
-PXRMXTU ; SLC/PJH - Reminder Reports Template Update ;04/20/2001
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
+PXRMXTU ; SLC/PJH - Reminder Reports Template Update ;07/30/2009
+ ;;2.0;CLINICAL REMINDERS;**4,6,12**;Feb 04, 2005;Build 73
  ; 
  ; Called from PXRMYD,PXRMXD (also at UPD from PXRMXPR/PXRMYPR)
  ;
@@ -54,11 +54,16 @@ FILE(INP,UPD,CLR) ;
  ;
  I PXRMSEL="L" S X=PXRMLCSC,PXRMLCSC=$P(PXRMLCSC,U)
  ;
+ N MREF,XREF
+ D XREF^PXRMXTB
+ ;
  ;Save single fields into FDA
- F IC="NAME","PXRMLCSC","PXRMPRIM","PXRMREP","PXRMSEL","PXRMTYP" D
- .S FDA(810.1,MODE,$$FLDNUM^DILFD(810.1,IC))=$G(@IC)
- F IC="PXRMFD","RUN","TITLE" D
- .S FDA(810.1,MODE,$$FLDNUM^DILFD(810.1,IC))=$G(@IC)
+ F IC="NAME","PXRMLCSC","PXRMPRIM","PXRMREP","PXRMSEL","PXRMTYP","PXRMPML","PXRMPER" D
+ .S FDA(810.1,MODE,XREF(IC))=$G(@IC)
+ F IC="PXRMFD","PXRMSCAT","RUN","TITLE" D
+ .S FDA(810.1,MODE,XREF(IC))=$G(@IC)
+ ;Save Owner value
+ S FDA(810.1,MODE,15)=$S(+$G(PXRMOWN)>0:PXRMOWN,1:DUZ)
  ;
  I PXRMSEL="L" S PXRMLCSC=X
  ;
@@ -77,8 +82,6 @@ FILE(INP,UPD,CLR) ;
  D SUB1(.PXRMOTM,"810.17",1)
  ;Save PCMM Team codes
  D SUB1(.PXRMPCM,"810.18",1)
- ;Save Service Category codes
- I $G(PXRMSCAT)'="" D SUB2("PXRMSCAT","810.19")
  ;Save Hospital Location codes
  D SUB1(.PXRMLCHL,"810.11",2)
  ;Save Clinic Stop codes
@@ -87,6 +90,8 @@ FILE(INP,UPD,CLR) ;
  D SUB1(.PXRMCGRP,"810.112",1)
  ;Save Reminder Categories
  D SUB1(.PXRMRCAT,"810.113",1)
+ ;Save Patient lists
+ D SUB1(.PXRMLIST,"810.114",1)
  ;
  ;Update template file
  D UPDATE^DIE("S","FDA","FDAIEN","MSG")
@@ -103,6 +108,23 @@ FILE(INP,UPD,CLR) ;
  ;--------------------
 SUB1(OUTPUT,VAR,PIECE) ;
  S IC=""
+ ;This is use for saving individual reminders back to the original
+ ;template
+ I VAR=810.12,$D(PXRMTREM($P(INP,U)))>0 D  Q
+ .F  S IC=$O(PXRMTREM($P(INP,U),IC)) Q:IC=""  D
+ ..S INT=$P(PXRMTREM($P(INP,U),IC),U,PIECE),CNT=CNT+1
+ ..S FDA(VAR,"+"_CNT_","_MODE,.01)=INT
+ ..S FDA(VAR,"+"_CNT_","_MODE,.02)=IC
+ ;
+ ;This is use for saving individual reminders category back to the 
+ ;original template
+ I VAR=810.113,$D(PXRMTCAT($P(INP,U)))>0 D  Q
+ .F  S IC=$O(PXRMTCAT($P(INP,U),IC)) Q:IC=""  D
+ ..S INT=$P(PXRMTCAT($P(INP,U),IC),U,PIECE),CNT=CNT+1
+ ..S FDA(VAR,"+"_CNT_","_MODE,.01)=INT
+ ..S FDA(VAR,"+"_CNT_","_MODE,.02)=IC
+ ;
+ ;this is use for saving everything else to the template
  F  S IC=$O(OUTPUT(IC)) Q:IC=""  D
  .S INT=$P(OUTPUT(IC),U,PIECE),CNT=CNT+1
  .S FDA(VAR,"+"_CNT_","_MODE,.01)=INT

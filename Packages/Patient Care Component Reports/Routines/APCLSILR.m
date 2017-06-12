@@ -1,5 +1,5 @@
 APCLSILR ;IHS/CMI/LAB - AGGREGATE ILI REPORT;
- ;;3.0;IHS PCC REPORTS;**24,26,27,28,29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**24,26,27,28,29,30**;FEB 05, 1997;Build 27
  ;
 START ;
  W:$D(IOF) @IOF
@@ -112,9 +112,6 @@ PROC1 ;
  ;I $P(^AUPNVSIT(APCLVDFN,0),U,7)="H" D RESDIS
  D MEDS^APCLSILA
  D VACAGE^APCLSILA
- ;D TAB727^APCLSILA
- ;D TAB827^APCLSILA
- ;I APCLILIV D TAB9^APCLSILA  TABLE 9 TAKEN OUT IN PATCH 27
  Q
  ;
 ILIAGE ;
@@ -142,9 +139,9 @@ AGEGM(APCLA) ;EP - age months
  Q ""
 AGEGY(APCLA) ; - age years
  I APCLA<5 Q "0-4y"
- I APCLA>4,APCLA<25 Q "5-25y"
+ I APCLA>4,APCLA<25 Q "5-24y"  ;FIX LORI
  I APCLA>24,APCLA<50 Q "25-49y"
- I APCLA>49,APCLA<65 Q "50-65y"
+ I APCLA>49,APCLA<65 Q "50-64y" ;FIX LORI
  I APCLA>64 Q "65y+"
  Q ""
 AGEG(APCLA) ;EP 0 age years
@@ -160,8 +157,8 @@ RESDIS ;does this H visit have severe resp diagnosis, if yes set counter
  S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  D
  .S D=$P($G(^AUPNVPOV(X,0)),U,1)
  .I D="" Q
- .I '$$ICD^ATXCHK(D,$O(^ATXAX("B","SURVEILLANCE SEV RESP DIS DXS",0)),9) Q
- .S I=$$ICDDX^ICDCODE(D,$$VD^APCLV($P(^AUPNVPOV(X,0),U,3))),I=$P(I,U,4)
+ .I '$$ICD^APCLSILU(D,$O(^ATXAX("B","SURVEILLANCE SEV RESP DIS DXS",0)),9) Q
+ .S I=$$ICDDX^APCLSILU(D,$$VD^APCLV($P(^AUPNVPOV(X,0),U,3))),I=$P(I,U,4)
  .S $P(APCLSRDH(APCLVLOC,I),U,1)=$P($G(APCLSRDH(APCLVLOC,I)),U,1)+1
  .I $D(APCLSRDP(APCLVLOC,I,$P(^AUPNVPOV(X,0),U,2))) Q
  .S $P(APCLSRDH(APCLVLOC,I),U,2)=$P($G(APCLSRDH(APCLVLOC,I)),U,2)+1
@@ -190,8 +187,8 @@ ILIDX1 ;
  K G,Y S G=""
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  .S T=$P(^AUPNVPOV(X,0),U)
- .I $$ICD^ATXCHK(T,$O(^ATXAX("B","SURVEILLANCE ILI NO TMP NEEDED",0)),9) S C=C+1,Y(C)=$$VAL^XBDIQ1(9000010.07,X,.01)
- .I $$ICD^ATXCHK(T,$O(^ATXAX("B","SURVEILLANCE ILI",0)),9),$$TMP100^APCLSILI(V) S C=C+1,Y(C)=$$VAL^XBDIQ1(9000010.07,X,.01)
+ .I $$ICD^APCLSILU(T,$O(^ATXAX("B","SURVEILLANCE ILI NO TMP NEEDED",0)),9) S C=C+1,Y(C)=$$VAL^XBDIQ1(9000010.07,X,.01)
+ .I $$ICD^APCLSILU(T,$O(^ATXAX("B","SURVEILLANCE ILI",0)),9),$$TMP100^APCLSILI(V) S C=C+1,Y(C)=$$VAL^XBDIQ1(9000010.07,X,.01)
  S VAL=""
  I $P(^AUPNVSIT(V,0),U,7)="H" S VAL="H^Hospitalizations"
  I P S VAL="C^Provider Code: 13 PHN"
@@ -239,13 +236,12 @@ PRINT ;
  W !,"               70 WOMEN'S HEALTH, 80 URGENT CARE, 89 EVENING"
  W !!,"Table 1:  ILI / H1N1 Visits"
  W !,"This table displays the total number of visits defined above and displays the"
- W !,"total count of those visits on which there was an ILI diagnosis.  An ILI"
- W !,"diagnosis is defined as a visit with one of the following influenza ICD9"
- W !,"diagnosis codes:  487* or 488*"
+ W !,"total count of those visits on which there was an ILI diagnosis.   An ILI"
+ W !,"diagnosis is defined as a visit with an diagnosis contained in the "
+ W !,"SURVEILLANCE ILI NO TMP NEEDED taxonomy."
  W !,"   OR"
- W !,"a temperature of >=100 AND one of the following ICD9 codes:"
- W !,"079.99,382.00,382.9,460,461.8,461.9,462,463,464.00,464.10,,464.20,465.0,"
- W !,"465.8,465.9,466.0,466.19,478.9,480.9,485,486,490,780.6,780.60,780.61,786.2"
+ W !,"a temperature of >=100 AND one of the ICD diagnosis in the SURVEILLANCE ILI"
+ W !,"taxonomy."
  I $Y>(IOSL-3) D HEADER Q:$D(APCLQUIT)
  W !,"The data is broken down by location of encounter and clinic.",!
  W "Note that some patients may have been seen in multiple clinics",!
@@ -281,9 +277,7 @@ LOCV S APCLLOC="" F  S APCLLOC=$O(APCLVTOT(APCLLOC)) Q:APCLLOC=""!($D(APCLQUIT))
  .W $$REPEAT^XLFSTR("-",79),!
  .Q
  Q:$D(APCLQUIT)
- ;W !,"TOTAL",?40,$$C($P(APCLVTOT,U,2),0,7),?56,$$C($P(APCLVTOT,U,1),0,7),?72,$$PER($P(APCLVTOT,U,2),$P(APCLVTOT,U,1)),!
 SRVD ;
- G ILISEX
 ILISEX ;
  D ILISEX^APCLSILT
  Q:$D(APCLQUIT)
@@ -293,12 +287,6 @@ ILIAVM ;
  D ILIAGEP^APCLSILT
  Q:$D(APCLQUIT)
  D VACAGEP^APCLSILT
- ;Q:$D(APCLQUIT)
- ;D TAB7^APCLSILT
- ;Q:$D(APCLQUIT)
- ;D TAB8^APCLSILT
- ;Q:$D(APCLQUIT)
- ;D TAB9^APCLSILT
  Q
 SUBHEAD2 ;
  W "Table 2:  Hospitalizations for Severe Respiratory Disease",!

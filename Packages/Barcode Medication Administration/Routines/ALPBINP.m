@@ -1,5 +1,5 @@
 ALPBINP ;OIFO-DALLAS/SED/KC/MW  BCMA - BCBU INPT TO HL7 ;5/2/2002
- ;;3.0;BAR CODE MED ADMIN;**8,37**;May 2007;Build 10
+ ;;3.0;BAR CODE MED ADMIN;**8,37,1018**;May 2007;Build 27
  ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;This routine will intercept the HL7 message that it sent from Pharmacy
  ;to CPRS to update order information. The message is then parsed and 
@@ -96,7 +96,9 @@ INIT ;CALL HL7 TO INITIALIZE MESSAGE VARIABLES
  Q
 SEND ;CALL HL7 TO TRANSMIT SINGLE MESSAGE
  K ALPRSLT,ALPOPTS
- D GENERATE^HLMA(EVENT,"LM",1,.ALPRSLT,"",.ALPOPTS)
+ D ^ALPBHL2 S ALPRSLT="FILED" ;Stuff LOCAL FILE VAOIT FOXK
+ ;NO HL7 MESSAGE ONLY STUFF LOCAL
+ ;D GENERATE^HLMA(EVENT,"LM",1,.ALPRSLT,"",.ALPOPTS)
  Q
 AL1 ;ALLERGY SEGMENT BUILD
  ;The will build the ALP segment with the curent allergies
@@ -220,4 +222,3 @@ PMOV(ALPDFN,ALPTYP,ALPTT,ALPBMDT) ;Entry Point to send patient movement
  .S HLA("HLS",2)=$$EN^VAFHAPV1(ALPDFN,DT,"2,3,7,18")
  .S $P(HLA("HLS",2),HLFS,37)="ASIH"
  .D SEND
- Q ALPRSLT

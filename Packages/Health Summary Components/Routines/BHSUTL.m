@@ -1,45 +1,56 @@
-BHSUTL ;IHS/CIA/MGH - Health Summary Utilities ;31-Jul-2012 14:15;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,7**;March 17, 2006;Build 12
+BHSUTL ;IHS/CIA/MGH - Health Summary Utilities ;09-Mar-2016 09:58;du
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,7,8,9,13**;March 17, 2006;Build 6
  ;===================================================================
  ;Taken from APCHSUTL
  ; IHS/TUCSON/LAB - UTILITIES FOR APCHS -- SUMMARY PRODUCTION COMPONENTS
  ;;2.0;IHS RPMS/PCC Health Summary;**3,8**;JUN 24, 1997
  ;IHS health summary utilities to use in VA health summaries
- ;Updated to patch 14
  ;Updated in patch2 for CPT codes
  ;Updated in patch3 for CSV
+ ;Patch 8 for snomed problem list
+ ;Patch 9 for ICD-10
 GETICDDX ;ENTRY POINT
  ;IHS/MSC/MGH Code set versioning changes entered
  ;S Y=$P(^ICD9(BHSICD,0),U,1)
- S Y=$$ICDDX^ICDCODE(BHSICD)  ;cmi/anch/maw 8/27/2007 code set version
+ ;Patch 12 changes
+ I $$AICD^BHSUTL S Y=$$ICDDX^ICDEX(BHSICD,"","","I")
+ E  S Y=$$ICDDX^ICDCODE(BHSICD)  ;cmi/anch/maw 8/27/2007 code set version
+ ;Patch 13 changes
  N APCHSDSC
- S APCHSDSC=$$ICDD^ICDCODE($P(Y,U,2),"APCHSDSC")
- S:GMPXICDF="L"!(GMPXICDF="Long text") BHSICD=$P(Y,U,2)_"-"_$S($D(APCHSDSC(1)):$G(APCHSDSC(1)),1:"<DESCRIPTION field missing>")  ;cmi/anch/maw 8/27/20
- S:GMPXICDF="S"!(GMPXICDF="Short text") BHSICD=$P(Y,U,2)_"-"_$S($P(Y,U,4)]"":$P(Y,U,4),1:"<DIAGNOSIS field missing>")  ;cmi/anch/maw 8/27/2007 code
+ ;I $$AICD^BHSUTL B  S APCHSDSC=$$ICDD^ICDEX($P(Y,U,1),.APCHSDSC,$G(BHSCVD))
+ ;E  B  S APCHSDSC=$$ICDD^ICDCODE($P(Y,U,2),.APCHSDSC)
+ S APCHSDSC=$P(Y,U,4)
+ S:GMPXICDF="L"!(GMPXICDF="Long text") BHSICD=$P(Y,U,2)_"-"_$S($D(APCHSDSC):$G(APCHSDSC),1:"<DESCRIPTION field missing>")  ;cmi/anch/maw 8/27/20
+ S:GMPXICDF="S"!(GMPXICDF="Short text") BHSICD=$P(Y,U,2)_"-"_$S($D(APCHSDSC):$G(APCHSDSC),1:"<DIAGNOSIS field missing>")  ;cmi/anch/maw 8/27/2007 code
  S:GMPXICDF="C"!(GMPXICDF="Code only") BHSICD=$P(Y,U,2)
  S:GMPXICDF="T"!(GMPXICDF="Text only") BHSICD=$P(Y,U,4)
- S:GMPXICDF="N"!(GMPXICDF="None") BHSICD=""
+ S:GMPXICDF="N"!(GMPXICDF="None")!(GMPXICDF="") BHSICD=""
+ Q
+GETPLICD ;EP
+ ;IHS/MSC/MGH SNOMED changes
+ I $$AICD^BHSUTL S Y=$$ICDDX^ICDEX(BHSICD,"","","I")
+ E  S Y=$$ICDDX^ICDCODE(BHSICD)  ;cmi/anch/maw 8
+ S BHSICD=$P(Y,U,2)
  Q
 GETICDOP ;ENTRY POINT
  ;Patch 2 Code set versioning changed
  ;S Y=$P(^ICD0(BHSICD,0),U,1)
- S Y=$$ICDOP^ICDCODE(BHSICD)
- ;S:GMPXICDF="L" BHSICD=Y_"-"_$S($D(^ICD0(BHSICD,1)):$P(^(1),U,1),1:"<DESCRIPTION field missing>")
- S:GMPXICDF="L" BHSICD=$P(Y,U,2)_"-"_$S($D(^ICD0(BHSICD,1)):$P(^(1),U,1),1:"<DESCRIPTION field missing>")
- ;S:GMPXICDF="S" BHSICD=Y_"-"_$S($D(^ICD0(BHSICD,0)):$P(^(0),U,4),1:"<OPERATION/PROCEDURE field missing>")
- S:GMPXICDF="S" BHSICD=$P(Y,U,2)_"-"_$S($P(Y,U,5)]"":$P(Y,U,5),1:"<OPERATION/PROCEDURE field missing>")
- ;S:GMPXICDF="C" BHSICD=Y
- S:GMPXICDF="C" BHSICD=$P(Y,U,2)
+ N BHSXY
+ I $$AICD^BHSUTL S BHSXY=$$ICDOP^ICDEX(BHSICD,"","","I")
+ E  S BHSXY=$$ICDOP^ICDCODE(BHSICD)
+ I $P(BHSXY,U)="-1" S BHSXY=BHSICD_U_$P($G(^ICD0(BHSICD,0)),U,1)_U_U_$$VSTP^AUPNVUTL(BHSICD,$G(BHSCVD))
+ I $$AICD^BHSUTL S BHSDSC=$$ICDD^ICDEX($P(BHSXY,U,2),.BHSDSC,$G(BHSCVD))
+ E  S BHSDSC=$$ICDD^ICDCODE($P(BHSXY,U,2),.BHSDSC,$G(BHSCSVD))
+ S:GMPXICDF="L" BHSICD=$P(BHSXY,U,2)_"-"_$S($D(BHSDSC(1)):$G(BHSDSC(1)),1:"<DESCRIPTION field missing>")
+ S:GMPXICDF="S" BHSICD=$P(BHSXY,U,2)_"-"_$S($P(BHSXY,U,5)]"":$P(BHSXY,U,5),1:"<DIAGNOSIS field missing>")
+ S:GMPXICDF="C" BHSICD=$P(BHSXY,U,2)
  Q
 GETCPT ;ENTRY POINT  PATCH 2
  ;Patch 2Code set versioning changes
  ;S Y=$P(^ICPT(BHSICD,0),U,1)
  S Y=$$CPT^ICPTCOD(BHSICD)
- ;S:GMPXICDF="L" BHSICD=Y_"-"_$S($D(^ICPT(BHSICD,0)):$P(^(0),U,2),1:"<DESCRIPTION field missing>")
  S:GMPXICDF="L" BHSICD=$P(Y,U,2)_"-"_$S($P(Y,U,3)]"":$P(Y,U,3),1:"<DESCRIPTION field missing>")
- ;S:GMPXICDF="S" BHSICD=Y_"-"_$S($D(^ICPT(BHSICD,0)):$P(^(0),U,2),1:"<DESCRIPTION field missing>")
  S:GMPXICDF="S" BHSICD=$P(Y,U,2)_"-"_$S($P(Y,U,3)]"":$P(Y,U,3),1:"<DESCRIPTION field missing>")
- ;S:GMPXICDF="C" BHSICD=Y
  S:GMPXICDF="C" BHSICD=$P(Y,U,2)
  Q
 PRTICD ;ENTRY POINT
@@ -51,6 +62,12 @@ PRTICD ;ENTRY POINT
  D PRTTXT
  Q
  ;
+PRTICDE ;ENTRY POINT
+ I BHSICF="N" S BHSICD=""
+ S:'$D(BHSNTE) BHSNTE=""
+ I BHSNTE]"" S BHSNTE=" "_BHSNTE
+ D PRTTXT
+ Q         ;
 PRTTXT ;PEP - PUBLISHED ENTRY POINT
  ; GENERALIZED TEXT PRINTER
  N BHSQ
@@ -78,7 +95,12 @@ GETFRAG I $L(BHSTXT)<BHSILN S BHSF=BHSTXT,BHSTXT="" Q
  Q
  ;
 GETNARR ;ENTRY POINT
- I BHSNRQ]"",GMPXNARR="Y" S BHSNRQ=$S($D(^AUTNPOV(BHSNRQ)):$P(^AUTNPOV(BHSNRQ,0),U,1),1:"***** "_BHSNRQ_" *****")
+ ;I BHSNRQ]"",GMPXNARR="Y" S BHSNRQ=$S($D(^AUTNPOV(BHSNRQ)):$P(^AUTNPOV(BHSNRQ,0),U,1),1:"***** "_BHSNRQ_" *****")
+ N SNONAR
+ S SNONAR=""
+ I BHSNRQ]"",GMPXNARR="Y" D
+ .S SNONAR=$$SNOMED^AUPNVUTL(BHSNRQ)
+ .S BHSNRQ=$S(SNONAR'="":SNONAR,1:"***** "_BHSNRQ_" *****")
  E  S BHSNRQ=""
  Q
  ;
@@ -153,3 +175,5 @@ GEN1 ;
  Q
 QUIT K DIR,X,Y,BHSLST,BHSCNT
  Q
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")<"4.0":0,1:1)

@@ -1,5 +1,5 @@
 ABSPOSM ; IHS/FCS/DRS - Report Master (.61) ;     [ 09/12/2002  10:12 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,44**;JUN 21, 2001;Build 15
  ;
  ; ABSPOSM1 - takes care of updating of file .61
  ; ABSPOSM2 - some report headers called from Print options

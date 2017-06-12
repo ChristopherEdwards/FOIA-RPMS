@@ -1,7 +1,7 @@
 APCDAPRB ; IHS/CMI/LAB - PROMPT FOR PROBLEM ;
- ;;2.0;IHS PCC SUITE;**5,6**;MAY 14, 2009;Build 11
+ ;;2.0;IHS PCC SUITE;**5,6,10,11,16,17**;MAY 14, 2009;Build 18
  ;
-START ;
+START ;EP
  X:$D(^DD(9000011,.01,12.1)) ^DD(9000011,.01,12.1) S DIC="^ICD9(",DIC(0)="AEMQ",DIC("A")="Enter Problem Diagnosis: " D ^DIC K DIC
  G:Y="" XIT
  I Y=-1,X=""!(X="^") S APCDTSKI=1,APCDLOOK="" G XIT
@@ -65,8 +65,7 @@ NO ;EP add a note to a problem
 NO1 ;EP
  S APCDPROB=APCDPDFN
  I APCDPROB["`" S APCDPROB=$P(APCDPROB,"`",2)
- ;I $G(APCDPR)]"" W !!,"Problem Number: ",APCDPR,?40,"Diagnosis: ",$P(^ICD9($P(^AUPNPROB(APCDPROB,0),U),0),U)
- I $G(APCDPR)]"" W !!,"Problem Number: ",APCDPR,?40,"Diagnosis: ",$P($$ICDDX^ICDCODE($P(^AUPNPROB(APCDPROB,0),U)),U,2)
+ I $G(APCDPR)]"" W !!,"Problem Number: ",APCDPR,?40,"Diagnosis: ",$P($$ICDDX^ICDEX($P(^AUPNPROB(APCDPROB,0),U)),U,2)
  I $O(^AUPNPROB(APCDPROB,11,0)) D
  .W !,"Problem Notes:  " S L=0 F  S L=$O(^AUPNPROB(APCDPROB,11,L)) Q:L'=+L  I $O(^AUPNPROB(APCDPROB,11,L,11,0)) W !?5,$P(^DIC(4,$P(^AUPNPROB(APCDPROB,11,L,0),U),0),U) D
  ..S X=0 F  S X=$O(^AUPNPROB(APCDPROB,11,L,11,X)) Q:X'=+X  W !?10,"Note#",$P(^AUPNPROB(APCDPROB,11,L,11,X,0),U)," ",$$FMTE^XLFDT($P(^(0),U,5),5),?28,$P(^AUPNPROB(APCDPROB,11,L,11,X,0),U,3)
@@ -84,7 +83,7 @@ NUM ;
  W !!,"Adding ",$P(^DIC(4,APCDLOC,0),U)," Note #",X
  K DIC S X=APCDNUM,DA(1)=APCDNIEN,DA(2)=APCDPROB,DIC="^AUPNPROB("_APCDPROB_",11,"_APCDNIEN_",11,",DIC("P")=$P(^DD(9000011.11,1101,0),U,2),DIC(0)="L" D ^DIC K DA,DR
  I Y=-1 W !!,$C(7),$C(7),"ERROR when updating note number multiple",! G NOX
- S DIE=DIC K DIC W ?10 S %=$S($G(APCDDATE):$P(APCDDATE,"."),1:DT),DA=+Y,DR=".03;.05///^S X=%" D ^DIE K DIE,DR,DA,Y W !!
+ S DIE=DIC K DIC W ?10 S %=$S($G(APCDDATE):$P(APCDDATE,"."),1:DT),DA=+Y,DR=".03;.04////A;;.09////^S X=DUZ;.05///^S X=%" D ^DIE K DIE,DR,DA,Y W !!
  S DIE="^AUPNPROB(",DA=APCDPROB,%=$S($G(APCDDATE):$P(APCDDATE,"."),1:DT),DR=".03////"_%_";.14////"_DUZ D ^DIE K DIE,DA,DR,Y
  S DA=APCDPROB
  I '$G(APCDADDP) D PLUDE
@@ -106,6 +105,73 @@ PLUDE ;EP - called from data entry input templates
  ;
  D EN^XBNEW("PLUDE1^APCDAPRB","APCDP;APCDV;APCDD;APCDPRBI;APCDTPRD")
  Q
+QUALP ;EP - called from input templates
+ NEW APCDADDP
+ S APCDADDP=1
+ D ^XBNEW("QUAL1^APCDAPRB:APCD*")
+ Q
+QUAL ;EP add a note to a problem
+ D ^APCDPROB
+ K DIR,DIRUT S DIR(0)="F^1:12",DIR("A")="Enter Problem Number" K DA D ^DIR K DIR
+ G:$D(DIRUT) NOX
+ S APCDPR=Y
+ D ^APCDPLK
+ I APCDPERR=1 W $C(7),$C(7),"Not a valid problem number.",! K APCDPERR G NO
+ ;display existing notes, get next note number
+QUAL1 ;EP
+ S APCDPROB=APCDPDFN
+ I APCDPROB["`" S APCDPROB=$P(APCDPROB,"`",2)
+QUAL2 W !!?3,"Severity:"
+ I '$O(^AUPNPROB(APCDPROB,13,0)) S APCDC=0 W "  None recorded" G FM12
+ D EN^DDIOL($$REPEAT^XLFSTR("-",75),"","!?3")
+ K APCDCM S X=0,APCDC=0 F  S X=$O(^AUPNPROB(APCDPROB,13,X)) Q:X'=+X  D
+ .S APCDC=APCDC+1,APCDCM(APCDC)=X
+ .W !?2,APCDC,")  ",$$GET1^DIQ(9000011.13,X_","_APCDPROB,.01)
+FM12 ;
+ D EN^DDIOL("","","!!")
+ K DIR
+ S DIR(0)="S^A:Add a Severity"_$S(APCDC:";E:Edit an Existing Severity;D:Delete an Existing Severity",1:"")_";N:No Change"
+ S DIR("A")="Which action",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) G FM13
+ I Y="N" S APCDDONE=1 G FM13
+ S Y="FM"_Y
+ D @Y
+ G QUAL2
+FM13 ; 
+ K Y
+ Q
+ ;
+FME ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_APCDC_":0",DIR("A")="Edit Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ K DIC,DA,DR
+ I $P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2)]"",$P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2)'=DUZ D  Q
+ .W !!,"You did not enter that Severity, therefore you cannot edit it.  It was entered by:",!,$P(^VA(200,$P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2),0),U,1),! Q
+ S DA=APCDCM(Y),DR=".01",DA(1)=APCDPROB
+ S DIE="^AUPNPROB("_APCDPROB_",13,"
+ D ^DIE
+ K DIE
+ Q
+FMD ;
+ D EN^DDIOL("","","!")
+ K DIR
+ S DIR(0)="N^1:"_APCDC_":0",DIR("A")="Delete Which One" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I $P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2)]"",$P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2)'=DUZ D  Q
+ .W !!,"You did not enter that qualifier, therefore you cannot delete it.  It was entered by:",!,$P(^VA(200,$P(^AUPNPROB(APCDPROB,13,APCDCM(Y),0),U,2),0),U,1),! Q
+ K DIC,DA,DR
+ S DA=APCDCM(Y),DA(1)=APCDPROB,DIK="^AUPNPROB("_APCDPROB_",13," D ^DIK K DA,DIK
+ Q
+FMA ;
+ S DIR(0)="FO^1:30",DIR("A")="Enter Qualifier" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I Y="" Q
+ S DIC(0)="L",DIC="^AUPNPROB("_APCDPROB_",13,",DIC("DR")=".02////"_DUZ_";.03///^S X=$$NOW^XLFDT;.04////"_DUZ_";.05///^S X=$$NOW^XLFDT",DA(1)=APCDPROB
+ D FILE^DICN
+ Q
+ ;
 PLUDE1 ;EP - called from xbnew
  ;get date pl updated
  S DIR(0)="D^::EPTSX",DIR("A")="Enter the Date the Problem List was Updated by the Provider"
@@ -227,7 +293,8 @@ ANYACTP(P,EDATE) ;EP - does this patient have any active problems?
  S Z=0
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(Z)  D
  .Q:'$D(^AUPNPROB(X,0))
- .Q:$P(^AUPNPROB(X,0),U,12)'="A"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .I EDATE,$P(^AUPNPROB(X,0),U,8)>EDATE Q
  .S Z=1
  .Q
@@ -249,4 +316,39 @@ PLR1 ;
  D ^APCDALVR
  I $D(APCDALVR("APCDAFLG")) S RETVAL=0_"^Error creating V UPDATED/REVIEWED entry.  PCC not updated."
  K APCDALVR
+ Q
+CPS ;EP - CALLED FROM INPUT TEMPLATE APCD CPS TO UPDATE PROBLEM STATUS
+ NEW APCDADFN
+ S APCDADFN=DA
+ D EN^XBNEW("CPS1^APCDAPRB","APCDADFN")
+ K APCDADFN
+ Q
+CPS1 ;EP
+ ;CALL READER TO GET VALUE
+ S DIR(0)="SBA^A:CHRONIC;I:INACTIVE;S:SUB-ACUTE;E:EPISODIC;O:SOCIAL;R:ROUTINE/ADMIN"
+ S DIR("A")="  STATUS: ",DIR("B")=$$VAL^XBDIQ1(9000011,APCDADFN,.12) KILL DA D ^DIR KILL DIR
+ S DIR("?")="NOTE: You cannot delete a problem with this mnemonic, use RPO to delete a problem."
+ KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ S DIE="^AUPNPROB(",DA=APCDADFN,DR=".12///"_Y
+ D ^DIE
+ K DA,DIE,DR
+ Q
+CPSA ;EP - CALLED FROM INPUT TEMPLATE APCD CPS TO UPDATE PROBLEM STATUS
+ NEW APCDADFN
+ S APCDADFN=DA
+ D EN^XBNEW("CPSA1^APCDAPRB","APCDADFN")
+ K APCDADFN
+ Q
+CPSA1 ;EP
+ ;CALL READER TO GET VALUE
+ S DIR(0)="SBA^A:CHRONIC;I:INACTIVE;S:SUB-ACUTE;E:EPISODIC;O:SOCIAL;R:ROUTINE/ADMIN"
+ S DIR("?")="This is the current activity status of this problem.  If more detail, is needed, a notation may be filed with this problem"
+ S DIR("A")="  STATUS: ",DIR("B")="CHRONIC" KILL DA D ^DIR KILL DIR
+ KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W "^ not allowed" G CPSA1
+ I Y="" W "  Required" G CPSA1
+ S DIE="^AUPNPROB(",DA=APCDADFN,DR=".12///"_Y
+ D ^DIE
+ K DA,DIE,DR
  Q

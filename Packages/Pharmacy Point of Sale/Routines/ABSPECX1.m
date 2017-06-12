@@ -1,5 +1,5 @@
 ABSPECX1 ; IHS/FCS/DRS - JWS 03:35 PM 6 Jun 1995 ;   [ 09/12/2002  10:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,42**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;Create new Claim ID for Claim Submission file (9002313.02)
  ;

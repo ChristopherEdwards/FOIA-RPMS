@@ -1,5 +1,5 @@
 AVAP2 ; DSD/GTH - AVA 93.2 PATCH 2, FILE SECURITY ; [ 10/21/93  3:34 PM ]
- ;;93.2;VA SUPPORT FILES;**2**;JUL 01, 1993
+ ;;93.2;VA SUPPORT FILES;**2**;JUL 01, 1993;Build 8
  ;
  W !!,"Resetting file protection for files 5 (STATE) and 16 (PERSON)"
  W !,"to pre-d93.2 values."

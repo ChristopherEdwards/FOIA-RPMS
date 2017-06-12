@@ -1,5 +1,5 @@
 APCLTAXI ; IHS/CMI/LAB - INTERFACE TO SELECT ICD CODES ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in DISPLAY
  ;
@@ -48,9 +48,9 @@ X2 Q
 DISPLAY ;EP - SHOW CODES IN RANGE SELECTED
  W:$D(IOF) @IOF
  ;W !!,"ICD codes in this range =>",!! W $P(APCL("LOW")," ") S APCLDFN=$O(^ICD0("BA",APCL("LOW"),"")) W ?9,$P(^ICD0(APCLDFN,0),U,3)  ;cmi/anch/maw 9/12/2007 orig line
- W !!,"ICD codes in this range =>",!! W $P(APCL("LOW")," ") S APCLDFN=$O(^ICD0("BA",APCL("LOW"),"")) W ?9,$P($$ICDOP^ICDCODE(APCLDFN),U,4)  ;cmi/anch/maw 9/12/2007 csv
+ W !!,"ICD codes in this range =>",!! W $P(APCL("LOW")," ") S APCLDFN=$O(^ICD0("BA",APCL("LOW"),"")) W ?9,$P($$ICDOP^ICDEX(APCLDFN,"","","I"),U,4)  ;cmi/anch/maw 9/12/2007 csv
  ;S APCL=APCL("LOW"),APCLCNT=IOSL-2 F  S APCL=$O(^ICD0("BA",APCL)) Q:APCL]APCL("HI")  S APCLDFN=$O(^(APCL,"")) W !,$P(APCL," "),?9,$P(^ICD0(APCLDFN,0),U,3) S APCLCNT=APCLCNT-1 I APCLCNT=0 S APCLCNT=IOSL-2 D  I APCLR=U Q  ;cmi/maw orig line
- S APCL=APCL("LOW"),APCLCNT=IOSL-2 F  S APCL=$O(^ICD0("BA",APCL)) Q:APCL]APCL("HI")  S APCLDFN=$O(^(APCL,"")) W !,$P(APCL," "),?9,$P($$ICDOP^ICDCODE(APCLDFN),U,4) S APCLCNT=APCLCNT-1 I APCLCNT=0 S APCLCNT=IOSL-2 D  I APCLR=U Q  ;cmi/maw csv
+ S APCL=APCL("LOW"),APCLCNT=IOSL-2 F  S APCL=$O(^ICD0("BA",APCL)) Q:APCL]APCL("HI")  S APCLDFN=$O(^(APCL,"")) W !,$P(APCL," "),?9,$P($$ICDOP^ICDEX(APCLDFN,"","","I"),U,4) S APCLCNT=APCLCNT-1 I APCLCNT=0 S APCLCNT=IOSL-2 D  I APCLR=U Q
 A1 . R !,"<>",APCLR:DTIME W:APCLR["?" " Enter ""^"" to stop display, return to continue" G:APCLR["?" A1
  I $S('$D(APCLR):1,APCLR'=U:1,1:0) R !!,"Press return to continue",APCLR:DTIME
  W !

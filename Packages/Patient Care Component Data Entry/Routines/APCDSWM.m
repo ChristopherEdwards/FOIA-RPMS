@@ -1,5 +1,5 @@
 APCDSWM ; IHS/CMI/LAB - SWITCH TO V FILE ;
- ;;2.0;IHS PCC SUITE;**4,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**4,5,10**;MAY 14, 2009;Build 88
  ;
  ; APCDSWD=DICTIONARY NUMBER
  ; APCDSWCR=LINKING CROSS REFERENCE
@@ -69,9 +69,68 @@ ENTINERR(APCDSWDA) ;EP
  W !?10,"3    INCORRECT PATIENT"
  W !?10,"4    INVALID RECORD"
  S DA=APCDSWDA,DIE("NO^")=1,DIE="^AUPNVMSR(",DR="[APCD MEAS ENTERED IN ERROR]" D ^DIE K DA,DR,DIE
+ S T=$$GET1^DIQ(9000010.01,APCDSWDA,.01)
+ I T="WT"!(T="HT") D EIE^APCDBMI(APCDSWDA) Q  ;DELETE BMI AND BMIP on this visit that were from this WT
  Q
 MODQUAL ;
  I '$D(APCDSWDA) Q
  I '$D(^AUPNVMSR(APCDSWDA,0)) W !!,"invalid v measurement...." Q
  S DA=APCDSWDA,DIE="^AUPNVMSR(",DR=5 D ^DIE K DA,DR,DIE
+ Q
+EPCOAG ;EP
+ D EN^XBNEW("ENCOAG^APCDSWM","APCDVSIT;APCDMNE;APCDSWMV;APCDSWMT")
+ Q
+ENCOAG ;
+ NEW APCDSWDA,APCDSWMV,APCDVM01,APCDVM04,APCDSWCT,APCDSWA,APCDSWAN,APCDSWX,APCDSWT,APCDSWI
+ NEW X,Y,DIR
+EN0COAG ;
+ W !!,"Please Note:  You are NOT permitted to edit/delete an Anti-Coagulation entry."
+ W !,"It can only marked as 'entered in error'."
+ ;
+ S APCDSWCT=0
+ K APCDSWA
+ S APCDSWDA=0 F  S APCDSWDA=$O(^AUPNVACG("AD",APCDVSIT,APCDSWDA)) Q:APCDSWDA'=+APCDSWDA  D
+ .Q:$P($G(^AUPNVACG(APCDSWDA,1)),U,1)  ;don't display those entered in error
+ .S APCDVM01=$$VAL^XBDIQ1(9000010.51,APCDSWDA,.01)
+ .S APCDVM04=$$VAL^XBDIQ1(9000010.51,APCDSWDA,.04)
+ .I $G(APCDSWMT)]"",APCDVM01'=APCDSWMT Q
+ .S APCDSWCT=APCDSWCT+1
+ .S APCDSWA(APCDSWCT)=APCDSWDA
+ I '$D(APCDSWA) W !!,"There are no ",$S($G(APCDSWMV)]"":APCDSWMV_" ",1:""),"Anti-Coag entries on this visit." Q
+ D SELECTC
+ Q
+ ;
+SELECTC ;
+ ;select the entry to delete
+ W !,"Please choose which anti-coagulation entry you would like to mark 'Entered"
+ W !,"in Error',if you do not wish to mark any in error, simply press 'enter' to ",!,"bypass."
+ S APCDSWX=0,APCDSWT=0 F  S APCDSWX=$O(APCDSWA(APCDSWX)) Q:APCDSWX'=+APCDSWX  D
+ .S APCDSWDA=APCDSWA(APCDSWX),APCDSWT=APCDSWX
+ .S APCDVM01=$$VAL^XBDIQ1(9000010.51,APCDSWDA,.01)
+ .S APCDVM04=$$VAL^XBDIQ1(9000010.51,APCDSWDA,.04)
+ .W !?2,APCDSWX,")",?7,APCDVM01,?14,APCDVM04
+ K DIR
+ W !
+ S DIR(0)="NO^1:"_APCDSWT_":0",DIR("A")="Which Entry",DIR("?")="Enter a number from the list above (1-"_APCDSWT_" or 'N' to exit." KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I X="" Q
+ I Y="" Q
+ I '$D(APCDSWA(X)) W !,"Invalid response.  Please enter a number from 1 to ",APCDSWT," or N." G SELECTM
+ S APCDSWI=Y
+ S APCDSWDA=APCDSWA(X)
+ K DIR
+ W !,"You have selected: ",$$VAL^XBDIQ1(9000010.51,APCDSWDA,.01),"   INR GOAL: ",$$VAL^XBDIQ1(9000010.51,APCDSWDA,.04)
+ S DIR(0)="Y",DIR("A")="Are you sure you want to mark this entry entered in error",DIR("B")="Y" KILL DA D ^DIR KILL DIR
+ Q:'Y
+ Q:$D(DIRUT)
+ D COAGERR(APCDSWDA)
+ Q
+COAGERR(APCDSWDA) ;EP
+ I '$D(APCDSWDA) Q
+ I '$D(^AUPNVACG(APCDSWDA,0)) W !!,"invalid v anti-coagt...." Q
+ W !,"Please enter the reason the entry was entered in error.  Choices are:"
+ W !?10,"D    DUPLICATE"
+ W !?10,"E    ENTERED IN ERROR"
+ W !?10,"O    OTHER"
+ S DA=APCDSWDA,DIE("NO^")=1,DIE="^AUPNVACG(",DR="[APCD COAG ENTERED IN ERROR]" D ^DIE K DA,DR,DIE
  Q

@@ -1,5 +1,5 @@
-BLRLUAC8 ; IHS/OIT/MKK - IHS LRUPAC 8, error in compilation report ; [ 05/15/11  7:50 AM ]
- ;;5.2;LR;**1030**;NOV 01, 1997
+BLRLUAC8 ; IHS/OIT/MKK - IHS LRUPAC 8, error in compilation report ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1030,1034**;NOV 01, 1997;Build 88
  ;;
 REPTERRS ; EP -- Report on Errors during compilation
  NEW BLRVERN,COMPDATE,DFN,ERRDESC,DATANAME,DATANDES
@@ -276,9 +276,16 @@ VLABDET ; EP
  W ?2,"ORDERING DATE:",$P(STR,"^",11)
  W ?40,"RESULT DATE AND TIME: ",$P(STR,"^",12)
  W !
- W ?2,"ANCILLARY POV: ",$G(^ICD9(+$P(STR,"^",13),0))
+ ; W ?2,"ANCILLARY POV: ",$G(^ICD9(+$P(STR,"^",13),0))
+ W ?2,"ICD: ",$$GET1^DIQ(9000010.09,VLABIEN,"ICD CODE")    ; IHS/MSC/MKK - LR*5.2*1034
  W ?40,"ORDERING LOCATION: ",$E($P($G(^SC(+$P(STR,"^",15),0)),"^"),1,25)
  W !
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ ; Display PROVIDER NARRATIVE and first SNOMED Code
+ W ?2,"SNOMED: ",$$GET1^DIQ(9000010.0926,1_","_VLABIEN,"SNOMED CT")
+ D LINEWRAP^BLRGMENU(40,$$GET1^DIQ(9000010.09,VLABIEN,"PROVIDER NARRATIVE"),40)
+ W !
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
  Q
  ;
 REPTERRC ; EP -- Report on Errors during compilation, Count version

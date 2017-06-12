@@ -1,5 +1,5 @@
 BYIMIMM3 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6,7**;JUN 01, 2015;Build 242
  ;;CONTINUATION OF BYIMIMM
  ;
  ;-----
@@ -240,7 +240,9 @@ HRN(INDA) ;EP;TO RETURN THE HRN CODE
  S LOC=$P($G(^DIC(4,XX,0)),U)
  S ASUFAC=$P($G(^AUTTLOC(XX,0)),U,10)
  S ASUFAC=$E("000000",1,6-$L(ASUFAC))_ASUFAC
- S XX=ASUFAC_HRN_CS_CS_CS_LOC_CS_"MR"
+ ;PATCH 7 ENSURE LOC 20 CHARACTERS OR LESS
+ ;S XX=ASUFAC_HRN_CS_CS_CS_LOC_CS_"MR"
+ S XX=ASUFAC_HRN_CS_CS_CS_$E(LOC,1,20)_CS_"MR"
  S X="DUZ(2)"
  S @X=BYIMDUZ(2)
  Q XX
@@ -261,20 +263,22 @@ RACE(INDA) ;EP;TO RETURN RACE
  S:X=""!(X=U) X=$P($G(^AUPNPAT(INDA,11)),U,11)
  S:X=1 X="1002-5^AMERICAN INDIAN OR ALASKA NATIVE"
  S:$P(X,U,2)="" X="2131-1^OTHER RACE"
- S:X["0000-0" X="2131-1^OTHER RACE"
+ ;PATCH 7 USE 'OTHER' IF NO RACE ON FILE
+ ;S:X["0000-0" X="2131-1^OTHER RACE"
+ S:X["0000-0"!(X["9999-4") X="2131-1^OTHER RACE"
  Q (X_"^HL70005")
  ;-----
 ETH(DFN)  ;EP;TO RETURN ETHNICITY
  N X,Y,Z
  S Z=""
- I '$O(^DPT(+$G(DFN),.06,0)) S Z="^UNKNOWN^CDCREC" Q Z
+ I '$O(^DPT(+$G(DFN),.06,0)) S Z="2186-5^NOT HISPANIC OR LATINO^CDCREC" Q Z
  S X=0
  F  S X=$O(^DPT(DFN,.06,X)) Q:'X  D
  .S Y=$P($G(^DIC(10.2,X,0)),U,3)_U_$P($G(^DIC(10.2,X,0)),U)
  .Q:Y=U
  .S Y=Y_"^CDCREC"
  .S Z=$S(Z]"":(Z_"~"),1:"")_Y
- S:Z=""!(Z["0000")!(Z["9999") Z="^UNKNOWN^CDCREC"
+ S:Z=""!(Z["0000")!(Z["9999") Z="2186-5^NOT HISPANIC OR LATINO^CDCREC" Q Z
  Q Z
  ;-----
 TEST ;EP;CREATE & SEND TEST MESSAGES
@@ -310,12 +314,16 @@ TEST ;EP;CREATE & SEND TEST MESSAGES
  K ^BYIMTMP($J,"BYIM EXP")
  N XX,X,Y,Z,DOB,DFN,VIS,J
  S J=0
- S XX=$P(^AUPNVIMM(0),U,3)-$R(1000)
- F  S XX=$O(^AUPNVIMM(XX),-1) Q:'XX!(J>(BYIMTEST-1))  S X=^(XX,0) D
- .S DFN=$P(X,U,2)
- .S VIS=$P(X,U,3)
+ S VIS=$P(^AUPNVIMM(0),U,3)-$R(100)
+ F  S VIS=$O(^AUPNVIMM("AD",VIS),-1) Q:'VIS!(J>(BYIMTEST-1))  D
+ .S X=$O(^AUPNVIMM("AD",VIS,0))
+ .Q:'X
+ .S X=$G(^AUPNVIMM(X,0))
+ .S DFN=+$P(X,U,2)
+ .Q:'DFN
+ .Q:$G(^DPT(DFN,.35))
  .Q:$D(^BYIMTMP($J,"BYIM EXP",DFN))
- .S DOB=$P(^DPT(DFN,0),U,3)
+ .S DOB=$P($G(^DPT(DFN,0)),U,3)
  .I '$P($G(^BYIMPARA(DUZ(2),0)),U,6) Q:DOB<(DT-180000)
  .S ^BYIMTMP($J,"BYIM EXP",DFN,VIS)=""
  .S J=J+1
@@ -369,7 +377,9 @@ PROT(INDA) ;EP;TO DETERMINE PROTECTION FLAG
  N X
  S X=$P($G(^BIP(+$G(INDA),0)),U,24)
  I $G(BYIMVER)<2.5 S X=$S(X=1:"Y",X=0:"N",1:"")
- I $G(BYIMVER)>2.5 S X=$S(X=1:"N",X=0:"Y",1:"")
+ ;PATCH 7 CORRECT VERSION CHECK LOGIC
+ ;I $G(BYIMVER)>2.5 S X=$S(X=1:"N",X=0:"Y",1:"")
+ I $G(BYIMVER)>2.49 S X=$S(X=1:"N",X=0:"Y",1:"")
  Q X
  ;-----
 PROTDT(INDA) ;EP;TO DETERMINE PROTECTION FLAG
@@ -417,8 +427,10 @@ IVFS(INDA) ;EP;TO RETURN IMMUNIZATION SPECIFIC VFC CODE
  N X,Y,Z,ZD,VFC
  S X=+$P($G(^AUPNVIMM(+INDA,0)),U,5)
  S Y=$P($G(^AUTTIML(X,0)),U,13)
- S Z=$S(Y="v":"VXC1",Y="o":"VXC2",Y="i":"VXC3",1:"UNK")
- S ZD=$S(Y="v":"Federal funds",Y="o":"State funds",Y="i":"Tribal funds",1:"Unspecified")
+ ;S Z=$S(Y="v":"VXC1",Y="o":"VXC2",Y="i":"VXC3",1:"UNK")
+ S Z=$S(Y="v":"VXC1",Y="o":"VXC2",Y="i":"VXC3",1:"VXC1")
+ ;S ZD=$S(Y="v":"Federal funds",Y="o":"State funds",Y="i":"Tribal funds",1:"Unspecified")
+ S ZD=$S(Y="v":"Federal funds",Y="o":"State funds",Y="i":"Tribal funds",1:"Federal funds")
  S X=Z_CS_ZD_CS_"CDCPHINVS"
  Q X
  ;-----
@@ -454,5 +466,69 @@ DIRECT ;EP;DIRECT FIND OF PATIENT
  .I $P(Z,U,3)'=DOB,$P(Z,U,2)=SEX S MM="DOB"
  S:$G(DFN) Y=DFN
  S:$G(MM)="" MM="NAME"
+ Q
+ ;-----
+SEL ;EP;TO SELECT SPECIFIC PATIENTS TO RE-EXPORT
+ K ^BYIMTMP($J,"BYIM EXP")
+ N Y
+ S Y=$P($G(^BYIMPARA(DUZ(2),0)),U,6)
+ S YEARS=$S('Y:19,Y=1:65,1:99)
+ S CHILD=$S('Y:"Children",1:"Patients")
+ D SPAT
+ Q:'$D(^BYIMTMP($J,"BYIM EXP"))
+ N BYIMALL
+ S BYIMALL=2
+ K DIR
+ S DIR(0)="YO"
+ S DIR("A")="Proceed with export of selected patients"
+ S DIR("B")="NO"
+ W !!
+ D ^DIR
+ K DIR
+ Q:'Y
+ S MSGCNT=BYIMJ
+ S XX=$P($H,",",2)
+ N DDATE
+ S (DDATE,DDDATE)=$O(^BYIMPARA(DUZ(2),"LAST EXPORT",9999999999),-1)
+ D DEX^BYIMIMM
+ Q
+ ;-----
+SPAT ;SELECT PATIENTS
+ N BYIMQUIT
+ S BYIMQUIT=""
+ S BYIMJ=0
+ F  D SPAT1 Q:BYIMQUIT
+ K BYIMQUIT
+ Q
+ ;-----
+SPAT1 ;SELECT EACH PATIENT
+ W @IOF
+ W !!?10,"Export selected patients"
+ W !!?10,"An export file will be created for selected patients:"
+ W !!
+ S X=0
+ F  S X=$O(^BYIMTMP($J,"BYIM EXP",X)) Q:'X  D
+ .S Y=$P($G(^DPT(X,0)),U)
+ .Q:Y=""
+ .W !?10,Y
+ W !!
+ K DIC
+ S DIC="^DPT("
+ S DIC(0)="AMEQZ"
+ S DIC("A")="Select patient to export: "
+ S DIC("S")="I $O(^AUPNVIMM(""AC"",+Y,0))"
+ D ^DIC
+ K DIC,DR,DA,DIE
+ I Y<1 S BYIMQUIT=1 Q
+ N XX,X,Z,DOB,DFN,VIS,J
+ S DFN=+Y
+ Q:$D(^BYIMTMP($J,"BYIM EXP",DFN))
+ S XX=$O(^AUPNVIMM("AC",DFN,9999999999),-1)
+ Q:'XX
+ S X=$G(^AUPNVIMM(XX,0))
+ S VIS=$P(X,U,3)
+ Q:'VIS
+ S ^BYIMTMP($J,"BYIM EXP",DFN,VIS)=""
+ S BYIMJ=BYIMJ+1
  Q
  ;-----

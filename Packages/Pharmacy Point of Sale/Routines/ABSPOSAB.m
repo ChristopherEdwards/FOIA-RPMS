@@ -1,5 +1,5 @@
 ABSPOSAB ; IHS/FCS/DRS - various modem commands ;     [ 06/28/2002  5:28 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001;Build 15
  Q
  ; Low-level IO routines which:
  ; *   take DIALOUT as an argument

@@ -1,5 +1,5 @@
-BGP7XTV ; IHS/CMI/LAB - DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7XTV ; IHS/CMI/LAB - DISPLAY IND LISTS 15 Dec 2010 9:42 AM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;; ;
 EP ;EP - CALLED FROM OPTION
  D EN
@@ -9,7 +9,7 @@ EOJ ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for 
- D EN^VALM("BGP 07 TAXONOMY VIEW")
+ D EN^VALM("BGP 17 TAXONOMY VIEW")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -22,16 +22,19 @@ HDR ; -- header code
  ;
 INIT ;EP -- init variables and list array
  K BGPTAX S BGPHIGH="",C=0,J=0
- S BGPT="" F  S BGPT=$O(^BGPTAXA("B",BGPT)) Q:BGPT=""  D
- .S BGPY=$O(^BGPTAXA("B",BGPT,0))
- .Q:'$O(^BGPTAXA(BGPY,12,0))
- .S BGPTYPE=$P(^BGPTAXA(BGPY,0),U,2),BGPDESC=$G(^BGPTAXA(BGPY,11,1,0)),BGPEDIT=$P(^BGPTAXA(BGPY,0),U,4),J=J+1
- .I BGPTYPE'="L" D
+ S BGPT=""
+ F  S BGPT=$O(^BGPTAXG("B",BGPT)) Q:BGPT=""  D
+ .S BGPY=$O(^BGPTAXG("B",BGPT,0))
+ .Q:'$O(^BGPTAXG(BGPY,12,0))
+ .S BGPTYPE=$P(^BGPTAXG(BGPY,0),U,2),BGPDESC=$G(^BGPTAXG(BGPY,11,1,0)),BGPEDIT=$P(^BGPTAXG(BGPY,0),U,4)
+ .I BGPTYPE'="L" D  Q:'I
  ..S I=$O(^ATXAX("B",BGPT,0))
- .I BGPTYPE="L" D
+ .I BGPTYPE="L" D  Q:'I
  ..S I=$O(^ATXLAB("B",BGPT,0))
+ .S J=J+1
+SET .;
  .S BGPTAX(J,0)=J_")  "_BGPT
- .S $E(BGPTAX(J,0),38)=$$VAL^XBDIQ1(90530.08,BGPY,.02)
+ .S $E(BGPTAX(J,0),38)=$$VAL^XBDIQ1(90558.08,BGPY,.02)
  .S $E(BGPTAX(J,0),55)=BGPDESC
  .S BGPTAX("IDX",J,J)=I_U_$S(BGPTYPE'="L":"T",1:"L")_U_BGPY
  .S C=C+1
@@ -41,16 +44,16 @@ INIT ;EP -- init variables and list array
  ;
  ;
  K BGPTAX S BGPHIGH="",C=0
- S T="",J=0,C=0 F  S T=$O(^BGPTAXA("B",T)) Q:T=""  D
- .S Y=0 F  S Y=$O(^BGPTAXA("B",T,Y)) Q:Y'=+Y  D
- ..S N=^BGPTAXA(Y,0)
+ S T="",J=0,C=0 F  S T=$O(^BGPTAXG("B",T)) Q:T=""  D
+ .S Y=0 F  S Y=$O(^BGPTAXG("B",T,Y)) Q:Y'=+Y  D
+ ..S N=^BGPTAXG(Y,0)
  ..S Z=$P(N,U,2)  ;TYPE
  ..I Z="L" S BGPT=$O(^ATXLAB("B",T,0))
  ..I Z'="L" S BGPT=$O(^ATXAX("B",T,0))
  ..I Z="" Q
  ..S J=J+1
- ..S BGPTAX(J,0)=J_")  "_T,$E(BGPTAX(J,0),39)=$$VAL^XBDIQ1(90530.08,Y,.02) D
- ...S A="",B=0 F  S B=$O(^BGPTAXA(Y,12,B)) Q:B'=+B  S R=$P(^BGPTAXA(Y,12,B,0),U) S:A]"" A=A_";" S A=A_$S(R=1:"National GPRA",R=2:"Local CRS",R=3:"HEDIS",R=4:"ELDER",R=5:"CMS",1:"")
+ ..S BGPTAX(J,0)=J_")  "_T,$E(BGPTAX(J,0),39)=$$VAL^XBDIQ1(90558.08,Y,.02) D
+ ...S A="",B=0 F  S B=$O(^BGPTAXG(Y,12,B)) Q:B'=+B  S R=$P(^BGPTAXG(Y,12,B,0),U) S:A]"" A=A_";" S A=A_$S(R=1:"National GPRA",R=2:"Local CRS",R=3:"HEDIS",R=4:"ELDER",R=5:"CMS",1:"")
  ...S $E(BGPTAX(J,0),60)=A
  ..S BGPTAX("IDX",J,J)=BGPT_U_Z_U_Y
  ..S C=C+1

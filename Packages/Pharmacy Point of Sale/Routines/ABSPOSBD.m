@@ -1,5 +1,5 @@
 ABSPOSBD ; IHS/FCS/DRS - POS billing - background ;      [ 06/22/2001  2:14 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**22,28,32,36**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**22,28,32,36**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/RLT - 09/12/07 - Patch 22
  ; Added code to hold claims from being sent to 3PB if the site

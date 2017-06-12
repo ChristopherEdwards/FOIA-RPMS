@@ -1,8 +1,8 @@
 ABMDE9C ; IHS/ASDST/DMJ - Edit Page 9 - UB-82 CODES ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,14**;NOV 12, 2009;Build 238
  ;
- ; IHS/SD/SDR - v2.5 p8 - IM13796
- ;    <UNDEF>LOOP^ABMDE9C
+ ; IHS/SD/SDR - v2.5 p8 - IM13796 - <UNDEF>LOOP^ABMDE9C
+ ;IHS/SD/SDR - 2.6*14 - HEAT163734 - corrected misspelling
  ;
 DISP ;EP - Entry Point for Occurance Codes
  K ABMZ S ABMZ("TITL")="OCCURRENCE CODES",ABMZ("PG")="9A"
@@ -11,7 +11,8 @@ DISP ;EP - Entry Point for Occurance Codes
  ;D HD  ;abm*2.6*11 HEAT87226
  ;
 OCCR ; Occurance codes
- S ABMZ("SUB")=51,ABMZ("DR")=";W !;.02",ABMZ("ITEM")="Occurance Code",ABMZ("DIC")="^ABMDCODE(",ABMZ("X")="DINUM",ABMZ("MAX")=5
+ ;S ABMZ("SUB")=51,ABMZ("DR")=";W !;.02",ABMZ("ITEM")="Occurance Code",ABMZ("DIC")="^ABMDCODE(",ABMZ("X")="DINUM",ABMZ("MAX")=5  ;abm*2.6*14 HEAT163734
+ S ABMZ("SUB")=51,ABMZ("DR")=";W !;.02",ABMZ("ITEM")="Occurrence Code",ABMZ("DIC")="^ABMDCODE(",ABMZ("X")="DINUM",ABMZ("MAX")=5  ;abm*2.6*14 HEAT163734
  ;G LOOP  ;abm*2.6*11 HEAT87226
  D HD G LOOP  ;abm*2.6*11 HEAT87226
 HD W !?6,"OCCR"

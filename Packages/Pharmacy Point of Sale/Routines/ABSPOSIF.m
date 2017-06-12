@@ -1,5 +1,5 @@
 ABSPOSIF ; IHS/FCS/DRS - handle FIND command ;   [ 09/12/2002  10:11 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,46**;JUN 21, 2001;Build 15
  ; "FIND" - when typed at Prescription field, here's what happens
  Q
 TEST N RETVAL S RETVAL=$$RXFIND()

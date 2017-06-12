@@ -1,5 +1,5 @@
 ACHSBMC ; IHS/ITSC/PMF - RCIS INTERFACE SUBROUTINES ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,10,11,13,16,22**;JUN 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,10,11,13,16,22,23**;JUN 11,2001;Build 37
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 -Remove ref to non-package global
  ;3.1*10 4.19.04 IHS/OIT/FCJ ADD OPT FOR CALLS FR THE DEN PKG
  ;   TO SET DEFAULT VARS & CLOSE THE REF AFTER ISSUED DEN
@@ -9,6 +9,7 @@ ACHSBMC ; IHS/ITSC/PMF - RCIS INTERFACE SUBROUTINES ;
  ;3.1*13 8.30.06 IHS/OIT/FCJ ADD UPDATE FOR APPEAL, MULT CHG TO PASS SQA
  ;ACHS*3.1*16 11/3/2009 IHS.OIT.FCJ FX FOR FY 10
  ;ACHS*3.1*22 IHS.OIT.FCJ ADDED DELETE DX FR RCIS AND SELECTING APPRV REFS
+ ;ACHS*3.1*23 IHS.OIT.FCJ ADDED SELECTING APPROVED FR DENIAL OPTION
  ;
 ADD ;EP - link P.O. to referral
  I '$$LINK W !,"The link to the Referral system is not on." Q
@@ -40,6 +41,7 @@ AUTH ;EP - Update the P.O. status in REF
  I '$$LINK Q
  I $$DOC^ACHS(0,12)=4 D  Q  ; If P.O. is canceled, delete.
  .D AUTH^BMCCHS(ACHSREF,ACHSDIEN,"D")
+ .K DIC,DIADD,LAYGO  ; ACHS*3.1*23
  .I '$$DIE^ACHS("62///@")
  N ACHS,ACHSTIEN
  S ACHS(.02)=$$DOC^ACHS(0,9)
@@ -59,6 +61,7 @@ AUTH ;EP - Update the P.O. status in REF
  S ACHS(.09)=$$DOC^ACHS(0,8)
  ;
  D AUTH^BMCCHS(ACHSREF,ACHSDIEN,"P",.ACHS)
+ K DIC,DIADD,LAYGO  ; ACHS*3.1*23
  I '$$DIE^ACHS("62////"_ACHSREF)
  Q
  ; ----------------------------
@@ -76,6 +79,7 @@ DX ;EP - Trans DX info to RCIS.
  .;The first DX on the EOBR is the primary DX.
  .S ACHS(.05)=$S(ACHSDX=1:"P",1:"S")
  .D DXA^BMCCHS(ACHS(.03),.ACHS)
+ K DIC,DLAYGO  ; ACHS*3.1*23
  Q
 DX1 ;EP;UPDATE FOR ICD9 FIX ;ACHS*3.1*22 ADDED CALL TO DELETE DX IN RCIS
  ; ACHSDIEN = P.O. IEN, "D" level req
@@ -92,6 +96,7 @@ DX1 ;EP;UPDATE FOR ICD9 FIX ;ACHS*3.1*22 ADDED CALL TO DELETE DX IN RCIS
  ;DEL
  S ACHS(.01)=ACHSICDO
  D DXD^BMCCHS(ACHS(.03),.ACHS)
+ K DIC,DLAYGO  ; ACHS*3.1*23
  Q
  ; ----------------------------
 GETREF(ACHS) ;EP - select ref, retrieve info
@@ -104,8 +109,11 @@ GETREF0 W !
  ;ACHS*3.1*10 4.19.04 IHS/ITSC/FCJ ADD NXT SECT TO ALLOW SEL REF FOR DEN
 GETREF1 ; 
  D ^DIC
+ Q:$D(DUOUT)  ;ACHS*3.1*23
  I $G(ACHD("FAC"))'="" D GETREF3
  E  D GETREF2
+ G:$D(DUOUT) GETREF0 ;ACHS*3.1*23
+ I Y=1,$$GET1^DIQ(90001.31,DUZ(2),4104)="NO" Q   ;ACHS*3.1*23
  ;ACHS*3.1*11 8.24.04 IHS/ITSC/FCJ REF NOT REQ IF W/IN 180 DAYS OF IMPLEMENTING RCIS
  Q:Y<1  ;ACHS*3.1*11 8.24.04 IHS/ITSC/FCJ
  ;Q:(Y<1)!('$G(ACHS))  ;ACHS*3.1*11 8.24.04 IHS/ITSC/FCJ
@@ -123,6 +131,7 @@ GETREF2 ; TEST FOR ADDING NEW PO'S
  . ;ACHS*3.1*13 8.15.05 IHS/OIT/FCJ ADD NXT 2 LNS TO TST PAR REQ REF FOR PO
  . S Y=$$GET1^DIQ(90001.31,DUZ(2),4104)
  . I Y="NO",$$DIR^XBDIR("Y","Are you sure you want to enter a P.O. w/o a Referral","N","","","",1) K ACHS,ACHSREF Q
+ . Q:$D(DUOUT)  ;ACHS*3.1*23
  . W *7,!!,"You must have a CHS referral to enter a P.O.",!!
  . S DUOUT=$$DIR^XBDIR("E","Press RETURN...")
  Q
@@ -150,8 +159,10 @@ GETREF4 ;ACHS*3.1*10 4.19.04 IHS/ITSC/FCJ ADD LN LABEL NXT SEC
  ;ACHS*3.1*13 8.15.05 IHS/OIT/FCJ ADD NXT 2 LINES FOR DEN # TEST
  I $G(ACHD("FAC"))'="",$G(ACHSREF(1128))'="" D
  .W !!,"    You have selected a Referral that already has a denial number, ",$G(ACHS(1128)),!
- I $G(ACHD("FAC"))'="",($G(ACHS(.04))="I")!($G(ACHS(.04))="N")!($G(ACHS(.15))'="A") D  G GETREF0
- .W !!,"     This must be a Referral that is 'ACTIVE' and 'CHS FACILITY' or 'OTHER'."
+ ;ACHS*3.1*23 ADD APPROVED FOR DENIAL TEST
+ ;I $G(ACHD("FAC"))'="",($G(ACHS(.04))="I")!($G(ACHS(.04))="N")!($G(ACHS(.15))'="A") D  G GETREF0
+ I $G(ACHD("FAC"))'="",($G(ACHS(.04))="I")!($G(ACHS(.04))="N")!($G(ACHS(.15))="X")!($G(ACHS(.15))="C1") D  G GETREF0
+ .W !!,"     This must be a Referral that is 'ACTIVE/APPROVED' and 'CHS FACILITY' or 'OTHER'."
  .W !,"You have selected a Referral that is '",$$EXTSET^XBFUNC(90001,.15,$G(ACHS(.15))),"' and '",$$EXTSET^XBFUNC(90001,.04,$G(ACHS(.04))),"'.",!
  .S ACHS=0
  ;ACHS*3.1*10 4.19.04 IHS/ITSC/FCJ END OF CHANGES

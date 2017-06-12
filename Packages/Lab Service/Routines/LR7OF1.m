@@ -1,7 +1,5 @@
-LR7OF1 ;slc/dcm/JAH - Setup new order from OE/RR ;8/10/04
- ;;5.2;LAB SERVICE;**1003,1021,1022,1031**;NOV 1, 1997
- ;
- ;;VA LR Patche(s): 121,187,223,256,299,291
+LR7OF1 ;slc/dcm/JAH - Setup new order from OE/RR ; 02-Nov-2015 13:44 ; MKK
+ ;;5.2;LAB SERVICE;**1003,121,187,223,1021,256,299,1022,291,1031,1033,1034,1036,1037**;NOV 1, 1997;Build 4
  ;
  ;
 EN ;Setup NEW orders from OE/RR messages
@@ -29,7 +27,7 @@ ZX ;
  I 'UNEEK D
  . S COMBINE=$$ORES^LR7OF5(LRDFN,LRSDT,LRXZ,+LRSAMP,LRPRAC,LROLLOC,LRSPEC,LRDUZ)
  . I '$L(COMBINE) S COMBINE=$$FIND^LR7OF5(LRDFN,LRODT,LRSDT,LRXZ,+LRSAMP,LRPRAC,LROLLOC,LRSPEC,LRDUZ)
- I '$L(COMBINE) S (NEWORD,ZTQUEUED)=1 L +^LRO(69,$E(DT,1,3)_"0000",2) D ORDER^LROW2 K ZTSK,ZTQUEUED,ZTREQ G LOCK
+ I '$L(COMBINE) S (NEWORD,ZTQUEUED)=1 L +^LRO(69,$E(DT,1,3)_"0000",2):1 D ORDER^LROW2 K ZTSK,ZTQUEUED,ZTREQ G LOCK
  I $E(COMBINE,1,2)="S." S LRSN=$P(COMBINE,".",2),LRORD=$P(COMBINE,".",3) G ADD ;Combine on specimen
  I $E(COMBINE,1,2)="O."!($E(COMBINE,1,2)="C.") S LRORD=$S($E(COMBINE,1,2)="O.":$P(COMBINE,".",2),1:$P(COMBINE,".",3)) ;Combine on order #
 LOCK ;
@@ -49,14 +47,14 @@ ADD ;
  N I,J,LRJ,LRSXN,LRORIFN,NODE,STATUS
  S ^TMP("OR",$J,"LRES","CTR")=^TMP("OR",$J,"LRES","CTR")+1,^TMP("OR",$J,"LRES",LRDFN,LRSDT,LRXZ,^TMP("OR",$J,"LRES","CTR"))=LRORD_"^"_LRODT_"^"_LRSN
  ; S LRORIFN=+$G(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,0))
- ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
  S LRORIFN=+$G(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,0)),INDIC=$G(^(-1))  ;IHS/CIA/DKM - Added INDIC
- ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
  S J=0
  ; F LRJ=1:1 S J=$O(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,J)) Q:J<1  S NODE=^(J),STATUS=$G(^(J,1)) D ZSN1(NODE,STATUS)
- ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
  F LRJ=1:1 S J=$O(^TMP("OR",$J,"LROT",LRSDT,LRXZ,LRSAMP,LRSPEC,J)) Q:J<1  S NODE=^(J),STATUS=$G(^(J,1)) D ZSN1(NODE,STATUS,INDIC)
- ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
  S (LRSXN,I)=0
  F  S I=$O(^LRO(69,LRODT,1,LRSN,2,I)) Q:I<1  S LRSXN=LRSXN+1
  S:LRSXN ^LRO(69,LRODT,1,LRSN,2,0)="^69.03PA^"_LRSXN_"^"_LRSXN
@@ -65,17 +63,20 @@ ADD ;
  . S:LRSXN ^LRO(69,LRODT,1,+$P(COMBINE,".",2),2,0)="^69.03PA^"_LRSXN_"^"_LRSXN
  Q
  ; ZSN1(NODE,STATUS)    ;Add tests
- ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
 ZSN1(NODE,STATUS,INDIC) ; EP Add tests  ;IHS/CIA/DKM - Added INDIC
- ; ----- IHS/MSC/MKK - END Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - END Lab Patch 1022 Modification
  N CNT,XI,X,I,C,TCNT
  S CNT=+$O(^LRO(69,LRODT,1,LRSN,2,99999),-1)
  S LRTSTS=+NODE,LRQUANT=$P(NODE,"^",2)
  I $D(^LRO(69,LRODT,1,LRSN,2,"B",LRTSTS)) S REJECT(LRTSTS)="" Q
  S ^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,0)=LRTSTS_"^"_$S($L(STATUS):STATUS,1:LROUTINE)_"^^^^^"_LRORIFN
- ; ----- IHS/MSC/MKK - BEGIN Lab Patch 1022 Modification
- S:$L($G(INDIC)) ^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,9999999)=INDIC  ; IHS/CIA/DKM - Set clnical indication, if present
- ; ----- IHS/MSC/MKK - End Lab Patch 1022 Modification
+ ; ----- IHS/OIT/MKK - BEGIN Lab Patch 1022 Modification
+ ; S:$L($G(INDIC)) ^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,9999999)=INDIC  ; IHS/CIA/DKM - Set clnical indication, if present
+ ; ----- IHS/OIT/MKK - End Lab Patch 1022 Modification
+ ;
+ I $L($G(INDIC)) D IHSCLINI            ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  D SDGX69^LRBEBA2(J,(CNT+LRJ)_","_LRSN_","_LRODT_",")
  I $O(^TMP("OR",$J,"COM",LRSDT,LRXZ,LRSAMP,LRSPEC,J,0)) D
  . S X=^TMP("OR",$J,"COM",LRSDT,LRXZ,LRSAMP,LRSPEC,J)+$S($P($G(^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,1,0)),"^",4):$P(^(0),"^",4),1:0),^LRO(69,LRODT,1,LRSN,2,CNT+LRJ,1,0)="^^"_X_"^"_X_"^"_DT
@@ -87,7 +88,229 @@ ZSN1(NODE,STATUS,INDIC) ; EP Add tests  ;IHS/CIA/DKM - Added INDIC
  . N CNT1
  . S CNT1=$O(^LRO(69,LRODT,1,+$P(COMBINE,".",2),2,99999),-1)+1,^(CNT1,0)=X,$P(^(0),"^",14)=LRODT_";"_LRSN_";"_(CNT+LRJ),^LRO(69,LRODT,1,$P(COMBINE,".",2),2,"B",LRTSTS,CNT1)=""
  Q
+ ;
 DT ;
  S DT=$$DT^XLFDT()
  S LRNT=$P($H,",",2),LRNT=LRNT\3600*100+(LRNT\60#60)/10000+DT
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+IHSCLINI ; EP - Clinical Indication
+ NEW SCHEMA,FDA,IENS
+ NEW ERRS     ; IHS/MSC/MKK - LR*5.2*1036
+ ;
+ D ENTRYAUD^BLRUTIL("IHSCLINI^LR7OF1 0.0")
+ ;
+ Q:$TR($P(INDIC,"^",1,2),"^")=""       ; Skip if No Data
+ ;
+ S IENS=(CNT+LRJ)_","_LRSN_","_LRODT_","
+ S SCHEMA=$E($P(INDIC,"^",3))
+ I SCHEMA="I"!(SCHEMA="") D IHSICDI    ; ICD Coding Schema
+ I SCHEMA="S" D IHSSNOI                ; SNOMED Coding Schemas
+ ;
+ D ENTRYAUD^BLRUTIL("IHSCLINI^LR7OF1 7.0")
+ ;
+ D:$D(FDA) UPDATE^DIE("EKS","FDA",,"ERRS")
+ ;
+ ; D:$D(ERRS) ERRMSG^BLRSGNSP("IHSCLINI: UPDATE^DIE","LR7OF1")  ; IHS/MSC/MKK - LR*5.2*1034 Send Error Message to LMI Mail Group
+ D:$D(ERRS) ERRMSG^BLRSGNS3("IHSCLINI: UPDATE^DIE","LR7OF1")  ; IHS/MSC/MKK - LR*5.2*1036 Send Error Message to LMI Mail Group
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ D REFLICDS
+ ;
+ D ADBLRRLO^BLRUTIL6(LRODT,LRSN,(CNT+LRJ))
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ Q
+ ;
+IHSICDI ; ICD Clinical Indication
+ D ENTRYAUD^BLRUTIL("IHSICDI^LR7OF1 0.0")
+ ; S ICDCODE=$P(INDIC,"^")
+ S ICDCODE=$P($P(INDIC,"^"),";")  ; IHS/MSC/MKK - LR*5.2*1036 - Just the 1st code
+ S ICDDESC=$P(INDIC,"^",2)
+ ; I $L(ICDCODE)&($L(ICDDESC)<1!(ICDDESC["*")) S ICDDESC=$P($$ICDDX^ICDCODE(ICDCODE),"^",4)
+ I $L(ICDCODE)&($L(ICDDESC)<1!(ICDDESC["*")) S ICDDESC=$P($$ICDDX^ICDEX(ICDCODE),"^",4)  ; IHS/MSC/MKK - LR*5.2*1034
+ S:$L(ICDDESC) FDA(69.03,IENS,9999999.1)=ICDDESC
+ S:$L(ICDCODE) FDA(69.05,"?+1,"_IENS,.01)=ICDCODE
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1037
+ D FSNOMED
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1037
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034 - Get the SNOMED code, if possible
+ Q:$L(ICDCODE)<1
+ ;
+ NEW CONCID,BSTSFLAG,IN,OUT,SNOMED,STR
+ S OUT="VARS",IN=ICDCODE
+ I +$$ICD2SMD^BSTSAPI(OUT,IN) D
+ . S CONCID=$G(VARS(1,"CON"))  ; Pick 1st Concept ID
+ . S STR=$$CONC^BSTSAPI(CONCID)
+ . S SNOMED=$P(STR,"^",3)
+ . S:$L(SNOMED)<1 SNOMED=$P(STR,"^",1)
+ E  S SNOMED=$$ICD2SMD(ICDCODE,ICDDESC)
+ ;
+ S:$L(SNOMED) FDA(69.03,IENS,9999999.2)=SNOMED
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ Q
+ ;
+IHSSNOI ; SNOMED Clinical Indication
+ D ENTRYAUD^BLRUTIL("IHSSNOI^LR7OF1 0.0")
+ S SNOMED=$P(INDIC,"^")
+ S SNOMDESC=$P(INDIC,"^",2)
+ S:$L(SNOMEDESC) FDA(69.03,IENS,9999999.1)=SNOMDESC
+ S FDA(69.03,IENS,9999999.2)=SNOMED
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034 - Get the ICD code, if possible
+ NEW ICD10,ICD10DT,ICD10CS,ICD9,ICDCODE,STR
+ S STR=$$DESC^BSTSAPI(SNOMED)
+ I $L(STR)&($L(SNOMEDESC)<1) D    ; Get SNOMED Description
+ . S SNOMEDESC=$$TRIM^XLFSTR($P($P(STR,"^",2),"("),"LR"," ")
+ . S:$L(SNOMEDESC) FDA(69.03,IENS,9999999.1)=SNOMDESC
+ ;
+ S ICD10CS=+$$FIND1^DIC(80.4,,,"ICD-10-CM")  ; Get Coding System IEN
+ S ICD10DT=$$GET1^DIQ(80.4,ICD10CS,"IMPLEMENTATION DATE","I")
+ S:ICD10DT<1 ICD10DT=3151001 ; If no Date returned from 80.4, hard set to 10/1/2015.
+ ;
+ ; Note that $$DESC^BSTAPI will only return 3 pieces of data if the SNOMED variable
+ ; is a SNOMED CONCEPT ID.  If it is a "real" SNOMED code, it will return 4 pieces
+ ; of information.
+ S ICD10=$P($P(STR,"^",3),";")    ; Just the 1st code
+ S ICD9=$P($P(STR,"^",4),";")     ; Just the 1st Code
+ S:ICD9="" ICD9=ICD10
+ S ICDCODE=$S($$DT^XLFDT'<ICD10DT:ICD10,1:ICD9)
+ S:$L(ICDCODE) FDA(69.05,"?+1,"_IENS,.01)=ICDCODE
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+REFLICDS ; EP - Store the ICD code(s) into the BLR REFERENCE LAB ORDER/ACCESSION (#9009026.3) file
+ NEW DFN,F60IEN,ICD,ICDCODE,ICDEXIST,IENS,IENSICD,ORDERIEN,ORDERN
+ NEW FDA,ERRS   ; IHS/MSC/MKK - LR*5.2*1036
+ ;
+ D ENTRYAUD^BLRUTIL("REFLICDS^LR7OF1 0.0")
+ ;
+ Q:$D(FDA(69.05))<1  ; If no ICD codes, skip
+ ;
+ S IENS=LRSN_","_LRODT
+ S ORDERN=$$GET1^DIQ(69.01,IENS,9.5)
+ Q:ORDERN<1          ; If no order #, skip
+ ;
+ S F60IEN=$$GET1^DIQ(69.03,(CNT+LRJ)_","_IENS,.01,"I")
+ Q:$$REFLABCK^BLRUTIL6(F60IEN,LRODT,LRSN)<1      ; If Not Ref Lab Test, skip
+ ;
+ S IENS=(CNT+LRJ)_","_LRSN_","_LRODT
+ S F60IEN=$$GET1^DIQ(69.03,IENS,.01,"I")
+ ;
+ Q:$$REFLAB^BLRUTIL6(DUZ(2),+F60IEN)<1     ; If Test not MAPPED, do NOT put into 9009026.3
+ ;
+ S DFN=$$GET1^DIQ(63,LRDFN,.03,"I")
+ S X=$$ORD^BLRRLEDI(ORDERN,DFN)     ; Store Order # if not in there already
+ S ORDIEN=$$FIND1^DIC(9009026.3,,,ORDERN)
+ ;
+ D ENTRYAUD^BLRUTIL("REFLICDS^LR7OF1 1.0")
+ ;
+ Q:ORDIEN<1          ; If order not in 9009026.3, skip
+ ;
+ S ICDEXIST=$O(^LRO(69,LRODT,1,LRSN,2,(CNT+LRJ),2,0))
+ ;
+ D ENTRYAUD^BLRUTIL("REFLICDS^LR7OF1 2.0")
+ ;
+ Q:F60IEN<1
+ ;
+ S ICD=.9999999
+ F  S ICD=$O(^LRO(69,LRODT,1,LRSN,2,(CNT+LRJ),2,ICD))  Q:ICD<1  D
+ . S IENSICD=ICD_","_IENS
+ . S ICDCODE=$$GET1^DIQ(69.05,IENSICD,.01,"I")
+ . ;
+ . ; Skip if UNCODED DIAGNOSIS
+ . Q:$$GET1^DIQ(80,ICDCODE,.01)=".9999"!($$GET1^DIQ(80,ICDCODE,.01)="ZZZ.999")
+ . ;
+ . K FDA,ERRS
+ . S FDA(9009026.31,"?+1,"_ORDIEN_",",.01)=ICDCODE
+ . D UPDATE^DIE(,"FDA",,"ERRS")
+ . ; D:$D(ERRS) ERRMSG^BLRSGNSP("REFLICDS: UPDATE^DIE","LR7OF1")
+ . D:$D(ERRS) ERRMSG^BLRSGNS3("REFLICDS: UPDATE^DIE","LR7OF1")    ; IHS/MSC/MKK - LR*5.2*1036
+ ;
+ Q
+ ;
+TESTIT ; EP - Test the REFLICDS logic
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ R !,"ORDER #:",ORDERN,!
+ Q:+ORDERN<1
+ ;
+ S LRODT=0
+ F  S LRODT=$O(^LRO(69,"C",ORDERN,LRODT))  Q:LRODT<1  D
+ . S LRSN=0
+ . F  S LRSN=$O(^LRO(69,"C",ORDERN,LRODT,LRSN))  Q:LRSN<1  D
+ .. S LRDFN=$$GET1^DIQ(69.01,LRSN_","_LRODT,.01,"I")
+ .. ;
+ .. S LROT=.9999999
+ .. F  S LROT=$O(^LRO(69,LRODT,1,LRSN,2,LROT))  Q:LROT<1  D
+ ... S LRJ=LROT,CNT=0
+ ... D REFLICDS
+ Q
+ ;
+ICD2SMD(ICD,PROVNARR) ; EP - Use Provider Narrative and ICD-10 Code to get SNOMED match
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,ICD,PROVNARR,U,XPARSYS,XQXFLG)
+ ;
+ D ENTRYAUD^BLRUTIL("ICD2SMD^LR7OF1 0.0")
+ S SNOMED=""
+ ;
+ S OUT="VARS",IN=PROVNARR_"^F"
+ S X=$$SEARCH^BSTSAPI(OUT,IN)
+ Q:X<1 SNOMED
+ ;
+ ; "Trick" because Terminology Server may return ICD code without final period
+ S ICD2CHK=$S($P(ICD,".",2)="":$P(ICD,"."),1:ICD)
+ ;
+ S (CNT,FOUND)=0
+ F  S CNT=$O(VARS(CNT))  Q:CNT<1!(FOUND)  D
+ . S TSICD=$G(VARS(CNT,"ICD",1,"COD")) ; Terminology Server ICD-10
+ . Q:ICD'=TSICD&(ICD2CHK'=TSICD)
+ . Q:$G(VARS(CNT,"PRB","TRM"))'=PROVNARR
+ . ;
+ . S CONCID=$G(VARS(CNT,"CON"))        ; Pick Concept ID
+ . S STR=$$CONC^BSTSAPI(CONCID)
+ . S CSNOMED=$P(STR,"^",3)
+ . S:$L(CSNOMED)<1 CSNOMED=$P(STR,"^",1)
+ . Q:$L(CSNOMED)<1
+ . ;
+ . K FOUND("SNOMED")
+ . S FOUND("SNOMED")=CSNOMED
+ . S FOUND=FOUND+1
+ ;
+ Q $S(FOUND:$G(FOUND("SNOMED")),1:$G(SNOMED))
+ ;
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1037
+FSNOMED ; EP - Try to find a SNOMED Code using an OE/RR API & BSTSAPI call
+ NEW CLININD,FOUNDIT,SNOCONID,VARS
+ ;
+ Q:+$G(ORIFN)<1      ; Skip if file 100 IEN < 1
+ ;
+ ; OE/RR API - CLINICAL INDICATION.  Note that it can contain a | that sometimes
+ ; separates two clinical indications.  Only use the first clinical indication.
+ ; Trim any leading and/or trailing blanks.
+ S CLININD=$$TRIM^XLFSTR($P($$VALUE^ORCSAVE2(ORIFN,"CLININD"),"|"),"LR"," ")
+ ;
+ S SNOCONID=$$VALUE^ORCSAVE2(ORIFN,"SNMDCNPTID")   ; OE/RR API - SNOmed CONcept ID
+ Q:$L(CLININD)<1!($L(SNOCONID)<1)    ; Skip if either variable is null.
+ ;
+ D CNCLKP^BSTSAPI("VARS",SNOCONID)
+ ;
+ ; If PREFERRED TERM, then set and return
+ I $G(VARS(1,"PRE","TRM"))=CLININD S FDA(69.03,IENS,9999999.2)=$G(VARS(1,"PRE","DSC"))  Q
+ ;
+ ; If PRB, then set and return
+ I $G(VARS(1,"PRB","TRM"))=CLININD S FDA(69.03,IENS,9999999.2)=$G(VARS(1,"PRB","DSC"))  Q
+ ;
+ ; Have to search the synonyms
+ S SYN=0,FOUNDIT=""
+ F  S SYN=$O(VARS(1,"SUB",SYN))  Q:SYN<1!($L(FOUNDIT))  D
+ . I $G(VARS(1,"SUB",SYN,"TRM"))=CLININD S FOUNDIT=$G(VARS(1,"SUB",SYN,"DSC"))
+ ;
+ S:$L(FOUNDIT) FDA(69.03,IENS,9999999.2)=FOUNDIT
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1037

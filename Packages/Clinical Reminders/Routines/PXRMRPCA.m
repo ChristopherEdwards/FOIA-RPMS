@@ -1,5 +1,5 @@
-PXRMRPCA ; SLC/PJH - Functions returning REMINDER data ;16-Jul-2013 09:48;DU
- ;;1.5;CLINICAL REMINDERS;**2,5**;Jun 19, 2000
+PXRMRPCA ; SLC/PJH - Functions returning REMINDER data ;11/04/2009
+ ;;2.0;CLINICAL REMINDERS;**12,16**;Feb 04, 2005;Build 119
  Q
  ;
 ALL(ORY) ;All active reminders
@@ -8,7 +8,10 @@ ALL(ORY) ;All active reminders
  S ORREM=0
  F  S ORREM=$O(^PXD(811.9,ORREM)) Q:'ORREM  D
  .;Include only CPRS reminders
- .S USAGE=$P($G(^PXD(811.9,ORREM,100)),U,4) I USAGE'["C",USAGE'["*" Q
+ .S USAGE=$P($G(^PXD(811.9,ORREM,100)),U,4)
+ .I USAGE["L" Q
+ .I USAGE["O" Q
+ .I USAGE'["C",USAGE'["*" Q
  .S DATA=$G(^PXD(811.9,ORREM,0)) Q:DATA=""
  .;Skip inactive reminders
  .I $P(DATA,U,6) Q
@@ -28,10 +31,10 @@ APPL(ORY,ORPT,ORLOC) ;Applicable reminders for cover sheet
  N ORSRV,TMPLST,ERR,ORI,ORJ,ORIEN,ORTXT,ORX,ORLASTDT,ORDUEDT
  N ORDUE,ORPRI,ORSTA,PASS
  S ORJ=0
- S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ S ORSRV=$$GET1^DIQ(200,DUZ,29)
  I ORLOC S PASS="USR^LOC.`"_$G(ORLOC)_"^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
  I 'ORLOC S PASS="USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
- D GETLST^XPAR(.TMPLST,PASS,"ORQQPX SEARCH ITEMS","Q",.ERR) ; DBIA 3076
+ D GETLST^XPAR(.TMPLST,PASS,"ORQQPX SEARCH ITEMS","Q",.ERR) ; DBIA #3076
  I ERR>0 S ORY(1)=U_"Error: "_$P(ERR,U,2) Q
  D AVAL(.TMPLST,2) ;Evaluate reminders
  Q
@@ -47,21 +50,22 @@ AVAL(ARRAY,POS) ;Evaluate array of reminders
  S ORI=0 F  S ORI=$O(ARRAY(ORI)) Q:'ORI  D
  .S ORIEN=$P(ARRAY(ORI),U,POS)
  .K ^TMP("PXRHM",$J)
+ . I $$INACTIVE^PXRM(ORIEN) Q
  .;Evaluate reminder
  .D MAIN^PXRM(ORPT,ORIEN,1,1)
  .;Not applicable is default
  .S ORDUE=2 D  Q:ORTXT=""
  ..S ORTXT="",ORTXT=$O(^TMP("PXRHM",$J,ORIEN,ORTXT)) Q:ORTXT=""
- ..;Exclude dead patients from applicable
- ..I $G(^XTMP("PXRMDFN"_ORPT,"DOD"))'="" Q
  ..;Determine status
  ..S ORX=^TMP("PXRHM",$J,ORIEN,ORTXT) Q:ORX=""
  ..S ORSTA=$P(ORX,U)
  ..;Ignore reminders that are not applicable
- ..I (ORSTA=" ")!(ORSTA["NEVER")!(ORSTA="N/A")!(ORSTA="ERROR") Q
+ ..I (ORSTA=" ")!(ORSTA["NEVER")!(ORSTA="N/A") Q
  ..;Differentiate due and applicable
  ..S ORDUE=0 I ORSTA["DUE" S ORDUE=1
- ..;Get next due and last done dates
+ ..I ORSTA["ERROR" S ORDUE=3
+ ..I ORSTA["CNBD" S ORDUE=4
+ ..;Get next due and last done dates 
  ..S ORDUEDT=$P(ORX,U,2),ORLASTDT=$P(ORX,U,3)
  ..S ORLASTDT=$S(+$G(ORLASTDT)>0:ORLASTDT,1:"")  ;null if not a date
  ..;Reminder priority
@@ -69,19 +73,20 @@ AVAL(ARRAY,POS) ;Evaluate array of reminders
  ..;Default is 2 for medium
  ..I ORPRI="" S ORPRI=2
  ..S ORJ=ORJ+1
- ..S ORY(ORJ)=ORIEN_U_ORTXT_U_ORDUEDT_U_ORLASTDT_U_ORPRI_U_ORDUE_U_$$DLG(ORIEN)
+ ..S ORY(ORJ)=ORIEN_U_ORTXT_U_ORDUEDT_U_ORLASTDT_U_ORPRI_U_ORDUE_U_$$DLG(ORIEN)_U_U_U_U_$$DLGWIPE(ORIEN)
  .;Save not applicables also (IF a valid reminder)
  .I ORDUE=2 D
  ..S ORJ=ORJ+1
- ..S ORY(ORJ)=ORIEN_U_ORTXT_U_U_U_U_ORDUE_U_$$DLG(ORIEN)
+ ..S ORY(ORJ)=ORIEN_U_ORTXT_U_U_U_U_ORDUE_U_$$DLG(ORIEN)_U_U_U_U_$$DLGWIPE(ORIEN)
  K ^TMP("PXRHM",$J)
  Q
  ;
 CATEGORY(ORY,ORPT,ORLOC) ;Reminder Categories
  ;type^name^ien^parent^child^etc
  N ERR,IC,ORSRV,PASS,TEMPLST
- ;Get user's service
- S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ ;Get user's service 
+ ;S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ S ORSRV=$$GET1^DIQ(200,DUZ,29)
  ;Build list of locations and services required
  I ORLOC S PASS="USR^LOC.`"_$G(ORLOC)_"^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
  I 'ORLOC S PASS="USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
@@ -108,10 +113,13 @@ DLG(REM) ;Dialog check
  N DATA,DIEN,DOK
  S DIEN=$P($G(^PXD(811.9,REM,51)),U) Q:'DIEN 0
  S DATA=$G(^PXRMD(801.41,DIEN,0))
- I $P(DATA,U,4)="R",$P(DATA,U,3)="" Q 1
+ I $P(DATA,U,4)="R",+$P(DATA,U,3)=0 Q 1
  Q 0
  ;
 DLGWIPE(REM) ;Dialog check
+ N DATA,DIEN,DOK
+ S DIEN=$P($G(^PXD(811.9,REM,51)),U) Q:'DIEN 0
+ I $P($G(^PXRMD(801.41,DIEN,0)),U,17)=1 Q 1
  Q 0
  ;
 GETLST(D0,D1,LEVEL,PARENT) ;Add to output array
@@ -141,6 +149,7 @@ GETLST(D0,D1,LEVEL,PARENT) ;Add to output array
  .S DATA=$G(^PXD(811.9,ORREM,0)) Q:DATA=""  Q:$P(DATA,U,6)
  .;Include only CPRS reminders
  .S USAGE=$P($G(^PXD(811.9,ORREM,100)),U,4) I USAGE'["C",USAGE'["*" Q
+ .I USAGE["L"!(USAGE["O") Q
  .S NAME=$P(DATA,U) I NAME="" S NAME="Unknown"
  .;or printname
  .S NAME=$P(DATA,U,3)
@@ -174,10 +183,10 @@ LIST(ORY,ORPT,ORLOC) ;Reminders for this patient location (not evaluated)
  N CNT,ORIEN,ORDUE,ORPRI,ORSTA,PASS,SUB
  S ORJ=0
  ;
- S ORSRV=$G(^VA(200,DUZ,5)) I +ORSRV>0 S ORSRV=$P(ORSRV,U)
+ S ORSRV=$$GET1^DIQ(200,DUZ,29)
  I ORLOC S PASS="USR^LOC.`"_$G(ORLOC)_"^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
  I 'ORLOC S PASS="USR^SRV.`"_+$G(ORSRV)_"^DIV^SYS^PKG"
- D GETLST^XPAR(.TMPLST,PASS,"ORQQPX SEARCH ITEMS","Q",.ERR) ; DBIA 3076
+ D GETLST^XPAR(.TMPLST,PASS,"ORQQPX SEARCH ITEMS","Q",.ERR) ; DBIA #3076
  I ERR>0 S ORY(1)=U_"Error: "_$P(ERR,U,2) Q
  ;
  S CNT=0,SUB=""

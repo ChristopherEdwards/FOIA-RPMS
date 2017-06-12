@@ -1,6 +1,5 @@
-BPXRMALL ;IHS/CIA/MGH - Handle Allergy findings. ;03-Feb-2012 08:43;DU
- ;;1.5;CLINICAL REMINDERS;**1004,1005,1007,1008**;Jun 19, 2000;Build 25
- ; 1008 removed quit for non-verified and addded quit for inactive allergies
+BPXRMALL ;IHS/CIA/MGH - Handle Allergy findings. ;18-Apr-2014 15:23;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,1002**;Feb 04, 2005;Build 15
  ;=======================================================================
 ALLERGY ;******************************ALLERGIES*******************************
  ;
@@ -21,7 +20,7 @@ ALLEGG(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if EGG allergy 
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
- . I Y["EGG" S TEST=1,TEXT="Egg allergy found"
+ . I Y["EGG" S TEST=1,DATE=DT,TEXT="Egg allergy found"
  K AA,TESTI,X,Y
  Q
  ;
@@ -35,7 +34,7 @@ ALLTHRM(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if Thimerosal 
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I Y["THIMEROSAL" S TEST=1,TEXT="Thimerosal allergy found"
+ . I Y["THIMEROSAL" S TEST=1,DATE=DT,TEXT="Thimerosal allergy found"
  K AA,TESTI,X,Y
  Q
  ;
@@ -49,7 +48,7 @@ ALLINFL(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if Influenza v
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I Y["FLU" S TEST=1,TEXT="Influenza vaccine allergy found"
+ . I Y["FLU" S TEST=1,DATE=DT,TEXT="Influenza vaccine allergy found"
  K AA,TESTI,X,Y
  Q
  ;
@@ -63,7 +62,7 @@ ALLPNEU(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if Pneumonia v
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I Y["PNEUMO" S TEST=1,TEXT="Pneumonia vaccine allergy found"
+ . I Y["PNEUMO" S TEST=1,DATE=DT,TEXT="Pneumonia vaccine allergy found"
  K AA,TESTI,X,Y
  Q
  ;
@@ -77,7 +76,7 @@ ALLTETA(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if Tetanus vac
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I Y["TETANUS" S TEST=1,TEXT="Tetanus vaccine allergy found"
+ . I Y["TETANUS" S TEST=1,DATE=DT,TEXT="Tetanus vaccine allergy found"
  K AA,TESTI,X,Y
  Q
  ;
@@ -91,7 +90,7 @@ ALLCLOP(DFN,TEST,DATE,VALUE,TEXT) ;Computed finding to return a 1 if plavix alle
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I Y["CLOPIDOGREL" S TEST=1,TEXT="Clopidogrel allergy found"
+ . I Y["CLOPIDOGREL" S TEST=1,DATE=DT,TEXT="Clopidogrel allergy found"
  K AA,TESTI,X,Y
  Q
 ALLWARF(DFN,TEST,DATE,VALUE,TEXT) ;Return TEST=1 if allergy to ANTICOAGULANTS found
@@ -104,7 +103,7 @@ ALLWARF(DFN,TEST,DATE,VALUE,TEXT) ;Return TEST=1 if allergy to ANTICOAGULANTS fo
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  . Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I (Y["COUMADIN")!(Y["WARFARIN") S TEST=1,TEXT="Warfarin Allergy found" Q
+ . I (Y["COUMADIN")!(Y["WARFARIN") S TEST=1,DATE=DT,TEXT="Warfarin Allergy found" Q
  . S BB=0
  . F  S BB=$O(^GMR(120.8,AA,3,"B",BB)) Q:BB'>0  D
  . . I $P(^PS(50.605,BB,0),"^",1)="BL100" S TEST=1,TEXT="Warfarin allergy found" Q
@@ -121,14 +120,14 @@ ALLASP(DFN,TEST,DATE,VALUE,TEXT) ;Return TEST=1 if allergy to ASPIRIN found
  . S INAC=$$INACTIVE^GMRADSP6(AA)
  .Q:+INAC    ;Quit if inactive
  . S X=$P(^GMR(120.8,AA,0),"^",2) X ^%ZOSF("UPPERCASE")
- . I (Y["ASPIRIN")!(Y["SALSA")!(Y["SALICY") S TEST=1,TEXT="Aspirin allergy found" Q
+ . I (Y["ASPIRIN")!(Y["SALSA")!(Y["SALICY") S TEST=1,DATE=DT,TEXT="Aspirin allergy found" Q
  . ; Can't check for drug class, too many non-aspirin drugs in class
  . ; Check in drug ingredient field however
  . S BB=0
  . F  S BB=$O(^GMR(120.8,AA,2,"B",BB)) Q:BB'>0  D
  . . I '$D(^PS(50.416,BB,0)) Q
  . . S X=$P(^PS(50.416,BB,0),"^",1) X ^%ZOSF("UPPERCASE")
- . . I (Y["ASPIRIN")!(Y["SALSA")!(Y["SALICY") S TEST=1,TEXT="Aspirin allergy found" Q
+ . . I (Y["ASPIRIN")!(Y["SALSA")!(Y["SALICY") S TEST=1,DATE=DT,TEXT="Aspirin allergy found" Q
  K AA,BB,TESTI,X,Y
  Q
  ;

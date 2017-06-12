@@ -1,0 +1,15 @@
+BQICMCSM ;GDHS/HSD/ALA-Case Summary Component ; 15 Feb 2016  1:26 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
+ ;
+SUM(DATA,SUBREG) ;EP --
+ Q
+ ;
+TBL(DATA,FAKE) ;EP --
+ S N=0
+ F  S N=$O(^ACM(56,N)) Q:'N  D
+ . S CDATA=^ACM(56,N,0)
+ . S ORD=$P(CDATA,"^",3),COD=$P(CDATA,"^",2),TEXT=$P(CDATA,"^",1)
+ Q
+ ;
+GLS(DATA,SUBREG) ;EP --
+ Q

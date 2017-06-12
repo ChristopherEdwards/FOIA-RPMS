@@ -1,5 +1,5 @@
-BGOVCOAG ; IHS/MSC/MGH - V Anticoagulation Management ;15-Oct-2012 10:05;DU
- ;;1.1;BGO COMPONENTS;**11**;Mar 20, 2007;Build 2
+BGOVCOAG ; IHS/MSC/MGH - V Anticoagulation Management ;12-Jul-2013 10:11;DKA
+ ;;1.1;BGO COMPONENTS;**11,13**;Mar 20, 2007;Build 2
  ;------------------------------------------------------------------
  ; Return anticoag records for a patient
  ;  INP = Patient IEN ^ Number to return
@@ -22,6 +22,7 @@ GET(RET,INP) ;EP
  ..F  S VCOAG=$O(^AUPNVACG("AA",DFN,COAG,VDT,VCOAG)) Q:'VCOAG!(CNT>NUM)  D
  ...S REC=$G(^AUPNVACG(VCOAG,0))
  ...Q:REC=""
+ ...Q:+$G(^AUPNVACG(VCOAG,1))  ;DKA 7/10/13 Ignore Entered in Error
  ...S FNUM=$$FNUM
  ...S IND=$$EXTERNAL^DILFD(FNUM,.01,,$P(REC,U,1))
  ...S GOAL=$$EXTERNAL^DILFD(FNUM,.04,,$P(REC,U,4))
@@ -49,12 +50,25 @@ GET(RET,INP) ;EP
  ...S @RET@(CNT)=VCOAG_U_IND_U_VDATE_U_GOAL_U_MIN_U_MAX_U_DUR_U_STDT_U_FACNAM_U_PRVIEN_U_LOC_U_EDATE_U_VIEN_U_VCAT_U_$$ISLOCKED^BEHOENCX(VIEN)_U_COMM_U_PRVNAME
  Q
  ; Delete a V ANTICOAG
- ;  INP = IEN
+ ;  INP = V File IEN ^  DELETE REASON ^ OTHER
+ ; Logically Delete an AntiCoagulation entry
+ ; Flag the entry as Entered in Error
+ ; Specify the Reason and Comment (if Reason is Other)
 DEL(RET,INP) ;EP
- N IEN,REFUSAL
- S IEN=+INP
- I 'IEN S RET=$$ERR^BGOUTL(1008)
- E  D VFDEL^BGOUTL2(.RET,$$FNUM,IEN)
+ N COMMENT,FDA,REASON,VFIEN
+ S VFIEN=$P(INP,U)
+ S REASON=$P(INP,U,2)
+ S COMMENT=$P(INP,U,3)
+ I VFIEN="" S RET=$$ERR^BGOUTL(1008) Q  ; Missing input data
+ I '$D(^AUPNVACG(VFIEN)) S RET=$$ERR^BGOUTL(1035) Q  ; Item not found
+ S FDA=$NA(FDA($$FNUM,VFIEN_","))
+ S @FDA@(1.01)=1
+ S @FDA@(1.02)=DUZ
+ S @FDA@(1.03)=REASON
+ S @FDA@(1.04)=$$NOW^XLFDT()
+ S @FDA@(1.05)=$G(COMMENT)
+ S RET=$$UPDATE^BGOUTL(.FDA,,VFIEN)
+ S:RET="" RET=1
  Q
  ; Set anti-coag record
  ;  INP = V anticoag IEN (if edit) [1] ^Indication [2] ^ Patient IEN [3] ^ Visit IEN [4] ^ Provider IEN [5] ^ Goal [6] ^ MIN [7] ^ Max [8] ^Duration [9]
@@ -93,7 +107,8 @@ SET(RET,INP) ;EP
  S RET=$$CHKVISIT^BGOUTL(VIEN,DFN)
  Q:RET
  I 'VFIEN D  Q:'VFIEN
- .D VFNEW^BGOUTL2(.RET,FNUM,TYPE,VIEN,"Anticoagulation")
+ .;D VFNEW^BGOUTL2(.RET,FNUM,TYPE,VIEN,"Anticoagulation",1)
+ .D VFNEW^BGOUTL2(.RET,FNUM,TYPE,VIEN,"Anticoagulation",,"1.01") ; DKA 7/12/13 Add parameter for Entered in Error field
  .S:RET>0 VFIEN=RET,RET=""
  S FDA=$NA(FDA(FNUM,VFIEN_","))
  S @FDA@(.01)=TYPE

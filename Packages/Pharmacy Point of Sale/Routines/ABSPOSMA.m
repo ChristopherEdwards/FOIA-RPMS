@@ -1,5 +1,5 @@
 ABSPOSMA ; IHS/FCS/DRS - General Inquiry/Report .57; [ 08/28/2002  3:01 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ; General inquiry and reporting on the Transaction File, 9002313.57.
  ; First menu selection determines whether you're doing an inquiry

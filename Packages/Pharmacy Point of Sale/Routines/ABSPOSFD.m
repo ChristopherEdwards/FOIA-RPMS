@@ -1,5 +1,5 @@
 ABSPOSFD ; IHS/FCS/DRS - ABSP("RX",*) ;      [ 09/12/2002  10:09 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10,40**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ; This is a copy of routine ABSPOSCD, made on 03/20/2001.
  ; It constructs the ABSP(*) array for printing NCPDP forms.

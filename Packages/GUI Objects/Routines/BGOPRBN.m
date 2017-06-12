@@ -1,5 +1,5 @@
-BGOPRBN ; IHS/BAO/TMD - Manage problem note ;20-Mar-2007 13:52;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOPRBN ; IHS/BAO/TMD - Manage problem note ;02-Aug-2013 18:24;DU
+ ;;1.1;BGO COMPONENTS;**1,3,13**;Mar 20, 2007
  ; Retrieve notes associated with a problem entry
  ;  PRIEN = Problem IEN
  ;  Returns a list of records in the format:
@@ -64,6 +64,7 @@ GETNIEN(PRIEN,LIEN) ;
  ;  FORMAT = Return format (0=single string, 1=list)
 NOTES(RET,PRIEN,FORMAT) ;EP
  N NOT,IEN,NARR,FAC,REC,NMBR,STAT,DATE,AUTH,CNT
+ ;IHS/MSC/MGH Date formatting changed patch 13
  K RET
  S RET="",(CNT,IEN)=0
  F  S IEN=$O(^AUPNPROB(PRIEN,11,IEN)) Q:'IEN  D
@@ -81,5 +82,5 @@ NOTES(RET,PRIEN,FORMAT) ;EP
  ...S AUTH=$P(REC,U,6)
  ...S:AUTH AUTH=$P($G(^VA(200,AUTH,0)),U)
  ...S CNT=CNT+1
- ...S RET(CNT)=FAC_U_NOT_U_NMBR_U_NARR_U_STAT_U_DATE_U_AUTH
+ ...S RET(CNT)=FAC_U_NOT_U_NMBR_U_NARR_U_STAT_U_$$FMTDATE^BGOUTL(DATE)_U_AUTH
  Q

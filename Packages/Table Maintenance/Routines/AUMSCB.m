@@ -1,9 +1,8 @@
 AUMSCB ;IHS/OIT/NKD - SCB UPDATE ENVIRONMENT CHECK/PRE/POST INSTALL 3/08/2013 ;
- ;;14.0;TABLE MAINTENANCE;**4**;AUG 20,2013;Build 2
- ; 03/08/13 - ICD and Language file cleanup
- ; 08/13/13 - Enhanced version/patch checking utility
- ; 12/10/13 - Added table entry count
+ ;;16.0;TABLE MAINTENANCE;**4**;OCT 16,2015;Build 1
  ; 03/12/14 - Removed use of AUMPRE for pre-install, changed to just remove AUMDATA entries
+ ; 12/16/14 - Removed old/unused code, added support for future environment checking
+ ; 03/11/15 - Modified environment checking display to write to screen
  ;
  I '$G(DUZ) W !,"DUZ UNDEFINED OR 0." D SORRY(2) Q
  ;
@@ -15,8 +14,8 @@ AUMSCB ;IHS/OIT/NKD - SCB UPDATE ENVIRONMENT CHECK/PRE/POST INSTALL 3/08/2013 ;
  ;
  S:'$$VCHK("XU","8.0") XPDQUIT=2
  S:'$$VCHK("DI","22.0") XPDQUIT=2
- S:'$$VCHK("AUM","14.0","3") XPDQUIT=2
- S:'$$VCHK("AUT","98.1","26") XPDQUIT=2
+ S:'$$PCHK("AUM","16.0","3") XPDQUIT=2
+ S:'$$VCHK("AUT","98.1","27") XPDQUIT=2
  ;
  NEW DA,DIC
  S X="AUM",DIC="^DIC(9.4,",DIC(0)="",D="C"
@@ -30,13 +29,11 @@ AUMSCB ;IHS/OIT/NKD - SCB UPDATE ENVIRONMENT CHECK/PRE/POST INSTALL 3/08/2013 ;
  I $G(XPDQUIT) W !,$$CJ^XLFSTR("FIX IT! Before Proceeding.",IOM),!!,*7,*7,*7 Q
  ;
  W !!,$$CJ^XLFSTR("ENVIRONMENT OK.",IOM)
- D HELP^XBHELP("INTROE","AZHBENV")
  ;
  I $G(XPDENV)=1 D
  . ; The following line prevents the "Disable Options..." and "Move
  . ; Routines..." questions from being asked during the install.
  . S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
- . D HELP^XBHELP("INTROI","AZHBENV")
  .Q
  ;
  I '$$DIR^XBDIR("E","","","","","",1) D SORRY(2)
@@ -57,6 +54,31 @@ VCHK(AUMPRE,AUMVER,AUMPAT) ; Check patch level
  I (AUMP<AUMPAT) K DIFQ D DISP(AUMPRE,AUMVER,$G(AUMPAT),AUMVER,$G(AUMP),0) Q 0
  D DISP(AUMPRE,AUMVER,$G(AUMPAT),AUMVER,$G(AUMP),1)
  Q 1
+ ;
+ ; IHS/OIT/NKD AUM*15.0*1 ADDED FUTURE SUPPORT FOR GLOBAL/PATCH CHECKING - START NEW CODE
+GCHK(AUMGL,AUMMSG) ; Check for global
+ Q:'$L($G(AUMGL)) 0
+ N AUMS
+ S AUMS="Requires "_$S('$L($G(AUMMSG)):AUMGL,1:$G(AUMMSG))_"....."
+ S AUMS=AUMS_$S($D(@AUMGL):"Present",1:"Not found ***FIX IT***")
+ ;D MES^XPDUTL($$CJ^XLFSTR(AUMS,IOM))  ; IHS/OIT/NKD AUM*15.0*2 WRITE TO SCREEN
+ W !,$$CJ^XLFSTR(AUMS,IOM)
+ Q $S($D(@AUMGL):1,1:0)
+ ;
+PCHK(PKG,VER,PAT) ; Check specific patch
+ N PKGIEN,VERIEN,PATIEN,AUMS
+ S PKG=$G(PKG),VER=$G(VER),PAT=$G(PAT)
+ S AUMS="Requires "_PKG_" v"_VER_" p"_PAT_"....."
+ D
+ . S PKGIEN=+$O(^DIC(9.4,"C",PKG,"")) Q:'PKGIEN
+ . S VERIEN=+$O(^DIC(9.4,PKGIEN,22,"B",VER,"")) Q:'VERIEN
+ . S PATIEN=+$O(^DIC(9.4,PKGIEN,22,VERIEN,"PAH","B",PAT,""))
+ S AUMS=AUMS_$S(+$G(PATIEN):"Present",1:"Not found ***FIX IT***")
+ ;D MES^XPDUTL($$CJ^XLFSTR(AUMS,IOM))  ; IHS/OIT/NKD AUM*15.0*2 WRITE TO SCREEN
+ W !,$$CJ^XLFSTR(AUMS,IOM)
+ Q $S(+$G(PATIEN):1,1:0)
+ ; IHS/OIT/NKD AUM*15.0*1 END NEW CODE
+ ;
 DISP(AUMPRE,AUMVER,AUMPAT,AUMV,AUMP,AUMR) ; Display requirement checking results
  ;
  N AUMS
@@ -88,10 +110,10 @@ PRE ; EP FR KIDS
  Q
  ;
 POST ; EP FR KIDS
- K ^TMP("AUM",$J)  ; IHS/OIT/NKD AUM*14.0*1
- D COUNT  ; IHS/OIT/NKD AUM*14.0*1 - ADDED TOTAL COUNT TO OUTPUT
+ K ^TMP("AUM",$J)
+ D COUNT
  D POST^AUMSCBD
- K ^TMP("AUM",$J)  ; IHS/OIT/NKD AUM*14.0*1
+ K ^TMP("AUM",$J)
  Q
  ;
 COUNT ; COUNT THE NUMBER OF ENTRIES FOR EACH TABLE
@@ -102,19 +124,4 @@ COUNT ; COUNT THE NUMBER OF ENTRIES FOR EACH TABLE
  . F AUMC="ADD","INA","DEL","ALL" Q:$L(AUMA)>0  S:$E(AUMT,$L(AUMT)-2,$L(AUMT))=AUMC AUMA=$E(AUMT,$L(AUMT)-2,$L(AUMT)),AUMT=$E(AUMT,1,$L(AUMT)-3)
  . S ^TMP("AUM",$J,"COUNT",AUMT)=$G(^TMP("AUM",$J,"COUNT",AUMT))+1
  Q
- ;
-INTROE ; Intro text during KIDS Environment check.
- ;;This is the update to the standard code book tables.  There are modifications
- ;;and additions to the following files:  Community, Location, Tribe,
- ;;Reservation and Service Unit.
- ;;
- ;;The install message will report updates and failed updates to those files. 
- ;;
- ;;###
- ;
-INTROI ; Intro text during KIDS Install.
- ;;If you run interactively, results will be displayed on your screen,
- ;;and recorded in the entry in the INSTALL file.
- ;;If you queue to TaskMan, remember not to Q to the HOME device.
- ;;###
  ;

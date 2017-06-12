@@ -1,5 +1,5 @@
 AMER1 ; IHS/ANMC/GIS - ER ADMISSION QUESTIONS ;  
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**8**;MAR 03, 2009;Build 23
  ;
  Q
 QA1 D QA1^AMER1A ; PATIENT NAME
@@ -21,7 +21,9 @@ QA2 ; DATE AND TIME OF ADMISSION TO ER
 QA3 ; PRESENTING COMPLAINT
  K DIR("B") I $D(^TMP("AMER",$J,1,3)) S DIR("B")=^(3)
  I $D(AMERDOA) S DIR("B")="DOA"
- S DIR(0)="F^1:80",DIR("A")="*Presenting complaint",DIR("?")="Enter free text chief complaint (80 characters max.)" D ^DIR K DIR
+ ;AMER*3.0*8;Raised maximum field length
+ ;S DIR(0)="F^1:80",DIR("A")="*Presenting complaint",DIR("?")="Enter free text chief complaint (80 characters max.)" D ^DIR K DIR
+ S DIR(0)="F^2:240",DIR("A")="*Presenting complaint",DIR("?")="Enter free text chief complaint (240 characters max.)" D ^DIR K DIR
  D CKSC I $D(AMERCKSC)!($TR(Y," ")="") K AMERCKSC G QA3
  D OUT^AMER
  Q

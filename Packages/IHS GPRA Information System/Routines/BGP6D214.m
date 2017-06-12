@@ -1,0 +1,63 @@
+BGP6D214 ; IHS/CMI/LAB - measure 6 19 Sep 2014 8:12 AM ; 
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
+ ;
+STATIN(P,BDATE,EDATE,BGPNDAYS) ;EP - GET STATIN MEDS
+ NEW X,Y,Z,%,E
+ NEW BGPMEDS1
+ ;CHECK CPT CODE FIRST
+ S %="",E=+$$CODEN^ICPTCOD("4013F"),%=$$CPTI^BGP6DU(P,BDATE,EDATE,E)
+ I % Q 1_U_"Statin: "_$$DATE^BGP6UTL($P(%,U,2))_" CPT 4013F"
+ K BGPMEDS1 S K=0,R=""
+ D GETMEDS^BGP6UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) Q ""
+ S T=$O(^ATXAX("B","BGP PQA STATIN MEDS",0))
+ S T1=$O(^ATXAX("B","BGP PQA STATIN NDC",0))
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X!(R]"")  S Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
+ .S G=0
+ .S D=$P(^AUPNVMED(Y,0),U)
+ .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G STAT1
+ .S N=$P($G(^PSDRUG(D,2)),U,4)
+ .I N]"",T1,$D(^ATXAX(T1,21,"B",N)) S G=1
+ .Q:'G
+STAT1 .;
+ .S J=$P(^AUPNVMED(Y,0),U,8)
+ .S V=$P(^AUPNVMED(Y,0),U,3)
+ .Q:'V
+ .Q:'$D(^AUPNVSIT(V,0))
+ .S S=$$DAYS^BGP6D82(Y,V,EDATE)
+ .S K=S+K  ;TOTAL DAYS SUPPLY
+ .I K>BGPNDAYS D
+ ..S R="Statin: "_$$DATE^BGP6UTL($P($P(^AUPNVSIT(V,0),U),"."))_" "_$$VAL^XBDIQ1(9000010.14,Y,.01)
+ I K>BGPNDAYS Q 1_U_R
+STATPRIO ;now add in any before BEG DATE
+ K BGPMEDS1
+ S R=""
+ D GETMEDS^BGP6UTL2(P,$$FMADD^XLFDT(BDATE,-365),BDATE,,,,,.BGPMEDS1)
+ I '$D(BGPMEDS1) Q ""
+ S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X!(R]"")  S Y=+$P(BGPMEDS1(X),U,4) D
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
+ .S G=0
+ .S D=$P(^AUPNVMED(Y,0),U)
+ .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G STAT2
+ .S N=$P($G(^PSDRUG(D,2)),U,4)
+ .I N]"",T1,$D(^ATXAX(T1,21,"B",N)) S G=1 G STAT2
+ .Q:'G
+STAT2 .;
+ .S J=$P(^AUPNVMED(Y,0),U,8)
+ .S V=$P(^AUPNVMED(Y,0),U,3)
+ .Q:'V
+ .Q:'$D(^AUPNVSIT(V,0))
+ .;S IS DAYS SUPPLY, J IS DATE DISCONTINUED
+ .Q:J]""  ;don't use if discontinued
+ .S D=$$FMDIFF^XLFDT(BDATE,$P($P(^AUPNVSIT(V,0),U),"."))  ;difference between dsch date and date prescribed
+ .S S=$P(^AUPNVMED(Y,0),U,7)
+ .S S=S-D  ;subtract the number of days used
+ .S:S<0 S=0
+ .S K=S+K  ;TOTAL DAYS SUPPLY
+ .I K>BGPNDAYS D
+ ..S R="Statin: "_$$DATE^BGP6UTL($P($P(^AUPNVSIT(V,0),U),"."))_" "_$$VAL^XBDIQ1(9000010.14,Y,.01)
+ I K>BGPNDAYS Q 1_U_R
+ Q ""

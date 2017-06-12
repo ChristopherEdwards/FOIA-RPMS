@@ -1,5 +1,6 @@
-BTIUMED2 ; IHS/MSC/MGH - Active/Recent Med Objects Routine ;30-Oct-2012 11:17;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007,1009,1010**;Jun 20, 1997;Build 24
+BTIUMED2 ; IHS/MSC/MGH - Active/Recent Med Objects Routine ;12-Dec-2013 16:03;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1007,1009,1010,1011,1012,1013**;Jun 20, 1997;Build 33
+ ;Patch 1011 changed to use new pharmacy APIS
  Q
 LIST(DFN,TARGET,CLININC) ; EP
  ;
@@ -24,15 +25,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  S (NEXTLINE,TAB,HEADER,UNKNOWNS)=0,LLEN=47
  K @TARGET,^TMP("PS",$J)
  ; Check for Pharmacy Package and required patches
- I '$L($T(OCL^PSOORRL)) D  G LISTX
- .D ADD^BTIUMED1("Outpatient Pharmacy 7.0 Required for this Object.")
- .D ADD^BTIUMED1(" ")
- I '$$PATCH^XPDUTL("PSO*7.0*20") D  G LISTX
- .D ADD^BTIUMED1("Outpatient Pharmacy Patch PSO*7.0*20 is required for this Object.")
- .D ADD^BTIUMED1(" ")
- I '$$PATCH^XPDUTL("PSJ*5.0*22") D  G LISTX
- .D ADD^BTIUMED1("Inpatient Pharmacy Patch PSJ*5.0*22 is required for this Object.")
- .D ADD^BTIUMED1(" ")
+ I '$$PATCHSOK^TIULMED3 G LISTX ;P213
  I $G(CLININC)'=1 S CLININC=0
  S (EMPTY,HEADER)=1
  S HEADER=1
@@ -50,6 +43,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  .S KEEPMED=($L($P(NODE,U,2))>0) ;Discard Blank Meds
  .;Group meds by status
  .S STATUS=$P(NODE,U,9)
+ .I STATUS="ACTIVE/SUSP" S STATUS="ACTIVE (S)"
  .S IDATE=$P(NODE,U,15)
  .I $P(NODE,U)["R;O" D
  ..S RXNO=+($P(NODE,U,1))
@@ -105,41 +99,51 @@ LIST(DFN,TARGET,CLININC) ; EP
  .S DRUGCLAS=" "
  .S MED=$P(NODE,U,2)
  .I KEEPMED D
- ..S DRUGIDX=$O(^PSDRUG("B",MED,0))
+ ..S DRUGIDX=$$IENNAME^TIULMED2(MED)
  ..D GETCLASS
  ..I KEEPMED,+DRUGIDX=0 D  ;Find orderable item
  ...N IDX,ID,ORDIDX,TMPCLASS,CDONE,SDONE,TMPIDX,TMPNODE,ISSUPPLY
  ...S ID=$P(NODE,U),IDX=+ID,ID=$E(ID,$L(IDX)+1,$L(ID))
  ...S (DRUGIDX,ORDIDX)=0
+ ...K ^TMP($J,"TIULMED")
+ ...; IDX is Order #; ID indicates what file.  See IA 2400
+ ...; R;O MED will always be in Drug File (Unless Drug File entry was
+ ...;     changed after ordering.
  ...I ID="R;O" D
- ....S DRUGIDX=+$P($G(^PSRX(IDX,0)),U,6)
- ....S ORDIDX=+$P($G(^PSRX(IDX,"OR1")),U)
+ ....D RX^PSO52API(DFN,"TIULMED",IDX,"","0,O") ; IA 4820
+ ....S DRUGIDX=+$G(^TMP($J,"TIULMED",DFN,IDX,6))
+ ....S ORDIDX=+$G(^TMP($J,"TIULMED",DFN,IDX,"OI"))
  ...I ID="P;O" D
- ....S DRUGIDX=+$P($G(^PS(52.41,IDX,0)),U,9)
- ....S ORDIDX=+$P($G(^PS(52.41,IDX,0)),U,8)
+ ....D PEN^PSO5241(DFN,"TIULMED",IDX) ; IA 4821
+ ....S DRUGIDX=+$G(^TMP($J,"TIULMED",DFN,IDX,11))
+ ....S ORDIDX=+$G(^TMP($J,"TIULMED",DFN,IDX,8))
  ...I ID="P;I" D
  ....I $P($G(^PS(53.1,IDX,1,0)),U,4)=1 D
  .....S TMPIDX=$O(^PS(53.1,IDX,1,0)) I +TMPIDX D
  ......S DRUGIDX=$P($G(^PS(53.1,IDX,1,TMPIDX,0)),U)
  ....S ORDIDX=+$P($G(^PS(53.1,IDX,.2)),U)
  ...I ID="U;I" D
- ....I $P($G(^PS(55,DFN,5,IDX,1,0)),U,4)=1 D
- .....S TMPIDX=$O(^PS(55,DFN,5,IDX,1,0)) I +TMPIDX D
- ......S DRUGIDX=$P($G(^PS(55,DFN,5,IDX,1,TMPIDX,0)),U)
- ....S ORDIDX=+$P($G(^PS(55,DFN,5,IDX,.2)),U)
+ ....D PSS431^PSS55(DFN,IDX,"","","TIULMED") ; IA 4826
+ ....I +$G(^TMP($J,"TIULMED",IDX,"DDRUG",0))=1 D
+ .....S TMPIDX=$O(^TMP($J,"TIULMED",IDX,"DDRUG",0)) I +TMPIDX'>0 D
+ .....S DRUGIDX=+$G(^TMP($J,"TIULMED",IDX,"DDRUG",TMPIDX,.01))
+ ....S ORDIDX=+$G(^TMP($J,"TIULMED",IDX,108))
  ...I ID="V;I" D
- ....I $P($G(^PS(55,DFN,"IV",IDX,"AD",0)),U,4)=1 D
- .....S TMPIDX=$O(^PS(55,DFN,"IV",IDX,"AD",0)) I +TMPIDX D
- ......S TMPIDX=$P($G(^PS(55,DFN,"IV",IDX,"AD",TMPIDX,0)),U)
- ......I +TMPIDX S DRUGIDX=$P($G(^PS(52.6,TMPIDX,0)),U,2)
- ....S ORDIDX=+$P($G(^PS(55,DFN,"IV",IDX,.2)),U)
+ ....D PSS436^PSS55(DFN,IDX,"TIULMED") ; IA 4826
+ ....S ORDIDX=+$G(^TMP($J,"TIULMED",IDX,130))
+ ....I ^TMP($J,"TIULMED",IDX,"ADD",0)=1 D
+ .....S TMPIDX=$O(^TMP($J,"TIULMED",IDX,"ADD",0)) I +TMPIDX D
+ ......S TMPIDX=+$G(^TMP($J,"TIULMED",IDX,"ADD",TMPIDX,.01))
+ ......I +TMPIDX S DRUGIDX=$$DRGIEN^TIULMED2(TMPIDX) ; IA 4662
  ...S DRUGCLAS=""
  ...D GETCLASS
  ...I KEEPMED,+DRUGIDX=0,+ORDIDX,DRUGCLAS="" D
  ....S IDX=0,ISSUPPLY=2,CDONE='CLASSORT,SDONE=+SUPPLIES
- ....F  S IDX=$O(^PSDRUG("ASP",ORDIDX,IDX)) Q:'IDX  D  Q:(CDONE&SDONE)
- .....S TMPNODE=$G(^PSDRUG(IDX,0))
- .....S TMPCLASS=$P(TMPNODE,U,2)
+ ....N LIST S LIST="TIULMED" K ^TMP($J,LIST)
+ ....D DRGIEN^PSS50P7(ORDIDX,"",LIST) ; IA 4662
+ ....F  S IDX=$O(^TMP($J,LIST,IDX)) Q:'IDX  D  Q:(CDONE&SDONE)
+ .....S TMPCLASS=$$DRGCLASS^TIULMED2(IDX)
+ .....S TMPNODE=U_TMPCLASS_U_$$DEA^TIULMED2(IDX)
  .....I 'CDONE,TMPCLASS="" S CDONE=1,DRUGCLAS=""
  .....I 'CDONE D
  ......I DRUGCLAS="" S DRUGCLAS=TMPCLASS
@@ -154,7 +158,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  .; *** Save wanted meds in "B" temp xref, removing duplicates ***
  .;
  .I KEEPMED D
- ..D ADDMED^BTIUMED1(1) ; Get XSTR to check for duplicates
+ ..D ADDMED^BTIUMED1(1,1) ; Get XSTR to check for duplicates
  ..S IDATE=$P(NODE,U,15)
  ..I $P($P(NODE,U),";")["N" S IDATE=$$DT^XLFDT
  ..I $P(NODE,U,9)="PENDING"!($P(NODE,U,9)="HOLD") S IDATE=$$DT^XLFDT
@@ -225,7 +229,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  ......E  I STATUS'="OUTSIDE" D ADD^BTIUMED1($E($E(SPACE60,1,47)_"Status"_SPACE60,1,60)_"Last Fill")
  .....S TEMP=STATUS_" "
  .....;S TEMP=$S(STATIDX=1:"Active",STATIDX=2:"Pending",1:"Inactive")_" "
- .....S TEMP=TEMP_$S(MEDTYPE=INPTYPE:"Inpatient",MEDTYPE=NVATYPE:"Outside",1:"Outpatient")
+ .....S TEMP=TEMP_$S(MEDTYPE=INPTYPE:"Inpatient",MEDTYPE=NVATYPE:$$GET^XPAR("ALL","BEHORX NONVA LABEL"),1:"Outpatient")
  .....S TEMP="     "_TEMP_" Medications"
  .....S TEMP=$E(TEMP_SPACE60,1,47)
  .....I MEDTYPE=INPTYPE S TEMP=TEMP_"Status"
@@ -236,7 +240,7 @@ LIST(DFN,TARGET,CLININC) ; EP
  .....E  I STATUS'="OUTSIDE" S TEMP=TEMP_"Expiration"
  .....D ADD^BTIUMED1(TEMP),ADD^BTIUMED1(DASH73)
  ....S COUNT=COUNT+1,TOTAL=TOTAL+1
- ....D ADDMED^BTIUMED1(0)
+ ....D ADDMED^BTIUMED1(0,1)
  I COUNT'=TOTAL D
  .S TAB=0
  .D ADD^BTIUMED1(" ")
@@ -246,10 +250,5 @@ LISTX K ^TMP("PS",$J)
  Q "~@"_$NA(@TARGET)
  ;
 GETCLASS ; Get Drug Class, filter out supplies
- I +DRUGIDX D
- .N TEMPNODE
- .S TEMPNODE=$G(^PSDRUG(DRUGIDX,0))
- .S DRUGCLAS=$P(TEMPNODE,U,2)
- .I 'SUPPLIES,($E(DRUGCLAS,1,2)="XA") D
- ..S KEEPMED='($P(TEMPNODE,U,3)["S")
+ D GETCLASS^TIULMED3
  Q

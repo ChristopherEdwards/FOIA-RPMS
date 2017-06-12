@@ -1,5 +1,5 @@
-BQIDCAPC ;PRXM/HC/ALA-Scheduled Visits by Clinic Stop ; 21 Nov 2005  6:04 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+BQIDCAPC ;GDIT/HS/ALA-Scheduled Visits by Clinic Stop ; 21 Nov 2005  6:04 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -28,7 +28,7 @@ APT(DATA,PARMS,MPARMS) ;EP
  ;
 FND ;  Find the patients with appts for one or more clinic stop codes
  NEW CLIN,FROM,THRU,LOC,NM,N,FRDT,ENDT,LABEL,APST,STOP,FDT,EDT,DFN,LABEL
- NEW STR,SLOC,STAT,APSTAT,APTYPE
+ NEW STR,SLOC,STAT,APSTAT,APTYPE,APRANGE,RFROM,RTHRU
  S NM=""
  F  S NM=$O(PARMS(NM)) Q:NM=""  S @NM=PARMS(NM)
  I $G(APTYPE)'="" D
@@ -58,7 +58,7 @@ FND ;  Find the patients with appts for one or more clinic stop codes
  ;
 FND1 ; Check one clinic stop code
  ; If timeframe is selected populate start and end dates
- I $G(RANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH(RANGE,PPIEN)
+ I $G(APRANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH1(APRANGE,PPIEN,"APRANGE")
  S LOC=""
  F  S LOC=$O(^SC("ASTOP",CLIN,LOC)) Q:LOC=""  D
  . S FDT=$S($G(RFROM)'="":RFROM,1:$G(FROM))
@@ -93,7 +93,8 @@ FND1 ; Check one clinic stop code
  ;
 FNDALL ; Loop through all patients since cancelled status selected
  ; If timeframe is selected populate start and end dates
- I $G(RANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH(RANGE,PPIEN)
+ NEW FRDT,ENDT
+ I $G(APRANGE)'="",$G(PPIEN)'="" D RANGE^BQIDCAH1(APRANGE,PPIEN,"APRANGE")
  S FRDT=$S($G(RFROM)'="":RFROM,1:$G(FROM))
  S ENDT=$S($G(RTHRU)'="":RTHRU,1:$G(THRU))
  I $G(CLIN)]"" D

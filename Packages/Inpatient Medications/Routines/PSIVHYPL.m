@@ -1,5 +1,5 @@
-PSIVHYPL ;BIR/PR-PRINT OUT LABELS ;03-Apr-2013 14:16;PLS
- ;;5.0; INPATIENT MEDICATIONS ;**58,96,128,178,184,1010,1015**;16 DEC 97;Build 62
+PSIVHYPL ;BIR/PR-PRINT OUT LABELS ;05-May-2014 19:00;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**58,96,128,178,184,1010,1015,1018**;16 DEC 97;Build 21
  ;
  ; Reference to ^%ZIS(2 is supported by DBIA 3435.
  ; Reference to ^PS(52.6 is supported by DBIA 1231.
@@ -16,6 +16,7 @@ PSIVHYPL ;BIR/PR-PRINT OUT LABELS ;03-Apr-2013 14:16;PLS
  ;          - IHS/MSC/PB - 2/11/13 modified line BARCODE + 3 to use a $G to prevent errors if the PRTFLG variable is not set
  ;          - IHS/MSC/PB - 2/13/13 modified line RE+7 to set the TEXT1 variable to "_________" if the offset is '>0
  ;          - IHS/MSC/PB - 3/1/13 modified to incorporate changes made by VA for BCMA project
+ ;            IHS/MSC/PLS - 05/05/14 - Removed modifications at BARCODE+1
 SSWARD ;Get patient SS# and ward location
  N X0,PSJIO,I
  S I=0 F  S I=$O(^%ZIS(2,IOST(0),55,I)) Q:'I  S X0=^(I,0),PSJIO($P(X0,"^"))=^(1)
@@ -165,10 +166,10 @@ UPD N X,Y,PSIVEL,PSIVAD
  Q
 BARCODE D PSET^%ZISP
  ;IHS/MSC/PB - 04/25/12 - added the next line to compute line length -- see note before line tag OFFSET
- I $P($G(^PS(59.5,PSIVSN,9999999)),"^")=1 D OFFSET^PSIVLABL(PSJBCID,"Do Not Use After:")
+ ;I $P($G(^PS(59.5,PSIVSN,9999999)),"^")=1 D OFFSET^PSIVLABL(PSJBCID,"Do Not Use After:")
  ;IHS/MSC/PB - 2/11/13 - line below modified to to a $G of the variable PRTFLG to prevent errors if the PRTFLG is not defined
  ;I PRTFLG=0 S PSJBCID=PRTLINE
- I $G(PRTFLG)=0 S PSJBCID=PRTLINE
+ ;I $G(PRTFLG)=0 S PSJBCID=PRTLINE
  I 'PSJIO D
  . I IOBARON]"" W @IOBARON
  . W PSJBCID

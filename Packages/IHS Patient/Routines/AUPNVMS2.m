@@ -1,5 +1,5 @@
 AUPNVMS2 ; IHS/CMI/LAB - HELP FOR V MEASUREMENT 24-MAY-1993 ; 29 Aug 2011  4:39 PM
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,7,15**;MAY 14, 2009;Build 11
  ;
  ;BJPC patch 1
  ;  - peak flow change to 50-1000
@@ -120,7 +120,7 @@ HFH ;;
 HFT ;;
  ;; Enter Fetal Heart Tone.  Must be in the range 0-400.
 HRS ;;Help for Respiration rate
- ;;Enter the respiration rate of the patient.  Must be in range 8-100.
+ ;;Enter the respiration rate of the patient.  Must be in range 8-140.
 HO2 ;;
  ;;Enter a % between 50 and 100.
 HPF ;;

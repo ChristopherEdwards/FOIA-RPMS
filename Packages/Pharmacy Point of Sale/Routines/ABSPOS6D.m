@@ -1,5 +1,5 @@
 ABSPOS6D ; IHS/FCS/DRS - user screen subrous ;   
- ;;1.0;PHARMACY POINT OF SALE;**14,18,37,38,40,41,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**14,18,37,38,40,41,46**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT - 8/24/06 - Patch 18
  ;  Changed code so rejected reversals can be resubmitted.

@@ -1,5 +1,11 @@
-TIULC ; SLC/JER - Computational functions ;8/23/04
- ;;1.0;TEXT INTEGRATION UTILITIES;**3,9,19,23,53,93,109,182**;Jun 20, 1997
+TIULC ; SLC/JER - Computational functions ;08/06/2009
+ ;;1.0;TEXT INTEGRATION UTILITIES;**3,9,19,23,53,93,109,182,250**;Jun 20, 1997;Build 14
+ ;
+ ; ICR #2054    - ^%DT
+ ;     #10000   - NOW^%DTC Routine & %H, %I Local Vars
+ ;     #10003   - %DT Local Var
+ ;     #10103   - $$FMDIFF^XLFDT
+ ;
 LINECNT(DA) ; Compute line count for document record
  N CPL,CCNT S CPL=$S(+$P($G(TIUPRM0),U,3)>0:$P(TIUPRM0,U,3),1:60)
  Q $$CHARCNT(DA)\CPL
@@ -11,6 +17,24 @@ CHARCNT(DA) ; Compute character count for a record
  S TIUI=0
  F  S TIUI=$O(^TIU(8925,"DAD",DA,TIUI)) Q:+TIUI'>0!+$$ISADDNDM^TIULC1(+TIUI)  S CCNT=$$CHARCNT(TIUI)
  Q +$G(CCNT)
+VBCLINES(DA,ROOT) ; Compute the Visible Black Character (VBC) Line Count for a document
+ Q $FN(($$VBCCNT(DA,$G(ROOT,"^TIU(8925,"_DA_",""TEXT"")"))/65),"",2)
+VBCCNT(DA,ROOT) ; Compute Visible Black Character (VBC) Count for a record
+ N TIUVBC,TIUI S ROOT=$G(ROOT,"^TIU(8925,"_DA_",""TEXT"")")
+ N:'$D(VBCCNT) VBCCNT
+ S TIUVBC=$$VBC
+ S TIUI=0
+ F  S TIUI=$O(@ROOT@(TIUI)) Q:+TIUI'>0  D
+ . N TIUL,TIUJ S TIUL=$G(@ROOT@(TIUI,0)),TIUJ=0
+ . F TIUJ=1:1:$L(TIUL) D
+ . . N TIUC S TIUC=$E(TIUL,TIUJ)
+ . . S:TIUVBC[TIUC VBCCNT=+$G(VBCCNT)+1
+ S TIUI=0
+ I ROOT["^TIU(8925," D
+ . F  S TIUI=$O(^TIU(8925,"DAD",DA,TIUI)) Q:+TIUI'>0!+$$ISADDNDM^TIULC1(+TIUI)  S CCNT=$$VBCCNT(TIUI)
+ Q +$G(VBCCNT)
+VBC() ; Return string of Visible Black Characters (VBC)
+ Q "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz~!@#$%^&*()_+{}|:<>?÷±`1234567890-=[]\;',./"""
 STATUS(DA) ; Evaluate Status of Reports
  N NODE12,NODE13,NODE15,NODE16,AMENDED,STATUS,SIGNED,COSIGNED,PURGED
  N VERIFIED,RELEASED,SIGNER,COSIGNER,SIGSTAT,TYPE,REQVER,REQREL,REQCOS

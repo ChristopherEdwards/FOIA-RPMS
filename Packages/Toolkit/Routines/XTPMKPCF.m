@@ -1,6 +1,6 @@
-XTPMKPCF ;OAK/BP - COMPUTED FIELDS AND OTHER ODDITIES FOR PATCH MONITOR;
- ;;7.3;TOOLKIT;**98,106**; Apr 25, 1995;Build 1
- ;
+XTPMKPCF ;OAK/BP - COMPUTED FIELDS AND OTHER ODDITIES FOR PATCH MONITOR; ; 3/15/11 12:17pm
+ ;;7.3;TOOLKIT;**98,106,130**; Apr 25, 1995;Build 3
+ ;Per VHA Directive 2004-038, this routine should not be modified.
  ; computed fields
 INSTALL ; returns the patch installation information from the INSTALL file.
  ; note: Fileman variables are NOT killed because they are used in output.
@@ -8,7 +8,7 @@ INSTALL ; returns the patch installation information from the INSTALL file.
  ;   patches may be involved.  If a test patch, null the pointer, like nothing is there.
  S X=$P($G(^XPD(9.9,D0,0)),U,8) Q:X=""
  S X=$O(^XPD(9.7,"B",X,9999999999),-1) I $G(^XPD(9.7,+X,2))["TEST v" S X="" Q
- S X=$P($G(^XPD(9.7,+X,1)),U,3)
+ S X=$P($G(^XPD(9.7,+X,1)),U,3),XTINST=$P($G(X),".",1)
  I X="" Q
  S Y=X D DD^%DT S X=$P(Y,"@") K Y
  Q

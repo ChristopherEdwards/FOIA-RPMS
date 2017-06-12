@@ -1,5 +1,5 @@
-RAO7NEW ;HISC/FPT - Create entry in OE/RR Order file (100) ;11/16/98  15:10
- ;;5.0;Radiology/Nuclear Medicine;**5,10,18,41,75**;Mar 16, 1998 ;Build 4
+RAO7NEW ;HISC/FPT - Create entry in OE/RR Order file (100) ; 06 Oct 2013  11:11 AM
+ ;;5.0;Radiology/Nuclear Medicine;**5,10,18,41,75,1005**;Mar 16, 1998 ;Build 13
  ;
  ; This routine invokes IA #1300-A, #2083, #10082
  ;last modification for P18 by SS July 5,2000
@@ -96,7 +96,11 @@ SS7 . S RACNT=RACNT+1,RATAB=RATAB+1
  . S @(RAVAR_RATAB_")")="OBX"_RAHLFS_RACNT_RAHLFS_"TX"_RAHLFS_"2000.02^Clinical History^AS4"_RAHLFS_"1"_RAHLFS_$S(RAORDCTR="XX"&(RAD70SB'=0):$G(^RADPT(+RA0,"DT",$P(RAD70SB,"^",1),"P",$P(RAD70SB,"^",2),"H",A,0)),1:$G(^RAO(75.1,RAOIFN,"H",A,0)))
  . Q
  S DFN=RADFN D DEM^VADPT
- I $P(VADM(5),U)]"",("Ff"[$P(VADM(5),U)) D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $P(VADM(5),U)]"",("Ff"[$P(VADM(5),U)) D
+ I $P(VADM(5),U)]"",$P(VADM(5),U)'="M" D
+ .;
  . S RATAB=RATAB+1,RACNT=RACNT+1
  . S @(RAVAR_RATAB_")")="OBX"_RAHLFS_RACNT_RAHLFS_"TX"_RAHLFS_"2000.33^Pregnant^AS4"_$$STR^RAO7UTL(2)_$S($P(RA0,U,13)="":"","Yy"[$P(RA0,U,13):"Y","Nn"[$P(RA0,U,13):"N",1:"U")
  . Q

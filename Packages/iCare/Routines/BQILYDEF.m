@@ -1,5 +1,5 @@
 BQILYDEF ;PRXM/HC/ALA-Layout Template Defaults ; 01 Jun 2007  11:51 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
 RET(DATA,TMIEN) ;EP -- BQI GET LAYOUTS
  ;
@@ -21,7 +21,8 @@ RET(DATA,TMIEN) ;EP -- BQI GET LAYOUTS
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQILYDEF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
  S @DATA@(II)="I00010TEMPL_IEN^T00040TEMPLATE_NAME^T00001DEFAULT^T00001TYPE^T00120DISPLAY_ORDER"
- S @DATA@(II)=@DATA@(II)_"^T00120SORT_ORDER^T00120SORT_DIRECTION^D00030LAST_EDITED^T00001CAN_DELETE"_$C(30)
+ S @DATA@(II)=@DATA@(II)_"^T00120SORT_ORDER^T00120SORT_DIRECTION^D00030LAST_EDITED^T00001CAN_DELETE"
+ S @DATA@(II)=@DATA@(II)_"^T00050TITLE^T00050LAYOUT_TYPE^T00245COLUMN_RPC^T00245SYSTEM_DEF_RPC"_$C(30)
  ;
  ; Make sure user has all templates defined - If not, set up
  S DIEN=0
@@ -33,7 +34,14 @@ RET(DATA,TMIEN) ;EP -- BQI GET LAYOUTS
  . S TYP=$$GET1^DIQ(90505.015,IENS,.02,"I") Q:TYP=""
  . I $$GET1^DIQ(90505.015,IENS,.05,"I")'="Y" S TDEF(TYP)=""
  . I $$GET1^DIQ(90505.015,IENS,.03,"I")="Y" S DDEF(TYP)=""
- F TYP="D","G","R","A","H","Q","T","N" D
+ ;F TYP="D","G","R","A","H","Q","T","N","B","I","CO" D
+ S TYP=""
+ F  S TYP=$O(^BQI(90506.5,"C",TYP)) Q:TYP=""  D
+ . S VSIEN=$O(^BQI(90506.5,"C",TYP,""))
+ . I $P(^BQI(90506.5,VSIEN,0),U,10)=1 Q
+ . S TMTYP=$G(^BQI(90506.5,VSIEN,2))
+ . I $P(TMTYP,U,2)="" Q
+ . I $P(TMTYP,U,3)=1 Q
  . I '$D(TDEF(TYP)) D DTMPSET^BQITMPLS(TYP) ;Create default template if missing
  . I '$D(DDEF(TYP)) D DTMPDEF^BQITMPLS(TYP) ;Set to default if needed
  ;
@@ -47,11 +55,18 @@ RET(DATA,TMIEN) ;EP -- BQI GET LAYOUTS
  . D DEF(TMIEN,1)
  ;
  I TMIEN="" D
- . N STDLST,DEFLST
+ . N STDLST,DEFLST,VSIEN,TMTYP
  . ; Get the standard default displays for all types if there are no default
  . ; templates defined
  . I DIEN="" D  Q
- .. F TYP="D","G","R","A","H","Q","T","N" D STND(TYP)
+ .. ;F TYP="D","G","R","A","H","Q","T","N","I","B","CO" D STND(TYP)
+ .. S TYP=""
+ .. F  S TYP=$O(^BQI(90506.5,"C",TYP)) Q:TYP=""  D
+ ... S VSIEN=$O(^BQI(90506.5,"C",TYP,""))
+ ... S TMTYP=$G(^BQI(90506.5,VSIEN,2))
+ ... I $P(TMTYP,U,2)="" Q
+ ... I $P(TMTYP,U,3)=1 Q
+ ... D STND(TYP)
  . ;
  . ; Otherwise, get the displays for any defined default template
  . S DIEN=0
@@ -73,7 +88,14 @@ RET(DATA,TMIEN) ;EP -- BQI GET LAYOUTS
  . ;
  . ;Now set up the standard entries (which may not be defined)
  . ;If no default set yet, set this one as the default
- . F TYP="D","G","R","A","H","Q","T","N" D
+ . ;F TYP="D","G","R","A","H","Q","T","N","I","B","CO" D
+ . S TYP=""
+ . F  S TYP=$O(^BQI(90506.5,"C",TYP)) Q:TYP=""  D
+ .. S VSIEN=$O(^BQI(90506.5,"C",TYP,""))
+ .. I $P(^BQI(90506.5,VSIEN,0),U,10)=1 Q
+ .. S TMTYP=$G(^BQI(90506.5,VSIEN,2))
+ .. I $P(TMTYP,U,2)="" Q
+ .. I $P(TMTYP,U,3)=1 Q
  .. ;
  .. ;IF STANDARD NOT DEFINED - CREATE IT
  .. ;
@@ -124,28 +146,29 @@ STND(DTYP,DEF) ;EP - Get the standard display for each type
  ;
  ; If the type is Patient, get the default definition
  I DTYP="D" D
- . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQIPLVW()_"^"_$$SFNC^BQIPLVW()_"^A^^"_$C(30) Q
+ . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQIPLVW()_"^"_$$SFNC^BQIPLVW()_"^A^^"_$$GUI(DTYP)_$C(30) Q
  ; If the type is Reminders, get the default definition
  I DTYP="R" D
- . S @DATA@(II)=@DATA@(II)_U_$$RDEF^BQIRMPL()_"^"_$$SFNC^BQIPLVW()_"^A^^"_$C(30) Q
+ . S @DATA@(II)=@DATA@(II)_U_$$RDEF^BQIRMPL()_"^"_$$SFNC^BQIPLVW()_"^A^^"_$$GUI(DTYP)_$C(30) Q
  ; If the type is Performance, get the default definition
  I DTYP="G" D
- . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQIGPVW()_$C(29)_$$GDEF^BQIGPVW()_"^"_$$SFNC^BQIGPVW()_"^A^^"_$C(30) Q
+ . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQIGPVW()_$C(29)_$$GDEF^BQIGPVW()_"^"_$$SFNC^BQIGPVW()_"^A^^"_$$GUI(DTYP)_$C(30) Q
  I DTYP="Q"!(DTYP="T")!(DTYP="N") D  Q
  . S CRN=$O(^BQI(90506.5,"C",DTYP,"")) I CRN="" Q
  . S CARE=$P(^BQI(90506.5,CRN,0),U,1)
- . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQICEVW()_$C(29)_$$CDEF^BQICEVW()_"^"_$$SFNC^BQICEVW(CRN,DTYP)_"^A"_$C(29)_"D"_$C(29)_"A^^"_$C(30) Q
+ . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQICEVW()_$C(29)_$$CDEF^BQICEVW()_"^"_$$SFNC^BQICEVW(CRN,DTYP)_"^A"_$C(29)_"D"_$C(29)_"A^^"_$$GUI(DTYP)_$C(30) Q
  I DTYP'="D",DTYP'="R",DTYP'="G" D
  . N CRN,CARE
  . S CRN=$O(^BQI(90506.5,"C",DTYP,"")) I CRN="" Q
  . S CARE=$P(^BQI(90506.5,CRN,0),U,1)
- . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQICMVW()_$C(29)_$$CDEF^BQICMVW()_"^"_$$SFNC^BQICMVW()_"^A^^"_$C(30) Q
+ . S @DATA@(II)=@DATA@(II)_U_$$DFNC^BQICMVW()_$C(29)_$$CDEF^BQICMVW()_"^"_$$SFNC^BQICMVW()_"^A^^"_$$GUI(DTYP)_$C(30) Q
  Q
  ;
 DEF(TIEN,DEL,DEF) ;EP - Get a default display by a specific template record
  ; Parameters
  ; TIEN - Template IEN
- ;  DEL - 1 - Return CAN_DELETE field (used by BQI GET LAYOUTS but not BQI GET PANEL LAYOUTS)
+ ;  DEL - 1 - Return CAN_DELETE field and other fields needed by the GUI
+ ;            (used by BQI GET LAYOUTS but not BQI GET PANEL LAYOUTS)
  ;  DEF - 1 - This template should be set as the default
  ;
  N TEMPL,ISDEL,LEDT,DOR,DISPLAY
@@ -155,6 +178,7 @@ DEF(TIEN,DEL,DEF) ;EP - Get a default display by a specific template record
  S LEDT=$P(^BQICARE(DUZ,15,TIEN,0),U,4),LEDT=$$FMTE^BQIUL1(LEDT)
  S DOR="",DISPLAY=""
  F  S DOR=$O(^BQICARE(DUZ,15,TIEN,1,"C",DOR)) Q:DOR=""  D
+ . NEW IEN
  . S IEN=""
  . F  S IEN=$O(^BQICARE(DUZ,15,TIEN,1,"C",DOR,IEN)) Q:IEN=""  D
  .. S CODE=$P(^BQICARE(DUZ,15,TIEN,1,IEN,0),U,1)
@@ -163,6 +187,7 @@ DEF(TIEN,DEL,DEF) ;EP - Get a default display by a specific template record
  ;
  S SOR="",SORT="",SDIR=""
  F  S SOR=$O(^BQICARE(DUZ,15,TIEN,1,"D",SOR)) Q:SOR=""  D
+ . NEW IEN
  . S IEN=""
  . F  S IEN=$O(^BQICARE(DUZ,15,TIEN,1,"D",SOR,IEN)) Q:IEN=""  D
  .. N CODE,DIR
@@ -173,7 +198,7 @@ DEF(TIEN,DEL,DEF) ;EP - Get a default display by a specific template record
  S SDIR=$$TKO^BQIUL1(SDIR,$C(29))
  I SDIR="" S SDIR="A"
  ;
- I $G(DEL)=1 S II=II+1,@DATA@(II)=TIEN_U_TEMPL_U_DEF_U_TYP_U_DISPLAY_U_SORT_U_SDIR_U_LEDT_U_ISDEL_$C(30) Q
+ I $G(DEL)=1 S II=II+1,@DATA@(II)=TIEN_U_TEMPL_U_DEF_U_TYP_U_DISPLAY_U_SORT_U_SDIR_U_LEDT_U_ISDEL_$$GUI(TYP)_$C(30) Q
  E  S II=II+1,@DATA@(II)=TIEN_U_TEMPL_U_DEF_U_TYP_U_DISPLAY_U_SORT_U_SDIR_U_LEDT_$C(30)
  Q
  ;
@@ -203,7 +228,7 @@ SAV(DATA,OWNR,LYIEN,TEMPL,TYPE,ADDEL,SOR,SDIR,DOR) ;EP -- BQI SAVE LAYOUTS
  S @DATA@(II)="I00010RESULT^T00120ERROR_MESSAGE"_$C(30)
  ;
  ;Perform Deletes
- I $G(ADDEL)="DEL" D DELTMP(OWNR,LYIEN,TEMPL,.ERROR) G XSAV
+ I $G(ADDEL)="DEL" D DELTMP^BQITMPLE(OWNR,LYIEN,TEMPL,.ERROR) G XSAV
  ;
  I $G(TEMPL)="" D
  . S SRCN=$O(^BQI(90506.5,"C",TYPE,""))
@@ -271,175 +296,20 @@ XSAV I $D(ERROR) S II=II+1,@DATA@(II)="-1^"_$G(ERROR)_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
-DFLT(DATA,OWNR,LYIEN,TYPE,TMPNAM) ;EP -- BQI SET TEMPLATE DFLT
+GUI(TYPE) ;EP - Return additional fields needed by the GUI
  ;
- ; Input
- ;   OWNR  - Whose template this is
- ;   LYIEN - Template internal entry number
- ;   TYPE  - The type of template
- ;  TMPNAM - The template name
+ I $G(TYPE)="" Q "^^^^"
  ;
- NEW UID,II,ERROR,HDR
- S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S DATA=$NA(^TMP("BQILYDEF",UID))
- K @DATA
+ NEW TIEN,VALUE,TITLE,LAYTYP,COLRPC,SYSRPC
  ;
- ;Define Header
- S @DATA@(0)="T00001RESULT"_$C(30)
+ S TIEN=$O(^BQI(90506.5,"C",TYPE,"")) I TIEN="" Q "^"
  ;
- S II=0
- NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQILYDEF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ S TITLE=$$GET1^DIQ(90506.5,TIEN_",",2.01,"E")
+ S LAYTYP=$$GET1^DIQ(90506.5,TIEN_",",2.02,"E")
+ S COLRPC=$$GET1^DIQ(90506.5,TIEN_",",3,"E")
+ S SYSRPC=$$GET1^DIQ(90506.5,TIEN_",",4,"E")
  ;
- S:$G(OWNR)="" OWNR=DUZ
- S LYIEN=$G(LYIEN,"")
- S TYPE=$G(TYPE,"")
+ ;Set up return information
+ S VALUE=U_TITLE_U_LAYTYP_U_COLRPC_U_SYSRPC
  ;
- I LYIEN="" S BMXSEC="Template IEN is blank." Q
- I TYPE="" D  I TYPE="" S BMXSEC="Template TYPE is blank." Q
- . N DA,IENS
- . S DA(1)=OWNR,DA=LYIEN,IENS=$$IENS^DILF(.DA)
- . S TYPE=$$GET1^DIQ(90505.015,IENS,".02","I")
- ;
- ;Loop through all templates for type and set/remove default
- S IEN=0 F  S IEN=$O(^BQICARE(OWNR,15,"C",TYPE,IEN)) Q:'IEN  D  Q:$D(ERROR)
- . ;
- . NEW DA,IENS,BQIUPD,CHG,DEF
- . S DA(1)=OWNR,DA=IEN,IENS=$$IENS^DILF(.DA)
- . ;
- . ;Get current default value
- . S DEF=$$GET1^DIQ(90505.015,IENS,".03","I")
- . ;
- . ;Set Change Flag
- . S CHG=0
- . ;
- . ;If this one is the passed in one
- . I IEN=LYIEN D
- .. I DEF="Y" Q  ;Already default - don't save
- .. S BQIUPD(90505.015,IENS,".03")="Y",CHG=1
- . ;
- . ;Look for other templates
- . I IEN'=LYIEN D
- .. I DEF="" Q  ;Already not the default - don't save
- .. S BQIUPD(90505.015,IENS,".03")="",CHG=1
- . ;
- . ;Set last edited
- . I CHG=1 S BQIUPD(90505.015,IENS,.04)=$$NOW^XLFDT()
- . I $D(BQIUPD) D FILE^DIE("","BQIUPD","ERROR")
- ;
- S II=II+1
- I $D(ERROR) S @DATA@(II)="-1"_$C(30)
- E  S @DATA@(II)="1"_$C(30)
- S II=II+1,@DATA@(II)=$C(31)
- Q
- ;
-TMUSE(DATA,OWNR,TIEN) ;EP -- BQI GET TEMPLATE USE
- ;
- ; Input
- ;   OWNR  - Whose template this is
- ;   TIEN - Template internal entry number
- ;
- NEW UID,II,ERROR,HDR,TNAME,PLIEN,DA,IENS,OWNIEN
- S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S DATA=$NA(^TMP("BQILYDEF",UID))
- K @DATA
- ;
- ;Define Header
- S @DATA@(0)="I00010PANEL_IEN^T00120PANEL_NAME^T00250PANEL_DESCRIPTION^I00010PANEL_OWNER"_$C(30)
- ;
- S II=0
- NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQILYDEF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
- ;
- S:$G(OWNR)="" OWNR=DUZ
- ;
- I TIEN="" S BMXSEC="Template IEN is blank." Q
- ;
- ;Get template name
- S DA(1)=OWNR,DA=TIEN,IENS=$$IENS^DILF(.DA)
- S TNAME=$$GET1^DIQ(90505.015,IENS,".01","E") I TNAME="" S BMXSEC="Template does not have a NAME assigned to it" Q
- ;
- ;Loop through all panels for user to see if template in use
- S PLIEN=0
- F  S PLIEN=$O(^BQICARE(OWNR,1,PLIEN)) Q:'PLIEN  D
- . NEW PNAME,PDESC,DA,IENS,DIC,X,Y
- . ;
- . ;Quit if template isn't used in panel
- . S DIC="^BQICARE("_OWNR_",1,"_PLIEN_",4,",DIC(0)="X"
- . S X=TNAME D ^DIC I +Y=-1 Q
- . ;
- . S DA(1)=OWNR,DA=PLIEN,IENS=$$IENS^DILF(.DA)
- . S PNAME=$$GET1^DIQ(90505.01,IENS,.01,"E")
- . S PDESC=$$GET1^DIQ(90505.01,IENS,1,"E")
- . S II=$G(II)+1,@DATA@(II)=PLIEN_U_PNAME_U_PDESC_U_OWNR_$C(30)
- ;
- ;Loop through all panels shared to user and see if template is in use
- S OWNRIEN=""
- F  S OWNRIEN=$O(^BQICARE("C",OWNR,OWNRIEN)) Q:'OWNRIEN  D
- . S PLIEN=0 F  S PLIEN=$O(^BQICARE("C",OWNR,OWNRIEN,PLIEN)) Q:'PLIEN  D
- .. ;
- .. ;Quit if template isn't used in panel
- .. N DIC,X,Y
- .. S DIC="^BQICARE("_OWNRIEN_",1,"_PLIEN_",30,"_OWNR_",4,",DIC(0)="X"
- .. S X=TNAME D ^DIC I +Y=-1 Q
- .. ;
- .. S DA(1)=OWNRIEN,DA=PLIEN,IENS=$$IENS^DILF(.DA)
- .. S PNAME=$$GET1^DIQ(90505.01,IENS,.01,"E")
- .. S PDESC=$$GET1^DIQ(90505.01,IENS,1,"E")
- .. S II=$G(II)+1,@DATA@(II)=PLIEN_U_PNAME_U_PDESC_U_OWNRIEN_$C(30)
- ;
- S II=II+1,@DATA@(II)=$C(31)
- Q
- ;
-DELTMP(OWNR,TIEN,TNAME,ERROR) ;EP - Delete Template
- ;
- ;Input: TIEN - Template IEN
- ;Output: ERROR (if unsuccessful)
- ; 
- NEW DA,IENS,OWNRIEN,PLIEN
- ;
- ;Check for template IEN
- I TIEN="" S ERROR="Template IEN is null" Q
- ;
- S DA(1)=OWNR,DA=TIEN,IENS=$$IENS^DILF(.DA)
- ;
- ;Check for default template
- I $$GET1^DIQ(90505.015,IENS,".05","I")'="Y" S ERROR="Cannot delete default templates" Q
- ;
- ;Get Template name
- I TNAME="" D  Q:$G(ERROR)=1
- . S TNAME=$$GET1^DIQ(90505.015,IENS,".01","E") I TNAME="" S ERROR="Cannot find template name" Q
- ;
- ;Loop through all panels for user to see if template in use
- S PLIEN=0
- F  S PLIEN=$O(^BQICARE(OWNR,1,PLIEN)) Q:'PLIEN  D
- . NEW DA,DIK
- . ;
- . ;Quit if template isn't used in panel
- . S DIC="^BQICARE("_OWNR_",1,"_PLIEN_",4,",DIC(0)="X"
- . S X=TNAME D ^DIC I +Y=-1 Q
- . ;
- . S DA=+Y Q:DA=0
- . S DA(2)=OWNR,DA(1)=PLIEN,IENS=$$IENS^DILF(.DA)
- . S DIK="^BQICARE("_DA(2)_",1,"_DA(1)_",4,"
- . D ^DIK
- ;
- ;Loop through all panels shared to user and see if template is in use
- S OWNRIEN=""
- F  S OWNRIEN=$O(^BQICARE("C",OWNR,OWNRIEN)) Q:'OWNRIEN  D
- . S PLIEN=0 F  S PLIEN=$O(^BQICARE("C",OWNR,OWNRIEN,PLIEN)) Q:'PLIEN  D
- .. N DA,IENS,DIK
- .. ;
- .. ;Quit if template isn't used in panel
- .. N DIC,X,Y
- .. S DIC="^BQICARE("_OWNRIEN_",1,"_PLIEN_",30,"_OWNR_",4,",DIC(0)="X"
- .. S X=TNAME D ^DIC I +Y=-1 Q
- .. ;
- .. S DA=+Y Q:DA=0
- .. S DA(3)=OWNRIEN,DA(2)=PLIEN,DA(1)=OWNR,IENS=$$IENS^DILF(.DA)
- .. S DIK="^BQICARE("_DA(3)_",1,"_DA(2)_",30,"_DA(1)_",4,"
- .. D ^DIK
- ;
- ;Delete the template
- S DA(1)=OWNR,DA=TIEN
- S DIK="^BQICARE("_DA(1)_",15,"
- D ^DIK
- Q
+ Q VALUE

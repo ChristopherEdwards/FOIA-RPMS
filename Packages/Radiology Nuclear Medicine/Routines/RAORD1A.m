@@ -1,5 +1,5 @@
-RAORD1A ;HISC/FPT-Request an Exam ;05/05/09  07:45
- ;;5.0;Radiology/Nuclear Medicine;**1,86,99**;Mar 16, 1998;Build 5
+RAORD1A ;HISC/FPT-Request an Exam ; 06 Oct 2013  11:03 AM
+ ;;5.0;Radiology/Nuclear Medicine;**1,86,99,1005**;Mar 16, 1998;Build 13
  ;
  ;Call to WIN^DGPMDDCF (Supported IA #1246) from the SCREENW function
  ;Supported IA #10039 reference to ^DIC(42
@@ -84,7 +84,11 @@ PREG(RADFN,RADT) ; Subroutine will display the pregnancy prompt to the
  ; Input : RADFN - Patient, RADT - Today's date
  ; Output: Patient Pregnant? (yes, no, unknown or no default)
  ;   Note: (may set RAOUT if the user times out or '^' out)
- Q:RASEX'="F" "" ; not a female
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;Q:RASEX'="F" "" ; not a female
+ Q:RASEX="M" ""
+ ;
  S:RADT="" RADT=$$DT^XLFDT()
  N RADAYS,VADM D DEM^VADPT ; $P(VADM(3),"^") DOB of patient, internal
  S RADAYS=$$FMDIFF^XLFDT(RADT,$P(VADM(3),"^"),3)   ;P#99 correct/replace variable RAWHEN to RADT

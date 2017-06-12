@@ -1,5 +1,5 @@
 ABSPOSMF ; IHS/SD/RLT - Medicare Part D Insurer Report ;     [ 01/30/06  09:20 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**16,19,29,37,44**;JAN 30, 2006
+ ;;1.0;PHARMACY POINT OF SALE;**16,19,29,37,44**;JAN 30, 2006;Build 15
  Q
  ;
  ;----------------------------------------------------------

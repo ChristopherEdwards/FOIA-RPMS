@@ -1,5 +1,5 @@
-BEXRX7 ;cmi/anch/maw - BEX Audiocare Refill Driver - Pharmacy Version 7 Only [ 06/15/2010  9:18 PM ] ; 12 Mar 2012  4:22 PM
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4,5**;MAR 12, 2012;Build 1
+BEXRX7 ;cmi/anch/maw - BEX Audiocare Refill Driver - Pharmacy Version 7 Only [ 06/15/2010  9:18 PM ] ; 04 Dec 2015  8:08 AM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4,5,6**;APR 20, 2015;Build 7
  ;For O/P V7 only 
  ;
  ;
@@ -14,16 +14,16 @@ START ;
  I $G(PSOBEXFL) W !!,"The following Inactive Outpatient sites have refill requests:",! F PSOVX=0:0 S PSOVX=$O(PSOBEXI(PSOVX)) Q:'PSOVX  I $G(PSOBEXI(PSOVX)) W !?5,$P($G(^PS(59,+$G(PSOVX),0)),"^")
  I $G(PSOBEXFL) K DIR W ! S DIR(0)="E",DIR("A")="Press Return to Continue, '^'to exit" D ^DIR W ! I Y'=1 G END
  ;
- ;IHS/CMI/DAY - Patch 5 - If more than one Division, ask it
- I $P($G(^PS(59,0)),U,3)>1 K PSOPAR
- ;*
  ;
- D:'$D(PSOPAR) ^PSOLSET G:'$D(PSOPAR) END
- W !!!?20,"Division: "_$P(^PS(59,PSOSITE,0),"^"),!!
+ ;IHS/BJI/DAY - Patch 6 - Improved Site Selection
  ;
- ;IHS/CMI/DAY - Patch 5 - Set DUZ(2) for ScriptPro labeller
- I +$G(PSOSITE) S DUZ(2)=+$P($G(^PS(59,PSOSITE,"INI")),U)
- ;*
+ ;Store incoming Site values
+ D HOLD^BEXSITE
+ ;
+ ;Display site values to user and ask for change
+ D CHANGE^BEXSITE
+ ;
+ ;End Patch 6
  ;
  S PSOBBC1("FROM")="REFILL",PSOBBC("QFLG")=0,PSOBBC("DFLG")=0
  I '$G(PSOINST) S PSOINST=000 I $D(^DD("SITE",1)) S PSOINST=^DD("SITE",1)  ;maw 9/9/02
@@ -80,6 +80,17 @@ BEX6 S PSOBBC("DFLG")=""
  S PSOSELSE=0 I $G(PSODFN)'=$P(^PSRX(PSOBBC("IRXN"),0),"^",2) D KSRX S PSOSELSE=1 D PT^PSOBBC I $G(PSOBBC("DFLG")) K PSOSELSE D ULK G BEX6
  K PSOSELSE D PROFILE^PSORX1
  W !!
+ ;
+ ;IHS/CMI/DAY - Patch 6 - Wrong Labs Display during refills
+ ;
+ ;Change recommended by Phil Salmon - January 2015
+ ;
+ I +$G(PSODFN) S DFN=PSODFN
+ S PSODRUG("IEN")=$P(^PSRX(PSOBBC("IRXN"),0),U,6)
+ ;
+ ;End Patch 6
+ ;*
+ ;
  S PSOBBC("DONE")=PSOBBC("IRXN")_"," D REFILL^PSOBBC D ULK G BEX6
  Q
  ;
@@ -137,7 +148,28 @@ END D PROCESSX^PSOBBC
  K BEXRX,BEXPPL,PSORX
  I $P($G(^PS(59,+$G(PSOSITE),"I")),"^"),DT>$P($G(^("I")),"^") D FINAL^PSOLSET W !!,"Your Outpatient Site parameters have been deleted because you selected an",!,"inactive Outpatient Site!",!
  K DIR,PSOBBC,PSOBBC1,PSOVIN,PSOISITE,PSOBEXFL,PSOVXLP,PSOBEX,PSOVX,PSOBEXI,BEXANS,BEXANS2,BEXPTRX,BEXXFLAG,BEXPSORX,X,Y,PSODFN
+ ;
+ ;IHS/BJI/DAY - Patch 6 - Check if User Changed Sites
+ ;
+ ;Check if Inactive Site was deleted
+ ;
+ I $G(PSOSITE)="" K BEXHOLD D ^PSOLSET Q
+ I $G(PSOPAR)="" K BEXHOLD D ^PSOLSET Q
+ ;
+ ;Check if User Changed Sites
+ ;
+ I $$CHECK^BEXSITE() D
+ .;
+ .W !!
+ .W "You may have changed your Outpatient Site!",!
+ .D CHANGE^BEXSITE
+ .;
+ .K BEXHOLD
+ ;
+ ;End Patch 6
+ ;
  Q
+ ;
 BEXALT ;Menu action entry point to alert user
  S BEXCNT=0,BEXPTRN=""
  I '$G(PSOINST) S PSOINST="000" I $D(^DD("SITE",1)) S PSOINST=^(1)
@@ -171,10 +203,17 @@ CR(BEXVIEN) ;EP - add a chart request
  S BEXPAT=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U)
  I '$G(BEXPAT) Q
  S BEXTS=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,2)
- I '$G(DUZ(2)) S DUZ(2)=$P($G(^AUTTSITE(1,0)),U)
- S BEXPSITE=$O(^PS(59,"C",DUZ(2),0))
- I '$G(BEXPSITE) S DUZ(2)=$P($G(^AUTTSITE(1,0)),U)
- S BEXPSITE=$O(^PS(59,"C",DUZ(2),0))
+ ;
+ ;IHS/BJI/DAY - Patch 6
+ ;Fix Site Lookup to use D Xref instead of C Xref
+ ;I '$G(DUZ(2)) S DUZ(2)=$P($G(^AUTTSITE(1,0)),U)
+ ;S BEXPSITE=$O(^PS(59,"C",DUZ(2),0))
+ ;I '$G(BEXPSITE) S DUZ(2)=$P($G(^AUTTSITE(1,0)),U)
+ ;S BEXPSITE=$O(^PS(59,"C",DUZ(2),0))
+ S BEXPSITE=""
+ I +$G(DUZ(2)) S BEXPSITE=$O(^PS(59,"D",DUZ(2),0))
+ ;End Patch
+ ;
  I '$G(BEXPSITE) Q
  S BEXVSITO=$O(^BEXHRXP("B",BEXPSITE,0))
  I '$G(BEXVSITO) Q
@@ -183,6 +222,7 @@ CR(BEXVIEN) ;EP - add a chart request
  ;site screen
  N BEXSLOC
  S BEXSLOC=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U,10)
+ ;
  ;IHS/CMI/DAY - Patch 4 - P10 not always set, so calculate manually
  I BEXSLOC="" D
  .;Get Prescription Number

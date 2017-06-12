@@ -1,5 +1,5 @@
-LRPXRM ;VA/SLC/STAFF - Lab reminder index for micro and ap ;5/6/04  13:21
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 01, 1997
+LRPXRM ;VA/SLC/STAFF - Lab reminder index for micro and ap ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1030,1031,1034**;NOV 01, 1997;Build 88
  ;
  ;;VA LR Patch(s): 295
  ;

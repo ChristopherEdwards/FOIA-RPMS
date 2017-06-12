@@ -1,5 +1,5 @@
 APCHS11C ; IHS/CMI/LAB - SECTION OF HEALTH SUMMARY ;
- ;;2.0;IHS PCC SUITE;**4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**4,11**;MAY 14, 2009;Build 58
  ;IHS/CMI/LAB - fixed alcohol and tobacco reminder, added
  ;sigmoid subroutine, fixed for new imm package
  ;IHS/CMI/LAB - fixed tobacco and alcohol review reminders 11/17/98
@@ -169,7 +169,7 @@ SIGMOID ;IHS/ANMC/LAB - added thisnew reminder per Dr. Murphy
  ;cmi/anch/maw 8/27/2007 mods for code set versioning
  N APCHSVDT
  ;S %=0 F  S %=$O(^AUPNVPRC("AC",APCHSPAT,%)) Q:%'=+%  S %1=$P(^ICD0($P(^AUPNVPRC(%,0),U),0),U) D
- S %=0 F  S %=$O(^AUPNVPRC("AC",APCHSPAT,%)) Q:%'=+%  S APCHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(%,0),U,3),0),"."),%1=$P($$ICDOP^ICDCODE($P(^AUPNVPRC(%,0),U),APCHSVDT),U,2) D
+ S %=0 F  S %=$O(^AUPNVPRC("AC",APCHSPAT,%)) Q:%'=+%  S APCHSVDT=$P(+^AUPNVSIT($P(^AUPNVPRC(%,0),U,3),0),"."),%1=$P($$ICDOP^ICDEX($P(^AUPNVPRC(%,0),U),APCHSVDT,,"I"),U,2) D
  .I %1=48.23!(%1>45.20&(%1<45.26)) S D=$P($P(^AUPNVSIT($P(^AUPNVPRC(%,0),U,3),0),U),"."),APCHSPRC(9999999-D)=""
  ;S APCHSINT=365*5,APCHSDIS="SIGMOIDOSCOPY",APCHSIVD=$O(APCHSPRC(""))        ;IHS/ANMC/CLS 02/25/01 IHS/CMI/LAB - replaced for override
  ;cmi/anch/maw 8/27/2007 end of mods

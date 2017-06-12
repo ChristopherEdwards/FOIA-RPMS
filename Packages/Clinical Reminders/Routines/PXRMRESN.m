@@ -1,5 +1,5 @@
 PXRMRESN ; SLC/PJH - Edit/Inquire resolution statuses ;03/17/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
 START N DIC,PXRMGTYP,PXRMHD,PXRMRESN,Y
  ;Select reminder category for display
@@ -101,7 +101,7 @@ BUILD(ARRAY,D0) ;
  S TXT="Inactive Flag:  "_$S(INACT:"INACTIVE",1:"") D SET(13,TXT,0)
  ;Creator for local codes
  I CREA,'REST D
- .S TXT="Creator:  "_$P($G(^VA(200,CREA,0)),U) D SET(19,TXT,0)
+ .S TXT="Creator:  "_$$GET1^DIQ(200,CREA,.01) D SET(19,TXT,0)
  ;Local Resolution Statuses
  I REST D
  .N LARRAY,LIEN S SUB=0,FOUND=0
@@ -109,7 +109,7 @@ BUILD(ARRAY,D0) ;
  ..S LIEN=$P($G(^PXRMD(801.9,D0,10,SUB,0)),U)
  ..I LIEN S LARRAY(LIEN)="",FOUND=1
  .S TXT="Local Resolution Statuses:" D SET(0,"",1),SET(0,TXT,0)
- .I 'FOUND S TXT="*NONE*" D SET(5,TXT,0) Q
+ .I 'FOUND S TXT="*NONE*" D SET(5,TXT,0) Q 
  .S LIEN="" F  S LIEN=$O(LARRAY(LIEN)) Q:'LIEN  D
  ..S TXT=$P($G(^PXRMD(801.9,LIEN,0)),U) D SET(4,TXT,0)
  Q

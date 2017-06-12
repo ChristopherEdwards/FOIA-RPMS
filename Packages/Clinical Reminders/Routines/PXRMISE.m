@@ -1,10 +1,10 @@
-PXRMISE ; SLC/PKR - Index size estimating routines. ;09/10/2003
-       ;;1.5;CLINICAL REMINDERS;**20**;Jun 19, 2000
+PXRMISE ; SLC/PKR - Index size estimating routines. ;11/02/2009
+ ;;2.0;CLINICAL REMINDERS;**6,12,17**;Feb 04, 2005;Build 102
  ;
  ;========================================================
 EST ;Driver for making index counts.
- N BLOCKS,FUNCTION,GBL,GLIST,IND,LIST,NE,NL,NUMGBL,RTN
- N SF,TASKIT,TBLOCKS,XMSUB
+ N BLOCKS,FROM,FUNCTION,GBL,GLIST,IND,NE,NL,NUMGBL,RTN
+ N SF,TASKIT,TBLOCKS,TO,XMSUB
  D SETDATA(.GBL,.GLIST,.NUMGBL,.RTN,.SF)
  I +SF=-1 D ERRORMSG^PXRMISF(SF)  Q
  S (NL,TBLOCKS)=0
@@ -26,7 +26,9 @@ EST ;Driver for making index counts.
  S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)=""
  S NL=NL+1,^TMP("PXRMXMZ",$J,NL,0)="End time "_$$FMTE^XLFDT($$NOW^XLFDT,"5Z")
  S XMSUB="Size estimate for index global"
- D SEND^PXRMMSG(XMSUB)
+ S FROM=$$GET1^DIQ(200,DUZ,.01)
+ S TO(DUZ)=""
+ D SEND^PXRMMSG("PXRMXMZ",XMSUB,.TO,FROM)
  S ZTREQ="@"
  Q
  ;
@@ -36,7 +38,8 @@ ESTTASK ;Task the index size estimation.
  S MINDT=$$NOW^XLFDT
  W !,"Queue the Clinical Reminders index size estimation."
  S DIR("A",1)="Enter the date and time you want the job to start."
- S DIR("A")="It must be after "_$$FMTE^XLFDT(MINDT,"5Z")_" "
+ S DIR("A",2)="It must be after "_$$FMTE^XLFDT(MINDT,"5Z")
+ S DIR("A")="Start the task at: "
  S DIR(0)="DAU"_U_MINDT_"::RSX"
  D ^DIR
  I $D(DTOUT)!$D(DUOUT) Q
@@ -53,17 +56,18 @@ ESTTASK ;Task the index size estimation.
  ;
  ;===============================================================
 NEOR() ;Return number of entries in OR.
- ;DBIA 4180
+ ;DBIA #4180
  Q $P(^OR(100,0),U,4)
  ;
  ;===============================================================
 NEPROB() ;Return number of entries in PROBLEM LIST.
+ ;DBIA #3837
  Q $P(^AUPNPROB(0),U,4)
  ;
  ;===============================================================
 NEPS() ;Return number of entries in PS(55).
  N ADD,DA,DA1,DFN,DRUG,IND,NE,SDATE,SOL,STARTD,TEMP
- ;DBIA 4181
+ ;DBIA #4181
  S (DFN,IND,NE)=0
  F  S DFN=+$O(^PS(55,DFN)) Q:DFN=0  D
  .;Process Unit Dose.
@@ -109,7 +113,7 @@ NEPS() ;Return number of entries in PS(55).
  ;===============================================================
 NEPSRX() ;Return number of entries in PSRX
  N DA,DA1,DATE,DSUP,DFN,DRUG,NE,RDATE,TEMP
- ;DBIA 4182
+ ;DBIA #4182
  S (DA,NE)=0
  F  S DA=+$O(^PSRX(DA)) Q:DA=0  D
  . S TEMP=$G(^PSRX(DA,0))
@@ -140,7 +144,7 @@ NEPSRX() ;Return number of entries in PSRX
  ;===============================================================
 NEPTF() ;Return number of entries in PTF.
  N D1,DA,DATE,DFN,ICD0,ICD9,JND,NE0,NE9,TEMP70,TEMP0,TEMPP,TEMPS
- ;DBIA 4177
+ ;DBIA #4177
  S (DA,NE0,NE9)=0
  F  S DA=+$O(^DGPT(DA)) Q:DA=0  D
  . S TEMP0=$G(^DGPT(DA,0))
@@ -186,55 +190,55 @@ NEPTF() ;Return number of entries in PTF.
  ;===============================================================
 NERAD() ;Return number of entries in RAD/NUC MED PATIENT.
  N IEN,NE
- ;DBIA 4183
+ ;DBIA #4183
  S (IEN,NE)=0
  F  S IEN=$O(^RADPT(IEN)) Q:+IEN=0  S NE=NE+$P($G(^RADPT(IEN,"DT",0)),U,4)
  Q NE
  ;
  ;===============================================================
 NEVCPT() ;Return number of entries in V CPT.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVCPT(0),U,4)
  ;
  ;===============================================================
 NEVHF() ;Return number of entries in V HEALTH FACTORS.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVHF(0),U,4)
  ;
  ;===============================================================
 NEVIMM() ;Return number of entries in V IMMUNIZATION
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVIMM(0),U,4)
  ;
  ;===============================================================
 NEVIT() ;Return number of entries in GMRV VITAL MEASUREMENT
- ;DBIA 4178
+ ;DBIA #4178
  Q $P(^GMR(120.5,0),U,4)
  ;
  ;===============================================================
 NEVPED() ;Return number of entries in V PATIENT ED.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVPED(0),U,4)
  ;
  ;===============================================================
 NEVPOV() ;Return number of entries in V POV.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVPOV(0),U,4)
  ;
  ;===============================================================
 NEVSK() ;Return number of entries in V SKIN TEST.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVSK(0),U,4)
  ;
  ;===============================================================
 NEVXAM() ;Return number of entries in V EXAM.
- ;DBIA 4176
+ ;DBIA #4176
  Q $P(^AUPNVXAM(0),U,4)
  ;
  ;===============================================================
 NEYTD() ;Return number of entries in PSYCH INSTRUMENT PATIENT
  N DATE,DFN,NE,TEST
- ;DBIA 4184
+ ;DBIA #4184
  S (DFN,NE)=0
  F  S DFN=$O(^YTD(601.2,DFN)) Q:+DFN=0  D
  . S TEST=0
@@ -263,8 +267,8 @@ SETDATA(GBL,GLIST,NUMGBL,RTN,SF) ;
  S GLIST(15)="V SKIN TEST",GBL(15)=9000010.12
  S GLIST(16)="VITAL MEASUREMENT",GBL(16)=120.5
  S RTN(45)="NEPTF^PXRMISE"
- S RTN(52)="NEPSRX^PXRMISE"
- S RTN(55)="NEPS^PXRMISE"
+ S RTN(52)="NEPSRX^PSO52CLR"
+ S RTN(55)="NEPS^PSSCLINR"
  S RTN(63)="NELR^PXRMLABS"
  S RTN(70)="NERAD^PXRMISE"
  S RTN(100)="NEOR^PXRMISE"

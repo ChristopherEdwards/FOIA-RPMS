@@ -1,5 +1,5 @@
 ACHSDN2 ; IHS/ITSC/PMF - DENIAL SET UP & DISPLAY ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19,21**;JUN 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**3,4,10,12,18,19,21,24**;JUN 11,2001;Build 37
  ;ACHS*3.1*3  improve denial/patient lookup
  ;            also, handle 'alt resource availabe' as special
  ;ACHS*3.1*4  close device before passing DUMP to taskman
@@ -129,6 +129,7 @@ DICREA(R) ; --- Select Denial Reason.
  .S ACHDENS(CT)=X_U_$P(^ACHSDENS(X,0),U)
  I CT=0 W !,"No active Denial Reasons" S Y=-1 Q
  W !
+ K DIR  ;ACHS*3.1*24
  S DIR(0)="NO^1:"_CT
  S DIR("A")="Enter "_$G(R)_"Denial Reason "
  D ^DIR

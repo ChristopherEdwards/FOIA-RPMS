@@ -1,5 +1,5 @@
 BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  ADD/EDIT A VISIT (IMMUNIZATION OR SKIN TEST), DELETE A VISIT.
  ;;  Check validity of data in several fields.
@@ -9,6 +9,7 @@ BIRPC3 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
  ;;                                                    ADDEDIT+0
  ;;  PATCH 5: Ignore 1st piece of zero node; just check for node. ADDEDIT+63
  ;;  PATCH 9: Added save of Admin Date and VIS Presented Date.  ADDEDIT+39
+ ;;  PATCH 10: Added save of Skin Test Lot Number.  ADDEDIT+44
  ;
  ;
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
@@ -58,6 +59,9 @@ ADDEDIT(BIERR,BIDATA,BINOM) ;PEP - Add/Edit an V IMMUNIZATION or V SKIN TEST.
  ;---> Add Admin Date and VIS Presented Date to data being saved.
  ;    28 - (opt) Admin Date (Date shot admin'd to patient.
  ;    29 - (opt) Date VIS Presented to Patient.
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;    30 - (opt) Skin Test Lot Number.
  ;
  ;---> Define delimiter to pass error and error variable.
  N BI31,BIDUZ2,BIOIEN

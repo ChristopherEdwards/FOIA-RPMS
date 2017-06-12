@@ -1,5 +1,5 @@
-LR7OB63 ;VA/DALOI/dcm - Get Lab data from 63 ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**121,187,286,372,1027**;NOV 01, 1997;Build 11
+LR7OB63 ; VA/DALOI/dcm - Get Lab data from 63 ; 13-Aug-2013 09:15 ; MKK
+ ;;5.2;LAB SERVICE;**121,1003,1013,187,1018,372,286,1027,406,1033**;NOV 01, 1997
  ;
 63(CTR,LRDFN,SS,IVDT,CORRECT) ;Get data from file 63
  ;CTR=Counter
@@ -28,8 +28,9 @@ CH ;Chem, Hem, Tox, Ria, Ser, etc.
  . S AGE=$S($D(DT)&(DOB?7N):DT-DOB\10000,1:"??")
  ;
  S IFN=1
- F  S IFN=$O(^LR(LRDFN,"CH",IVDT,IFN)) Q:IFN<1  S X=^(IFN) I $D(TSTY(IFN))!($D(BYPASS)),$S('$D(LRSB):1,$D(LRSB(IFN)):1,1:0) D
- . I $D(LRSB(IFN)),$D(LRSA(IFN)),'$D(LRSA(IFN,2)) Q  ;Only re-transmit changed results
+ ; F  S IFN=$O(^LR(LRDFN,"CH",IVDT,IFN)) Q:IFN<1  S X=^(IFN) I $D(TSTY(IFN))!($D(BYPASS)),$S('$D(LRSB):1,$D(LRSB(IFN)):1,1:0) D
+ F  S IFN=$O(^LR(LRDFN,"CH",IVDT,IFN)) Q:IFN<1  S X=$G(^(IFN)) I $D(TSTY(IFN))!($D(BYPASS)),$S('$D(LRSB):1,$D(LRSB(IFN)):1,1:0) D     ; Naked Reference fix - IHS/MSC/MKK - LR*5.2*1032
+ . I $D(LRSB(IFN)),$D(LRSA(IFN)),'$D(LRSA(IFN,2)),'$D(LRSA(IFN,3)) Q  ;Only re-transmit changed results
  . S Y1=IFN,Y1=$O(^LAB(60,"C","CH;"_Y1_";1",0)),Y2=$P(X,"^"),Y3=$P(X,"^",2),Y12=$P(X,"^",4)
  . S:Y2="pending" Y6="P" ;Set result status to P for pending results
  . Q:"IN"[$P(^LAB(60,Y1,0),"^",3)  S Y15=$P($G(^LAB(60,Y1,.1)),"^")

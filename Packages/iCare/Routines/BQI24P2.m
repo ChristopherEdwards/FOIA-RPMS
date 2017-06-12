@@ -1,0 +1,25 @@
+BQI24P2 ;GDHS/HCS/ALA-Version 2.4 Patch 2 ; 02 Nov 2015  3:11 PM
+ ;;2.4;ICARE MANAGEMENT SYSTEM;**2**;Apr 01, 2015;Build 10
+ ;
+ ;
+PRE ;
+ Q
+ ;
+POS ; EP
+ NEW DZ,FN,TF
+ I $D(^BQICARE(.5)) K ^BQICARE(.5)
+ S DZ=0
+ F  S DZ=$O(^BQICARE(DZ)) Q:'DZ  D
+ . S FN=0 Q:DZ'=1074
+ . F  S FN=$O(^BQICARE(DZ,10,FN)) Q:'FN  D
+ .. S TF=1
+ .. I $P($G(^BQICARE(DZ,10,FN,1,TF,0)),"^",2)="T-6M" D
+ ... NEW IENS,DA
+ ... S DA(2)=DZ,DA(1)=FN,DA=TF,IENS=$$IENS^DILF(.DA)
+ ... S BQIUPD(90505.1,IENS,.02)="T-2M"
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ NEW DFN
+ S DFN=0
+ F  S DFN=$O(^BQIPAT(DFN)) Q:'DFN  I $P($G(^BQIPAT(DFN,0)),"^",1)="" S $P(^BQIPAT(DFN,0),"^",1)=DFN,^BQIPAT("B",DFN,DFN)=""
+ Q

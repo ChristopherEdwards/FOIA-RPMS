@@ -1,5 +1,5 @@
 ABSPOSMI ; IHS/SD/RLT - POS Claims not Passed to 3PB ;     [ 09/18/07  02:00 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**22,28**;SEP 18, 2007
+ ;;1.0;PHARMACY POINT OF SALE;**22,28**;SEP 18, 2007;Build 15
  ;----------------------------------------------------------
  ;IHS/OIT/SCR - 09/24/08 patch 28 - commented out to remove HOLD functionality introduced 
  ;                                  by patch 22

@@ -1,9 +1,9 @@
 ABMDF28W ; IHS/ASDST/DMJ - PRINT UB-04 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**8,20**;NOV 12, 2009;Build 317
  ;
- ; IHS/SD/SDR - v2.5 p12 - IM24881
- ;   Form alignment changes
+ ; IHS/SD/SDR - v2.5 p12 - IM24881 - Form alignment changes
  ;
+ ;IHS/SD/SDR 2.6*20 - HEAT270943 - If the provider doesn't have a NPI it will print the facility NPI as the default.
  ; *********************************************************************
  ;
  Q
@@ -68,9 +68,11 @@ GETPROV ;
  Q:+$G(ABMPRVNO)=0
  S ABMPRV=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),41,ABMPRVNO,0)),U)
  S ABM("PRV",ABMPCNT)=$P($G(^VA(200,ABMPRV,0)),U)  ;provider name
- I $P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)>0 D
+ ;I $P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)>0 D  ;abm*2.6*20 IHS/SD/SDR HEAT270943
+ I (($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)>0)!($P($$NPI^XUSNPI("Organization_ID",ABMP("LDFN")),U)>0)) D  ;abm*2.6*20 IHS/SD/SDR HEAT270943
  .S $P(ABM("PRV",ABMPCNT),U,4)=$S(ABMPRVTP="F":"DN",ABMPRVTP="R":82,1:"ZZ")
- .S $P(ABM("PRV",ABMPCNT),U,4)=$P(ABM("PRV",ABMPCNT),U,4)_"#"_$P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)
+ .;S $P(ABM("PRV",ABMPCNT),U,4)=$P(ABM("PRV",ABMPCNT),U,4)_"#"_$P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)  ;abm*2.6*20 IHS/SD/SDR HEAT270943
+ .S $P(ABM("PRV",ABMPCNT),U,4)=$P(ABM("PRV",ABMPCNT),U,4)_"#"_$S($P($$NPI^XUSNPI("Individual_ID",ABMPRV),U)>0:$P($$NPI^XUSNPI("Individual_ID",ABMPRV),U),1:$P($$NPI^XUSNPI("Organization_ID",ABMP("LDFN")),U))  ;abm*2.6*20 IHS/SD/SDR HEAT270943
  S $P(ABM("PRV",ABMPCNT),U,2)=""
  ; If Medicare FI, find provider UPIN
  I ABMP("ITYPE")="R" D

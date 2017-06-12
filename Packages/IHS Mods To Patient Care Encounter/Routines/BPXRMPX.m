@@ -1,5 +1,5 @@
-BPXRMPX ;IHS/MSC/MGH - APIs for Clinical Reminder indexes. ;05-Oct-2012 13:39;DU
- ;;1.5;CLINICAL REMINDERS;**1009**;Jun 19, 2000;Build 24
+BPXRMPX ;IHS/MSC/MGH - APIs for Clinical Reminder indexes. ;03-Jun-2013 12:09;DU
+ ;;2.0;CLINICAL REMINDERS;**1001**;Feb 04, 2005;Build 21
  Q
  ;===============================================================
  ;===============================================================
@@ -75,7 +75,8 @@ VMEA(MEADATA,MEAIEN,MEAIB) ;Return data for a specified V Measurement entry.
  I '$D(^SC(+MEADATA(5),0)) S MEADATA(5)=0
  I MEAIB="B" S MEADATA(5)=$P(MEADATA(5),U,1)_U_$$EXTERNAL^DILFD(9000010,.22,"",MEADATA(5),.EM)
  S MEADATA(6)=$P(TEMP,U,8)
- S MEADATA(6)=$P(MEADATA(6),U,1)_U_$$EXTERNAL^DILFD(9000010.01,.08,"",$P(MEADATA(6),U,1),.EM)
+ I MEADATA(6)="" S MEADATA(6)=$P(TEMP12,U,4)
+ I MEAIB="B" S MEADATA(6)=$P(MEADATA(6),U,1)_U_$$EXTERNAL^DILFD(9000010.01,.08,"",$P(MEADATA(6),U,1),.EM)
  S MEADATA(7)=$P(TEMP,U,4)
  I MEAIB="B" S MEADATA(7)=$P(TEMP,U,4)_U_MEADATA(7)
  S MEADATA(8)=$P(TEMP,U,10)

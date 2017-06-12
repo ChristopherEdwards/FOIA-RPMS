@@ -1,5 +1,5 @@
 APCD3ME ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
  ;
@@ -77,15 +77,15 @@ FILEPOV ;
  S APCD3MVM=11
  S X=$P(^APCD3MV(APCDVSIT,11,APCDX,0),U)
  Q:$E(X,1,1)="E"  ;don't file ecodes
- S X=$$CODEN^ICDCODE(X,80)
+ S X=$$CODEN^ICDEX(X,80)
  S X=+X I X=-1 S X=""
  I 'X S APCDTERM="Can't find ICD Code "_$P(^APCD3MV(APCDVSIT,11,APCDX,0),U)_" in the ICD9 Table.  Notify your supervisor." D ERR Q
  ;W !,"Filing POV (Diagnosis) ",$P(^ICD9(X,0),U)," - ",$P(^APCD3MV(APCDVSIT,11,APCDX,0),U,2)
- W !,"Filing POV (Diagnosis) ",$P($$ICDDX^ICDCODE(X,$$VD^APCLV(APCDVSIT)),U,2)," - ",$P(^APCD3MV(APCDVSIT,11,APCDX,0),U,2)
+ W !,"Filing POV (Diagnosis) ",$P($$ICDDX^ICDEX(X,$$VD^APCLV(APCDVSIT)),U,2)," - ",$P(^APCD3MV(APCDVSIT,11,APCDX,0),U,2)
  S X="`"_X
  S APCDTPCC=""
  X:$D(^DD(9000010.07,.01,12.1)) ^DD(9000010.07,.01,12.1) S DIC="^ICD9(",DIC(0)="Q" D ^DIC K DIC
- I Y=-1 S APCDTERM="ICD9 Lookup failed.  Notify your supervisor." D ERR Q
+ I Y=-1 S APCDTERM="ICD Lookup failed.  Notify your supervisor." D ERR Q
  S APCDLOOK="`"_+Y  ;,APCDTNAR=$P(^APCD3MV(APCDVSIT,11,APCDX,0),U,2)
  ;S APCDICOD=$P($G(^APCD3MV(APCDVSIT,11,APCDX,0)),U,4) ;injury code
  S DIE="^AUPNVSIT(",DR="[APCD 3MPV (ADD)]",DA=APCDVSIT,DIE("NO^")=1 D ^DIE,^XBFMK
@@ -98,9 +98,9 @@ FILEPOV ;
 FILEPROC ;
  NEW APCDICD,APCDICDP
  S APCD3MVM=12
- S X=$P(^APCD3MV(APCDVSIT,12,APCDX,0),U),X=+$$CODEN^ICDCODE(X,80.1) I $P(X,U)=-1 S X=""
+ S X=$P(^APCD3MV(APCDVSIT,12,APCDX,0),U),X=+$$CODEN^ICDEX(X,80.1) I $P(X,U)=-1 S X=""
  I 'X S APCDTERM="Can't find ICD Code "_$P(^APCD3MV(APCDVSIT,12,APCDX,0),U)_" in the ICD0 Table.  Notify your supervisor." D ERR Q
- W !,"Filing Procedure ",$P($$ICDOP^ICDCODE(X,$$VD^APCLV(APCDVSIT)),U,2)," - ",$P(^APCD3MV(APCDVSIT,12,APCDX,0),U,2)
+ W !,"Filing Procedure ",$P($$ICDOP^ICDEX(X,$$VD^APCLV(APCDVSIT),,"I"),U,2)," - ",$P(^APCD3MV(APCDVSIT,12,APCDX,0),U,2)
  S X="`"_X
  S APCDTPCC=""
  X:$D(^DD(9000010.08,.01,12.1)) ^DD(9000010.08,.01,12.1) S DIC="^ICD0(",DIC(0)="Q" D ^DIC K DIC

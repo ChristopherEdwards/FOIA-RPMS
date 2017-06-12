@@ -1,11 +1,12 @@
 BIREPF4 ;IHS/CMI/MWR - REPORT, FLU IMM; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**5**;JUL 01,2013
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  INFLUENZA IMM REPORT, GATHER/STORE PATIENTS.
  ;;  PATCH 1: Exclude patients whose Inactive Date=Not in Register.  CHKSET+31
  ;;  PATCH 2: Filter for Active Clinical, all ages, using $$ACTCLIN^BIUTL6 call.
  ;;           CHKSET+39
  ;;  PATCH 5: Begin Flu Report on July 1.  CHKSET+107
+ ;;  PATCH 13: Reincorporate Flu High Risk check with  value of "4".  CHKSET+41
  ;
  ;
  ;----------
@@ -77,8 +78,16 @@ CHKSET(BIDFN,BICC,BIHCF,BICM,BIBEN,BIAGRP,BIQDT,BIFH,BIYEAR,BIUP) ;EP
  ;
  ;---> For 18-49y Age Group, if this patient is High Risk for Flu set BIRISKI=1.
  N BIRISKI S BIRISKI=0
+ ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Reincorporate Flu High Risk check with new parameter value of "4".
  ;---> Note: Third parameter=1 (retrieve Flu risk only).
- D:BIAGRP=4 RISK^BIDX(BIDFN,$E(BIQDT,1,3)_"0901",1,.BIRISKI)
+ ;D:BIAGRP=4 RISK^BIDX(BIDFN,$E(BIQDT,1,3)_"0901",1,.BIRISKI)
+ D:BIAGRP=4 RISK^BIDX(BIDFN,$E(BIQDT,1,3)_"0901",4,.BIRISKI)
+ ;**********
+ ;
+ ;
  ;---> Uncomment next line to test High Risk.
  ;S:(BIDFN=30) BIRISKI=1  ;MWRZZZ
  ;---> If this patient is (18-49y) High Risk, change Age Group to 5.

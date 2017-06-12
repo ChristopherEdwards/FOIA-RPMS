@@ -1,5 +1,5 @@
 APCDCAFF ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8,11**;MAY 14, 2009;Build 58
  ;; ;
  ;
 PROCESS ;EP
@@ -62,7 +62,8 @@ ERRORCHK ;
  S APCDERR=""
  I '$D(^AUPNVPOV("AD",APCDV)) S APCDERR="NO POV"
  S X=0 F  S X=$O(^AUPNVPOV("AD",APCDV,X)) Q:X'=+X  D
- .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S APCDERR=".9999 POV "
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S APCDERR=".9999 POV " Q
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)="ZZZ.999" S APCDERR="ZZZ.999 POV "
  S X=0,C=0 F  S X=$O(^AUPNVPRV("AD",APCDV,X)) Q:X'=+X  D
  .I $P(^AUPNVPRV(X,0),U,4)="P" S C=C+1
  I C>1 S APCDERR=APCDERR_"MULT PRIM PROV"
@@ -78,15 +79,15 @@ LBLK(V,L) ;left blank fill
  ;
 LASTCDR(V,F) ;EP - get last chart deficiency reason
  I $G(F)="" S F="I"  ;default to ien
- I '$D(^AUPNVCA(V)) Q ""
+ I '$D(^AUPNVCA("AD",V)) Q ""
  NEW X,A,D,L
  S X=0 F  S X=$O(^AUPNVCA("AD",V,X)) Q:X'=+X  D
  .Q:'$D(^AUPNVCA(X,0))
  .S D=$P(^AUPNVCA(X,0),U)
  .S A((9999999-$P(D,".")))=X
  S L=$O(A(0)) I L="" Q ""
- S L=A(0)
- Q $S(F="I":$P(^AUPNVCA(X,0),U,5),1:$$VAL^XBDIQ1(9000010.45,X,.05))
+ S X=A(L)
+ Q $S(F="I":$P(^AUPNVCA(X,0),U,6),1:$$VAL^XBDIQ1(9000010.45,X,.06))
  ;
 SORT(V,S) ;
  NEW R

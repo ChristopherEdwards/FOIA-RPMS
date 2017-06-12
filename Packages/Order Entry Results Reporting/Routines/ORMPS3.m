@@ -1,6 +1,6 @@
-ORMPS3 ;SLC/MKB - Process Pharmacy ORM msgs cont ;05/08/2008  10:32
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**213,243**;Dec 17, 1997;Build 242
- ;
+ORMPS3 ;SLC/MKB - Process Pharmacy ORM msgs cont ;03-Jun-2014 11:20;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**213,243,1013**;Dec 17, 1997;Build 242
+ ;Modified -  IHS/MSC/MGH  - 06/02/2014 - Line UPD+20
 PTR(X) ; -- Return ptr to prompt OR GTX X
  Q +$O(^ORD(101.41,"AB","OR GTX "_X,0))
  ;
@@ -88,6 +88,13 @@ UPD ; -- Compare ORMSG to order, update responses [from SC^ORMPS]
  I $G(PKGIFN)'["N" D  ;Rx only, not non-VA
  . S X=$P(RXE,"|",23) S:$E(X)="D" X=+$E(X,2,99)
  . I +X'=+$$VALUE(ORDER,"SUPPLY") D RESP^ORCSAVE2(ORDER,"OR GTX DAYS SUPPLY",X)
+ . ;IHS/MSC/MGH Patch 1013 Change for backdoor edits
+ . S X=$$FIND^ORM(+ORC,4)
+ . I $P(X,U,2)="PS"&(+X) D
+ .. D RESP^ORCSAVE2(ORDER,"OR GTX DAW",$$GET1^DIQ(52,+X,9999999.25,"I"))
+ .. D RESP^ORCSAVE2(ORDER,"OR GTX CMF",$$GET1^DIQ(52,+X,9999999.02,"I"))
+ .. D RESP^ORCSAVE2(ORDER,"OR GTX DSCMED",$$GET1^DIQ(52,+X,9999999.28,"I"))
+ . ;End mod
  . I $P(ZRX,"|",5)'=$$VALUE(ORDER,"PICKUP") D RESP^ORCSAVE2(ORDER,"OR GTX ROUTING",$P(ZRX,"|",5))
  . S NTE=$$NTE(7),PI=+$O(^OR(100,ORDER,4.5,"ID","PI",0))
  . I NTE,PI,$$NTXT(NTE)'=$$VALTXT(ORDER,PI) D

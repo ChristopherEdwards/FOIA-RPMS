@@ -1,5 +1,5 @@
 ABSPOSPE ; IHS/OIT/RAN - Pharmacy EXPENSE report modeled after ABSPOSEX Patient Expense report
- ;;1.0;PHARMACY POINT OF SALE;**38,40,44**;MAR 8, 2010
+ ;;1.0;PHARMACY POINT OF SALE;**38,40,44**;MAR 8, 2010;Build 15
   Q
     ;
 MAIN(ABSPTRNS) ;PHAREX

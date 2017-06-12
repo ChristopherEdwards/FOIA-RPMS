@@ -1,51 +1,70 @@
 BGP7D722 ; IHS/CMI/LAB - measure AHR.A ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
 ACEALG(P,BDATE,EDATE) ;EP
  K BGPG
  D ACEIALG1^BGP7C11(P,EDATE,.BGPG)
- S X=$O(BGPG(X))
+ S X=$O(BGPG(0))
  I 'X Q ""
- Q 1_U_"ace/arb alleg: "_BGPG(X)
+ Q 1_U_BGPG(X)
  ;
-ACECONT(P,BDATE,EDATE,NMIB,NMIE) ;EP does patient have an ACEI contraidication
- NEW ED,BD,BGPG,BGPC,X,Y,Z,N,E
+ACECONT(P,BDATE,EDATE,NMIB,NMIE,RPBD,PREGBD) ;EP
+ NEW ED,BD,BGPG,BGPC,X,Y,Z,N,E,SN
+ S RPBD=$G(RPBD)
  K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP CMS AORTIC STENOSIS DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
- I $D(BGPG(1)) Q 1_U_"ACEI contra POV:  "_$$DATE^BGP7UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]    "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
+ I $D(BGPG(1)) Q 1_U_$$DATE^BGP7UTL($P(BGPG(1),U))_" Contra Aortic POV "_$P(BGPG(1),U,2)
  ;
- ;nmi in refusal file for ACEI
  S BGPG=""
  S T=$O(^ATXAX("B","BGP HEDIS ACEI MEDS",0))
  S X=0 F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X  D
- .Q:'$D(^ATXAX(T,21,"B",X))  ;not an ACEI
+ .Q:'$D(^ATXAX(T,21,"B",X))
  .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D  D
- ..S Y=9999999-D I Y<NMIB Q  ;documented more than 1 year before discharge
- ..I Y>NMIE Q  ;documented after End date
+ ..S Y=9999999-D I Y<NMIB Q
+ ..I Y>NMIE Q
  ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N  D
  ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
- ...S BGPG=1_U_"NMI ACEI: "_$$VAL^XBDIQ1(9000022,N,.04)_"   "_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_"  "_$$VAL^XBDIQ1(9000022,X,1101)
+ ...S BGPG=1_U_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_" Contra NMI "_$$VAL^XBDIQ1(9000024,N,.04)
  ..Q
  .Q
  I BGPG Q BGPG
- ;nmi in refusal file for ACEI
  S BGPG=""
  S T=$O(^ATXAX("B","BGP HEDIS ARB MEDS",0))
  S X=0 F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X  D
- .Q:'$D(^ATXAX(T,21,"B",X))  ;not an ACEI
+ .Q:'$D(^ATXAX(T,21,"B",X))
  .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D  D
  ..S Y=9999999-D I Y<NMIB Q
- ..I Y>NMIE Q  ;documented after End date
+ ..I Y>NMIE Q
  ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N  D
  ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
- ...S BGPG=1_U_"NMI ARB: "_$$VAL^XBDIQ1(9000022,N,.04)_"   "_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_"  "_$$VAL^XBDIQ1(9000022,X,1101)
+ ...S BGPG=1_U_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_" Contra NMI "_$$VAL^XBDIQ1(9000022,N,.04)
  ..Q
  .Q
  I BGPG Q BGPG
- ;S X=$$CPTI^BGP7DU(P,NMIB,NMIE,+$$CODEN^ICPTCOD("G8029"))
- ;I X Q 1_U_"arb contra CPT code G8029: "_$$DATE^BGP7UTL($P(X,U,2))
- ;S X=$$TRANI^BGP7DU(P,NMIB,NMIE,+$$CODEN^ICPTCOD("G8029"))
- ;I X Q 1_U_"arb contra Tran Code G8029: "_$$DATE^BGP7UTL($P(X,U,2))
+ S X=$$PREG^BGP7D7(P,$S($G(PREGBD):PREGBD,$G(RPBD):RPBD,1:NMIB),NMIE,1,1) I X Q 1_U_"Contra pregnant"
+ K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP BREASTFEEDING DXS;DURING "_$$FMTE^XLFDT($S(RPBD:RPBD,1:NMIB))_"-"_$$FMTE^XLFDT(NMIE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1_U_$$DATE^BGP7UTL($P(BGPG(1),U))_" Contra POV "_$P(BGPG(1),U,2)
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL EDUC;DURING "_$$FMTE^XLFDT($S(RPBD:RPBD,1:NMIB))_"-"_$$FMTE^XLFDT(NMIE) S E=$$START1^APCLDF(X,Y)
+ S SN=$O(^BGPSNOMG("B","BREASTFEEDING PATIENT ED",0))
+ S (X,D)=0,%="",T="" F  S X=$O(BGPG(X)) Q:X'=+X!(%]"")  D
+ .S T=$P(^AUPNVPED(+$P(BGPG(X),U,4),0),U)
+ .Q:'T
+ .Q:'$D(^AUTTEDT(T,0))
+ .S T=$P(^AUTTEDT(T,0),U,2)
+ .I T="BF-BC" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-BP" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-CS" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-EQ" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-FU" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-HC" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-ON" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-M" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-MK" S %=T_U_$P(BGPG(X),U) Q
+ .I T="BF-N" S %=T_U_$P(BGPG(X),U) Q
+ .I $P(T,"-")]"",$D(^BGPSNOMG(SN,11,"B",$P(T,"-"))) S %=T_U_$P(BGPG(X),U) Q
+ I %]"" Q 1_U_$$DATE^BGP7UTL($P(%,U,2))_" Contra "_$P(%,U,1)  ;"ACEI Contra - "_%
  Q ""
 ACERX(P,BDATE,EDATE,BGPNDAYS) ;EP
  K BGPMEDS1
@@ -58,6 +77,7 @@ ACERX(P,BDATE,EDATE,BGPNDAYS) ;EP
  S T3=$O(^ATXAX("B","BGP HEDIS ARB NDC",0))
  S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
  .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G ACE1
@@ -72,16 +92,17 @@ ACE1 .;
  .Q:'V
  .Q:'$D(^AUPNVSIT(V,0))
  .S S=$$DAYS^BGP7D82(Y,V,EDATE)
- .S K=S+K  ;TOTAL DAYS SUPPLY
+ .S K=S+K
  .I R]"" S R=R_";"
  .S R=R_$$DATE^BGP7UTL($P($P(^AUPNVSIT(V,0),U),"."))_"("_S_")"
- I K>BGPNDAYS Q 1_U_" total days ACE/ARB: "_K
-ACEPRIO ;now add in any before BEG DATE
+ I K>BGPNDAYS Q 1_U_"("_K_" TOTAL DAYS)"
+ACEPRIO ;now add in any before
  K BGPMEDS1
  D GETMEDS^BGP7UTL2(P,$$FMADD^XLFDT(BDATE,-365),BDATE,,,,,.BGPMEDS1)
  I '$D(BGPMEDS1) Q ""
  S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
  .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G ACE2
@@ -95,29 +116,27 @@ ACE2 .;
  .S V=$P(^AUPNVMED(Y,0),U,3)
  .Q:'V
  .Q:'$D(^AUPNVSIT(V,0))
- .;S IS DAYS SUPPLY, J IS DATE DISCONTINUED
- .Q:J]""  ;don't use if discontinued
- .S D=$$FMDIFF^XLFDT(BDATE,$P($P(^AUPNVSIT(V,0),U),"."))  ;difference between dsch date and date prescribed
+ .Q:J]""
+ .S D=$$FMDIFF^XLFDT(BDATE,$P($P(^AUPNVSIT(V,0),U),"."))
  .S S=$P(^AUPNVMED(Y,0),U,7)
- .S S=S-D  ;subtract the number of days used
+ .S S=S-D
  .S:S<0 S=0
- .S K=S+K  ;TOTAL DAYS SUPPLY
+ .S K=S+K
  .I R]"" S R=R_";"
  .S R=R_$$DATE^BGP7UTL($P($P(^AUPNVSIT(V,0),U),"."))_"("_S_")"
- I K>BGPNDAYS Q 1_U_" total ACE/ARB: "_K
- Q 0_U_R_" total days ACE/ARB: "_K
+ I K>BGPNDAYS Q 1_U_"("_K_" TOTAL DAYS)"
+ Q 0_U_"("_K_" TOTAL DAYS)"
  ;
 ACEREF(P,BDATE,EDATE) ;EP
- ;did patient have a refusal in time period?
  S T=$O(^ATXAX("B","BGP HEDIS ACEI MEDS",0))
  S X=0,G="" F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X!(G)  D
  .Q:'$D(^ATXAX(T,21,"B",X))
  .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D!(G)  D
- ..S Y=9999999-D I Y<BDATE Q  ;documented more than 1 year before edate
- ..I Y>EDATE Q  ;documented after end date
+ ..S Y=9999999-D I Y<BDATE Q
+ ..I Y>EDATE Q
  ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N!(G)  D
  ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="R"
- ...S G=1_U_"ACEI Refusal "_$$DATE^BGP7UTL(Y)
+ ...S G=1_U_$$DATE^BGP7UTL(Y)_" Refused "_$P(^PSDRUG(X,0),U,1)
  ..Q
  .Q
  I G Q G
@@ -125,51 +144,58 @@ ACEREF(P,BDATE,EDATE) ;EP
  S X=0,G="" F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X!(G)  D
  .Q:'$D(^ATXAX(T,21,"B",X))
  .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D!(G)  D
- ..S Y=9999999-D I Y<BDATE Q  ;documented more than 1 year before edate
- ..I Y>EDATE Q  ;documented after end date
+ ..S Y=9999999-D I Y<BDATE Q
+ ..I Y>EDATE Q
  ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N!(G)  D
- ...;Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
- ...S G=1_U_"ARB Refusal "_$$DATE^BGP7UTL(Y)
+ ...S G=1_U_$$DATE^BGP7UTL(Y)_" Refused "_$P(^PSDRUG(X,0),U,1)
  ..Q
  .Q
  Q G
 STATALG(P,BDATE,EDATE,RPB,RPE) ;EP
+ NEW BGPG,BGPY,Y,X,N,Z,BGPC
  S BGPC=""
- ;get all visits and check for ALT/AST tests on 2 consecutive visits
  K BGPG,BGPY S Y="BGPG(",X=P_"^ALL DX [BGP ASA ALLERGY 995.0-995.3;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
- .I N["STATIN"!(N["STATINS") S BGPC="Alg Statin POV:  "_$$DATE^BGP7UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
- .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$P($$ICDDX^ICDCODE(Z),U,2)="E942.9" S BGPC=BGPC+1,BGPY(BGPC)=1_U_"POV:  "_$$DATE^BGP7UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_" + E942.9]  "_N
+ .I N["STATIN"!(N["STATINS") S BGPC=1_U_$$DATE^BGP7UTL($P(BGPG(X),U))_" ADR POV "_$P(BGPG(X),U,2)
+ .S T=$O(^ATXAX("B","BGP ADV EFF CARDIOVASC NEC",0))
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^BGP7UTL2(Z,T,9) S BGPC=1_U_$$DATE^BGP1UTL($P(BGPG(X),U))_" ADR POV ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^BGP7UTL2(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^BGP7UTL2(Z,T,9) S BGPC=1_U_$$DATE^BGP1UTL($P(BGPG(X),U))_" ADR POV ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^BGP7UTL2(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^BGP7UTL2(Z,T,9) S BGPC=1_U_$$DATE^BGP1UTL($P(BGPG(X),U))_" ADR POV ["_$P(BGPG(X),U,2)_" + "_$P($$ICDDX^BGP7UTL2(Z),U,2)_"]  "_N Q
  .Q
  I BGPC Q BGPC
- K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX V14.8;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ K BGPG S BGPC=0 S Y="BGPG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
  S X=0 F  S X=$O(BGPG(X)) Q:X'=+X  S Y=+$P(BGPG(X),U,4) D
  .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
- .I N["STATIN"!(N["STATINS") S BGPC=1_U_"alg statin POV:  "_$$DATE^BGP7UTL($P(BGPG(X),U))_"  ["_$P(BGPG(X),U,2)_"]  "_N
+ .I N["STATIN"!(N["STATINS") S BGPC=1_U_$$DATE^BGP7UTL($P(BGPG(X),U))_" ADR POV "_$P(BGPG(X),U,2)  ;_"]"
  I BGPC Q BGPC
- ;now check problem list for these codes
+ ;PL
  S BGPC=0
  S T="",T=$O(^ATXAX("B","BGP ASA ALLERGY 995.0-995.3",0))
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
- .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^ICDCODE(I),U,2)
+ .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^BGP7UTL2(I),U,2)
  .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
- .Q:$P(^AUPNPROB(X,0),U,8)>EDATE  ;added after discharge date
- .I Y="V14.8"!($$ICD^ATXCHK(I,T,9)),N["STATIN"!(N["STATINS") S BGPC=1_U_"alg statin PROBLEM LIST:  "_$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_"  ["_Y_"]  "_N
- .Q
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .I $P(^AUPNPROB(X,0),U,13)]"",$P(^AUPNPROB(X,0),U,13)>EDATE Q  ;doo
+ .;Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .I $$ICD^BGP7UTL2(I,$O(^ATXAX("B","BGP HX DRUG ALLERGY NEC",0)),9)!($$ICD^BGP7UTL2(I,T,9)),N["STATIN"!(N["STATINS") S BGPC=1_U_$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" ADR Problem List "_Y Q  ;_"]" Q
+ .S S=$$VAL^XBDIQ1(9000011,X,80001)
+ .I S]"",$D(^XTMP("BGPSNOMEDSUBSET",$J,"PXRM BGP ADR STATIN",S)) S BGPC=1_U_$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" ADR Problem List "_S Q
  I BGPC Q BGPC
- ;now check allergy tracking
+ ;ART
  S BGPC=0
  S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
- .Q:$P($G(^GMR(120.8,X,0)),U,26)>EDATE  ;entered after discharge date
+ .Q:$P($P($G(^GMR(120.8,X,0)),U,4),".")>EDATE
  .S N=$P($G(^GMR(120.8,X,0)),U,2),N=$$UP^XLFSTR(N)
- .I N["STATIN" S BGPC=1_U_" alg statin ALLERGY TRACKING:  "_$$DATE^BGP7UTL($P(^GMR(120.8,X,0),U,4))_"  "_N
+ .I N["STATIN" S BGPC=1_U_$$DATE^BGP7UTL($P(^GMR(120.8,X,0),U,4))_" ADR Allergy Tracking "_N
  I BGPC Q BGPC
  ;now go into the report period items
  K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP MYOPATHY/MYALGIA;DURING "_$$FMTE^XLFDT(RPB)_"-"_$$FMTE^XLFDT(RPE) S E=$$START1^APCLDF(X,Y)
- I $D(BGPG(1)) Q 1_U_"Statin allergy POV:  "_$$DATE^BGP7UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]    "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
- ;creatine lab value > 10,000 or 10x uln
-  ;now get all loinc/taxonomy tests
+ I $D(BGPG(1)) Q 1_U_$$DATE^BGP7UTL($P(BGPG(1),U))_" ADR POV "_$P(BGPG(1),U,2)  ;_"]"
+ S X=$$PLTAXND^BGP7DU(P,"BGP MYOPATHY/MYALGIA",EDATE) I X Q 1_U_$$DATE^BGP7UTL($P(X,U,3))_U_"ADR "_$P(X,U,2)   ;V17
+ S X=$$IPLSNOND^BGP7DU(P,"PXRM BGP MYOPATHY MYALGIA",EDATE) I X Q 1_U_$$DATE^BGP7UTL($P(X,U,3))_U_"ADR "_$P(X,U,2)   ;V17
+ ;
  S BGPG=""
  S T=$O(^ATXAX("B","BGP CREATINE KINASE LOINC",0))
  S BGPLT=$O(^ATXLAB("B","BGP CREATINE KINASE TAX",0))
@@ -177,11 +203,11 @@ STATALG(P,BDATE,EDATE,RPB,RPE) ;EP
  .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
  ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
  ...Q:'$D(^AUPNVLAB(X,0))
- ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) I $$RESCK(X) S BGPG=1_U_"adr statin creat kinase of "_$P(^AUPNVLAB(X,0),U,4)_" on "_$$DATE^BGP7UTL((9999999-D)) Q
+ ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) I $$RESCK(X) S BGPG=1_U_$$DATE^BGP7UTL((9999999-D))_" ADR creat kinase of "_$P(^AUPNVLAB(X,0),U,4) Q
  ...Q:'T
  ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
  ...Q:'$$LOINC^BGP7D2(J,T)
- ...I $$RESCK(X) S BGPG=1_U_"adr statin creat kinase of "_$P(^AUPNVLAB(X,0),U,4)_" on "_$$DATE^BGP7UTL((9999999-D)) Q
+ ...I $$RESCK(X) S BGPG=1_U_$$DATE^BGP7UTL((9999999-D))_" ADR creat kinase of "_$P(^AUPNVLAB(X,0),U,4) Q
  ...Q
  I BGPG Q BGPG
  S T=$O(^ATXAX("B","BGP ALT LOINC",0))
@@ -204,52 +230,63 @@ STATALG(P,BDATE,EDATE,RPB,RPE) ;EP
  .Q:'$$RESAL(BGPC(X))
  .;is next one also bad?
  .S Y=$O(BGPC(X))
- .Q:Y=""  ;no next one
- .I $$RESAL(BGPC(Y)) S BGPG=1_U_"adr Statin - AST/ALT" Q
+ .Q:Y=""
+ .I $$RESAL(BGPC(Y)) S BGPG=1_U_" ADR AST/ALT" Q
  .Q
  I BGPG Q BGPG
  Q 0
  ;
-RESAL(Y) ;
+RESAL(Y) ;EP
  NEW V,ULN
  S V=+$P(Y,U,2),ULN=$P(Y,U,3)
- I ULN="" Q ""  ;no upper limit so can't check
+ I ULN="" Q ""
  I V>(ULN*3) Q 1
  Q ""
-RESCK(Y) ;
+STV(X) ;EP - strip NON NUMERICS
+ I X="" Q X
+ I X="?" Q ""
+ NEW A,B,L
+ S L=$L(X)
+ I $E(X)?1N ;S X=+X
+ F B=1:1:L S A=$E(X,B) Q:A=""  I A'?1N,A'?1"." S X=$$STRIP^XLFSTR(X,A) S B=B-1
+ I X="" Q ""
+ S X=$$STRIP^XLFSTR(X," ")
+ Q X
+RESCK(X) ;EP
  NEW V,ULN
- S V=+$P(^AUPNVLAB(X,0),U,4)
+ S V=$P(^AUPNVLAB(X,0),U,4)
+ S V=$$STV(V)
  I V>10000 Q 1
  S ULN=$P($G(^AUPNVLAB(X,11)),U,5)
- I ULN="" Q 0  ;no upper limit, can't check
+ I ULN="" Q 0  ;no upper limit
  I V>(ULN*10) Q 1
  Q 0
-STATCON(P,BDATE,EDATE,NMIB,NMIE) ;EP does patient have an STATIN contraidication
- NEW ED,BD,BGPG,BGPC,X,Y,Z,N,E
+STATCON(P,BDATE,EDATE,NMIB,NMIE) ;EP does patient have an STATIN Contra
+ NEW ED,BD,BGPG,BGPC,X,Y,Z,N,E,SN
  ;
  ;pregnant
- S X=$$PREG^BGP7D7(P,BDATE,EDATE) I X Q 1_U_"contra statin - pregnant"
- ;nmi in refusal file for STATI
+ S X=$$PREG^BGP7D7(P,BDATE,EDATE,1,1) I X Q 1_U_"Contra pregnant"
+ ;nmi
  S BGPG=""
- S T=$O(^ATXAX("B","BGP HEDIS STATIN MEDS",0))
+ S T=$O(^ATXAX("B","BGP PQA STATIN MEDS",0))
  S X=0 F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X  D
  .Q:'$D(^ATXAX(T,21,"B",X))  ;not an STATI
  .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D  D
- ..S Y=9999999-D I Y<NMIB Q  ;documented more than 1 year before discharge
- ..I Y>NMIE Q  ;documented after End date
+ ..S Y=9999999-D I Y<NMIB Q
+ ..I Y>NMIE Q
  ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N  D
  ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
- ...S BGPG=1_U_"NMI STATIN: "_$$VAL^XBDIQ1(9000022,N,.04)_"   "_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_"  "_$$VAL^XBDIQ1(9000022,X,1101)
- ..Q
+ ...S BGPG=1_U_$$DATE^BGP7UTL($P(^AUPNPREF(N,0),U,3))_"Contra NMI "_$$VAL^XBDIQ1(9000022,N,.04)  ;
  .Q
  I BGPG Q BGPG
- ;breastfeeding
- K BGPG S Y="BGPG(",X=P_"^LAST DX V24.1;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
- I $D(BGPG(1)) Q 1_U_"STATIN contra POV:  "_$$DATE^BGP7UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]    "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
- ;now check education
+ ;
+ K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP BREASTFEEDING DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1_U_$$DATE^BGP7UTL($P(BGPG(1),U))_"Contra POV "_$P(BGPG(1),U,2)  ;
+ ;
  K BGPG
  S Y="BGPG("
  S X=P_"^ALL EDUC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ S SN=$O(^BGPSNOMG("B","BREASTFEEDING PATIENT ED",0))
  S (X,D)=0,%="",T="" F  S X=$O(BGPG(X)) Q:X'=+X!(%]"")  D
  .S T=$P(^AUPNVPED(+$P(BGPG(X),U,4),0),U)
  .Q:'T
@@ -265,19 +302,23 @@ STATCON(P,BDATE,EDATE,NMIB,NMIE) ;EP does patient have an STATIN contraidication
  .I T="BF-M" S %=T_U_$P(BGPG(X),U) Q
  .I T="BF-MK" S %=T_U_$P(BGPG(X),U) Q
  .I T="BF-N" S %=T_U_$P(BGPG(X),U) Q
- I %]"" Q 1_U_"Statin contra - "_%
- ;NOW CHECK ALCOHOL HEPATITIS
- K BGPG S Y="BGPG(",X=P_"^LAST DX 571.1;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
- I $D(BGPG(1)) Q 1_U_"STATIN contra POV:  "_$$DATE^BGP7UTL($P(BGPG(1),U))_" ["_$P(BGPG(1),U,2)_"]  "_$$VAL^XBDIQ1(9000010.07,+$P(BGPG(1),U,4),.04)
+ .I $P(T,"-")]"",$D(^BGPSNOMG(SN,11,"B",$P(T,"-"))) S %=T_U_$P(BGPG(X),U) Q
+ I %]"" Q 1_U_$$DATE^BGP7UTL($P(%,U,2))_"Contra "_$P(%,U,1)
+ ;
+ K BGPG S Y="BGPG(",X=P_"^LAST DX [BGP ALCOHOL HEPATITIS DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) Q 1_U_$$DATE^BGP7UTL($P(BGPG(1),U))_"Contra POV "_$P(BGPG(1),U,2) ;
+ S X=$$PLTAXND^BGP7DU(P,"BGP ALCOHOL HEPATITIS DXS",EDATE) I X Q 1_U_$$DATE^BGP7UTL($P(X,U,3))_U_"Contra "_$P(X,U,2)   ;V17
+ S X=$$IPLSNOND^BGP7DU(P,"PXRM BGP ACUTE ETOH HEPATITIS",EDATE) I X Q 1_U_$$DATE^BGP7UTL($P(X,U,3))_U_"Contra "_$P(X,U,2)   ;V17
  Q ""
 STATRX(P,BDATE,EDATE,BGPNDAYS) ;EP
  K BGPMEDS1 S K=0,R=""
  D GETMEDS^BGP7UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
  I '$D(BGPMEDS1) Q ""
- S T=$O(^ATXAX("B","BGP HEDIS STATIN MEDS",0))
- S T1=$O(^ATXAX("B","BGP HEDIS STATIN NDC",0))
+ S T=$O(^ATXAX("B","BGP PQA STATIN MEDS",0))
+ S T1=$O(^ATXAX("B","BGP PQA STATIN NDC",0))
  S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
  .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G STAT1
@@ -290,16 +331,17 @@ STAT1 .;
  .Q:'V
  .Q:'$D(^AUPNVSIT(V,0))
  .S S=$$DAYS^BGP7D82(Y,V,EDATE)
- .S K=S+K  ;TOTAL DAYS SUPPLY
+ .S K=S+K
  .I R]"" S R=R_";"
  .S R=R_$$DATE^BGP7UTL($P($P(^AUPNVSIT(V,0),U),"."))_"("_S_")"
- I K>BGPNDAYS Q 1_U_" total days STATIN: "_K
-STATPRIO ;now add in any before BEG DATE
+ I K>BGPNDAYS Q 1_U_"("_K_" TOTAL DAYS)"
+STATPRIO ;now add in any before BEG
  K BGPMEDS1
  D GETMEDS^BGP7UTL2(P,$$FMADD^XLFDT(BDATE,-365),BDATE,,,,,.BGPMEDS1)
  I '$D(BGPMEDS1) Q ""
  S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S G=0
  .S D=$P(^AUPNVMED(Y,0),U)
  .I T,$D(^ATXAX(T,21,"B",D)) S G=1 G STAT2
@@ -311,29 +353,15 @@ STAT2 .;
  .S V=$P(^AUPNVMED(Y,0),U,3)
  .Q:'V
  .Q:'$D(^AUPNVSIT(V,0))
- .;S IS DAYS SUPPLY, J IS DATE DISCONTINUED
- .Q:J]""  ;don't use if discontinued
- .S D=$$FMDIFF^XLFDT(BDATE,$P($P(^AUPNVSIT(V,0),U),"."))  ;difference between dsch date and date prescribed
+ .;
+ .Q:J]""
+ .S D=$$FMDIFF^XLFDT(BDATE,$P($P(^AUPNVSIT(V,0),U),"."))
  .S S=$P(^AUPNVMED(Y,0),U,7)
- .S S=S-D  ;subtract the number of days used
+ .S S=S-D
  .S:S<0 S=0
- .S K=S+K  ;TOTAL DAYS SUPPLY
+ .S K=S+K
  .I R]"" S R=R_";"
  .S R=R_$$DATE^BGP7UTL($P($P(^AUPNVSIT(V,0),U),"."))_"("_S_")"
- I K>BGPNDAYS Q 1_U_" total STATIN: "_K
- Q 0_U_R_" total days STATIN: "_K
+ I K>BGPNDAYS Q 1_U_"("_K_" TOTAL DAYS)"
+ Q 0_U_"("_K_" TOTAL DAYS)"
  ;
-STATREF(P,BDATE,EDATE) ;EP
- ;did patient have a refusal in time period?
- S T=$O(^ATXAX("B","BGP HEDIS STATIN MEDS",0))
- S X=0,G="" F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X!(G)  D
- .Q:'$D(^ATXAX(T,21,"B",X))
- .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D!(G)  D
- ..S Y=9999999-D I Y<BDATE Q  ;documented more than 1 year before edate
- ..I Y>EDATE Q  ;documented after end date
- ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N!(G)  D
- ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="R"
- ...S G=1_U_"Statin Refusal "_$$DATE^BGP7UTL(Y)
- ..Q
- .Q
- Q G

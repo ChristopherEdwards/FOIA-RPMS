@@ -1,5 +1,5 @@
-BQITASK3 ;PRXM/HC/ALA-Treatment Prompts Update Task ; 03 Aug 2007  1:45 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+BQITASK3 ;GDIT/HS/ALA-Weekly Update Tasks ; 03 Aug 2007  1:45 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
 EN ;EP - Entry point
  NEW UID,TTASK
@@ -59,14 +59,14 @@ CMGT ; EP - BQI UPDATE CARE MGMT
  NEW SRIEN,SRC,RIEN,STAT,DFN,SRCIEN
  S DFN=0
  F  S DFN=$O(^BQIPAT(DFN)) Q:'DFN  D
- . F SOURCE="Asthma" D
- .. D SRC(SOURCE) I SRIEN="" Q
- .. S SRCIEN=$O(^BQIPAT(DFN,60,"B",SRIEN,""))
- .. I SRCIEN'="" D
- ... NEW DA,DIK
- ... S DA(1)=DFN,DA=SRCIEN
- ... S DIK="^BQIPAT("_DA(1)_",60,"
- ... D ^DIK
+ . K ^BQIPAT(DFN,60)
+ . ; If flag is set for nightly/weekly
+ . S SRIEN=""
+ . F  S SRIEN=$O(^BQI(90506.5,"AD",1,SRIEN)) Q:SRIEN=""  D
+ .. I $P($G(^BQI(90506.5,SRIEN,0)),"^",10)=1 Q
+ .. ;I $P($G(^BQI(90506.5,SRIEN,0)),"^",16)'=1 Q
+ .. S SOURCE=$P($G(^BQI(90506.5,SRIEN,0)),"^",1)
+ .. S SRC=$P($G(^BQI(90506.5,SRIEN,0)),U,2)
  .. ; If patient is deceased, don't calculate
  .. I $P($G(^DPT(DFN,.35)),U,1)'="" Q
  .. ; If patient has no active HRNs, quit
@@ -74,6 +74,7 @@ CMGT ; EP - BQI UPDATE CARE MGMT
  .. ; If patient has no visit in past 3 years
  .. I '$$VTHR^BQIUL1(DFN) Q
  .. D PAT^BQIRGASP(DFN,SRC)
+ K BDMDMRG,BDMJOB,BDMBTH,CYR,CIEN,PGTHR,PGRF,BDMRBD,BDMADAT,BDMTYPE,BDMRED,BMDBDAT,BDMPD
  ;
  ; Set the date/time stopped
  NEW DA
@@ -87,5 +88,6 @@ CMGT ; EP - BQI UPDATE CARE MGMT
  ;
 SRC(SOURCE) ; EP
  S SRIEN=$O(^BQI(90506.5,"B",SOURCE,"")) I SRIEN="" Q
+ I $P(^BQI(90506.5,SRIEN,0),"^",10)=1 Q
  S SRC=$P(^BQI(90506.5,SRIEN,0),U,2)
  Q

@@ -1,5 +1,5 @@
 ABSPOSQS ; IHS/FCS/DRS - special queuing considerations ; [ 08/28/2002  2:25 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,2,3,37,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,2,3,37,40**;JUN 21, 2001;Build 15
  ;
  ; IHS/DSD/lwj 4/18/02 on behalf of Patrick Cox
  ; IHS/OKCAO/POC 10/2/01  In Oklahoma there is a general 3 punch

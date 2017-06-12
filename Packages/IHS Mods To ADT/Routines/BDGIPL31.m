@@ -1,5 +1,5 @@
 BDGIPL31 ; IHS/ANMC/LJF - CALCULATE LIST BY WARD/ROOM ; 
- ;;5.3;PIMS;;APR 26, 2002
+ ;;5.3;PIMS;**1019**;APR 26, 2002;Build 3
  ;
  NEW DGWST
  K ^TMP("BDGIPL1",$J)
@@ -65,6 +65,9 @@ MULTUSE(W,R) ; -- don't print if room-bed used by other wards
  ;
  ; is there more than one entry in ward multiple, if no quit 1
  I '$O(^DG(405.4,R,"W",+$O(^DG(405.4,R,"W",0)))) Q 1
+ ;
+ ; is the room currently occupied by any ward? if no, quit 1
+ NEW X S X=$O(^DGPM("ARM",R,0)) I 'X Q 1 ;IHS/OIT/CLS 05/20/2014 check all availability 1019
  ;
  ; is the room currently occupied?  if no, quit 0
  NEW X S X=$O(^DPT("RM",$P(^DG(405.4,R,0),U),0)) I 'X Q 0

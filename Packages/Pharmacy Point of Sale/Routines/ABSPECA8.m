@@ -1,5 +1,5 @@
 ABSPECA8 ; IHS/FCS/DRS - construct a claim reversal ;   [ 11/18/2002  10:07 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,4,7,9,10,12,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,4,7,9,10,12,43**;JUN 21, 2001;Build 15
  Q
  ; The way we build the claim reversal is to take the source data
  ; from the original claim (IEN) and position therein (RX).

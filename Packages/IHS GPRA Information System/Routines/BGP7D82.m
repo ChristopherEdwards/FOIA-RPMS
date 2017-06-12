@@ -1,5 +1,5 @@
-BGP7D82 ; IHS/CMI/LAB - measure C 14 Mar 2007 11:49 AM ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7D82 ; IHS/CMI/LAB - measure C 14 Mar 2010 11:49 AM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
 IRAA ;EP
  S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPN6,BGPD1,BGPD2,BGPD3,BGPD4,BGPD5,BGPD6,BGPD7,BGPD8,BGPD9,BGPD10,BGPD11,BGPD12)=0
@@ -22,11 +22,11 @@ IRAA ;EP
  S BGPN1=0
  I BGPOSTEO S BGPN1=$S('BGPCBC:0,'BGPLFT:0,'BGPCREAT:0,1:1)
  ;I BGPGLUC S BGPN1=$S('BGPUG:0,1:1)
- S BGPVALUE=$S(BGPD1:";AC",1:"")_" "_$P(BGPV,U,5)_"|||"
+ S BGPVALUE=$S(BGPD1:"AC",1:"")_$P(BGPV,U,5)_"|||"
  I BGPOSTEO S BGPVALUE=BGPVALUE_$S(BGPN1:"YES: ",1:"NO: ")
- I BGPOSTEO S BGPVALUE=BGPVALUE_$S(BGPCREAT:" CREAT: "_$$DATE^BGP7UTL($P(BGPCREAT,U,2)),1:"")
- I BGPOSTEO S BGPVALUE=BGPVALUE_$S(BGPCBC:"CBC: "_$$DATE^BGP7UTL($P(BGPCBC,U,2)),1:"")
- I BGPOSTEO S BGPVALUE=BGPVALUE_$S(BGPLFT:" LFT: "_$$DATE^BGP7UTL($P(BGPLFT,U,2)),1:"")
+ I BGPOSTEO,BGPCREAT S BGPVALUE=BGPVALUE_$S(BGPCREAT:$$DATE^BGP7UTL($P(BGPCREAT,U,2))_" CREAT",1:"")
+ I BGPOSTEO,BGPCBC S BGPVALUE=BGPVALUE_$S(BGPCREAT:", ",1:""),BGPVALUE=BGPVALUE_$S(BGPCBC:$$DATE^BGP7UTL($P(BGPCBC,U,2))_" CBC",1:"")
+ I BGPOSTEO,BGPLFT S BGPVALUE=BGPVALUE_$S(BGPCREAT!(BGPCBC):", ",1:""),BGPVALUE=BGPVALUE_$S(BGPLFT:$$DATE^BGP7UTL($P(BGPLFT,U,2))_" LFT",1:"")
  K X,Y,Z,%,A,B,C,D,E,H,BDATE,EDATE,P,V,S,F,T
  K ^TMP($J,"A")
  Q
@@ -46,9 +46,10 @@ OSTEOAR(P,BDATE,EDATE) ;EP
  S (X,B)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(H)  D
  .Q:$P(^AUPNPROB(X,0),U,8)>BDATE  ;if added to pl after beginning of time period, no go
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:$P(^AUPNPROB(X,0),U,12)'="A"
- .Q:'$$ICD^ATXCHK(Y,T,9)
- .S H=$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" "_$P($$ICDDX^ICDCODE(Y),U,2)_" Problem list"
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .Q:'$$ICD^BGP7UTL2(Y,T,9)
+ .S H=$$DATE^BGP7UTL($P(^AUPNPROB(X,0),U,8))_" "_$P($$ICDDX^BGP7UTL2(Y),U,2)_" Problem list"
  .Q
  I H="" Q ""  ;don't go further as patient does not have osteoarthritis prior to the report period
 RPDXS ;check for 2 dxs in time period
@@ -66,13 +67,15 @@ MEDSPRE(P,BDATE,EDATE) ;were meds prescribed in time frame and before?
  D GETMEDS^BGP7UTL2(P,BDATE,EDATE,,,,,.BGPMEDS1)
  I '$D(BGPMEDS1) Q ""
  S T1=$O(^ATXAX("B","BGP RA OA NSAID MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA OA NSAID NDC",0))
+ S T4=$O(^ATXAX("B","BGP RA OA NSAID VAPI",0))
  S T2=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
  S (X,G,M,E)=0,D="" F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S A=1 Q
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP7D81(Z,T4)) S A=1 Q
  .I $D(^ATXAX(T2,21,"B",Z)) S A=1 Q
  ;now check for B
  ;S T1=$O(^ATXAX("B","BGP OA GLUCOCORTICOIDS MEDS",0))
@@ -89,13 +92,15 @@ MEDSPRE(P,BDATE,EDATE) ;were meds prescribed in time frame and before?
  I '$D(BGPMEDS1) Q ""
  S C=0
  S T1=$O(^ATXAX("B","BGP RA OA NSAID MEDS",0))
- S T4=$O(^ATXAX("B","BGP RA OA NSAID NDC",0))
+ S T4=$O(^ATXAX("B","BGP RA OA NSAID VAPI",0))
  S T2=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
  S X=0 F  S X=$O(BGPMEDS1(X)) Q:X'=+X  S V=$P(BGPMEDS1(X),U,5),Y=+$P(BGPMEDS1(X),U,4) D
  .Q:'$D(^AUPNVSIT(V,0))
+ .Q:'$D(^AUPNVMED(Y,0))
+ .Q:$$UP^XLFSTR($P($G(^AUPNVMED(Y,11)),U))["RETURNED TO STOCK"
  .S Z=$P($G(^AUPNVMED(Y,0)),U) ;get drug ien
  .Q:Z=""  ;BAD POINTER
- .I $D(^ATXAX(T1,21,"B",Z))!($$NDC(Z,T4)) S C=C+$$DAYS(Y,V,EDATE) Q
+ .I $D(^ATXAX(T1,21,"B",Z))!($$VAPI^BGP7D81(Z,T4)) S C=C+$$DAYS(Y,V,EDATE) Q
  .I $D(^ATXAX(T2,21,"B",Z)) S C=C+$$DAYS(Y,V,EDATE)
  ;GLUCX ;now check for B
  ;S D=0
@@ -109,7 +114,7 @@ MEDSPRE(P,BDATE,EDATE) ;were meds prescribed in time frame and before?
 CHCK ;
  S E=.75*($$FMDIFF^XLFDT(EDATE,BDATE))
  S V="" ;I B,D'<E S $P(V,U,2)=1,$P(V,U,4)=D S $P(V,U,5)=$P(V,U,5)_" "_$S(B:D_" days of glucocorticoids",1:"")
- I A,C'<E S $P(V,U)=1,$P(V,U,3)=C S $P(V,U,5)=$P(V,U,5)_" "_$S(A:C_" days of nsaid ",1:"")
+ I A,C'<E S $P(V,U)=1,$P(V,U,3)=C S $P(V,U,5)=$P(V,U,5)_" "_$S(A:C_" days of NSAID ",1:"")
  Q V
 DAYS(Y,V,E) ;EP
  NEW %,N,S,D
@@ -130,7 +135,7 @@ NDC(A,B) ;
  S BGPNDC=$P($G(^PSDRUG(A,2)),U,4)
  I BGPNDC]"",B,$D(^ATXAX(B,21,"B",BGPNDC)) Q 1
  Q 0
-CLASS(A,B) ;
+CLASS(A,B) ;EP
  ;a is drug ien
  ;b is taxonomy ien
  S BGPNDC=$P($G(^PSDRUG(A,0)),U,2)
@@ -208,23 +213,6 @@ LFT(P,BDATE,EDATE) ;
  ;now get all loinc/taxonomy tests
  S T=$O(^ATXAX("B","BGP LIVER FUNCTION LOINC",0))
  S BGPLT=$O(^ATXLAB("B","BGP LIVER FUNCTION TESTS",0))
- S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
- .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
- ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D
- ...Q:'$D(^AUPNVLAB(X,0))
- ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D)_U_"LAB" Q
- ...Q:'T
- ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
- ...Q:'$$LOINC^BGP7D21(J,T)
- ...S BGPC=1_U_(9999999-D)_U_"LOINC"
- ...Q
- Q BGPC
-UG(P,BDATE,EDATE) ;
- K BGPC
- S BGPC=0
- ;now get all loinc/taxonomy tests
- S T=$O(^ATXAX("B","BGP URINE GLUCOSE LOINC",0))
- S BGPLT=$O(^ATXLAB("B","BGP URINE GLUCOSE",0))
  S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!($P(BGPC,U))  D
  .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!($P(BGPC,U))  D
  ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!($P(BGPC,U))  D

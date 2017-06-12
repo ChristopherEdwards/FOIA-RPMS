@@ -1,12 +1,15 @@
-PSJDDUT3 ;BIR/LDT-INPATIENT MEDICATIONS DD UTILITY ;26 JUN 97 / 9:35 AM
- ;;5.0; INPATIENT MEDICATIONS ;;16 DEC 97
+PSJDDUT3 ;BIR/LDT-INPATIENT MEDICATIONS DD UTILITY ;14-Aug-2014 10:18;DU
+ ;;5.0; INPATIENT MEDICATIONS ;1018;16 DEC 97;Build 21
+ ;Modified -  IHS/MSC/MGH - 08/14/2014 - Line ENI+3 do not allow control characters
  ;
  ;(The following call replaces EN^PSIVHLP3)
 EN(HELP) F PSIVHLP=1:1 Q:$P($T(@HELP+PSIVHLP),";",3)=""  S PSJHLP(PSIVHLP)=$P($T(@HELP+PSIVHLP),";",3) D WRITE
  K HELP,PSIVHLP Q
  ;
 ENI ;(Replaces ENI^PSIVSP)
- K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q
+ ;IHS/MSC/MGH Remove control characters
+ ;K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q
+ K:X'?1.30ANP!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q  ;IHS/MSC/MGH DO NOT ALLOW CONTROL CHARACTERS
  I P(4)="P"!(P(5))!(P(23)="P") Q:'X  S X="INFUSE OVER "_X_" MIN." D EN^DDIOL("   "_X,"","?0") Q
  I X'=+X,($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q
  S SPSOL=$O(DRG("SOL",0)) I 'SPSOL K SPSOL,X D EN^DDIOL("  You must define at least one solution !!") Q

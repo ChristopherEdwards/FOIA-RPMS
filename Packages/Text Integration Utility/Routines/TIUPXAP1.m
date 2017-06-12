@@ -1,5 +1,5 @@
 TIUPXAP1 ; SLC/JER - Interface w/PCE/Visit Tracking ;28-OCT-2003 16:45:37 [8/18/04 11:24am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**15,29,20,89,82,107,117,126,124,149,179**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**15,29,20,89,82,107,117,126,124,149,179,205**;Jun 20, 1997;Build 1
 QUE ; Use a RESOURCE to post visit tracking information in background
  N ZTDTH,ZTIO,ZTSAVE,ZTSK,ZTRTN,ZTDESC
  ; if there is already a visit, and no workload data quit
@@ -63,11 +63,24 @@ PXAPI(TIUVSIT,DFN,VLOC,VDT,VCAT,VSTOP,ICD,CPT,SC,TIUDA) ; Build input root
  . D:'$D(TIUPRM0) SETPARM^TIULE
  . S TIUPROV=$S(+$G(TIUAUTH):+$G(TIUAUTH),+$$PROVIDER(DUZ,$G(VDT)):+$G(DUZ),1:"")
  . I +TIUPROV>0,'$D(XWBOS) D
- . . I +TIUDDOC'=+TIUPROV,(+$P(TIUPRM0,U,8)=1) D
- . . . S @TIUPXAPI@("PROVIDER",1,"NAME")=+TIUDDOC
- . . . S @TIUPXAPI@("PROVIDER",1,"PRIMARY")=1
- . . . S @TIUPXAPI@("PROVIDER",2,"NAME")=+TIUPROV
- . . . S @TIUPXAPI@("PROVIDER",2,"PRIMARY")=0
+ . . I +TIUDDOC'=+TIUPROV,(+$P(TIUPRM0,U,8)=1),+TIUDDOC>0 D
+ . . . ; Get Provider information from Encounter.
+ . . . ; If ENC has no provicders then add default provider as primary. 
+ . . . ; Add TIUPROV unless already primary provider for encounter.
+ . . . N TIUPRIME,TIUPVCNT,TIUTVST,TIUTPRV,TIUPDATA
+ . . . S TIUPRIME="",TIUPVCNT=1
+ . . . D GETENC^PXAPI($G(DFN),$G(VDT),$G(VLOC))
+ . . . S TIUTVST=""
+ . . . F  S TIUTVST=$O(^TMP("PXKENC",$J,TIUTVST)) Q:TIUTVST=""  D
+ . . . . S TIUTPRV=""
+ . . . . F  S TIUTPRV=$O(^TMP("PXKENC",$J,TIUTVST,"PRV",TIUTPRV)) Q:TIUTPRV=""  D
+ . . . . . S TIUPDATA=$G(^TMP("PXKENC",$J,TIUTVST,"PRV",TIUTPRV,0))
+ . . . . . I $P(TIUPDATA,"^",4)="P" S TIUPRIME=+TIUPDATA
+ . . . I 'TIUPRIME D
+ . . . . S @TIUPXAPI@("PROVIDER",TIUPVCNT,"NAME")=+TIUDDOC
+ . . . . S @TIUPXAPI@("PROVIDER",TIUPVCNT,"PRIMARY")=1
+ . . . . S TIUPVCNT=TIUPVCNT+1
+ . . . S @TIUPXAPI@("PROVIDER",TIUPVCNT,"NAME")=+TIUPROV
  . . E  D
  . . . S @TIUPXAPI@("PROVIDER",1,"NAME")=+TIUPROV
  I $D(ICD)>9 S TIUI=0 F  S TIUI=$O(ICD(TIUI)) Q:+TIUI'>0  D

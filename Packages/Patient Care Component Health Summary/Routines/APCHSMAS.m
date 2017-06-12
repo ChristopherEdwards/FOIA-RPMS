@@ -1,5 +1,5 @@
 APCHSMAS ; IHS/CMI/LAB -- CONTINUATION OF ROUTINES ; 
- ;;2.0;IHS PCC SUITE;**5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**5,11,15,16**;MAY 14, 2009;Build 9
  ;;;
 S(X) ;
  NEW %,C S (C,%)=0 F  S %=$O(APCHSTEX(%)) Q:%'=+%  S C=C+1
@@ -11,30 +11,39 @@ W3 ;
  X APCHSURX
  Q
 HMR1ST(P) ;EP - for indicator 1 is patient eligible?
- I $$PIS(P,$$FMADD^XLFDT(DT,-90)) Q 0  ;has a current perscription for inhaled steroids
+ I $$PIS(P,$$FMADD^XLFDT(DT,-90)) Q 0
  I $$LASTACLG(P,1)>1 Q 1  ;if persistent
+ S APCHSX=$$IPLSNO(P,"PXRM ASTHMA PERSISTENT") I $P(APCHSX,U,1) Q APCHSX
+ S APCHSX=$$PLTAXAC(P,"BJPC ASTHMA PERSISTENT") I APCHSX Q APCHSX
  I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1
- I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1  ;3 visits for asthma in past 6 months
- ;I $$NASF(P,$$FMADD^XLFDT(DT,-365))>3,$$NREL(P,$$FMADD^XLFDT(DT,-365))>0,$$BRON(P,$$FMADD^XLFDT(DT,-365))>.33 Q 1  ;at least 4 fills of any med and ratio >.33
- ;I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1  ;3 visits for asthma in past 6 months
+ S APCHSX=$$NASV(P,$$FMADD^XLFDT(DT,-183),2) I $P(APCHSX,U,1)>2 Q 1_U_"Asthma POVs on "_$$FMTE^XLFDT($P(APCHSX,U,2))_", "_$$FMTE^XLFDT($P(APCHSX,U,3))_" and "_$$FMTE^XLFDT($P(APCHSX,U,4))
  Q 0
 HMR3ST(P) ;EP - ind 3
  I $$LASTACLG(P)>1 Q 1  ;if persistent
- I $$PIS(P,$$FMADD^XLFDT(DT,-90)) Q 1  ;is on inhaled steroids
- I $$NASV(P,$$FMADD^XLFDT(DT,183)) Q 1
+ ;BJPC V2.0 PATCH 15 CR #4133
+ S APCHSX=$$IPLSNO(P,"PXRM ASTHMA PERSISTENT") I $P(APCHSX,U,1) Q APCHSX
+ S APCHSX=$$PLTAXAC(P,"BJPC ASTHMA PERSISTENT") I APCHSX Q APCHSX
+ I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1
+ I $$PIS(P,$$FMADD^XLFDT(DT,-90)) Q 1
+ I $$NASV(P,$$FMADD^XLFDT(DT,183))>2 Q 1
  Q 0
 HMR4ST(P) ;EP - ind 4
  I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1
- I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1  ;3 visits for asthma in past 6 months
+ I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1
  Q 0
 HMR5ST(P) ;EP
  I $$LASTACLG(P)>1 Q 1  ;if persistent
+ S APCHSX=$$IPLSNO(P,"PXRM ASTHMA PERSISTENT") I $P(APCHSX,U,1) Q APCHSX
+ S APCHSX=$$PLTAXAC(P,"BJPC ASTHMA PERSISTENT") I APCHSX Q APCHSX
  NEW X
  I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1
- I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1  ;3 visits for asthma in past 6 months
+ I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1
  Q ""
 HMR6ST(P) ;EP - ind 4
+ NEW APCHSX
  I $$LASTACLG(P)>1 Q 1  ;if any persistent
+ S APCHSX=$$IPLSNO(P,"PXRM ASTHMA PERSISTENT") I $P(APCHSX,U,1) Q APCHSX
+ S APCHSX=$$PLTAXAC(P,"BJPC ASTHMA PERSISTENT") I APCHSX Q APCHSX
  NEW X
  I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1
  I $$NASV(P,$$FMADD^XLFDT(DT,-183))>2 Q 1  ;3 visits for asthma in past 6 months
@@ -43,6 +52,8 @@ HMR2ST(P) ;EP - candidate for indicator 2?
  NEW APCHSX
  S APCHSX=$$LASTACLG(P,2)
  I $P(APCHSX,U)>1 Q 1_U_"Asthma Severity "_$P(APCHSX,U,2)  ;if persistent
+ S APCHSX=$$IPLSNO(P,"PXRM ASTHMA PERSISTENT") I $P(APCHSX,U,1) Q APCHSX
+ S APCHSX=$$PLTAXAC(P,"BJPC ASTHMA PERSISTENT") I APCHSX Q APCHSX
  I $T(ATAG^BQITDUTL)]"" S X=$$ATAG^BQITDUTL(P,"Asthma") I $P(X,U),($P(X,U,2)="P"!($P(X,U,2)="A")) Q 1_U_"Asthma Diagnostic Tag: "_$S($P(X,U,2)="A":"Accepted",1:"Proposed")_" as of "_$$FMTE^XLFDT($P($P(X,U,3),".",1))
  S APCHSX=$$NASV(P,$$FMADD^XLFDT(DT,-183),2) I $P(APCHSX,U,1)>2 Q 1_U_"Asthma POVs on "_$$FMTE^XLFDT($P(APCHSX,U,2))_", "_$$FMTE^XLFDT($P(APCHSX,U,3))_" and "_$$FMTE^XLFDT($P(APCHSX,U,4))
  I $$LASTACON(P,1)="N"!($$LASTACON(P,1)="V") Q 1_U_"Most Recent Asthma Control "_$$LASTACON(P,6)
@@ -54,11 +65,40 @@ HMR7ST(P,R) ;EP - candidate for tp uncontrolled asthma
  NEW X
  S X=$$ERPAST(P,$$FMADD^XLFDT(DT,-365))
  I $P(X,U)>1 Q X
- I $$LASTACLG(P,1)=1 S X=$$ORAL1(P,$$FMADD^XLFDT(DT,-365)) I X Q X
- I $$LASTACLG(P,1)>1 S X=$$ORAL2(P,$$FMADD^XLFDT(DT,-365)) I $P(X,U)>1 Q X
+ I $$LASTACLG(P,1)>1!($$IPLSNO(P,"PXRM ASTHMA PERSISTENT"))!($$PLTAXAC(P,"BJPC ASTHMA PERSISTENT")) S X=$$ORAL2(P,$$FMADD^XLFDT(DT,-365)) I $P(X,U)>1 Q X  ;PERSISTENT
+ I $$LASTACLG(P,1)=1!($$IPLSNO(P,"PXRM ASTHMA INTERMITTENT")) S X=$$ORAL1(P,$$FMADD^XLFDT(DT,-365)) I X Q X  ;INTERMITTENT
  S X=$$ERORAL(P,$$FMADD^XLFDT(DT,-365)) I X Q X
  Q ""
  ;
+PLTAXAC(P,A) ;EP - is CODE ON PL AND IS IT ACTIVE
+ I $G(P)="" Q ""
+ I $G(A)="" Q ""
+ S S=$G(S)
+ N T S T=$O(^ATXAX("B",A,0))
+ I 'T Q ""
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .S I=1_U_$P($$ICDDX^ICDEX(Y,DT),U,4)_" on their Problem List"
+ Q I
+IPLSNO(P,T) ;EP - any problem list entry with a SNOMED in T
+ NEW OUT,IN,C,G,Y,X,I,SNL,SNI
+ S OUT="SNL"
+ S X=$$SUBLST^BSTSAPI(OUT,T)
+ ;BUILD INDEX
+ S C=0 F  S C=$O(SNL(C)) Q:C'=+C  S I=$P(SNL(C),U,1) I I]"" S SNI(I)=SNL(C)
+ K SNL
+ ;LOOP PROBLEM LIST
+ S (X,G)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="I"  ;inactive
+ ..I $D(SNI(X)) S G=1_U_$$CONCPT^AUPNVUTL(X)_" on their Problem List"
+ Q G
 AS3PV(P,BD) ;EP
  NEW APCH,%,G,C,APCHD,D
  S (G,C)=0
@@ -85,7 +125,7 @@ ERPAST(P,BD) ; - 2 or more visits?
  .I Z=30!(Z=80)!($P(^AUPNVSIT(V,0),U,7)="H") S G=1
  .Q:'G
  .S Z=$$PRIMPOV^APCLV(V,"I")
- .Q:'$$ICD^ATXCHK(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ .Q:'$$ICD^ATXAPI(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  .I '$D(E(9999999-$$VD^APCLV(V,"I"))) S C=C+1 S E((9999999-$$VD^APCLV(V,"I")))=V
  .Q
  I C<2 Q ""
@@ -118,7 +158,7 @@ ERORAL(P,BD) ;EP
  .I Z=30!(Z=80)!($P(^AUPNVSIT(V,0),U,7)="H") S G=1
  .Q:'G
  .S Z=$$PRIMPOV^APCLV(V,"I")
- .Q:'$$ICD^ATXCHK(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ .Q:'$$ICD^ATXAPI(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  .;NOW CHECK FOR ORAL MEDS 14 DAYS +/- VISIT DATE
  .K APCHMEDS
  .D GETMEDS^APCHSMU1(P,BD,$$FMADD^XLFDT($$VD^APCLV(V,"I"),-14),"BGP RA GLUCOCORTICOIDS",,"BGP RA GLUCOCORTICOIDS CLASS",,.APCHMEDS)
@@ -173,7 +213,7 @@ ORAL1(P,BDATE) ;EP - is patient on inhaled steriods since this date BDATE
  .K APCHX,APCHD
  .S %=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(D)_"-"_$$FMTE^XLFDT(D),E=$$START1^APCLDF(%,"APCHX(")
  .S A=0 F  S A=$O(APCHX(A)) Q:A'=+A  D
- ..S C=$$PRIMPOV^APCLV($P(APCHX(A),U,5),"I") Q:'$$ICD^ATXCHK(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ ..S C=$$PRIMPOV^APCLV($P(APCHX(A),U,5),"I") Q:'$$ICD^ATXAPI(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  ..S G=1_U_"Oral Corticosteroid therapy "_$P(APCHMEDS(X),U,2)_" associated with "_$$PRIMPOV^APCLV($P(APCHX(A),U,5),"N")_" ("_$$PRIMPOV^APCLV($P(APCHX(A),U,5),"C")_") on "_$$FMTE^XLFDT($P(APCHMEDS(X),U))
  Q G
  ;
@@ -192,7 +232,7 @@ ORAL2(P,BDATE) ;EP - is patient on inhaled steriods since this date BDATE
  .K APCHX
  .S %=P_"^ALL VISITS;DURING "_$$FMTE^XLFDT(D)_"-"_$$FMTE^XLFDT(D),R=$$START1^APCLDF(%,"APCHX(")
  .S A=0 F  S A=$O(APCHX(A)) Q:A'=+A  D
- ..S C=$$PRIMPOV^APCLV($P(APCHX(A),U,5),"I") Q:'$$ICD^ATXCHK(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ ..S C=$$PRIMPOV^APCLV($P(APCHX(A),U,5),"I") Q:'$$ICD^ATXAPI(C,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  ..S G=G+1,B=B+1 S $P(E,U)=G,$P(E,U,B)="Oral Corticosteroid therapy "_$P(APCHD(D),U,2)_" associated with "_$$PRIMPOV^APCLV($P(APCHX(A),U,5),"N")_" ("_$$PRIMPOV^APCLV($P(APCHX(A),U,5),"C")_") on "_$$FMTE^XLFDT($P(APCHD(D),U))
  Q E
 NREL(P,BDATE) ;EP - reliever?
@@ -217,7 +257,7 @@ ASERV(P,BDATE,F) ;EP - ER ASTHMA visits since BDATE
  .S Z=$$CLINIC^APCLV(V,"C")
  .I Z'=30,Z'=80 Q  ;urgent and er only
  .S Z=$$PRIMPOV^APCLV(V,"I")
- .Q:'$$ICD^ATXCHK(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ .Q:'$$ICD^ATXAPI(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  .S C=1,G=V
  I 'C Q ""
  I F=1 Q C
@@ -237,7 +277,7 @@ NASV(P,BDATE,F) ;EP - number of asthma visits since BDATE
  .Q:"AH"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:$P(^AUPNVSIT(V,0),U,11)
  .S Z=$$PRIMPOV^APCLV(V,"I")
- .Q:'$$ICD^ATXCHK(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
+ .Q:'$$ICD^ATXAPI(Z,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9)
  .S APCHD((9999999-$P($P(^AUPNVSIT(V,0),U,1),".")))=""
  S X=0 F  S X=$O(APCHD(X)) Q:X'=+X  S C=C+1
  I F=1 Q C
@@ -294,9 +334,10 @@ LASTACLG(P,F) ;EP - return last CLASSIFICATION recorded
  S S=""
  S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"  ;inactive
  .S C=$P($G(^AUPNPROB(X,0)),U)
  .Q:C=""
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not asthma dx
+ .Q:'$$ICD^ATXAPI(C,T,9)  ;not asthma dx
  .Q:$P(^AUPNPROB(X,0),U,15)=""  ;no classification
  .S E=$P(^AUPNPROB(X,0),U,15)
  .I E'>$P(S,U,1) Q
@@ -304,7 +345,7 @@ LASTACLG(P,F) ;EP - return last CLASSIFICATION recorded
  I F=1 Q $P(S,U)
  I F=2 Q S
  ;
-LASTASCL(P,F) ;EP - return last CLASSIFICATION recorded
+LASTASCL(P,F) ;EP - last CLASSIFICATION 
  NEW D,LAST,E,S,X,T
  I '$G(P) Q ""
  I '$G(F) S F=1
@@ -316,17 +357,17 @@ LASTASCL(P,F) ;EP - return last CLASSIFICATION recorded
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S C=$P($G(^AUPNPROB(X,0)),U)
  .Q:C=""
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not asthma dx
- .Q:$P(^AUPNPROB(X,0),U,15)=""  ;no classification
+ .Q:'$$ICD^ATXAPI(C,T,9)
+ .Q:$P(^AUPNPROB(X,0),U,15)=""
  .S E=$P(^AUPNPROB(X,0),U,15)
- .S D=$P(^AUPNPROB(X,0),U,3)  ;date last modified
+ .S D=$P(^AUPNPROB(X,0),U,3)
  .S LAST(D)=E_U_$$VAL^XBDIQ1(9000011,X,.15)
  S S=$O(LAST(0))
  I S="" Q ""
  I F=1 Q $P(LAST(S),U,1)
  Q $P(LAST(S),U,2)
  ;
-LASTACON(P,F) ;EP - return last ASTHMA CONTROL recorded
+LASTACON(P,F) ;EP - last ASTHMA CONTROL
  NEW D,LAST,E,S
  I '$G(P) Q ""
  I '$G(F) S F=1

@@ -1,18 +1,17 @@
-LRVER4 ;DALOI/CJS/DALOI/FHS - LAB ROUTINE DATA VERIFICATION ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**1027,1030**;NOV 01, 1997
- ;;5.2;LAB SERVICE;**14,42,112,121,140,171,153,188,279,283,286**;NOV 01, 1997
+LRVER4 ;DALOI/CJS/DALOI/FHS - LAB ROUTINE DATA VERIFICATION ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**14,42,112,121,140,171,153,188,279,283,1018,286,1027,1030,1033,1038**;NOV 01, 1997;Build 6
  ;
  N LRAMEND,LRRFLAG
  ;
 LOOP ;
+ D ENTRYAUD^BLRUTIL("LOOP^LRVER4 0.0")
+ ;
  S LRLCT=0
  D UPDTCOML^BLRAAORU(+$G(LRDFN),+$G(LRIDT),+$G(LRODT),+$G(LRSN))    ; IHS/OIT/MKK - LR*5.2*1030
  I '$D(LRGVP) D
  . S:$D(LRWRDS) LRWRD=LRWRDS
  . ; W !!,PNM,"  SSN: ",SSN,"   " S LRLCT=LRLCT+1
- . ;----- BEGIN IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
- . W !!,PNM,"  HRCN: ",HRCN,"   " S LRLCT=LRLCT+1
- . ;----- END IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
+ . W !!,PNM,"  HRCN: ",HRCN,"   " S LRLCT=LRLCT+1          ; IHS/OIT/MKK MODIFICATIONS LR*5.2*1027
  . I LRDPF=2 W "   LOC: ",$S(LRWRD'="":LRWRD,1:$S($L($P(^LRO(68,LRAA,1,LRAD,1,LRAN,0),U,7)):$P(^(0),U,7),1:"??"))
  ;
  W !,"Pat Info: ",$P($G(^LR(LRDFN,.091)),U)
@@ -50,12 +49,17 @@ LOOP ;
  . S LRLCT=LRLCT+1
  ;
  I '$O(LRORD(0)) W !!?7,$C(7),"This is not a verifiable test/accession ",! Q
-V I $D(LRGVP) D V20 Q
+V ; EP
+ D ENTRYAUD^BLRUTIL("V^LRVER4 0.0")
+ ;
+ I $D(LRGVP) D V20 Q
  G EDIT:($O(^LR(LRDFN,LRSS,LRIDT,1))=""!('LRVF&$D(LRPER)))&'$D(LRNUF)
  K LRNUF
  D V20,ND G V37:LRVF&'$D(X)#2,EDIT:LREDIT
  S LRTEC=$S($D(^LRO(68,LRAA,1,LRAD,2)):$P(^(2),U),1:$S($D(LRUSI):LRUSI,1:"")),LREDIT=0
 V36 ;
+ D ENTRYAUD^BLRUTIL("V36^LRVER4 3.0")
+ ;
  Q:$D(LRGVP)
  K DIR
  S DIR(0)="SAO^E:Edit;C:Comments;W:Workload"
@@ -76,11 +80,15 @@ V37 Q  ;LEAVE LRVER4, BACK TO LRVER3
  ;
  ;
 V20 ;
+ D ENTRYAUD^BLRUTIL("V20^LRVER4 0.0")
+ ;
  I $G(LRCHG) D V21,DCOM^LRVERA Q
  S LRNX=$O(LRORD(LRNX)) G V35:LRNX<1 D SUBS
  G:'$G(LRTS) V20
  I '$D(LRSB(LRSB)),'$D(^LR(LRDFN,LRSS,LRIDT,LRSB)) G V20
  D V25^LRVER5
+ ;
+ D ENTRYAUD^BLRUTIL("V20^LRVER4 2.0")
  ;
  D:$D(LRGVP) PG Q:$D(LRGVP)&($D(DTOUT)!$D(DUOUT))
  ;
@@ -163,6 +171,10 @@ RQ S X=Y
  ;
 RANGECHK ; Check result against reference ranges and set flag
  ;
+ I X[":"&((LRNG2[":")!(LRNG3[":")!(LRNG4[":")!(LRNG5[":")) D IHSCHECK  Q  ; IHS/MSC/MKK - LR*5.2*1033
+ ;
+ I $E(LRNG2,2)="<"!($E(LRNG3,2)=">")!($E(LRNG4,2)="<")!($E(LRNG5,2)=">") D IHSLOGIC  Q   ; IHS/MSC/MKK - LR*5.2*1033
+ I $E(LRNG2,2)=">"!($E(LRNG3,2)="<")!($E(LRNG4,2)=">")!($E(LRNG5,2)="<") D IHSLOGIC  Q   ; IHS/MSC/MKK - LR*5.2*1033
  ;
  ; Check for numeric abnormal results
  I X?.1"-".N.1".".N D  Q
@@ -198,6 +210,60 @@ RANGECHK ; Check result against reference ranges and set flag
  ;
  Q
  ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ ;       Special logic for Titer results
+IHSCHECK ; EP
+ NEW RESULT,CHEK
+ ;
+ S RESULT=$P(X,":",2)  Q:$L(RESULT)<1  ; If no result, skip
+ ;
+ S CHEK=$P(LRNG4,":",2)  I $L(CHEK),RESULT<CHEK S LRFLG="L*" Q
+ S CHEK=$P(LRNG5,":",2)  I $L(CHEK),RESULT>CHEK S LRFLG="H*" Q
+ S CHEK=$P(LRNG2,":",2)  I $L(CHEK),RESULT<CHEK S LRFLG="L" Q
+ S CHEK=$P(LRNG3,":",2)  I $L(CHEK),RESULT>CHEK S LRFLG="H" Q
+ Q
+ ;
+ ; Special logic for Ref Range beginning with > or < symbol
+IHSLOGIC ; EP
+ NEW IHSLRNG2,IHSLRNG3,IHSLRNG4,IHSLRNG5
+ ;
+ S (IHSLRNG2,IHSLRNG3,IHSLRNG4,IHSLRNG5)=""
+ ;	
+ D ENTRYAUD^BLRUTIL("IHSRESET^LRVER4 0.0")
+ ;
+ I $E(LRNG2,2)="<" D IHSRLOW(LRNG2,.IHSLRNG2)
+ I $E(LRNG2,2)=">" D IHSHIGH(LRNG2,.IHSLRNG2)
+ I $E(LRNG3,2)="<" D IHSRLOW(LRNG3,.IHSLRNG3)
+ I $E(LRNG3,2)=">" D IHSHIGH(LRNG3,.IHSLRNG3)
+ I $E(LRNG4,2)="<" D IHSRLOW(LRNG4,.IHSLRNG4)
+ I $E(LRNG4,2)=">" D IHSHIGH(LRNG4,.IHSLRNG4)
+ I $E(LRNG5,2)="<" D IHSRLOW(LRNG5,.IHSLRNG5)
+ I $E(LRNG5,2)=">" D IHSHIGH(LRNG5,.IHSLRNG5)
+ ;
+ D ENTRYAUD^BLRUTIL("IHSRESET^LRVER4 1.0")
+ ;
+ I IHSLRNG4'="",IHSLRNG4?.1"-".N.1".".N,X<IHSLRNG4 S LRFLG="L*" Q
+ I IHSLRNG5'="",IHSLRNG5?.1"-".N.1".".N,X>IHSLRNG5 S LRFLG="H*" Q
+ I IHSLRNG2'="",IHSLRNG2?.1"-".N.1".".N,X<IHSLRNG2 S LRFLG="L" Q
+ I IHSLRNG3'="",IHSLRNG3?.1"-".N.1".".N,X>IHSLRNG3 S LRFLG="H" Q
+ Q
+ ;
+IHSRLOW(LRNG,IHSRNG) ; EP - Reset low
+ NEW NUMDEC,SUBTRACT
+ S SUBTRACT=1
+ S NUMDEC=$L($P(LRNG,".",2))
+ I NUMDEC S SUBTRACT="."_$TR($J("",NUMDEC)," ","0")_"1"
+ S IHSRNG=$P($P(LRNG,"<",2)," ")-SUBTRACT
+ Q
+ ;
+IHSHIGH(LRNG,IHSRNG) ; EP - Reset High
+ NEW NUMDEC,ADDON
+ S ADDON=1
+ S NUMDEC=$L($P(LRNG,".",2))
+ I NUMDEC S ADDON="."_$TR($J("",NUMDEC)," ","0")_"1"
+ S IHSRNG=$P($P(LRNG,">",2)," ")+ADDON
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
  ;
 DISPFLG ; Display critical flags
  ;
@@ -218,11 +284,24 @@ ND ;
  I '$P($G(LRLABKY),U) D  Q
  . W !,"You're not authorized to edit verified data."
  . S LREDIT=0
- S DIR(0)="FO"
- S DIR("A")="If you need to change something, enter your initials"
- S DIR("?")="To change verified results, enter your initials."
- D ^DIR
- S X=Y K DIR
+ ;
+ ; S DIR(0)="FO"
+ ; S DIR("A")="If you need to change something, enter your initials"
+ ; S DIR("?")="To change verified results, enter your initials."
+ ; D ^DIR
+ ; S X=Y K DIR
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038 -- Mask User input.
+ D  ; DO Statement used to ensure variables ANSWER, STEP, & TEXT are strictly local
+ . NEW ANSWER,STEP,TEXT
+ . K X
+ . W !,"If you need to change something, enter your initials: "
+ . S ANSWER=""
+ . F STEP=1:1:4  R TEXT#1  S:TEXT="^" ANSWER="^"  Q:TEXT="^"!(TEXT="")  S ANSWER=ANSWER_TEXT  W $C(8),"*"
+ . S LRINI=ANSWER
+ . S X=ANSWER
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038
+ ;
  I $$UP^XLFSTR(X)'=$$UP^XLFSTR(LRUSI) S LREDIT=0 K X QUIT
  I $D(X)#2,'$G(LRCHG) W ! D  S LRCHG=1
  . K LRSA S LRSA=1
@@ -230,15 +309,21 @@ ND ;
  Q
  ;
  ;
-WT S LRLCT=0 Q:$D(LRGVP)
+WT ; EP
+ D ENTRYAUD^BLRUTIL("WT^LRVER4 0.0")
+ ;
+ S LRLCT=0 Q:$D(LRGVP)
  W !,"PRESS ANY KEY TO CONTINUE, '^' TO STOP " R Y:DTIME S:'$T Y="^"
  Q
  ;
  ;
 COM ;from LRVER5
+ D ENTRYAUD^BLRUTIL("COM^LRVER4 0.0")
+ ;
  Q:$D(LRGVP)
  ;
  I $G(^LR(LRDFN,"CH",LRIDT,1,1,0))["ASK AT ORDER" D AFTRAAOQ  Q   ; IHS/OIT/MKK - LR*5.2*1030
+ D GETCCDTA^BLRCCPED(LRDFN,"CH",LRIDT)                            ; IHS/MSC/MKK - LR*5.2*1033
  ;
  K DR
  S DIE="^LR("_LRDFN_",""CH"",",DA=LRIDT,DA(1)=LRDFN,DR=.99

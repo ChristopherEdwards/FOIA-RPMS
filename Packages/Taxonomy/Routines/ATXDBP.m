@@ -1,0 +1,74 @@
+ATXDBP ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON APR 01, 2014;
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
+ ;;BQI PNEUMO IZ DXS
+ ;
+ ; This routine loads Taxonomy BQI PNEUMO IZ DXS
+ ;
+START ;
+ K:'$G(ATXPGMC) ^TMP("ATX",$J)
+ S ATXPGMC=$G(ATXPGMC)+1
+ F ATXI=1:1 S X=$P($T(TMP+ATXI),";;",2,99) Q:X=""  S X="^TMP(""ATX"",$J,"_X,ATXI=ATXI+1,Y=$P($T(TMP+ATXI),";;",2,99) S @X=Y
+ D OTHER
+ I $O(^TMP("ATX",$J,3.6,0)) D BULL^ATXSTX2
+ I $O(^TMP("ATX",$J,9002226,0)) D TAX^ATXSTX2
+ D KILL^ATXSTX2
+ Q
+ ;
+TMP ;;TAXONOMY (WITH BULLETIN)
+ ;;21,"V03.82 ")
+ ;;1
+ ;;21,"V06.6 ")
+ ;;2
+ ;;9002226,1854,.01)
+ ;;BQI PNEUMO IZ DXS
+ ;;9002226,1854,.02)
+ ;;Pneumo immunization diagnoses
+ ;;9002226,1854,.04)
+ ;;n
+ ;;9002226,1854,.06)
+ ;;@
+ ;;9002226,1854,.08)
+ ;;0
+ ;;9002226,1854,.09)
+ ;;3131205
+ ;;9002226,1854,.11)
+ ;;@
+ ;;9002226,1854,.12)
+ ;;31
+ ;;9002226,1854,.13)
+ ;;1
+ ;;9002226,1854,.14)
+ ;;@
+ ;;9002226,1854,.15)
+ ;;80
+ ;;9002226,1854,.16)
+ ;;@
+ ;;9002226,1854,.17)
+ ;;@
+ ;;9002226,1854,3101)
+ ;;@
+ ;;9002226.01101,"1854,1",.01)
+ ;;Used by HIV Management System reminders, quality of care report and 
+ ;;9002226.01101,"1854,2",.01)
+ ;;supplement.
+ ;;9002226.02101,"1854,V03.82 ",.01)
+ ;;V03.82
+ ;;9002226.02101,"1854,V03.82 ",.02)
+ ;;V03.82
+ ;;9002226.02101,"1854,V03.82 ",.03)
+ ;;1
+ ;;9002226.02101,"1854,V06.6 ",.01)
+ ;;V06.6
+ ;;9002226.02101,"1854,V06.6 ",.02)
+ ;;V06.6
+ ;;9002226.02101,"1854,V06.6 ",.03)
+ ;;1
+ ;;9002226.04101,"1854,1",.01)
+ ;;BQI
+ ;;9002226.05101,"1854,1",.01)
+ ;;PNEUMO
+ ;;9002226.05101,"1854,2",.01)
+ ;;IMMUNIZATION
+ ;
+OTHER ; OTHER ROUTINES
+ Q

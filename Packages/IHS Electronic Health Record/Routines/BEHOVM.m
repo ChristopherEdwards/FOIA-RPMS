@@ -1,5 +1,5 @@
-BEHOVM ;MSC/IND/DKM - Cover Sheet: Vital Measurements ;26-Sep-2012 12:09;PLS
- ;;1.1;BEH COMPONENTS;**001003,001004,001005,001006,001009**;Sep 18, 2007
+BEHOVM ;MSC/IND/DKM - Cover Sheet: Vital Measurements ;29-Apr-2014 13:35;DU
+ ;;1.1;BEH COMPONENTS;**001003,001004,001005,001006,001009,001010**;Sep 18, 2007
  ;=================================================================
  ; RPC: Return patient's most recent vital measurements
  ;     vfile ien^vital name^vital abbr^date/time taken^value+units (US & metric)^Pt status (in,out)
@@ -39,6 +39,7 @@ LASTX S LAST=DATE_U_DFN_U_VTYP_U_VCTL_U_LOC_U_ENTERBY_U_U_RESULT(METRIC)_U_QUALI
  ; RPC: Return data for grid view
 GRID(DATA,DFN,START,END,RMAX,VITS,VSTR,METRIC,SD,FSDATA,PTST) ;EP
  N CNT
+ S:'$G(RMAX) RMAX=$$GET^XPAR("ALL","BEHOVM MAX RETURN","GRID")
  D QUERY("GRIDX",.CNT,.SD)
  M @DATA@(0)=VITS
  S @DATA@(0)=CNT(1)_U_CNT(2)_U_CNT(3)
@@ -54,11 +55,12 @@ GRIDX I '$D(DATE(DATE(0))) D
  Q
  ; RPC: Return data for vital entry template
 TEMPLATE(DATA,DFN,VSTR,METRIC) ;EP
- N VITS
+ N VITS,RMAX
  S:'$P(VSTR,";",4) $P(VSTR,";",4)=-1
  D VLIST(.VITS,"BEHOVM TEMPLATE",+VSTR)
  ;IHS/MSC/MGH Called now to truncate to 2 decimal places
- D GRID(.DATA,DFN,,,,.VITS,VSTR,.METRIC,2)
+ S RMAX=$$GET^XPAR("ALL","BEHOVM MAX RETURN","TEMPLATE")
+ D GRID(.DATA,DFN,,,RMAX,.VITS,VSTR,.METRIC,2)
  Q
  ; Return flag for abnormal
 FLAG() N LO,HI,VAL
@@ -80,7 +82,7 @@ DETAILX I '$D(DATE(DATE(0),LOC,ENTERBY)) D
  ; Query logic for vitals
 QUERY(RTN,CNT,SD) ;
  N SEQ,VIEN,IDT,DATE,LOC,VTYP,VNAM,VCTL,VABR,RCNT,RESULT,ENTERBY,VMSR,VUNT,VSIT,QRY,DEFUNT,X,Y,Z
- N QUALS,QUALIF,QUALN,COMMENT,QARY
+ N QUALS,QUALIF,QUALN,QUALIEN,COMMENT,QARY
  S DATA=$$TMPGBL^CIAVMRPC,START=+$G(START),END=+$G(END),RMAX=+$G(RMAX),VSTR=$G(VSTR),VSIT=+$P(VSTR,";",4),PTST=$G(PTST)
  S (CNT,CNT(1),CNT(2),CNT(3),SEQ)=0
  Q:'DFN
@@ -279,23 +281,7 @@ HELP(DATA,VCTL) ;EP
  Q
  ; RPC: Return percentile values
 PCTILE(DATA,VCTL,DFN,START,END,METRIC) ;EP
- N I,X,DOB,SEX,AGE,L,M,S,P,D,Z,ID,V,C
- S METRIC=+$G(METRIC),X=$G(^DPT(+DFN,0)),SEX=$P(X,U,2),DOB=$P(X,U,3)
- Q:'$L(SEX)!'DOB
- S:METRIC<0 METRIC=$$DEFUNIT(VCTL)
- S START=$$FMDIFF^XLFDT(START,DOB)/30-1
- S END=$$FMDIFF^XLFDT(END,DOB)/30+1
- S (I,C)=0
- F  S I=$O(^BEHOVM(90460.01,VCTL,3,I)) Q:'I  S X=^(I,0) D
- .S AGE=+$P(X,";",2)
- .Q:AGE<START!(AGE>END)!($P(X,";")'=SEX)
- .S L=$P(X,";",3),M=$P(X,";",4),S=$P(X,";",5),D=$$FMADD^XLFDT(DOB,AGE*30)
- .F P=2:1:10 D
- ..S ID=$P("3^5^10^25^50^75^85^90^95^97",U,P)  ;Added 85 in p11
- ..S Z=$P("-1.881^-1.645^-1.282^-0.674^0^0.674^1.036^1.282^1.645^1.881",U,P)
- ..I L S V=L*S*Z+1**(1/L)*M
- ..E  S V=2.71828183**(S*Z)*M
- ..S C=C+1,@DATA@(C)=ID_U_D_U_$S(METRIC:V,1:$$CONVERT(V,1,0))
+ D PCTILE^BEHOVM2(.DATA,VCTL,DFN,START,END,.METRIC)
  Q
  ; Round value to specified # fractional digits
 ROUND(VAL,SD) ;
@@ -401,6 +387,8 @@ NORM(VTYP,VAL,UNT,VMSR) ;EP
 SAVE(DATA,DFN,VITS) ;EP
  N VMSR,LP,VCNT
  S VMSR=$$VMSR,LP="",VCNT=0
+ ;IHS/MSC/MGH EHR Patch 13 Reorder the array so that HT is first
+ D REORDER(.VITS)
  F  S LP=$O(VITS(LP)) Q:'LP  D
  .N VTYP,VAL,UNT,DEL,X
  .S VITS=VITS(LP)
@@ -411,6 +399,24 @@ SAVE(DATA,DFN,VITS) ;EP
  .E  S $P(VITS,U,2)=VTYP,$P(VITS,U,5)=VAL,$P(VITS,U,7)=UNT,VITS(LP)=VITS
  I VCNT S DATA="-1^"_$$SNGPLR^CIAU(VCNT," entry"," entries")_" failed validation.  No results stored."
  E  D SAVE^BEHOENPC(.DATA,.VITS)
+ Q
+REORDER(VITS) ;resort the list
+ N LP,CNT,LIST,CNT2
+ S CNT=0,CNT2=1,LP=""
+ F  S LP=$O(VITS(LP)) Q:'LP  D
+ .S CNT=LP
+ .I $E($P(VITS(LP),U,1),1,3)="VIT" D
+ ..I $P(VITS(LP),U,2)="HT" D
+ ...S LIST(1)=VITS(LP)
+ ...K VITS(LP)
+ ..E  D
+ ...S CNT2=CNT2+1
+ ...S LIST(CNT2)=VITS(LP)
+ ...K VITS(LP)
+ S I=""
+ F  S I=$O(LIST(I)) Q:'I  D
+ .S CNT=CNT+1
+ .S VITS(CNT)=LIST(I)
  Q
  ; Add to output global
 ADD(TXT,LBL,SUB) ;

@@ -1,5 +1,5 @@
 ABSPOS6E ; IHS/FCS/DRS - more overflow from ^ABSPOS1 ;
- ;;1.0;PHARMACY POINT OF SALE;**11**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**11**;JUN 21, 2001;Build 15
  ;-------------------------------------------------
  ;IHS/SD/lwj 06/10/04 patch 11 terminal emulation problems
  ; OnNetHost interrupts "#" to mean for the cursor to advance

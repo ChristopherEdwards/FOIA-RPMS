@@ -1,5 +1,5 @@
 BDMS9B5 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,8,9**;JUN 14, 2007;Build 78
  ;
  ;
 MAM ;EP
@@ -49,6 +49,7 @@ ACE(P,D) ;EP - return date of last ACE iNHIBITOR
  ;IHS/CMI/LAB patch 3 - added this subroutine
  ;go through all v meds until 9999999-D and find all drugs with class CV800 or CV805
  ;if none found check taxonomy
+ G ACE^BDMS9B4
  I '$G(P) Q ""
  I '$G(D) S D=0 ;if don't pass date look at all time
  NEW V,I,%

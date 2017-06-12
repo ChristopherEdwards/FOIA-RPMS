@@ -1,5 +1,5 @@
 APCLACGM ;IHS/CMI/LAB - A/C monthly report; [ 12/9/2009 19:39 PM ]
- ;;2.0;IHS PCC SUITE;**2,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,10,11**;MAY 14, 2009;Build 58
  ;
  ;
  D PRINT
@@ -204,7 +204,7 @@ LIST5 ;all patient in ^TMP($J,"PATIENTS"
  Q
 LASTINR(P,BD,ED) ;EP
  NEW APCLVAL
- S APCLVAL=$$LASTLAB^APCLAPIU(P,BD,ED,,,,,"A","INR")
+ S APCLVAL=$$LASTLAB^APCLAPIU(P,BD,ED,,$O(^ATXLAB("B","BJPC INR LAB TESTS",0)),,$O(^ATXAX("B","BJPC INR LAB LOINCS",0)),"A","INR")
  Q APCLVAL
 SUBHEAD2 ;
  W !?1,"NAME",?25,"HRN",?32,"DOB",?43,"INR GOAL",?56,"Last INR",?66,"Last INR Date",!?62,"(in rpt period)",!
@@ -227,6 +227,7 @@ MRGOAL(P) ;PEP - most recent INR goal and date
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
  ...Q:$P($G(^AUPNVACG(I,0)),U,4)=""
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...S Z=$P(^AUPNVACG(I,0),U,4)
  ...I Z=3 S S=$P(^AUPNVACG(I,0),U,5)_" - "_$P(^AUPNVACG(I,0),U,6)
  ...I Z'=3 S S=$$VAL^XBDIQ1(9000010.51,I,.04)
@@ -241,6 +242,7 @@ INRGOAL(P,A) ;EP - inr goal documented on or before this date
  .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
  ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
  ...Q:$P($G(^AUPNVACG(I,0)),U,4)=""
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
  ...S J=9999999-X
  ...I J>A Q
  ...S Z=$P(^AUPNVACG(I,0),U,4)

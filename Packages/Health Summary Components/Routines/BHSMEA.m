@@ -1,5 +1,5 @@
-BHSMEA ;IHS/CIA/MGH - Health Summary for Measurements and immunizations ;05-Jul-2012 10:50;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,5,7**;March 17, 2006;Build 12
+BHSMEA ;IHS/CIA/MGH - Health Summary for Measurements and immunizations ;30-Nov-2015 10:26;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,3,4,5,7,9,12**;March 17, 2006;Build 3
  ;===================================================================
  ;Taken from APCHS2
  ; IHS/TUCSON/LAB - PART 2 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
@@ -12,6 +12,7 @@ BHSMEA ;IHS/CIA/MGH - Health Summary for Measurements and immunizations ;05-Jul-
  ;Patch 3 to fix a bug in the display
  ;Patch 4 added qualifiers for vitals
  ;Patch 5 fixed a bug with items with / in them
+ ;Patch 12 Used new API for taxonomies
  ;
 MEAS ; ******************** MEASUREMENTS * 9000010.01 *******
  ; <SETUP>
@@ -43,7 +44,7 @@ MEASDSP ;
  .S ARRAY(BHSMT2,BHSDAT)=BHSDFN_"^"_BHSDAT2
  Q
 WRTOUT ;Write out the vitals
- N I,BHSDAT,BHSDFN,BHSDAT2,BHSMT,BHSX,PO2
+ N I,BHSDAT,BHSDFN,BHSDAT2,BHSMT,BHSX,PO2,PREG
  D CKP^GMTSUP Q:$D(GMTSQIT)
  S BHSMT2=""
  S BHSMT="" F  S BHSMT=$O(ARRAY(BHSMT)) Q:BHSMT=""  D
@@ -55,6 +56,9 @@ WRTOUT ;Write out the vitals
  ..W ?5,BHSDAT2
  ..S DATA=$P($G(^AUPNVMSR(BHSDFN,0)),U,4)
  ..I $P(DATA,".",2)'="" S DATA=+$J(DATA,0,2)
+ ..I BHSMT="BMI" D
+ ...S PREG=$$PREG(DFN,"",BHSDFN)
+ ...I PREG=1 S DATA=DATA_"*"
  ..W ?22,DATA
  ..I BHSMT="O2" D
  ...S PO2=$P($G(^AUPNVMSR(BHSDFN,0)),U,10)
@@ -71,6 +75,24 @@ WRTOUT ;Write out the vitals
  ..W ?45,T
  ..W !
  Q
+PREG(DFN,VIEN,VMIEN) ;Determine if BMI is for pregnant patient
+ N DOB,X1,X1,TAGE,POV,CODE,TAX,RET
+ S RET=0
+ S VMIEN=$G(VMIEN),VIEN=$G(VIEN)
+ I $$GET1^DIQ(2,DFN,.02,"I")'="F" Q RET    ;Wrong sex
+ S TAGE=$$GET1^DIQ(2,DFN,.033)
+ I TAGE<10!(TAGE>50) Q RET             ;Wrong age
+ ;Find POVs on this visit and check if they are pregnancy POVs
+ I VIEN="" D
+ .S VIEN=$$GET1^DIQ(9000010.01,VMIEN,.03,"I")
+ I '+VIEN Q RET
+ S TAX=$O(^ATXAX("B","BQI PREGNANCY DXS",0))
+ S POV="" F  S POV=$O(^AUPNVPOV("AD",VIEN,POV)) Q:POV=""!(RET=1)  D
+ .S CODE=$$GET1^DIQ(9000010.07,POV,.01,"I")
+ .I CODE="" Q
+ .;IHS/MSC/MGH Patch 11
+ .S RET=$$ICD^ATXAPI(CODE,TAX,9)
+ Q RET
  ;
 IMMUN ; ******************** IMMUNIZATIONS * 9000010.11 *******
  N BHSPAT,BHSP,BHSQ,Y
@@ -101,7 +123,7 @@ REF ;Patch 2 display refusals/contraindications
  S BHSFN=9999999.14,BHST="" D DISPREF^BHSRAD
  K BHSFN,BHST,BHSS
 IMMUNX K BHSITP,BHSITX,BHSITL,BHSDFN,BHSDAT,BHSIVD,BHSVDF,BHX,BHY,R,D
- K BHSIMC,BHSIMR,BHSN,BHSIC,BHSIR
+ K BHSIMC,BHSIMR,BHSN,BHSIC,BHSIR,BHSDAT2
  K BHSNFL,BHSNSH,BHSNAB,BHSVSC,BHSITE
  Q
 IMMDTYP S BHSITX=$P(^AUTTIMM(BHSITP,0),U,2),BHSITL=$L(BHSITX) D CKP^GMTSUP Q:$D(GMTSQIT)  D
@@ -111,6 +133,8 @@ IMMDTYP S BHSITX=$P(^AUTTIMM(BHSITP,0),U,2),BHSITL=$L(BHSITX) D CKP^GMTSUP Q:$D(
 IMMDSP S BHSDFN=0 F BHSQ=0:0 S BHSDFN=$O(^AUPNVIMM("AA",BHSPAT,BHSITP,BHSIVD,BHSDFN)) Q:BHSDFN=""  D IMMDSP2
  Q
 IMMDSP2 S X=-BHSIVD\1+9999999 D REGDT4^GMTSU S BHSDAT=X
+ S BHSDAT2=$P($G(^AUPNVMSR(BHSPAT,12)),U,1)
+ S X=BHSDAT2 D REGDT4^GMTSU S BHSDAT2=X
  S BHSN=^AUPNVIMM(BHSDFN,0)
  S BHSVDF=$P(BHSN,U,3) D GETSITEV^BHSUTL S BHSITE=BHSNSH
  S X=$P(BHSN,U,6),Y=.06 D IMMGSET S BHSIR=BHSP
@@ -118,6 +142,7 @@ IMMDSP2 S X=-BHSIVD\1+9999999 D REGDT4^GMTSU S BHSDAT=X
  I BHSIC]"",BHSIR]"" S BHSIR=BHSIR_"; "
  S BHSIR=BHSIR_BHSIC
  ;modified following line - LAB
+ I BHSDAT2'="" S BHSDAT=BHSDAT2
  D CKP^GMTSUP Q:$D(GMTSQIT)  W:GMTSNPG BHSITX W ?(BHSITL+1),$P(^AUPNVIMM(BHSDFN,0),U,4),?15,BHSDAT,?25,$$AGE(BHSPAT,$P(+^AUPNVSIT(BHSVDF,0),"."),"P"),?34,BHSITE,?65,BHSIR,!
  Q
 IMMGSET S Y=$G(^DD(9000010.11,Y,0)),Y=$P(Y,U,3)
@@ -276,7 +301,9 @@ PHCP(P) ;EP
  .S I=$P(^AUPNPH(X,0),U)
  .Q:I=""
  .;S I=$P($G(^ICD9(I,0)),U)
- .S I=$P($$ICDDX^ICDCODE(I),U,2) ;code set versioning
+ .;Patch 9 for ICD-10
+ .I $$AICD^BHSUTL S I=$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S I=$P($$ICDDX^ICDCODE(I),U,2) ;code set versioning
  .Q:$E(I,1,3)'="052"
  .S G=X
  .Q
@@ -286,7 +313,10 @@ PHCP(P) ;EP
  .Q:'$D(^AUPNPROB(X,0))
  .S I=$P(^AUPNPROB(X,0),U)
  .Q:I=""
- .S I=$P($G(^ICD9(I,0)),U)
+ .;S I=$P($G(^ICD9(I,0)),U)
+ .;Patch 9 for ICD-10
+ .I $$AICD^BHSUTL S I=$P($$ICDDX^ICDEX(I,"","","I"),U,2)
+ .E  S I=$P($$ICDDX^ICDCODE(I),U,2) ;code set versioning
  .Q:$E(I,1,3)'="052"
  .S G=X
  .Q

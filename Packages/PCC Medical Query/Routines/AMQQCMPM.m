@@ -1,5 +1,5 @@
-AMQQCMPM ; IHS/CMI/THL - RESOLVES DISPLAY OF MULTIPLE MULTIPLES ; [ 09/30/2009  8:45 AM ]
- ;;2.0;IHS PCC SUITE;**4,5**;MAY 14, 2009
+AMQQCMPM ; IHS/CMI/THL - RESOLVES DISPLAY OF MULTIPLE MULTIPLES ; 12 Mar 2015  1:09 PM
+ ;;2.0;IHS PCC SUITE;**4,5,11**;MAY 14, 2009;Build 58
 MM N N,X,Y,Z,%,DIC,A,B,I
  K AMQQDVQU
  D ALL
@@ -88,9 +88,9 @@ MULT F I=1:1:3 S AMQQN(I)=$P(AMQQN,U,I)
  I AMQV("OPTION")="COUNT" D CD G DXQA
  I $D(AMQQONE) S X=2 G DXQA
  W !!,"You have ",$S('$D(AMQQNO3):3,1:2)," options for listing ",AMQQN(1)," =>",!
- W !?5,"1) List every ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",1:AMQQN(2))," meeting search criteria."
- W !?5,"2) List every ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",1:AMQQN(2))," and ",AMQQN(3)," meeting search criteria." I $D(AMQQNO3) W !
- I '$D(AMQQNO3) W !?5,"3) List all PATIENTS with ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",1:AMQQN(2))," you specified, but DO NOT list",!?8,"individual ",AMQQN(2)," or ",AMQQN(3)," (FASTEST OPTION!!)",!
+ W !?5,"1) List every ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",AMQQN(2)="ICD CODES":"ICD CODE",1:AMQQN(2))," meeting search criteria."
+ W !?5,"2) List every ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",AMQQN(2)="ICD CODES":"ICD CODE",1:AMQQN(2))," and ",$S(AMQQN(3)="PROVIDER NARRATIVES":"PROVIDER NARRATIVE",1:AMQQN(3))," meeting search criteria." I $D(AMQQNO3) W !
+ I '$D(AMQQNO3) W !?5,"3) List all PATIENTS with ",$S(AMQQN(2)="ICD9 CODES":"DIAGNOSIS",1:AMQQN(2))," you specified, but DO NOT list",!?8,"individual ",$S(AMQQN(2)="ICD9 CODES":"ICD CODES",1:AMQQN(2))," or ",AMQQN(3)," (FASTEST OPTION!!)",!
  W ?8,"(Displays UNDUPLICATED list of PATIENTS)",!
 DXQ W !,"Your choice (1-",(3-$D(AMQQNO3)),"): 1// "
  R X:DTIME E  S X=U

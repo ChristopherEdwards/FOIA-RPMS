@@ -1,11 +1,12 @@
-PSOORNE4 ;BIR/SAB-display renew RXs from backdoor ;29-May-2012 15:00;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,27,32,36,46,75,96,103,99,117,131,1008,1009,1013,225,1015**;DEC 1997;Build 62
+PSOORNE4 ;BIR/SAB-display renew RXs from backdoor ;04-Jun-2013 12:51;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,27,32,36,46,75,96,103,99,117,131,1008,1009,1013,225,1015,1017**;DEC 1997;Build 40
  ;^SC DBIA-10040;^PS(50.7-2223;^PS(50.606-2174;^PS(50.607-2221;^PS(51.2-2226;^PSDRUG-221;^PS(55-2228
  ; Modified - IHS/CIA/PLS - 01/27/04 - Added display of IHS Fields
  ;            IHS/MSC/PLS - 03/13/08 - Added line RMK+10
  ;                          01/23/09 - Added line RMK+11
  ;                          12/09/10 - Added line VER+17
  ;                          10/31/11 - Added line PKI+3
+ ;                          06/04/13 - Added Discharge Medication
 EN(PSONEW) N FLD,LST,VALMCNT
 EN1 K PSOQUIT D:$G(PSONEW("ENT"))'>0  I $G(PSORENW("POE"))=1 S PSOREEDT=1 D SV
  .S PSOREEDT=1 D SV
@@ -124,8 +125,9 @@ RMK S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="  (8)        Remarks: "_$S($G(PSONEW("RE
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="          Bill Status: "_$$EXTERNAL^DILFD(52,9999999.07,,$G(PSONEW("BST")))
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="         Manufacturer: "_$G(PSONEW("MANUFACTURER"))_"   Lot #: "_$G(PSONEW("LOT #"))_"  ExpDate: "_$$FMTE^XLFDT($G(PSONEW("EXPIRATION DATE")))
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="          Chronic Med: "_$$EXTERNAL^DILFD(52,9999999.02,,$G(PSONEW("CM")))
- S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="       Substitution: "_$$EXTERNAL^DILFD(52,9999999.25,,$G(PSONEW("DAW")))  ;IHS/MSC/PLS - 03/13/08
- S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="           Cash Due: "_$$EXTERNAL^DILFD(52,9999999.26,,$G(PSONEW("CASH DUE")))   ; IHS/MSC/PLS - 01/23/09
+ S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="         Substitution: "_$$EXTERNAL^DILFD(52,9999999.25,,$G(PSONEW("DAW")))  ;IHS/MSC/PLS - 03/13/08
+ S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)=" Discharge Medication: "_$$EXTERNAL^DILFD(52,9999999.28,,$G(PSONEW("DSCMED")))   ; IHS/MSC/PLS - 06/04/13
+ S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="             Cash Due: "_$$EXTERNAL^DILFD(52,9999999.26,,$G(PSONEW("CASH DUE")))   ; IHS/MSC/PLS - 01/23/09
  ;S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="              Insurer: "_$G(PSONEW("INSURER"))
  S IEN=IEN+1,^TMP("PSOPO",$J,IEN,0)="  "
  ; End IHS Fields

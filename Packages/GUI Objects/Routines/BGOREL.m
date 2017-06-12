@@ -1,14 +1,15 @@
-BGOREL ; IHS/MSC/MGH - New family history component ;05-Feb-2010 15:08;MGH
- ;;1.1;BGO COMPONENTS;**6**;Mar 20, 2007
+BGOREL ; IHS/MSC/MGH - New family history component ;01-Dec-2014 16:24;DU
+ ;;1.1;BGO COMPONENTS;**6,13,14**;Mar 20, 2007;Build 16
  ;---------------------------------------------
  ;Add/edit a relationship and diagnoses for a patient
  ;DFN=Patient IEN [1]
  ;LIST(1)=REL^ Relationship ien [2] ^ Relationship [3] ^ Relationship Desc [4] ^ Status [5] ^ Age at Death [6]
  ;Cause of Death [7] ^ Multiple Birth [8] ^ Multiple Birth Type [9]
- ;LIST(n)=FHX^ Family HS ien [2]^ DX [3] ^ Narrative [4] ^ Age at Onset [5]
+ ;LIST(n)=FHX^ Family HS ien [2]^ DX [3] ^ Text [4] ^ DX Age [5] ^ DX Age Approximate [6] ^ concept ct [7] ^ DESC CT [8] ^ MULT ICD [9]
+ ;Patch 14 Moved NEW to SET line label
 SET(RET,DFN,INP) ;
  N FDA,LP,NEW,IEN,REL,OLDRIEN,RET2,RELIEN,FIEN,RIEN,DESC,STAT,DAGE,DCAUSE,MB,MBT,RNAME,IENX,INP2,DATA
- S RET2=""
+ S RET2="",NEW=0
  I 'DFN S RET=$$ERR^BGOUTL(1001) Q
  I '$D(^DPT(DFN,0)) S RET=$$ERR^BGOUTL(1001) Q
  S LP="" F  S LP=$O(INP(LP)) Q:LP=""  D
@@ -49,14 +50,13 @@ EFHX ;Add/edit a family history
  I '$D(RELIEN) S RET="Relationship not defined" Q
  I RELIEN="" S RET="Unknown relationship" Q
  I OLDRIEN=""&($P(FAM,U,2)'="") S RET="Cannot add an existing FHX to a new relationship" Q
- I $P(FAM,U,3)'="" D
- .S INP2=DFN_"^"_RELIEN_"^"_$P(FAM,U,3)_"^"_$P(FAM,U,4)_"^"_$P(FAM,U,5)_"^"_$P(FAM,U,2)
- .S RET=""
- .D SET^BGOFHX(.RET,INP2)
- .S FIEN=RET
- .S RET2=RET2_"^"_FIEN_";F"
- .;Process event
- .D EVT^BGOFHX(RELIEN,FIEN,NEW,DATA)
+ S INP2=DFN_"^"_RELIEN_"^"_$P(FAM,U,3)_"^"_$P(FAM,U,4)_"^"_$P(FAM,U,5)_"^"_$P(FAM,U,6)_"^"_$P(FAM,U,2)_"^"_$P(FAM,U,7)_"^"_$P(FAM,U,8)_"^"_$P(FAM,U,9)
+ S RET=""
+ D SET^BGOFHX(.RET,INP2)
+ S FIEN=RET
+ S RET2=RET2_"^"_FIEN_";F"
+ ;Process event
+ D EVT^BGOFHX(RELIEN,FIEN,NEW,DATA)
  Q
 EXTRA(ARRAY) ;Search relationships
  N FREL,IEN,RELDATA,REL,STAT,AGE,MB,MBTYPE,CAUSE

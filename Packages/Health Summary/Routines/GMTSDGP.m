@@ -1,13 +1,13 @@
-GMTSDGP ; SLC/TRS,KER/NDBI - PTF Surgeries/Procedures ; 03/24/2004 [4/1/04 2:55pm]
- ;;2.7;Health Summary;**28,49,60,71**;Oct 20, 1995
- ;                    
+GMTSDGP ; SLC/TRS,KER/NDBI - PTF Surgeries/Procedures ;21-Jan-2014 12:59;DU
+ ;;2.7;Health Summary;**28,49,60,71,1006**;Oct 20, 1995;Build 3
+ ;
  ; External References
  ;   DBIA  3390  $$ICDOP^ICDCODE
  ;   DBIA  1372  ^DGPT(
  ;   DBIA  1372  ^DGPT("B"
  ;   DBIA  2929  OPC^A7RHSM
  ;   DBIA  2929  PRC^A7RHSM
- ;                    
+ ;
 ENS ; Module For History of PTF Surgery Episodes
  I $D(GMTSNDM),GMTSNDM>0 S CNTR=GMTSNDM
  E  S CNTR=100
@@ -27,13 +27,15 @@ ICDS1 ;   Load Surgery entries into GMS array (inverted)
 SGY ;   Surgery Line
  N ICDP,ICDI,ICDX
  S ICDI=+$P(SURG,U,GMA) Q:ICDI'>0
- S ICDX=$$ICDOP^ICDCODE(+ICDI)
+ ;Patch 1006
+ I $$AICD^BHSUTL S ICDX=$$ICDOP^ICDEX(+ICDI)
+ E  S ICDX=$$ICDOP^ICDCODE(+ICDI)
  S ICDS(80.1,ICDI,.01)=$P(ICDX,"^",2)
  S ICDS(80.1,ICDI,4)=$P(ICDX,"^",5)
  I $D(ICDS(80.1,ICDI)) D
  . S GMS(IX,GMA)=$E($G(ICDS(80.1,ICDI,4)),1,45)_U_$G(ICDS(80.1,ICDI,.01))
  Q
- ;                    
+ ;
 ENP ; Module For History of PTF Procedures
  I $D(GMTSNDM),GMTSNDM>0 S CNTR=GMTSNDM
  E  S CNTR=100
@@ -54,13 +56,14 @@ ICDP1 ;   Load Procedure entries into GMP array (inverted)
 PXGY ;   Procedure Line
  N ICDP,ICDI,ICDX
  S ICDI=+$P(PRX,U,GTA) Q:ICDI'>0
- S ICDX=$$ICDOP^ICDCODE(+ICDI)
+ I $$AICD^BHSUTL S ICDX=$$ICDOP^ICDEX(+ICDI)
+ E  S ICDX=$$ICDOP^ICDCODE(+ICDI)
  S ICDP(80.1,ICDI,.01)=$P(ICDX,"^",2)
  S ICDP(80.1,ICDI,4)=$P(ICDX,"^",5)
  I $D(ICDP(80.1,ICDI)) D
  . S GMP(IX,GTA)=$E($G(ICDP(80.1,ICDI,4)),1,45)_U_$G(ICDP(80.1,ICDI,.01))
  Q
- ;                    
+ ;
 KILLADM ; Kills Admission variables
  K CNTR,GMCZ,LN1,IX,X,ZA,N,ICD,ICD0,PTF,GMC,O,O1,GMS,T1,T2,SURG,SURGY,PRX,PRXY,DATE,D1,I,IMT,GMA,GTA,II,ZI,GMP
  K ICDP,ICDS

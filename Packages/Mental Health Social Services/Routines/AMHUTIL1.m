@@ -1,5 +1,5 @@
 AMHUTIL1 ; IHS/CMI/LAB - provider functions 06 Aug 2009 11:15 AM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1,2,4**;JUN 18, 2010;Build 28
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,2,4,5**;JUN 02, 2010;Build 18
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
@@ -213,7 +213,7 @@ J ;
 P ;
  S %=$P(^AMHRPRO(Z,0),U,11) Q
 N ;
- S %=$P(^AMHRPRO(Z,0),U,4) I %,$D(^AUTNPOV(%,0)) S %=$P(^AUTNPOV(%,0),U)
+ S %=$$GET1^DIQ(9002011.01,Z,.04)
  Q
 S ;stage
  S %=$P(^AMHRPRO(Z,0),U,5) Q

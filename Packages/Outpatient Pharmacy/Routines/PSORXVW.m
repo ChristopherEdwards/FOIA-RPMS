@@ -1,5 +1,5 @@
-PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;24-Jul-2013 08:41;PLS
- ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008,156,185,210,148,233,260,264,281,1015,1016**;DEC 1997;Build 74
+PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;24-Jul-2013 09:24;DU
+ ;;7.0;OUTPATIENT PHARMACY;**14,35,46,96,103,88,117,131,146,1008,156,185,210,148,233,260,264,281,1015,1016,1017**;DEC 1997;Build 40
  ;External reference to File ^PS(55 supported by DBIA 2228
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External reference ^PSDRUG( supported by DBIA 221
@@ -14,6 +14,7 @@ PSORXVW ;BHAM ISC/SAB - listman view of a prescription ;24-Jul-2013 08:41;PLS
  ;                        - 03/26/12 - Line IHSFLDS+2 change of AWP to BENCHMARK PRICE
  ;            IHS/MSC/PB    08/03/12 - Line tag SIGN added at line PTST+2 to pull the SIGNS and SYMPTOMS and the INDICATION CODES for display
  ;	      IHS/MSC/PB  - 10/26/12 - Line PTST+5 to increment the variable IEN so as to not overwrite the last node created in the TMP("PSOAL" global
+ ;            IHS/MSC/PLS - 06/04/13 - Added Discharge Medication
  S PS="VIEW"
 A1 ; - Prescription prompt
  S DIR(0)="FAO^1:30",DIR("A")=PS_" PRESCRIPTION: ",(DIR("?"),DIR("??"))="^D HLP^PSORXVW1"
@@ -132,5 +133,6 @@ IHSFLDS ; EP
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="     BENCHMARK PRICE: "_$$GET1^DIQ(52,RXN,9999999.06)_"    UP: "_$$GET1^DIQ(52,RXN,17)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="        TRIPLICATE #: "_$$GET1^DIQ(52,RXN,9999999.14)
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="        SUBSTITUTION: "_$$GET1^DIQ(52,RXN,9999999.25)  ;IHS/MSC/PLS - 03/13/08
+ S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="DISCHARGE MEDICATION: "_$$GET1^DIQ(52,RXN,9999999.28)  ;IHS/MSC/PLS - 06/04/13
  S IEN=IEN+1,^TMP("PSOAL",$J,IEN,0)="            CASH DUE: "_$$GET1^DIQ(52,RXN,9999999.26)  ;IHS/MSC/PLS - 01/23/09
  Q

@@ -1,5 +1,5 @@
 ABSPOSP2 ; IHS/FCS/DRS - EOB to Payments Batch ;   [ 09/12/2002  10:17 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ; Payments & Adjustments - ScreenMan front-end to create batch
  ; with parameters to assemble what should match the EOB.
  I DUZ(0)="@" W "Going to the TEST entry point..." H 2 G TEST

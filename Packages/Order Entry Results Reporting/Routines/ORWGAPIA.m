@@ -1,7 +1,9 @@
-ORWGAPIA ; SLC/STAFF - Graph Application Calls ;08-Feb-2012 17:04;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**215,251,260,243,1010**;Dec 17, 1997;Build 47
+ORWGAPIA ; SLC/STAFF - Graph Application Calls ;29-Jun-2015 09:58;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**215,251,260,243,1010,1014**;Dec 17, 1997;Build 47
  ;
  ;Modified - IHS/MSC/MGH - 02/08/2012 - New MEAS EP
+ ;           IHS/MSC/MGH - 05/19/2015 - MEAS+1
+ ;           IHS/MSC/MGH - 06/29/2015 - Added calls to BEHOGMEA
 ADMITX(DFN) ; $$(dfn) -> 1 if patient has data else 0
  Q $O(^DGPM("C",+$G(DFN),0))>0
  ;
@@ -197,6 +199,7 @@ VITAL(ORVALUE,NODE,VALUES) ; from ORWGAPI4
  ;
  ;IHS/MSC/MGH Added call to graph measurements
 MEAS(ORVALUE,NODE,VALUES) ;from ORWGAPI4
- D VMEA^BPXRMPX(.ORVALUE,NODE)
+ ;IHS/MSC/MGH changed routine for graphing
+ D VMEA^BEHOGMEA(.ORVALUE,NODE)
  S VALUES=$$DATA^ORWGAPIW(.ORVALUE)
  Q

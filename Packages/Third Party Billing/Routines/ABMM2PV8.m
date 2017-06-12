@@ -1,9 +1,15 @@
 ABMM2PV8 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**12**;NOV 12, 2009;Build 187
+ ;;2.6;IHS 3P BILLING SYSTEM;**12,15**;NOV 12, 2009;Build 251
+ ;IHS/SD/SDR - 2.6*15 - HEAT161159 - Made change to correct duplicates; also made changes to resolve summary not reconciling to pt list
+ ;IHS/SD/SDR - 2.6*15 - HEAT183289 - Added code for Tribal self-insured; will look if patient has only one insurer and that insurer is defined
+ ;   as tribal self-insured in 3P Insurer file
  ;
 ELIG ;EP
+ S ABMICNT=0  ;abm*2.6*15 HEAT183289
  ;mcd
  K ABMK,ABML
+ K ABMILST,ABMP("STATE")  ;abm*2.6*15 HEAT161159
+ K ABMTSI  ;abm*2.6*15 HEAT183289
  K ABMP("SAVE")
  S ABMP("MDFN")=""
  F  S ABMP("MDFN")=$O(^AUPNMCD("B",ABMPT,ABMP("MDFN"))) Q:'ABMP("MDFN")  D
@@ -20,6 +26,7 @@ ELIG ;EP
  ..S ABMP("SDT")=+$P($G(^AUPNMCD(ABMP("MDFN"),11,ABMP("DDFN"),0)),U)
  ..S ABMP("EDT")=+$P($G(^AUPNMCD(ABMP("MDFN"),11,ABMP("DDFN"),0)),U,2)
  ..D ENROLL2
+ I +$G(ABMP("SAVE"))'=0 S ABMP("MDFN")=ABMP("SAVE")  ;abm*2.6*15 HEAT164125
  ;pi
  S ABMI=0
  F  S ABMI=$O(^AUPNPRVT(ABMPT,11,ABMI)) Q:'ABMI  D
@@ -52,10 +59,19 @@ ELIG ;EP
  .D ENROLL2
  Q
 ENROLL2 ;EP
+ S:($G(ABMTSI)="") ABMTSI=$P($G(^ABMNINS(ABMVLOC,ABM("INS"),0)),U,11)  ;tribal self-insured flag  ;abm*2.6*15 HEAT183289
  I ABM("ITYP")="I"!(ABM("ITYP")="N") Q
  I $P(ABMP("VDT"),".")<ABMP("SDT") Q  ;vst before start dt
  I ABMP("EDT")'=0,($P(ABMP("VDT"),".")>ABMP("EDT")) Q  ;vst after end dt
  S ABML(ABMGRP)=1
  S ABMK($S(($D(ABMI("INS",ABM("INS")))):"K",1:ABM("ITYP")))=1
- I ABMGRP="MCD" S ABMP("SAVE")=ABMP("MDFN")
+ ;I ABMGRP="MCD" S ABMP("SAVE")=ABMP("MDFN")  ;abm*2.6*15 HEAT164125
+ ;start new abm*2.6*15 HEAT164125
+ I ABMGRP="CHIP",+$G(ABMP("SAVE"))'=0 K ABMP("SAVE"),ABMILST("STATE")
+ I ABMGRP="MCD" D
+ .I +$G(ABMP("SAVE"))'=0 K ABMP("SAVE"),ABMILST("STATE")
+ S ABMP("SAVE")=ABMP("MDFN"),ABMILST("STATE",ABM("INS"))=$$GET1^DIQ(5,$$GET1^DIQ(9000004,ABMP("MDFN"),".04","I"),1,"E")
+ ;end new HEAT164125
+ S ABMILST(ABM("INS"))=ABM("ITYP")  ;abm*2.6*15 HEAT161159 - to track pt's insurers
+ S ABMICNT=+$G(ABMICNT)+1  ;abm*2.6*15 HEAT183289
  Q

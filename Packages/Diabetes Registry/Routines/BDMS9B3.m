@@ -1,5 +1,5 @@
 BDMS9B3 ; IHS/CMI/LAB - women's health supplement ; 27 Jan 2011  6:56 AM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,8,9**;JUN 14, 2007;Build 78
  ;
 BI() ;EP- check to see if using new imm package or not 1/5/1999 IHS/CMI/LAB
  Q $S($O(^AUTTIMM(0))<100:0,1:1)
@@ -13,7 +13,7 @@ TD(P,BDMBD,BDMSED,F) ;EP
  S X=$$FMADD^XLFDT(BDMSED,-(10*365))
  I TDD>X Q "Yes  "_$$DATE^BDMS9B1(TDD)
  S R="",G="" F R=1,9,20,22,28,35,50,106,107,110,112,113,115,120,130,132,138,139,142 Q:R=""!(G)  D
- .S G=$$REFUSAL^BDMDC17(P,9999999.14,$O(^AUTTIMM("C",R,0)),$$FMADD^XLFDT(BDMSED,-365),DT,"R")
+ .S G=$$REFUSAL^BDMDD17(P,9999999.14,$O(^AUTTIMM("C",R,0)),$$FMADD^XLFDT(BDMSED,-365),DT,"R")
  I G Q "Refused "_$P(G,U,3)
  ;; BI REFUSALS
  S G="" F Z=1,9,20,22,28,35,50,106,107,110,112,113,115,120,130,132,138,139,142 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
@@ -30,7 +30,7 @@ TD(P,BDMBD,BDMSED,F) ;EP
 FLU(P) ;EP
  NEW BDMY,%,LFLU,E,T,X,D,R,S,G,Z,Y
  NEW D S D=$S($E(DT,4,5)>7:$E(DT,1,3)_"0801",1:$E(DT,1,3)-1_"0801")
- S LFLU=$$LASTFLU^BDMDC13(P,D,DT)
+ S LFLU=$$LASTFLU^BDMDD13(P,D,DT)
  I LFLU="" G FLUR
 FLU1 ;
  Q "Yes  "_$$DATE^BDMS9B1($P(LFLU,U))
@@ -39,9 +39,9 @@ FLUR ;
  I T S X=0 F  S X=$O(^ATXAX(T,21,"B",X)) Q:X=""  S S(X)=""
  ;S T=$O(^ATXAX("B","SURVEILLANCE FLU CVX CODES",0))
  ;I T S X=0 F  S X=$O(^ATXAX(T,21,"B",X)) Q:X=""  S S(X)=""
- ;S Y=0 F  S Y=$O(^AUTTIMM(Y)) Q:Y'=+Y  I $$VAL^XBDIQ1(9999999.14,+Y,.09)="FLU" S R=$$GET1^DIQ(9999999.14,Y,.03) I R]"" S S(R)=""
+ ;S Y=0 F  S Y=$O(^AUTTIMM(Y)) Q:Y'=+Y  I $$VAL^XBDIQ1(9999999.14,+Y,.09)="FLU" S R=$$VAL^XBDIQ1(9999999.14,Y,.03) I R]"" S S(R)=""
  S R="",G="" F  S R=$O(S(R)) Q:R=""!(G)  D
- .S G=$$REFUSAL^BDMDC17(P,9999999.14,$O(^AUTTIMM("C",R,0)),D,DT,"R")
+ .S G=$$REFUSAL^BDMDD17(P,9999999.14,$O(^AUTTIMM("C",R,0)),D,DT,"R")
  I G Q "Refused "_$P(G,U,3)
  S G="",Z="" F  S Z=$O(S(Z)) Q:Z=""!(G)  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
  .S S=$P(^BIPC(X,0),U,3)
@@ -178,7 +178,7 @@ TOBACCO0 ;check for tobacco documented in health factors
  Q
 TOBACCO1 ;check problem file for tobacco use
  NEW X,Y,Z,T
- S T=$O(^ATXAX("B","DM AUDIT SMOKING RELATED DXS",0))
+ S T="DM AUDIT SMOKING RELATED DXS"
  I 'T Q
  S X=0
  F  S X=$O(^AUPNPROB("AC",BDMSDFN,X)) Q:X'=+X  D
@@ -189,7 +189,7 @@ TOBACCO1 ;check problem file for tobacco use
  .Q:$P(^AUPNPROB(X,0),U,3)<BDMTOBD
  .Q:$P(^AUPNPROB(X,0),U,3)=BDMTOBD
  .S Z=$P(^AUPNPROB(X,0),U,1)
- .Q:'$$ICD^ATXCHK(Z,T,9)
+ .Q:'$$ICD^BDMUTL(Z,T,9)
  .I $P($$ICDDX^BDMUTL(Z,,,"I"),U,2)=305.13 S BDMTOBS="PAST USE OF TOBACCO"_" - "_$E($$VAL^XBDIQ1(9000011,X,.05),1,30)_U_$P(^AUPNPROB(X,0),U,3) Q  ;cmi/anch/maw 8/27/2007 code set versioning
  .S BDMTOBS="YES, USES TOBACCO - "_$E($$VAL^XBDIQ1(9000011,X,.05),1,30)_"  Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)_U_$P(^AUPNPROB(X,0),U,3)
  Q
@@ -201,6 +201,19 @@ TOBACCO2 ;check pov file for TOBACCO USE DOC
  . S BDMTOBS="YES, USES TOBACCO"_" - "_$E($P(^AUTNPOV(+$P(^AUPNVPOV(+$P(BDM(1),U,4),0),U,4),0),U),1,30)_"  POV: "_$E($$VAL^XBDIQ1(9000010.07,+$P(BDM(1),U,4),.04),1,30)_"  "_$$DATE^BDMS9B1($P(BDM(1),U))_U_$P(BDM(1),U)
  .Q
  Q
+ ;
+REFDF(P,F,I,D,TEXT) ;EP - dm item refused?
+ I '$G(P) Q ""
+ I '$G(F) Q ""
+ I '$G(I) Q ""
+ S TEXT=$G(TEXT)
+ I $G(D)="" S D=""
+ NEW X S X=$O(^AUPNPREF("AA",P,F,I,0))
+ I 'X Q ""  ;none of this item was refused
+ NEW Y S Y=9999999-X
+ I D]"",Y>D Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
+ I D]"",Y<D Q ""
+ Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
  ;
 CHEST(P) ;EP - get date of last chest xray from V RAD or V CPT
  ;FIX ALL RAD LOOKUPS TO LOOP THROUGH GLOBAL
@@ -310,15 +323,3 @@ RAD(P,BDATE,EDATE,T,F) ;return if a v rad entry in date range
  I F=3 S V=$P(^AUPNVRAD(G,0),U,3) I V Q $P($P($G(^AUPNVSIT(V,0)),U),".")
  I F=4 S V=$P(^AUPNVRAD(G,0),U,3) I V Q $$DATE^BDMS9B1($P($P($G(^AUPNVSIT(V,0)),U),"."))
  Q ""
-REFDF(P,F,I,D,TEXT) ;EP - dm item refused?
- I '$G(P) Q ""
- I '$G(F) Q ""
- I '$G(I) Q ""
- S TEXT=$G(TEXT)
- I $G(D)="" S D=""
- NEW X S X=$O(^AUPNPREF("AA",P,F,I,0))
- I 'X Q ""  ;none of this item was refused
- NEW Y S Y=9999999-X
- I D]"",Y>D Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)
- I D]"",Y<D Q ""
- Q "Refused "_$S(TEXT]"":TEXT,1:$E($$VAL^XBDIQ1(F,I,.01),1,30))_" on "_$$DATE^BDMS9B1(Y)

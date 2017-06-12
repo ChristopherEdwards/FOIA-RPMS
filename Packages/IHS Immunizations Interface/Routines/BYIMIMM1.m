@@ -1,5 +1,5 @@
 BYIMIMM1 ;IHS/CIM/THL - IMMUNIZATION DATA EXCHANGE;
- ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6**;NOV 01, 2013;Build 229
+ ;;2.0;BYIM IMMUNIZATION DATA EXCHANGE;**3,4,5,6,7**;JUN 01, 2015;Build 242
  ;
  ;;CONTINUATION OF BYIMIMM
  ;
@@ -342,7 +342,7 @@ VISIT ;FIND OR CREATE VISIT
  .I '$D(ZTQUEUED),$G(BYIMPAUS)'[U D
  ..W !!,"Visit not added:"
  ..W !,BYIMERR
- ..w !!,"Patient.....: ",XMB(1)
+ ..W !!,"Patient.....: ",XMB(1)
  ..W !,"Immunization: ",XMB(2)
  ..W !,"Visit Date..: ",XMB(3)
  ..D PAUSE^BYIMIMM6

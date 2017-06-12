@@ -1,6 +1,6 @@
-IS00010B ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on DEC 05, 2014
+IS00010B ;Compiled from script 'Generated: HL IHS IZV04 IN-I' on AUG 03, 2015
  ;Part 3
- ;Copyright 2014 SAIC
+ ;Copyright 2015 SAIC
 EN S INI(1)=0 F  S INI(1)=$O(@INV@("ORC15",INI(1))) Q:'INI(1)  S INI=INI(1) D
  .S (INX,X)=@INV@("ORC15",INI(1))
  .I X]"" S X=$$TIMEIO^INHUT10(X,$P($G(INTHL7F2),U),$P($G(INTHL7F2),U,2),$P($G(INTHL7F2),U,3),1)

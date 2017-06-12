@@ -1,0 +1,321 @@
+BLRRLMU3 ; IHS/MSC/MKK - Reference Lab Meaningful use Utilities, Part 3  ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 1, 1997
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+PEP ; EP
+LAHMENU ; EP - ^LAH Global Menu
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ D ADDTMENU^BLRGMENU("LAHTESTS^BLRRLMU3","62.49 Tests Report")
+ D ADDTMENU^BLRGMENU("LAHSPMS^BLRRLMU3","IHSSPM Values")
+ D ADDTMENU^BLRGMENU("LAHLRASR^BLRRLMU3","LRAS Report")
+ D ADDTMENU^BLRGMENU("LAHUIDS^BLRRLMU3","UIDs Report")
+ D ADDTMENU^BLRGMENU("LRLLUIDS^BLRRLMU3","Load/Work List UIDs Report")
+ D ADDTMENU^BLRGMENU("LAHDETAC^BLRRLMU3","Accession/UID Detail Report")
+ D ADDTMENU^BLRGMENU("DUPCINDX^BLRRLMU3","Duplicate 'C' Index Entries")
+ ;
+ ;
+ ; Main Menu driver
+ D MENUDRVR^BLRGMENU("RPMS Lab MU Stage 2","Miscellaneous Debug Utilities",$$CJ^XLFSTR("^LAH Global Reports",IOM))
+ Q
+ ;
+LAHTESTS ; EP - ^LAH 62.49 Tests Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ D LAHTESTI
+ ;
+ F  S LAHIEN=$O(^LAH(37,1,LAHIEN))  Q:LAHIEN<1  D
+ . S UID=$G(^LAH(37,1,LAHIEN,.3))
+ . Q:$L(UID)<1
+ . Q:$D(^TMP("BLRRLMUU",$J,"UID",UID))<1
+ . ;
+ . W ?4,LAHIEN,?19,UID,?34,$G(^TMP("BLRRLMUU",$J,"UID",UID)),!
+ . S LINES=LINES+1
+ . S CNT=CNT+1
+ ;
+ W !!
+ ;
+ W:CNT<1 ?4,"No UIDs in ^LAH match 62.49",!
+ W:CNT ?4,"Number of UIDs in ^LAH that Match 62.49 = ",CNT,!
+ ;
+ W !,?9,"Number of UIDs in 62.49 = ",UID6249,!
+ ;
+ D PRESSKEY^BLRGMENU
+ Q
+ ;
+LAHTESTI ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="^LAH NIST Entries with 62.49 Data"
+ ;
+ S HEADER(2)=" "
+ S $E(HEADER(3),5)="IEN"
+ S $E(HEADER(3),20)="UID"
+ S $E(HEADER(3),35)="IHSSPM"
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,PG,UID6249)=0
+ S (HDRONE,QFLG)="NO"
+ ;
+ D LAHTESTU(.UID6249)
+ ;
+ S LAHIEN=.9999999
+ D HEADERDT^BLRGMENU
+ ;
+ Q
+ ;
+LAHTESTU(UID6249) ; EP - Create UID index into 62.49
+ NEW IEN,INST,UID
+ ;
+ K ^TMP("BLRRLMUU",$J,"UID")
+ ;
+ S INST=""
+ F  S INST=$O(^LAHM(62.49,"C",INST))  Q:INST=""  D
+ . S UID=$P(INST,"-",3)
+ . Q:$L(UID)<1
+ . ;
+ . S IEN=$O(^LAHM(62.49,"C",INST,"A"),-1)
+ . S ^TMP("BLRRLMUU",$J,"UID",UID)=IEN
+ . S UID6249=UID6249+1
+ Q
+ ;
+LAHSPMS ; EP - ^LAH IHSSPM Values
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHSPMSI()="Q"
+ ;
+ F  S IEN=$O(^LAH(LOADWORK,1,IEN),-1)  Q:IEN<1  D
+ . Q:$D(^LAH(LOADWORK,1,IEN,"IHSSPM"))<1
+ . W IEN
+ . W ?9,$G(^LAH(LOADWORK,1,IEN,.3))
+ . W ?24,$E($G(^LAH(LOADWORK,1,IEN,"IHSSPM")),1,60)
+ . W !
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+LAHSPMSI() ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="^LAH IHSSPM Entries"
+ S HEADER(2)=" "
+ S HEADER(3)="IEN"
+ S $E(HEADER(3),10)="UID"
+ S $E(HEADER(3),25)="IHSSPM"
+ ;
+ S LA7INST=$$GET1^DIQ(9009029,DUZ(2),3001)
+ I $G(LA7INST)=""
+ Q:$G(LA7INST)="" "Q"                              ; Quit with zero if no Reference Lab
+ ;
+ S AUTOIEN=+$O(^LAB(62.4,"B",LA7INST,""))          ; Auto Instrument IEN
+ Q:AUTOIEN<1 "Q"                                   ; Quit with zero if No Auto Instrument
+ ;
+ S LOADWORK=$$GET1^DIQ(62.4,AUTOIEN,"LOAD/WORK LIST","I")
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,PG)=0
+ S (HDRONE,QFLG)="NO"
+ S IEN="AA"
+ D HEADERDT^BLRGMENU
+ Q "OK"
+ ;
+LAHLRASR ; EP - LAH LRAS Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ D LAHLRASI
+ ;
+ F  S LAHIEN=$O(^LAH(37,1,LAHIEN))  Q:LAHIEN<1  D
+ . S UID=$G(^LAH(37,1,LAHIEN,.3))
+ . Q:$L(UID)<1
+ . ;
+ . W ?4,LAHIEN,?19,UID,?34,$G(^TMP("BLRRLMUU",$J,"UID",UID)),?54,$$GETLRAS(UID),!
+ . S LINES=LINES+1
+ . S CNT=CNT+1
+ ;
+ W !!
+ ;
+ W:CNT<1 ?4,"No UIDs in ^LAH",!
+ W:CNT ?4,"Number of UIDs in ^LAH = ",CNT,!
+ ;
+ D PRESSKEY^BLRGMENU	
+ Q
+ ;
+LAHLRASI ; EP - Initialization
+ D LAHTESTI
+ K HEADER(1)
+ S HEADER(1)="^LAH NIST Entries"
+ S $E(HEADER(3),55)="LRAS"
+ ;
+ S LAHIEN=.9999999
+ D HEADERDT^BLRGMENU
+ Q
+ ;
+LAHUIDS ; EP - List the UIDs found in the ^LAH global
+ NEW HEADER,IEN,UID,UIDCNT,UIDPTR
+ ;
+ S HEADER(1)="^LAH Global Listing"
+ S HEADER(2)="Entries with UIDs ONLY"
+ S HEADER(3)=" "
+ S $E(HEADER(4),5)="IEN"
+ S $E(HEADER(4),15)="LOAD/WORK LIST"
+ S $E(HEADER(4),35)="UID"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ S IEN=.9999999
+ F  S IEN=$O(^LAH(IEN))  Q:IEN<1  D
+ . S LOADWORK=$$GET1^DIQ(68.2,IEN,"NAME")
+ . S LOADWORK=$TR(LOADWORK," ","@")
+ . W !,?5,$TR($$CJ^XLFSTR("@LOAD/WORK@LIST:@"_LOADWORK_"@["_IEN_"]@",66)," @","= "),!
+ . W ?9
+ . S UID="AAA",UIDCNT=0
+ . F  S UID=$O(^LAH(IEN,1,"U",UID),-1)  Q:UID<1!(UIDCNT>19)  D
+ .. S UIDPTR=+$O(^LAH(IEN,1,"U",UID,0))
+ .. Q:$D(^LAH(IEN,1,UIDPTR))<1
+ .. ;
+ .. W $$LJ^XLFSTR(UID,12)
+ .. W:$X>64 !,?9
+ .. S UIDCNT=UIDCNT+1
+ . W:UIDCNT<20 !
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+LAHDETAC ; EP -- Accession/UID Detail Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHDETAI()="Q"
+ ;
+ Q
+ ;
+LAHDETAI() ; EP - Initialization
+ Q ""
+ ;
+LRLLUIDS ; EP - Load/Work List UIDs Report
+ NEW HEADER,IEN,LRIFN,LRLL,LRLLDESC,UID,UIDCNT,UIDPTR
+ ;
+ S HEADER(1)="^LAH Global Listing"
+ ;
+ D HEADERDT^BLRGMENU
+ D ^XBFMK
+ S DIR(0)="PO^68.2:AE"
+ D ^DIR
+ I +$G(DIRUT) D  Q
+ . W !!,?4,"Invalid/No Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S LRLL=+Y
+ S LRLLDESC=$P(Y,"^",2)
+ ;
+ S HEADER(2)=LRLLDESC_" ["_LRLL_"] LOAD/WORK LIST"
+ S HEADER(3)=$$CJ^XLFSTR("UIDs Report",IOM)
+ S HEADER(4)=" "
+ S HEADER(5)="IEN"
+ S $E(HEADER(5),10)="UID"
+ S $E(HEADER(5),25)="Accession #"
+ S $E(HEADER(5),40)="^LAH(LRLL,1,LRIFN,0)"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ S UID="",UIDCNT=0
+ F  S UID=$O(^LAH(LRLL,1,"U",UID))  Q:UID<1  D
+ . S LRIFN=+$O(^LAH(LRLL,1,"U",UID,0))
+ . Q:'$D(^LAH(LRLL,1,LRIFN,0))#2
+ . ;
+ . W LRIFN
+ . W ?9,UID
+ . W ?24,$$GETLRAS(UID)
+ . W ?39,$E($G(^LAH(LRLL,1,LRIFN,0)),1,40)
+ . W !
+ . S UIDCNT=UIDCNT+1
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+GETLRAS(UID) ; EP - Get the Accession # from the UID
+ NEW X,LRAA,LRAD,LRAN
+ ;
+ S X=$Q(^LRO(68,"C",UID,0))
+ S LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ S LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ Q LRAS
+ ;
+DUPCINDX ; EP - Duplicate 'C' Index Entries
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D SETBLRVR
+ Q:$$GETLOADW()="Q"
+ ;
+ Q:$$DUPCNDXI()="Q"
+ ;
+ F  S NUM=$O(^LAH(LRLL,1,"C",NUM))  Q:NUM=""!(QFLG="Q")  D
+ . S CNTNUM=CNTNUM+1
+ . S IEN=0
+ . K IENCNT
+ . F  S IEN=$O(^LAH(LRLL,1,"C",NUM,IEN))  Q:IEN<1!(QFLG="Q")  D
+ .. S IENCNT=1+$G(IENCNT)
+ .. S IENCNT(IENCNT)=IEN
+ . D:IENCNT>1 DUPCNDXL
+ ;
+ W:CNT<1 !!,?4,"Number of entries for ",$G(HEADER(1))," examined = ",CNTNUM
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+SETBLRVR(TWO) ; EP - Set the BLRVERN variable(s)
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S:$L($G(TWO)) BLRVERN2=TWO
+ Q
+ ;
+GETLOADW() ; EP - Get the LOAD/WORK LIST
+ NEW HEADER
+ S HEADER(1)="LOAD/WORK LIST"
+ D HEADERDT^BLRGMENU
+ ;
+ D ^XBFMK
+ S DIR(0)="PO^68.2:AE"
+ D ^DIR
+ I +$G(DIRUT) D  Q "Q"
+ . W !!,?4,"Invalid/No Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S LRLL=+Y
+ S LRLLDESC=$P(Y,"^",2)
+ Q "OK"
+ ;
+DUPCNDXI() ; EP - Initialization
+ S HEADER(1)=LRLLDESC_" ["_LRLL_"] LOAD/WORK LIST"
+ S HEADER(2)="Duplicate Counts"
+ S HEADER(3)=" "
+ S $E(HEADER(4),5)="NUM"
+ S $E(HEADER(4),20)="CNT"
+ S $E(HEADER(4),30)="IEN"
+ S $E(HEADER(4),40)="UID"
+ S $E(HEADER(4),55)="IHSSPM"
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,CNTNUM,NUM,PG)=0
+ S (HDRONE,QFLG)="NO"
+ Q "OK"
+ ;
+DUPCNDXL ; EP - Line of Data
+ S CNT2=0
+ F  S CNT2=$O(IENCNT(CNT2))  Q:CNT2<1!(QFLG="Q")  D
+ . I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,"NO")  Q:QFLG="Q"
+ . S IEN2=$G(IENCNT(CNT2))
+ . W ?4,NUM
+ . W ?19,CNT2
+ . W ?29,IEN2
+ . W ?39,$G(^LAH(LRLL,1,IEN2,.3))   ; UID
+ . W ?54,$E($G(^LAH(LRLL,1,IEN2,"IHSSPM")),1,25)
+ . W !
+ . S LINES=LINES+1
+ . S CNT=CNT+1
+ Q

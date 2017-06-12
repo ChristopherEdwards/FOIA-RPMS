@@ -1,5 +1,5 @@
 BDPMOD ; IHS/CMI/TMJ - EDIT AN EXISTING DESIGNATED PROVIDER ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ; Subscripted BDPREC is EXTERNAL form.
  ;   BDPREC("PAT NAME")=patient name
@@ -100,7 +100,9 @@ TYPE ; GET CATEGORY TYPE FOR DESIGNATED PROVIDER
  Q
 PROV ; GET NEW DESIGNATED PROVIDER
  S BDPPROV="",BDPQ=1
- S DIC("A")="Select New Designated Provider: ",DIC="^VA(200,",DIC(0)="AEMQ" D ^DIC K DIC,DA S:$D(DUOUT) DIRUT=1
+ S DIC("A")="Select New Designated Provider: ",DIC="^VA(200,",DIC(0)="AEMQ"
+ I $$GET1^DIQ(90360.3,BDPTYPE,.01)="MESSAGE AGENT" S DIC("S")="I $D(^BDPMSGA(+Y,0)),'$P(^BDPMSGA(+Y,0),U,3)" K DIC("B")
+ D ^DIC K DIC,DA S:$D(DUOUT) DIRUT=1
  Q:$D(DIRUT)
  I +Y<1 S BDPQ=1 Q
  S BDPPROV=+Y,BDPRPROV=$P(Y,U,2) ;Provider IEN
@@ -166,4 +168,44 @@ INFORM ;Data Entry Explanation
  W !,?2,"Utilize this Option to MODIFY Existing Designated Specialty Provider Records.",!
  W ?3,"If the Patient has already been assigned the same Provider for the",!,?3,"Category and Provider selected - the record will not be Updated.",!
  W ?20,"******************************",!
+ Q
+IMA ;EP - called from option to inactivate a message agent so they can no longer be selected
+ ;select provider to inactive
+ W !!
+ S DIC="^BDPMSGA(",DIC(0)="AEMQ",DIC("A")="Select Message Agent: " D ^DIC K DIC,DA
+ I Y=-1 W !!,"No message agent selected." D PAUSE^BDP Q
+ S BDPMA=+Y
+ I $P(^BDPMSGA(BDPMA,0),U,3) G REACT
+ S DIR(0)="Y",DIR("A")="Are you sure you want to inactivate "_$$GET1^DIQ(90360.5,BDPMA,.01)_" as a message agent",DIR("B")="Y"
+ KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !,"No action taken." D PAUSE^BDP K Y,BDPMA Q
+ I 'Y W !,"No action taken." D PAUSE^BDP K Y,BDPMA Q
+ S DA=BDPMA,DIE="^BDPMSGA(",DR=".03///1" D ^DIE K DIE,DA,R,Y
+ W !,$$GET1^DIQ(90360.5,BDPMA,.01)," has been inactivated."
+ D COUNT
+ D PAUSE^BDP
+ K BDPMA
+ Q
+REACT ;
+ W !!,$$GET1^DIQ(90360.5,BDPMA,.01)," is currently inactive.",!
+ S DIR(0)="Y",DIR("A")="Are you sure you want to reactivate "_$$GET1^DIQ(90360.5,BDPMA,.01)_" as a message agent",DIR("B")="Y"
+ KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) W !,"No action taken." D PAUSE^BDP K Y,BDPMA Q
+ I 'Y W !,"No action taken." D PAUSE^BDP K Y,BDPMA Q
+ S DA=BDPMA,DIE="^BDPMSGA(",DR=".03///@" D ^DIE K DIE,DA,R,Y
+ W !,$$GET1^DIQ(90360.5,BDPMA,.01)," has been reactivated." D PAUSE^BDP K Y,BDPMA
+ Q
+COUNT ;Count of # Patients for this Old Provider
+ S BDPI="",BDPQ=0,BDPC=0
+ S BDPTYPE=$O(^BDPTCAT("B","MESSAGE AGENT",0))
+ F  S BDPI=$O(^BDPRECN("AC",BDPMA,BDPI)) Q:BDPI=""  D
+ .Q:$P(^BDPRECN(BDPI,0),U,1)'=BDPTYPE
+ .S BDPC=BDPC+1
+ I BDPC>0 D
+ .W !!,"There are ",BDPC," patients currently assigned ",$$GET1^DIQ(90360.5,BDPMA,.01)," as their Message"
+ .W !,"Agent.  Use option CLOP-Change all of one Provider's Patients to Another"
+ .W !,"to change them to another Message Agent.",!
+ K BDPI,BDPYI,BDPC,BDPQ
+ W !
+ W !
  Q

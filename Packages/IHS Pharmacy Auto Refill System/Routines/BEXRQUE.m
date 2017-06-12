@@ -1,9 +1,10 @@
-BEXRQUE ;IHS/CMI/DAY - BEX - Refill Queue Report ; 12 Mar 2012  7:14 PM
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5**;MAR 12, 2012;Build 1
+BEXRQUE ;IHS/CMI/DAY - BEX - Refill Queue Report ; 05 Oct 2015  10:51 AM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**4,5,6**;APR 20, 2015;Build 7
  ;
  ;Prints the Refill Queue Report
  ;
- ;CMI/BJI/DAY - New routine released in Patch 5
+ ;  New routine released in Patch 5
+ ;  Patch 6 improves Site Selection
  ;
  W #
  ;
@@ -12,19 +13,15 @@ BEXRQUE ;IHS/CMI/DAY - BEX - Refill Queue Report ; 12 Mar 2012  7:14 PM
  W !,"This option prints a list of entries in the Refill Queue."
  W !
  ;
- ;If more than one Division, ask it
- I $P($G(^PS(59,0)),U,3)>1 K PSOPAR
- I '$D(PSOSITE) K PSOPAR
- I '$D(PSOPAR) D ^PSOLSET
- I '$D(PSOPAR) G EOJ
+ ;IHS/BJI/DAY - Patch 6 - Improved Site Selection
  ;
- ;Set DUZ(2) for correct HRNO's
- I +$G(PSOSITE) S DUZ(2)=+$P($G(^PS(59,PSOSITE,"INI")),U)
+ ;Capture Site when entering BEXRQUE
+ D HOLD^BEXSITE
  ;
- W !
- W !,"Division: "
- I +$G(PSOSITE) W $P($G(^PS(59,+PSOSITE,0)),U)
- W !
+ ;Display Site to User and Ask for Change
+ D CHANGE^BEXSITE
+ ;
+ ;End Patch 6
  ;
  K BEXOPSIT
  S BEXOPSIT=0
@@ -87,6 +84,18 @@ EOJ ;EP - End of Job Processing
  ;
  X ^%ZIS("C")
  I $E(IOST)="C",$G(BEXEXIT)'=1 W ! K DIR S DIR(0)="E" D ^DIR K DIR
+ ;
+ ;IHS/BJI/DAY - Patch 6 - Check if User Changed Sites
+ ;
+ I $$CHECK^BEXSITE() D
+ .;
+ .W !!
+ .W "You may have changed your Outpatient Site!",!
+ .;
+ .D CHANGE^BEXSITE
+ ;
+ ;End Patch 6
+ ;
  K BEX
  K ^BEXUTL($J)
  D EN^XBVK("BEX")

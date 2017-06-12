@@ -1,5 +1,5 @@
 BGP5D36 ; IHS/CMI/LAB - measure C 06 Nov 2009 2:03 PM 28 May 2015 4:23 PM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 MEN(P,EDATE) ;EP
  NEW BGPC,BGPG,BGPX,BGPMENI,C,ED,BD,V,X,Y,BGPZ,B,BGPIMM,R,G
@@ -42,7 +42,7 @@ HPV(P,EDATE) ;EP
  NEW BGPC,BGPG,BGPX,BGPHPV,C,X,ED,BD,V,G,R,BGPIMM,Y,Z,B,BGPNMI
  ;gather up all immunizations, cpts, povs and check for 3 each ten days apart
  ;get all immunizations
- S C="62^118^137"
+ S C="62^118^137^165"
  D GETIMMS^BGP5D32(P,EDATE,C,.BGPX)
  ;go through and set into array if 10 days apart
  S X=0 F  S X=$O(BGPX(X)) Q:X'=+X  S BGPHPV(X)=""
@@ -52,9 +52,9 @@ HPV(P,EDATE) ;EP
  .S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V  D
  ..Q:'$D(^AUPNVSIT(V,0))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
- ...S Y=$P(^AUPNVCPT(X,0),U) S Z=$P($$CPT^ICPTCOD(Y),U,2) I Z=90649!(Z=90650) S BGPHPV(9999999-$P(ED,"."))=""
+ ...S Y=$P(^AUPNVCPT(X,0),U) S Z=$P($$CPT^ICPTCOD(Y),U,2) I Z=90649!(Z=90650)!(Z=90651) S BGPHPV(9999999-$P(ED,"."))=""
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X  D
- ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Z=$P($$CPT^ICPTCOD(Y),U,2) I Z=90649!(Z=90650) S BGPHPV(9999999-$P(ED,"."))=""
+ ...S Y=$P(^AUPNVTC(X,0),U,7) Q:'Y  S Z=$P($$CPT^ICPTCOD(Y),U,2) I Z=90649!(Z=90650)!(Z=90651) S BGPHPV(9999999-$P(ED,"."))=""
  ;now check to see if they are all spaced 10 days apart, if not, kill off the odd ones
  S X="",Y="",C=0 F  S X=$O(BGPHPV(X)) Q:X'=+X  S C=C+1 D
  .I C=1 S Y=X Q
@@ -66,18 +66,18 @@ HPV(P,EDATE) ;EP
  ;check for Evidence of desease and Contraindications and if yes, then quit
  ;now go to Refusals
  S B=$$DOB^AUPNPAT(P),E=EDATE,BGPNMI="",R=""
- F BGPIMM=62,118,137  D
+ F BGPIMM=62,118,137,165  D
  .S I=$O(^AUTTIMM("C",BGPIMM,0)) Q:'I
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,9999999.14,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,9999999.14,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) S:$P(^AUPNPREF(Y,0),U,7)="N" BGPNMI=1 S R=1
  I BGPNMI Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" HPV"
- F BGPIMM=90649,90650 D
+ F BGPIMM=90649,90650,90651 D
  .S I=+$$CODEN^ICPTCOD(BGPIMM) Q:'I
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) S:$P(^AUPNPREF(Y,0),U,7)="N" BGPNMI=1 S R=1
  I BGPNMI Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI HPV",1:"Ref HPV")
  ;now check Refusals in imm pkg
  ;F BGPIMM=62,118 S R=$$IMMREF^BGP5D32(P,BGPIMM,$$DOB^AUPNPAT(P),EDATE)+R
  ;I R Q $S(BGPNMI:4,1:3)_U_$S(BGPNMI:"NMI",1:"Ref")_" HPV"
- F BGPZ=62,118 S X=$$ANCONT^BGP5D31(P,BGPZ,EDATE) Q:X]""
+ F BGPZ=62,118,137,165 S X=$$ANCONT^BGP5D31(P,BGPZ,EDATE) Q:X]""
  I X]"" Q 4_U_"Contra HPV"
  Q ""
 H1N1 ;EP - called from measure

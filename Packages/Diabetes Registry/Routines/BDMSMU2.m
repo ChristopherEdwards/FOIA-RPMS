@@ -1,5 +1,5 @@
 BDMSMU2 ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8,9**;JUN 14, 2007;Build 78
  ;
  ;
  ;cmi/anch/maw 8/28/2007 code set versioning in CPT
@@ -41,7 +41,7 @@ CPT(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^BDMUTL($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -72,7 +72,7 @@ LASTDX(P,T,BDATE,EDATE) ;EP
  ..S BDMDX3=$P($G(^AUPNVPOV(BDMDX2,0)),U)
  ..Q:BDMDX3=""  ;bad xref
  ..Q:'$D(^ICD9(BDMDX3))
- ..Q:'$$ICD^ATXCHK(BDMDX3,BDMTX5,9)
+ ..Q:'$$ICD^BDMUTL(BDMDX3,BDMTX5,9)
  ..S BDMDX4=1_"^"_$P($$ICDDX^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
@@ -113,7 +113,7 @@ LASTPRC(P,T,BDATE,EDATE) ;EP
  .S BDMDX2=0 F  S BDMDX2=$O(^AUPNVPRC("AA",P,BDMDX1,BDMDX2)) Q:BDMDX2'=+BDMDX2!(BDMDX4]"")  D
  ..S BDMDX3=$P($G(^AUPNVPRC(BDMDX2,0)),U)
  ..Q:BDMDX3=""  ;bad xref
- ..Q:'$$ICD^ATXCHK(BDMDX3,BDMTX5,0)
+ ..Q:'$$ICD^BDMUTL(BDMDX3,BDMTX5,0)
  ..S BDMDX4=1_"^"_$P($$ICDOP^BDMUTL(BDMDX3,,,"I"),U,2)_"^"_(9999999-BDMDX1)_"^"_BDMDX3_"^"_BDMDX2
  ..Q
  .Q
@@ -181,7 +181,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U)]"")  D
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U)]"")  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^BDMUTL(I,T,1)
  ..S G=$$TYPEREF^BDMSMU(Y)_$E($$VAL^XBDIQ1(81,I,$$FFD^BDMSMU(81)),1,(44-$L($$TYPEREF^BDMSMU(Y))))_"^on "_$$FMTE^XLFDT(D)_"^"_D
  .Q
  Q G
@@ -195,7 +195,7 @@ RADREF(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S I=0 F  S I=$O(^AUPNPREF("AA",P,71,I)) Q:I=""!($P(G,U)]"")  D
  .S X=0 F  S X=$O(^AUPNPREF("AA",P,71,I,X)) Q:X'=+X!($P(G,U)]"")  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,71,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
  ..S C=$P($G(^RAMIS(71,I,0)),U,9) Q:C=""
- ..Q:'$$ICD^ATXCHK(C,T,1)
+ ..Q:'$$ICD^BDMUTL(C,T,1)
  ..S N=$P(^AUPNPREF(Y,0),U,7)
  ..S G=$$TYPEREF^BDMSMU(Y)_$E($$VAL^XBDIQ1(81,C,$$FFD^BDMSMU(81)),1,(44-$L($$TYPEREF^BDMSMU(Y))))_"^on "_$$FMTE^XLFDT(D)_"^"_D
  .Q

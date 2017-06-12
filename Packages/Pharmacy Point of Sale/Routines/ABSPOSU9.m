@@ -1,5 +1,5 @@
 ABSPOSU9 ; IHS/FCS/DRS - copied for POS ;  [ 09/12/2002  10:20 AM ]
-ABSUD009 ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ABSUD009 ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Standard W and String Formatting Functions

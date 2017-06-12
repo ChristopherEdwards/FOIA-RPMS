@@ -1,7 +1,6 @@
-DIKCP1 ;SFISC/MKO-PRINT INDEX(ES) ;11:21 AM  12 Jan 2000 [ 04/02/2003   8:25 AM ]
- ;;22.0;VA FileMan;**1001**;APR 1, 2003
- ;;22.0;VA FileMan;**20**;Mar 30, 1999
- ;Per VHA Directive 10-93-142, this routine should not be modified.
+DIKCP1 ;SFISC/MKO-PRINT INDEX(ES) ;20DEC2010
+ ;;22.0;VA FileMan;**20,167**;Mar 30, 1999;Build 20
+ ;Per VHA Directive 2004-038, this routine should not be modified.
 PRINDEX ;Come here from PRINDEX^DIKCP
  Q:'$G(XR)
  N XR0
@@ -31,6 +30,7 @@ PRINDEX ;Come here from PRINDEX^DIKCP
  ;
  ;Print Cross Reference Values
  D CRV(XR,WID,LM,TS,FLAG,.PAGE)
+NOREIN I $G(^DD("IX",XR,"NOREINDEX")) W !?9,"NO RE-INDEXING ALLOWED!"
  Q
  ;
 FL(XR0,WID,LM,TS,TYP,PAGE) ;Print first line

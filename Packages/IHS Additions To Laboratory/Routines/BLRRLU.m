@@ -1,5 +1,5 @@
-BLRRLU ;cmi/anch/maw - BLR Reference Lab Utilities ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027**;NOV 01, 1997;Build 9
+BLRRLU ;cmi/anch/maw - BLR Reference Lab Utilities ; 02-Nov-2015 13:43 ; MAW
+ ;;5.2;IHS LABORATORY;**1027,1035,1037**;NOV 01, 1997;Build 4
  ;;5.2;LR;**1021**;Jul 27, 2006
  ;
  ;
@@ -188,4 +188,46 @@ XREF ;-- reindex the UPIN index if not existent
 BLST(DT,DAYS) ;-- return day to purge by
  S X1=DT,X2=-DAYS D C^%DTC
  Q X
+ ;
+PORD ;-- purge the BLR REFERENCE LAB ORDER ACCESSION file
+ N PASK
+ S PASK=$$PASK
+ Q:'$G(PASK)
+ D PRG(PASK)
+ K DIK,DA
+ Q
+ ;
+PASK() ;-- ask the purge date
+ K %DT
+ S %DT="AE",%DT("A")="Purge entries before which date? "
+ D ^%DT
+ I Y=-1 Q 0
+ Q +Y
+ Q
+ ;
+PRG(PSK) ;-- purge entries before this date
+ N PDA,PIEN
+ S PDA=0 F  S PDA=$O(^BLRRLO("ACC",PDA)) Q:'PDA  D
+ . S PIEN=0 F  S PIEN=$O(^BLRRLO("ACC",PDA,PIEN)) Q:'PIEN  D
+ .. I $$BEFORE(PDA,PSK) D
+ ... I '$D(ZTQUEUED) W "."
+ ... S DIK="^BLRRLO(",DA=PIEN D ^DIK
+ Q
+ ;
+BEFORE(PD,PS) ;-- is the accession before the purge date
+ N RT,AA,AD,AN,OD
+ S RT=$Q(^LRO(68,"C",PD))
+ S AA=$QS(RT,4)
+ S AD=$QS(RT,5)
+ S AN=$QS(RT,6)
+ S OD=$P($G(^LRO(68,AA,1,AD,1,AN,0)),U,4)
+ Q $S((OD<PS):1,1:0)
+ Q
+ ;
+QPASK ;-- queueable pask
+ N PASK
+ S PASK=$$BLST(DT,180)
+ D PRG(PASK)
+ K DIK,DA
+ Q
  ;

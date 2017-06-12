@@ -1,5 +1,5 @@
 BQIRMREG ;PRXM/HC/ALA-Reminders by Register ; 30 Oct 2007  5:25 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -90,6 +90,7 @@ STAND() ;EP - Get standard display
  ... S STVW=$P(^BQI(90506.1,IEN,0),U,1)
  ... S HDR=$$GET1^DIQ(90506.1,IEN_",",.08,"E")
  ... D RMVL
+ ... I VAL="" S VAL="1/1/0001 12:01:00 AM"
  ... S VALUE=VALUE_VAL_"^"
  ... S HEADR=HEADR_HDR_"^"
  S HEADR=$$TKO^BQIUL1(HEADR,"^")

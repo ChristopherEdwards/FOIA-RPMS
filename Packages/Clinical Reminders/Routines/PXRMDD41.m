@@ -1,5 +1,5 @@
 PXRMDD41 ; SLC/PJH Reminder Dialog file calls ;11/22/2000
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;copied from ORDD41 for dialog reminders
  ;

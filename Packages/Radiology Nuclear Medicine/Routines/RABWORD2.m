@@ -1,5 +1,5 @@
-RABWORD2 ;HOIFO/KAR - Radiology Billing Awareness ; 20 Apr 2011  7:25 PM
- ;;5.0;Radiology/Nuclear Medicine;**41,70,1003**;Nov 01, 2010;Build 3
+RABWORD2 ;HOIFO/KAR - Radiology Billing Awareness ; 04 Apr 2014  6:57 AM
+ ;;5.0;Radiology/Nuclear Medicine;**41,70,1003,1006**;Nov 01, 2010;Build 2
  ;
  ; Rtn invokes IA #1300-A, #2083, #4419
  Q
@@ -27,6 +27,12 @@ HDR ; Header
  W !,"------",?10,"----------------------------",?39,"------------",?52,"------------"
  Q
 PREV ;Prompt for Copying a previous Order's DX/SC/EC values.
+ ;
+ ;IHS/BJI/DAY - Patch 1006 ICD-10
+ ;Do not ask or display Diagnosis
+ Q
+ ;End Patch
+ ;
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
  ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
  ;Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check
@@ -60,6 +66,12 @@ ELIG ;List the Service Connected ratios for the patient
  W !!,?5,"Primary Eligibility: "_RAELIG,!,?5,"A/O Exp.: "_RAAO,?22,"ION Rad.: "_RAIR,?40,"SWAC: "_RAEC,?57,"SHAD: "_RASHAD,!
  Q
 ADDEXAM ;Add DX/SC/EI data to new order when adding order to Last Visit
+ ;
+ ;IHS/BJI/DAY - Patch 1006 ICD-10
+ ;Do not ask or display Diagnosis
+ Q
+ ;End patch
+ ;
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
  ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package
  ;Q:'$$CIDC^IBBAPI(RADFN)  ;patient insurance & CIDC switch check

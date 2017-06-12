@@ -1,5 +1,6 @@
-ORKLR ; slc/CLA - Order checking support procedure for lab orders ;7/23/96  14:31
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,51,92,105,243**;Dec 17, 1997;Build 242
+ORKLR ; slc/CLA - Order checking support procedure for lab orders ;10-Oct-2013 18:02;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**6,32,51,92,105,243,1012**;Dec 17, 1997;Build 242
+ ; Modified - IHS/MSC/MGH - 10/09/2013 - Line CLOZLABS+17
  Q
 DUP(ORKLR,OI,ORDFN,NEWORDT,SPECIMEN) ; return duplicate lab order info
  N ORL,DDT,ODT,ORN,ORNC,LRID,DGIEN,ORPANEL
@@ -118,7 +119,8 @@ CLOZLABS(ORDFN,ORDAYS,ORCLOZ) ;extrinsic function rtns "1" if clozapine ordered 
  ;S ANC=$G(LAB("ANC")),ANCSPEC=$P(ANC,U,2),ANC=$P(ANC,U)
  ;
  K ^TMP($J,"PSO")
- D CL1^YSCLTST2(ORDFN,ORDAYS)
+ ;IHS/MSC/MGH Patch 1012
+ ;D CL1^YSCLTST2(ORDFN,ORDAYS)
  I $D(^TMP($J,"PSO")) D
  .N INVDT
  .S INVDT=$O(^TMP($J,"PSO",0))

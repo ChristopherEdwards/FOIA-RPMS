@@ -1,8 +1,8 @@
 AVA200 ; IHS/OIT/FBD - ADD/ EDIT PERSONS TO VA(200 ;30-Sep-2010 17:29;fbd
- ;;93.2;VA SUPPORT FILES;**1,4,7,8,13,19,21**;SEP 30, 2010
+ ;;93.2;VA SUPPORT FILES;**1,4,7,8,13,19,21**;SEP 30, 2010;Build 8
  ;PATCH #8 -- Added Service/Section field to Add New Person-IHS/ADC/CRG
  ;PATCH #19 Added Trigger to fire Protocol to generate MFN-M02 Hl7 message IHS/OIT/FJE
- ;PATCH #21 Added Fax, Email Addr, DEA Exp date, SPI field edits to Add Provider - IHS/OIT/FBD
+ ;PATCH #21 Added Fax, Email Addr, SPI field edits to Add Provider - IHS/OIT/FBD
  ;
  Q
 PERADD ;EP; ENTRY POINT to add or edit persons in ^va(200
@@ -82,7 +82,7 @@ PROVIDER(AVADR,AVADR1) ;PEP;EXTR FUNC called to add or edit one provider
  N Y,X
  S X="53.5R;9999999.01;9999999.02" S:$D(AVADR) X=X_";"_AVADR ;IHS/ORDC/LJF 12/3/93 PATCH #4
  ;S Y=X_";9999999.05:9999999.08;53.1;53.2;53.6:53.9" ;PATCH #7  ;IHS/OIT/FBD - 9/30/2010 - COMMENTED OUT - SUPERCEDED BY AVA*93.2*21
- S Y=".136;.151;"_X_";9999999.05:9999999.08;53.1;53.2;747.44;43.99;53.6:53.9" ;IHS/OIT/FBD - 9/30/2010 - AVA*93.2*21
+ S Y=".136;.151;"_X_";9999999.05:9999999.08;53.1;53.2;747.44;43.99;53.6:53.9" ;IHS/OIT/FBD - 9/30/2010 - AVA*93.2*21 - AVA*93.2*22 ADDED DEA EXPIRATION DATE
  S:$D(AVADR1) Y=Y_";"_AVADR1
  S AVADA=$$PERSON(X,Y)
  I $P($G(^VA(200,+AVADA,"PS")),U,5)]"" D  ;IHS/ORDC/LJF 9/13/93 PATCH #1

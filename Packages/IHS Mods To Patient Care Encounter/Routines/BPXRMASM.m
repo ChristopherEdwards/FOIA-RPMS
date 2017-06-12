@@ -1,5 +1,5 @@
-BPXRMASM ; IHS/CIA/MGH - Asthma reminders. ;15-Dec-2011 12:53;MGH
- ;;1.5;CLINICAL REMINDERS;**1003,1004,1005,1007,1008**;Jun 19, 2000;Build 25
+BPXRMASM ; IHS/CIA/MGH - Asthma reminders. ;18-Apr-2014 15:23;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,1002**;Feb 04, 2005;Build 15
  ;=================================================================
  ;This routine is designed to evaluate the asthma registry information
  ;to create the reminders for asthma patients that match the
@@ -16,7 +16,7 @@ PRIMARY(DFN,TEST,DATE,VALUE,TEXT) ; EP
  ;This computed finding will check to see if this asthma patient has a primary provider
  N CIADOB,CIASEX,X1,X2,CIAAGE
  S TEST=0,DATE="",TEXT="",VALUE=""
- I $P(^AUPNPAT(DFN,0),U,14)]"" S TEST=1,DATE=DT,TEXT="PROVIDER FOUND" Q
+ I $P($G(^AUPNPAT(DFN,0)),U,14)]"" S TEST=1,DATE=DT,TEXT="PROVIDER FOUND" Q
  NEW APCHPRV
  D WHPCP^BDPAPI(DFN,.APCHPRV)
  I $G(APCHPRV("DESIGNATED PRIMARY PROVIDER"))]"" S TEST=1,DATE=DT,TEXT="PROVIDER FOUND" Q

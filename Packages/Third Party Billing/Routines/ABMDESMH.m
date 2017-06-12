@@ -1,11 +1,12 @@
-ABMDESMH ; IHS/DSD/DMJ - Profession Services for Seperate Bill ; 
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ABMDESMH ; IHS/SD/SDR - Profession Services for Seperate Bill ; 
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR - V2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p13 - IM25574
  ;   Correction to CPT Modifier in Medical multiple
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Changed to use $$GET1^DIQ so output transform will execute for SNOMED/Provider Narrative
  ;
  K ABMS I $D(ABMP("FLAT")),$P(ABMP("FLAT"),U,3)]"" G FLAT
  ;
@@ -28,7 +29,8 @@ MSH S ABMS(ABMS("I"))=$P(ABMX(0),U,7)
  . S $P(ABMS(ABMS("I")),U,7)=$P($G(^ABMDCODE($P(ABMX(0),"^",16),0)),"^")
  E  S $P(ABMS(ABMS("I")),U,7)=$S($P(^DIC(81.1,$P($$CPT^ABMCVAPI(+ABMX(0),ABMP("VDT")),U,4),0),U,3)=2:2,1:1)  ;CSV-c
  S $P(ABMS(ABMS("I")),U,10)=$P($G(ABMX(0)),"^",15)  ;POS
- S $P(ABMS(ABMS("I")),U,8)=$P(^AUTNPOV($P(ABMX(0),U,6),0),U)
+ ;S $P(ABMS(ABMS("I")),U,8)=$P(^AUTNPOV($P(ABMX(0),U,6),0),U)  ;abm*2.6*14 HEAT161263
+ S $P(ABMS(ABMS("I")),U,8)=$$GET1^DIQ(9999999.27,$P(ABMX(0),U,6),"01","E")  ;abm*2.6*14 HEAT161263
  Q
  ;
 PRO S ABMX=0 F ABMS("I")=ABMS("I"):1 S ABMX=$O(@(ABMP("GL")_"27,"_ABMX_")")) Q:'ABMX  S ABMX("X")=ABMX D PRO1
@@ -77,7 +79,8 @@ XIT S ABMP("EXP",ABMP("VTYP",999))=ABMS("TOT")
  ;
 FLAT S $P(ABMS(1),U,2)=$$HDT^ABMDUTL($P($G(@(ABMP("GL")_"7)")),U))
  S $P(ABMS(1),U,3)=$$HDT^ABMDUTL($P($G(@(ABMP("GL")_"7)")),U,2))
- I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R" S $P(ABMS(1),U,4)=90250
+ ;I $P($G(^AUTNINS(ABMP("INS"),2)),U)="R" S $P(ABMS(1),U,4)=90250  ;abm*2.6*10 HEAT73780
+ I $$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")="R" S $P(ABMS(1),U,4)=90250  ;abm*2.6*10 HEAT73780
  S ABMX("FDAYS")=$S($P(ABMS(1),U,2)=$P(ABMS(1),U,3):1,1:$P(ABMP("FLAT"),U,8))
  S ABMX("NARR")=$S(ABMX("FDAYS")>0:ABMX("FDAYS"),1:1)
  S ABMX("NARR2")=" "_$S(ABMX("NARR")>1:"DAYS",1:"DAY")_" @ $"_$J($P(ABMP("FLAT"),U,4),4,2)

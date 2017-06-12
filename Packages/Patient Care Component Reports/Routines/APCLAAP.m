@@ -1,5 +1,5 @@
 APCLAAP ; IHS/CMI/LAB - print apc report 1A ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**15**;MAY 14, 2009;Build 11
  ;CMI/TUCSON/LAB - patch 3 FY Fix
 START ;
  S APCL132="__________________________________________________________________________________________________________________________________"
@@ -44,7 +44,8 @@ MONTOT ;set up month totals for all visits and pcp visits
  I $D(APCLPRIM) S ^(APCLJ)=$S($D(^XTMP("APCLAA",APCLJOB,APCLBT,"MONTOTPCP",APCLJ)):^(APCLJ)+APCLMON,1:APCLMON)
  Q
 CHKPRIM ;
- I $D(^APCLCNTL(1,11,"B",$P(^DIC(7,APCLDISC,9999999),U))) S APCLPRIM=1,APCLPRIT=APCLPRIT+APCLT
+ ;I $D(^APCLCNTL(1,11,"B",$P(^DIC(7,APCLDISC,9999999),U))) S APCLPRIM=1,APCLPRIT=APCLPRIT+APCLT
+ I $P($G(^DIC(7,APCLDISC,9999999)),U,3)="Y" S APCLPRIM=1,APCLPRIT=APCLPRIT+APCLT
  Q
 HEAD I 'APCLPG G HEAD1
  I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLQUIT="" Q

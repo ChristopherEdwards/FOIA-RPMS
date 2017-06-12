@@ -1,5 +1,5 @@
 ABSPOSN3 ; IHS/FCS/DRS - NCPDP Fms F ILC A/R ;  [ 09/12/2002  10:16 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve

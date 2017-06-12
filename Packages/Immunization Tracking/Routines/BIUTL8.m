@@ -1,5 +1,5 @@
 BIUTL8 ;IHS/CMI/MWR - UTIL: PATLKUP, PRTLST, ZGBL; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: PATIENT LOOKUP, DUPTEST, PRINT LIST, K/ZGBL, KILLALL.
  ;;           HFSPATH, IMMSVDIR.
@@ -9,7 +9,8 @@ BIUTL8 ;IHS/CMI/MWR - UTIL: PATLKUP, PRTLST, ZGBL; MAY 10, 2010
  ;;  PATCH 9: Fix so that TAB key will not skip Eligibility.  ELIGLAB+10
  ;;           Return the IP Address used for the TCH Forecaster.  IPTCH
  ;;           Add default of V01 (Ineligible) for patients 19 and over.  VFCSET+14
- ;
+ ;;  PATCH 10: Screen code for PPD Lot Number in Lot Number File.  LOTSCRS+0
+ ;;  PATCH 13: Return Flu Season Start and End Dates.  FLUDATS+0
  ;
  ;----------
 PATLKUP(BIDFN,BIADD,DUZ2,BIPOP) ;EP
@@ -370,3 +371,44 @@ DOVER(X,Z) ;EP
  Q:'$G(X) ""
  Q:$G(Z) $P($P($P($G(^DD(9000010.11,.08,0)),X_":",2),";"),"--",2)
  Q $P($P($G(^DD(9000010.11,.08,0)),X_":",2),";")
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Screen code for PPD Lot Number in Lot Number File.
+ ;----------
+LOTSCRS ;EP
+ ;---> Set Screen for Lot Number selection in Screen field of
+ ;---> "Form Only Field Parameters" of the Form BI FORM-SKIN VISIT ADD/EDIT
+ ;---> when selecting Lot Number.
+ ;---> Screen: If this Lot Number is Active, AND if the Skin Test selected is
+ ;--->         PPD, AND if EITHER [it has no specific Location] OR its Facility
+ ;--->         matches the user's Facility/Location (DUZ(2))].
+ ;
+ ;S DIR("S")="I 0"
+ S DIR("S")="I $P(^"_"(0),U,3)=0,+$G(BI(""B""))=2,$D(^AUTTIML(""C"",203,Y))"
+ S DIR("S")=DIR("S")_",(('$P($G(^AUTTIML(Y,0)),U,14))!($P($G(^AUTTIML(Y,0)),U,14)=$G(DUZ(2))))"
+ Q
+ ;
+ ;---> Next line: Concat to avoid suspected naked ref.
+ ;S DIR("S")="I $P(^"_"(0),U,3)=0,($G(BI(""B""))=""""!$D(^AUTTIML(""C"",+$G(BI(""B"")),Y)))"
+ ;S DIR("S")=DIR("S")_",(('$P($G(^AUTTIML(Y,0)),U,14))!($P($G(^AUTTIML(Y,0)),U,14)=$G(DUZ(2))))"
+ Q
+ ;**********
+ ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Return Flu Season Start and End Dates.
+ ;----------
+FLUDATS(DUZ2) ;PEP - Return Flu Season Start and End Dates.
+ ;---> Return the Flu Season Start and End Dates in the BI SITE PARAMETERS File
+ ;---> in the form: mm/dd%mm/dd
+ ;---> Parameters:
+ ;     1 - DUZ2  (opt) User's DUZ(2), otherwise IEN of Site in
+ ;                     RPMS SITE PARAMETERS File.
+ ;
+ S:'$G(DUZ2) DUZ2=$P($G(^AUTTSITE(1,0)),"^")
+ N X,Y
+ S X=$P($G(^BISITE(+DUZ2,0)),"^",31),Y=$P($G(^BISITE(+DUZ2,0)),"^",32)
+ I X'?2N1"/"2N S X="08/01"
+ I Y'?2N1"/"2N S Y="04/01"
+ Q X_"%"_Y
+ ;**********

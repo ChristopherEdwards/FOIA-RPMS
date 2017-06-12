@@ -1,5 +1,5 @@
 BQIDCDF ;PRXM/HC/ALA-Predefined Panel Definition ; 24 Oct 2005  6:21 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;

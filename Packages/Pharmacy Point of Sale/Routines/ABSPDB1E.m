@@ -1,5 +1,5 @@
 ABSPDB1E ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for D.0 (APPEND, FACILITY and NARRATIVE segments)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
  ;These are the new segments added in D.0 that never existed before.
 ADDDOC ;EP CALLED FROM ABSPDB1 to set up ADDITIONAL DOCUMENTATION SEGMENT
  Q:$D(SUPRESSG("Additional Doc"))

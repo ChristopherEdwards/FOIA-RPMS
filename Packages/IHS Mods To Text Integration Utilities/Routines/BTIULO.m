@@ -1,5 +1,5 @@
-BTIULO ; IHS/ITSC/LJF - CODE FOR IHS OBJECTS ;03-Aug-2009 17:16;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1004,1006**;NOV 04, 2004
+BTIULO ; IHS/ITSC/LJF - CODE FOR IHS OBJECTS ;16-Sep-2013 15:45;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1001,1004,1006,1012**;NOV 04, 2004;Build 45
  ;Added EHR 1.1 call for finding a visit
  ;Added error message if visit not found
  ;
@@ -230,3 +230,68 @@ PAD(D,L) ; -- SUBRTN to pad length of data
 SP(N) ; -- SUBRTN to pad N number of spaces
  Q $$PAD(" ",N)
  ;
+DETAIL(DFN,TARGET) ;
+ N RXN,LP,LP2,LBL,CNT,Y,INIEN,REASON,X1,CAUSE
+ N GMRA,GMRAL,X,ALLRG,ADR,TIUY,Y,Z,CNT,UNI
+ K @TARGET
+ S CNT=0
+ S GMRA="0^0^111" D EN1^GMRADPT
+ I $D(GMRAL)'>9 D  G ADRX
+ . S CNT=+$G(CNT)+1
+ . I $D(GMRAL),GMRAL=0 S @TARGET@(CNT,0)="Patient has answered NKA"
+ . E  S @TARGET@(CNT,0)="No Allergy Assessment" ;
+ S ADR=0 F  S ADR=$O(GMRAL(ADR)) Q:ADR=""  D
+ .D EN1^GMRAOR2(ADR,"RXN")
+ .S UNI=$$UNI^BEHOARCV(ADR)   ;Get the UNI code for this agent if its GMR type
+ .I $L(UNI) S CAUSE=$P(RXN,U)_"; UNII: "_UNI
+ .E  S CAUSE=$P(RXN,U)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="Causative agent: "_$P(CAUSE,U)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="Event: "_$P(RXN,U,12)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="Source: "_$P(RXN,U,11)
+ .D:$D(RXN("S",1)) SYM
+ .D:$D(RXN("I",1)) ING
+ .D:$D(RXN("V",1)) CLS
+ .D RECON(ADR)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)=""
+ADRX Q "~@"_$NA(@TARGET)
+ ;
+SYM ;Add symptoms
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="Signs/Symptoms:"
+ S LP=0 F  S LP=$O(RXN("S",LP)) Q:'LP  D
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="    "_RXN("S",LP)
+ Q
+CLS ;Add classes
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="Drug Classes:"
+ S LP=0 F  S LP=$O(RXN("V",LP)) Q:'LP  D
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="    "_$P(RXN("V",LP),U,2)
+ Q
+ING ;Add Ingredients
+ S CNT=CNT+1
+ S @TARGET@(CNT,0)="Drug Ingredients:"
+ S LP=0 F  S LP=$O(RXN("I",LP)) Q:'LP  D
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="    "_$P(RXN("I",LP),U,1)
+ Q
+RECON(ADR) ;Get reconciliation data
+ N REC,IEN,AIEN,WHEN,BY,FROM
+ S REC=""
+ F  S REC=$O(^BEHOCIR("G","A",ADR,REC)) Q:REC=""  D
+ .S IEN="" F  S IEN=$O(^BEHOCIR("G","A",ADR,REC,IEN)) Q:IEN=""  D
+ ..S AIEN=IEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..S WHEN=WHEN_" by "_BY
+ ..S FROM=$$GET1^DIQ(90461.63,REC,.03)
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Reconciled: "_WHEN
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Data Source: "_FROM
+ Q

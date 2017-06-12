@@ -1,5 +1,5 @@
 ABSPOSNC ; IHS/FCS/DRS - PHARmacy POS interface query from without ;  
- ;;1.0;PHARMACY POINT OF SALE;*40*;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;*40*;JUN 21, 2001;Build 15
  ;Target audience: the ANMC Nightly Checker
  ; Also, charge entry (At least at Sitka)
  ; May also be Ud by RXE,PAY option

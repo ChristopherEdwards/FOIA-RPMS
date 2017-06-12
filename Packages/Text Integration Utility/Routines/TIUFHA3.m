@@ -1,5 +1,5 @@
-TIUFHA3 ; SLC/MAM - LM Templates H, A Action Edit Status, INACTIVE(TYPE,FILEDA,NODE0), WARNING, WARNOBJI(FILEDA) ;4/17/97  21:46
- ;;1.0;TEXT INTEGRATION UTILITIES;**13,64**;Jun 20, 1997
+TIUFHA3 ; SLC/MAM - LM Templates H, A Action Edit Status, INACTIVE(TYPE,FILEDA,NODE0), WARNING, WARNOBJI(FILEDA) ; 03/16/2007
+ ;;1.0;TEXT INTEGRATION UTILITIES;**13,64,211,225**;Jun 20, 1997;Build 13
  ;
 EDSTAT ; Action Edit Status for Templates H, A, J, C
  N STATUS,TIUFXNOD,TIUFFULL
@@ -102,6 +102,13 @@ WARNING() ; Function Warns user who asks to Inactivate,  Returns 1 to Inactivate
  Q Y
  ;
 ACTIVE(FILEDA,NODE0) ; Change Status to Active.
+ N TIUOUT
+ D FULL^VALM1
+ I ($P(NODE0,U,4)="DOC"),(+$G(^TIU(8925.1,FILEDA,15))'>0) D  Q:+$G(TIUOUT)
+ . W !!,$C(7),"You MUST first map ",$P(NODE0,U),!
+ . D DIRECT^TIUMAP2(FILEDA)
+ . I +$G(^TIU(8925.1,FILEDA,15))'>0 W $C(7)," Status unchanged...",! H 2
+ . I  S TIUOUT=1,VALMBCK="R"
  D AUTOSTAT^TIUFLF6(FILEDA,NODE0,"ACTIVE") S VALMBCK="R"
  I $P(NODE0,U,4)="DOC" W " Entry and any (nonShared) Components Activated",! H 1 Q
  W " Entry Activated",! H 1

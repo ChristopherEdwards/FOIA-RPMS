@@ -1,5 +1,5 @@
 ABSPOSHF ;IHS/SD/lwj- Get/Format/Set value for DUR/PPS segment [ 09/04/2002  2:09 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUNE 21,2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,23**;JUNE 21,2001;Build 15
  ;
  ; This routine is an addemdum to ABSPOSCF.  Its purpose is to handle
  ; some of the repeating fields that now exist in NCPDP 5.1.  

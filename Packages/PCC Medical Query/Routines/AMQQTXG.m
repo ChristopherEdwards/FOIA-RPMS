@@ -1,26 +1,31 @@
 AMQQTXG ; IHS/CMI/THL - POINTER TAXONOMY ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;-----
 EN3 ; ENTRY POINT FOR POINTER TAXONOMY
  S AMQQHELP="PHELP"
  S AMQQHEL1="PHELP1"
  S AMQQLKUP="PLOOKUP"
-VAR S AMQQTAXI=$P(^AMQQ(5,AMQQATN,0),U,17)
+VAR ;
+ S AMQQTAXI=$P(^AMQQ(5,AMQQATN,0),U,17)
 RUN D GET
  I '$D(AMQQQUIT),'$D(AMQQSCMP),AMQQTAXT'=2,'$D(AMQQXX) D LIST^AMQQTX
 EXIT K X,AMQQTAXI,I,AMQQTGFG,AMQQTDIC,AMQQHELP,AMQQHEL1,AMQQLKUP,AMQQXXN,%,%Y,N,T,C
  Q
  ;
 GET I '$D(AMQQXX) W !
-GETR I $D(AMQQXXTT),$D(AMQQXXN) S AMQQXXN=$O(^UTILITY("AMQQ",$J,"XXTAX",AMQQXXTT,AMQQXXN)) Q:'AMQQXXN  S X=^(AMQQXXN) G GRR
+GETR ;
+ K AMQQISYS,ICDSYS
+ I $D(AMQQXXTT),$D(AMQQXXN) S AMQQXXN=$O(^UTILITY("AMQQ",$J,"XXTAX",AMQQXXTT,AMQQXXN)) Q:'AMQQXXN  S X=^(AMQQXXN) G GRR
  I $D(AMQQNTAX),AMQQNTAX="" Q
  I $D(AMQQNTAX) S X=AMQQNTAX,AMQQNTAX="" G GRR
  I $D(AMQQXX),$D(AMQQONE) S X="ALL" G GRR
+ ;I AMQQTGBL="^ICD9"!(AMQQTGBL="^ICD0") K AMQQNDB D ICDGET G GRR  ;X RETURNED AS INPUT VALUE
  S %="Enter "_$S($D(^UTILITY("AMQQ TAX",$J,AMQQURGN)):"ANOTHER ",1:"")_AMQQTNAR
  K AMQQNDB
  W !,%,": "
  R X:DTIME E  S X=U
-GRR I X="",'$D(^UTILITY("AMQQ TAX",$J,AMQQURGN)),'$D(AMQQSCMP) D ACA^AMQQAC Q:X=4  I X="" W ! G GETR
+GRR ;
+ I X="",'$D(^UTILITY("AMQQ TAX",$J,AMQQURGN)),'$D(AMQQSCMP) D ACA^AMQQAC Q:X=4  I X="" W ! G GETR
  I X="" Q
  I X=U S AMQQQUIT="" Q
  I X="]" S AMQQTTOT=9 K AMQQTGFG G GETR
@@ -57,6 +62,12 @@ GEXIT I X'="NULL" K ^UTILITY("AMQQ TAX",$J,AMQQURGN) S AMQQSCMP=X Q
 EDALL S %=$P(^AMQQ(1,AMQQLINK,0),U,5)
  S %=$P(^AMQQ(4,%,0),U)
  I %="G" D EDA Q
+ I AMQQTLOK="^ICD9("!(AMQQTLOK="^ICD0(") D  Q
+ .D ICDCS
+ .I AMQQISYS="" W !!,"Coding system must be selected." Q
+ .NEW AMQQTEMP
+ .D LST^ATXAPI(AMQQISYS,$S(AMQQTLOK="^ICD9(":80,1:80.1),"*","CODE","AMQQTEMP")
+ .S %="" F  S %=$O(AMQQTEMP(%)) Q:%=""  S Y=$P(AMQQTEMP(%),U,1) I Y'="" S ^UTILITY("AMQQ TAX",$J,AMQQURGN,Y)="" W "."
  S X=AMQQTLOK_"""B"")"
  S %=""
  F  S %=$O(@X@(%)) Q:%=""  S Y=$O(^(%,"")) I Y'="" S ^UTILITY("AMQQ TAX",$J,AMQQURGN,Y)="" W "."
@@ -96,3 +107,32 @@ EN2 ; ENTY POINT FOR RANGE OF CODES
  D VAR
  Q
  ;
+ICDGET ;
+ NEW DIC,Y,ICDSYS
+ ;WHAT CODING SYSTEM?
+ S AMQQSYS=""
+ W ! ;,"You must enter the coding system to which the codes belong.",!
+ S DIC("A")="Select the ICD CODING SYSTEM (ICD-9 or ICD-10):  ",DIC="^ICDS(",DIC("S")="I $P(^(0),U,3)=80",DIC(0)="AEMQ" D ^DIC K DIC
+ I $D(DUOUT) S X=U Q
+ I Y=-1 S X="" Q
+ S AMQQISYS=+Y
+ NEW DIR
+ S DIR("A")="Enter "_$S($D(^UTILITY("AMQQ TAX",$J,AMQQURGN)):"ANOTHER ",1:"")_AMQQTNAR D SETDIR,^DIR K DIR
+ I "^"[Y S X="" Q
+ Q
+ICDCS ;EP
+ NEW DIC,Y,ICDSYS
+ ;WHAT CODING SYSTEM?
+ S AMQQISYS=""
+ W ! ;,"You must enter the coding system from which these codes belong.",!
+ S DIC("A")="Select the ICD CODING SYSTEM (ICD-9 or ICD-10):  ",DIC="^ICDS(",DIC("S")="I $P(^(0),U,3)="_$S(AMQQTGBL="^ICD9":80,1:80.1)_"",DIC(0)="AEMQ" D ^DIC K DIC
+ I $D(DUOUT) S X=U Q
+ I Y=-1 S X="" Q
+ S AMQQISYS=+Y
+ Q
+SETDIR ; ENTRY POINT - SETS HELP AND DIR FOR INIT SUBROUTINE OF APCDFQA3
+ S DIR(0)="FO",DIR("?",1)="Enter ICD diagnosis code or narrative.  You may enter a range of",DIR("?",2)="codes by placing a ""-"" between two codes.  Codes in a range will"
+ S DIR("?",3)="include the first and last codes indicated and all codes that fall",DIR("?",4)="between.  Only one code or one range of codes at a time.  "
+ S DIR("?",5)="To select all codes in a set you can use a '*' wildcard.  E.g. E11*, 250*"
+ S DIR("?",6)="You can also ""de-select"" a code or range of codes by placing a ""-"" in",DIR("?",7)="front of it. (e.g. '-250.00' or '-250.01-250.91')"
+ Q

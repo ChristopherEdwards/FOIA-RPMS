@@ -1,5 +1,5 @@
-GMPLEDT3 ; SLC/MKB/KER -- Problem List edit utilities ; 04/15/2002
- ;;2.0;Problem List;**26,35**;Aug 25, 1994;Build 26
+GMPLEDT3 ; ISL/MKB,KER,JER -- Problem List edit utilities ;08/17/12  16:49
+ ;;2.0;Problem List;**26,35,36**;Aug 25, 1994;Build 65
  ;
  ; External References
  ;   DBIA   872  ^ORD(101
@@ -7,7 +7,7 @@ GMPLEDT3 ; SLC/MKB/KER -- Problem List edit utilities ; 04/15/2002
  ;   DBIA 10015  EN^DIQ1
  ;   DBIA 10026  ^DIR
  ;   DBIA 10104  $$UP^XLFSTR
- ;                     
+ ;
 MSG() ; List Manager Message Bar
  Q "Enter the number of the item(s) you wish to change"
  ;
@@ -35,16 +35,21 @@ KEYS ; Setup XQORM("KEY") array
 GETFLDS(DA) ; Define GMPFLD(#) and GMPORIG(#) Arrays with Current Values
  N DIC,DIQ,DR,I,GMPL,CNT,NIFN,FAC,EXT
  S DIC="^AUPNPROB(",DIQ="GMPL",DIQ(0)="IE"
- S DR=".01;.03;.05;.08:1.02;1.05:1.18" D EN^DIQ1
- F I=.01,.03,.05,.08,.12,.13,1.01,1.02,1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14,1.15,1.16,1.17,1.18 D
+ S DR=".01;.03;.05;.08:1.02;1.05:1.18;80001:80005" D EN^DIQ1
+ F I=.01,.03,.05,.08,.12,.13,1.01,1.02,1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14,1.15,1.16,1.17,1.18,80001,80002,80003,80004,80005 D
  . S GMPORIG(I)=$G(GMPL(9000011,DA,I,"I")),EXT=""
  . I I=1.01,GMPL(9000011,DA,I,"I")'>1 S GMPORIG(I)="" Q
  . Q:(GMPORIG(I)="")!(I=1.02)
- . I "^.01^.05^.12^1.01^1.05^1.06^1.08^1.1^1.14^"[(U_I_U) S EXT=GMPL(9000011,DA,I,"E")
+ . I "^.01^.05^.12^1.01^1.05^1.06^1.08^1.1^1.14^80001^80002^80003^80004^80005^"[(U_I_U) S EXT=GMPL(9000011,DA,I,"E")
  . I "^.03^.08^.13^1.07^1.09^"[(U_I_U) S EXT=$$EXTDT^GMPLX(GMPORIG(I))
  . I "^1.11^1.12^1.13^"[(U_I_U) S EXT=$S(I=1.11:"AGENT ORANGE",I=1.12:"RADIATION",1:"ENV CONTAMINANTS")
  . I "^1.15^1.16^1.17^1.18^"[(U_I_U) S EXT=$S(I=1.15:"HEAD/NECK CANCER",1=1.16:"MIL SEXUAL TRAUMA",1=1.17:"COMBAT VET",1:"SHAD")
  . S GMPORIG(I)=GMPORIG(I)_U_EXT
+ I $D(^AUPNPROB(DA,803))=10 D
+ . N CODE S CODE=$P(GMPORIG(.01),U,2)
+ . S I=0 F  S I=$O(^AUPNPROB(DA,803,I)) Q:+I'>0  D
+ . . S $P(CODE,"/",(I+1))=$P($G(^AUPNPROB(DA,803,I,0)),U)
+ . S $P(GMPORIG(.01),U,2)=CODE
  S I=0 F  S I=$O(GMPORIG(I)) Q:I'>0  S GMPFLD(I)=GMPORIG(I)
  S (CNT,GMPORIG(10,0),GMPFLD(10,0))=0
  S FAC=$O(^AUPNPROB(DA,11,"B",+GMPVAMC,0)) Q:'FAC
@@ -81,7 +86,7 @@ FLDS ; Define GMPFLD("FLD") Array for Editing
  Q
  ;
 JUMP(XFLD) ; Resolve ^- Jump Out of Field Order in Edit
- N I,MATCH,CNT,PROMPT,DIR,X,Y
+ N I,MATCH,CNT,PROMPT,DIR,X,Y,DTOUT,DUOUT
  ;   Passed in as ^XXX
  S XFLD=$$UP^XLFSTR($P(XFLD,U,2))
  I (XFLD="")!(XFLD["^") S GMPQUIT=1 Q

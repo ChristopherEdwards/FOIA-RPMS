@@ -1,0 +1,139 @@
+BLRERRT2 ; IHS/MSC/MKK - IHS Lab ERRor Trap Report, Part 2 ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1034**;NOV 01, 1997;Build 88
+ ;
+EEP ; EP -- Ersatz Entry Point
+ D EEP^BLRGMENU
+ Q
+ ;
+PACKAGE ; EP - Package Error Counts
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$PACKAGEI()="Q"
+ ;
+ F  S PACKAGE=$O(^TMP("BLRERRTR",$J,"PACKAGE",PACKAGE))  Q:PACKAGE=""!(QFLG="Q")  D
+ . S CNT=CNT+1
+ . S ERROR=""
+ . F  S ERROR=$O(^TMP("BLRERRTR",$J,"PACKAGE",PACKAGE,ERROR))  Q:ERROR=""!(QFLG="Q")  D PACKAGEL
+ ;
+ Q:QFLG="Q"
+ ;
+ W !!,?4,CNT," Packages With Errors"
+ W:TOTAL !!,?9,TOTAL," Total Errors"
+ D PRESSKEY^BLRGMENU($S(TOTAL:4,1:9))
+ Q
+ ;
+PACKAGEI() ; EP - Initialization
+ D SETBLRVS("PACKAGE")
+ ;
+ S HEADER(1)="Error Trap Report"
+ S HEADER(2)="Package Errors"
+ ;
+ D HEADERDT^BLRGMENU
+ D HEADONE^BLRGMENU(.HDRONE)
+ ;
+ D HEADDTRN(3)
+ ;
+ S HEADER(4)=" "
+ S $E(HEADER(5),5)="Package"
+ S $E(HEADER(5),40)="Error"
+ S $E(HEADER(5),70)="# Errs"
+ ;
+ D ^%ZIS
+ I POP Q $$BADSTUFQ("Device I/O Error.")
+ U IO
+ S MAXLINES=IOSL-4,LINES=MAXLINES+10
+ S QFLG="NO"
+ ;
+ S (CNT,PG,TOTAL)=0
+ S PACKAGE=""
+ Q "OK"
+ ;
+PACKAGEL ; EP - Line of data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HDRONE)  Q:QFLG="Q"
+ ;
+ W ?4,PACKAGE
+ W ?39,ERROR
+ W ?69,$G(^TMP("BLRERRTR",$J,"PACKAGE",PACKAGE,ERROR))
+ W !
+ S LINES=LINES+1
+ ;
+ S TOTAL=TOTAL+$G(^TMP("BLRERRTR",$J,"ROUTINE",PACKAGE,ERROR))
+ Q
+ ;
+ROUTINE ; EP - Routine Error Counts
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$ROUTINEI()="Q"
+ ;
+ F  S ROUTINE=$O(^TMP("BLRERRTR",$J,"ROUTINE",ROUTINE)) Q:ROUTINE=""!(QFLG="Q")  D
+ . S ERROR=""
+ . S CNT=CNT+1
+ . F  S ERROR=$O(^TMP("BLRERRTR",$J,"ROUTINE",ROUTINE,ERROR))  Q:ERROR=""!(QFLG="Q")  D ROUTINEL
+ ;
+ Q:QFLG="Q"
+ ;
+ W !!,?4,CNT," Entries In Error Trap"
+ W:TOTAL !!,?9,TOTAL," Total Errors"
+ D PRESSKEY^BLRGMENU($S(TOTAL:4,1:9))
+ Q
+ ;
+ROUTINEI() ; EP - Initialization
+ D SETBLRVS("ROUTINE")
+ ;
+ S HEADER(1)="Error Trap Report"
+ S HEADER(2)="Routine Errors"
+ ;
+ D HEADERDT^BLRGMENU
+ D HEADONE^BLRGMENU(.HDRONE)
+ ;
+ D HEADDTRN(3)
+ ;
+ S HEADER(4)=" "
+ S $E(HEADER(5),5)="Routine"
+ S $E(HEADER(5),20)="Error"
+ S $E(HEADER(5),70)="# Errs"
+ ;
+ D ^%ZIS
+ I POP Q $$BADSTUFQ("Device I/O Error.")
+ ;
+ U IO
+ S MAXLINES=IOSL-4,LINES=MAXLINES+10
+ S QFLG="NO"
+ ;
+ S (CNT,PG,TOTAL)=0
+ S ROUTINE=""
+ ;
+ Q "OK"
+ ;
+ROUTINEL ; EP - Line of Data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HDRONE)  Q:QFLG="Q"
+ ;
+ W ?4,ROUTINE
+ W ?19,ERROR
+ W ?69,$G(^TMP("BLRERRTR",$J,"ROUTINE",ROUTINE,ERROR))
+ W !
+ S LINES=LINES+1
+ S TOTAL=TOTAL+$G(^TMP("BLRERRTR",$J,"ROUTINE",ROUTINE,ERROR))
+ ;
+ Q
+ ;
+ ; =============================== Utilities ===============================
+ ;
+ ;
+SETBLRVS(TWO) ; EP - Set the BLRVERN variable(s)
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S:$L(TWO) BLRVERN2=TWO
+ Q
+ ;
+BADSTUFQ(STR,TAB) ; EP - BADSTUFF error message.  Ends with Q "Q"
+ S TAB=$G(TAB,4)
+ W !!,?TAB,STR,"  Routine Ends."
+ D PRESSKEY^BLRGMENU(TAB+5)
+ Q "Q"
+ ;
+HEADDTRN(HEDLINE) ; EP - Create Date Range HEADER node
+ S ERRBEG=$$HTE^XLFDT($G(^TMP("BLRERRTR",$J,-1)),"5DZ")
+ S ERREND=$$HTE^XLFDT($G(^TMP("BLRERRTR",$J,-2)),"5DZ")
+ ;
+ S HEADER(HEDLINE)=$$CJ^XLFSTR("Date Range: "_ERRBEG_" thru "_ERREND,IOM)
+ Q

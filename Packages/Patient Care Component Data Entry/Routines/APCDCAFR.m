@@ -1,5 +1,5 @@
 APCDCAFR ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**2,5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,11**;MAY 14, 2009;Build 58
  ;
 START ;
  D XIT
@@ -126,14 +126,14 @@ PROCESS ;
  .I '$D(APCDHLS) W "All" Q
  .S Y=0,C=0 F  S Y=$O(APCDHLS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$E($P(^SC(Y,0),U),1,15)
  W !!,"PRIMARY PROVIDER ON VISIT: " D
- .I '$D(APCDPRV) W "All" Q
+ .I '$D(APCDPRVS) W "All" Q
  .S Y=0,C=0 F  S Y=$O(APCDPRVS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$E($P(^VA(200,Y,0),U),1,15)
  W !!,"CHART DEFICIENCY REASONS: " D
  .I '$D(APCDCDRS) W "All (includes visits with no chart deficiency reason entered" Q
  .S Y=0,C=0 F  S Y=$O(APCDCDRS(Y)) Q:Y'=+Y  S C=C+1 W:C>1 ";" W ?24,$E($P(^AUTTCDR(Y,0),U),1,15)
 SORT ;how to sort list of visits
  S APCDSORT=""
- S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status;R:Chart Deficiency Reason (Last one entered)"
+ S DIR(0)="S^N:Patient Name;H:HRN;D:Date of Visit;T:Terminal Digit of HRN;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status"
  S DIR("A")="How would you like the list of visits sorted",DIR("B")="D" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G XIT
  S APCDSORT=Y
@@ -251,7 +251,6 @@ SCDR ;selected CHART DEF REASONS
  I Y=-1 S APCDQ="" Q
  S APCDCDRS(+Y)=""
  G SCDR
- Q
 SSC ;
  S X="SERVICE CATEGORY",DIC="^AMQQ(5,",DIC(0)="FM",DIC("S")="I $P(^(0),U,14)" D ^DIC K DIC,DA I Y=-1 W "OOPS - QMAN NOT CURRENT - QUITTING" G DATES
  D PEP^AMQQGTX0(+Y,"APCDSCS(")

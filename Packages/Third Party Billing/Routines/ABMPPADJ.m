@@ -1,9 +1,10 @@
 ABMPPADJ ; IHS/SD/SDR - Prior Payments/Adjustments page (CE); 
- ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8,9,10**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**4,6,8,9,10,19**;NOV 12, 2009;Build 300
  ; split routine to ABMPPAD1 because of size
  ;
  ; IHS/SD/SDR - v2.5 p13 - NO IM
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added export mode 32
+ ;IHS/SD/SDR - 2.6*19 - HEAT168248 - Added code to put each SAR only once with the total amt.  In split routine, ABMPPAD3
  ;
  ; ABMPL(Insurer priority, Insurer IEN)=
  ;        P1=13 multiple IEN
@@ -124,7 +125,9 @@ GATHER Q:$G(ABMCHK)=1  ;quit if no complete insurer or 2 export modes on claim
  ...I ABMCAT="P" S $P(ABMPP(ABMBINS,ABMCAT,ABMLN),U,5)="N",ABMLN=ABMLN+1 Q
  ...S $P(ABMPP(ABMBINS,ABMCAT,ABMLN),U,5)="Y",ABMLN=ABMLN+1
  ..I +$G(ABMHOLD)'=0 S DUZ(2)=ABMHOLD K ABMHOLD
+ ..D ^ABMPPAD3  ;split routine abm*2.6*19 IHS/SD/SDR HEAT168248
  ..I ABMTFLAG=0 D ^ABMPPFLR  ;do filer if trans not split
+ ;D ^ABMPPAD3  ;split routine abm*2.6*19 IHS/SD/SDR HEAT168248
  S ABMTFLAG=1
 DISP K ABMSFLG,ABMMFLG
  D SETVAR^ABMPPAD1

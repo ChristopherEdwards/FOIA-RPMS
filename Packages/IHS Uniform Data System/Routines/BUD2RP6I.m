@@ -1,5 +1,5 @@
 BUD2RP6I ; IHS/CMI/LAB - UDS REPORT DRIVER TABLE 6B ;
- ;;9.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 02, 2015;Build 42
+ ;;10.0;IHS/RPMS UNIFORM DATA SYSTEM;;FEB 04, 2016;Build 50
  ;
 PRENATT ;EP
  W !!,"UDS does not calculate the prenatal care indicators in Sections A and B."

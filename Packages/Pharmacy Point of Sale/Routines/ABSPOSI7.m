@@ -1,5 +1,5 @@
 ABSPOSI7 ; IHS/FCS/DRS - utilities to go with Page 7 ;  [ 08/30/2002  7:20 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------
  ;IHS/SD/lwj 8/29/02  NCPDP 5.1 changes
  ; new field added to the insurance/prior authorization screen

@@ -1,5 +1,5 @@
 BDMS9B4 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ; 27 Jan 2011  6:58 AM
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8,9**;JUN 14, 2007;Build 78
  ;
  ;
 FRSTDMDX(P,F) ;EP return date of first dm dx
@@ -12,11 +12,20 @@ FRSTDMDX(P,F) ;EP return date of first dm dx
 CMSFDX(P,F) ;EP - return date/dx of dm in register
  I $G(F)="" S F="E"
  I '$G(P) Q ""
- NEW R,N,D,D1,Y,X,G S R=0,N="",D="" F  S N=$O(^ACM(41.1,"B",N)) Q:N=""!(D]"")  S R=0 F  S R=$O(^ACM(41.1,"B",N,R)) Q:R'=+R!(D]"")  I N["DIAB" D
- .S (G,X)=0,(D,Y)="" F  S X=$O(^ACM(44,"C",P,X)) Q:X'=+X!(D]"")  I $P(^ACM(44,X,0),U,4)=R D
- ..S D=$P($G(^ACM(44,X,"SV")),U,2) I D]"" S D1=D,D=$S(F="E":$$DATE^BDMS9B1(D),1:D)
+ NEW R,N,D,D1,Y,X,G S R=0,N="",D="" F  S N=$O(^ACM(41.1,"B",N)) Q:N=""  S R=0 F  S R=$O(^ACM(41.1,"B",N,R)) Q:R'=+R  I N["DIAB" D
+ .S (G,X)=0,(Y)="" F  S X=$O(^ACM(44,"C",P,X)) Q:X'=+X  I $P(^ACM(44,X,0),U,4)=R D
+ ..S D=$P($G(^ACM(44,X,"SV")),U,2) I D]"" S D(D)=""
+ S D=$O(D(0)) I D]"" S D=$S(F="E":$$DATE^BDMS9B1(D),1:D)
  Q $G(D)
  ;
+CMSFDXR(P,F) ;EP - return date/dx of dm in register
+ I $G(F)="" S F="E"
+ I '$G(P) Q ""
+ NEW R,N,D,D1,Y,X,G S R=0,N="",D="" F  S N=$O(^ACM(41.1,"B",N)) Q:N=""  S R=0 F  S R=$O(^ACM(41.1,"B",N,R)) Q:R'=+R  I N["DIAB" D
+ .S (G,X)=0,(Y)="" F  S X=$O(^ACM(44,"C",P,X)) Q:X'=+X  I $P(^ACM(44,X,0),U,4)=R D
+ ..S D=$P($G(^ACM(44,X,"SV")),U,2) I D]"" S D(D)=N
+ S D=$O(D(0)) I D]"" S D=D(D)
+ Q $G(D)
 PLDMDOO(P,F) ;EP get first dm dx from case management
  I '$G(P) Q ""
  I $G(F)="" S F="E"
@@ -25,10 +34,10 @@ PLDMDOO(P,F) ;EP get first dm dx from case management
  NEW D,X,I S D="",X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S I=$P(^AUPNPROB(X,0),U)
- .I $$ICD^BDMUTL(I,"SURVEILLANCE DIABETES",9) D
+ .I $$ICD^BDMUTL(I,"SURVEILLANCE DIABETES",9) D  Q
  ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
- ..Q
- .Q
+ .I $P($G(^AUPNPROB(X,800)),U,1)]"",$$SNOMED^BDMUTL(2016,"DIABETES DIAGNOSES",$P(^AUPNPROB(X,800),U,1)) D
+ ..I $P(^AUPNPROB(X,0),U,13)]"" S D($P(^AUPNPROB(X,0),U,13))=""
  S D=$O(D(0))
  I D="" Q D
  Q $S(F="E":$$DATE^BDMS9B1(D),1:D)
@@ -79,7 +88,7 @@ PNEU(P) ;EP
  S PNEU2=$$LASTPNEU(P,,$$FMADD^XLFDT($P(PNEU1,U),-1),"A")
  I PNEU1]"" Q "Yes  "_$$DATE^BDMS9B1($P(PNEU1,U))_"   "_$$DATE^BDMS9B1($P(PNEU2,U))
  S R="",G="" F R=33,109 Q:R=""!(G)  D
- .S G=$$REFUSAL^BDMDC17(P,9999999.14,$O(^AUTTIMM("C",R,0)),$$DOB^AUPNPAT(P),DT,"R")
+ .S G=$$REFUSAL^BDMDD17(P,9999999.14,$O(^AUTTIMM("C",R,0)),$$DOB^AUPNPAT(P),DT,"R")
  I G Q "Refused "_$P(G,U,3)
  ;; BI REFUSALS
  S G="" F Z=33,109 Q:G  S X=0,Y=$O(^AUTTIMM("C",Z,0)) I Y F  S X=$O(^BIPC("AC",P,Y,X)) Q:X'=+X!(G)  D
@@ -115,7 +124,7 @@ PPD(P) ;EP
  ;K BDMY S X=P_"^LAST DX V74.1" S E=$$START1^APCLDF(X,"BDMY(")
  ;I $D(BDMY(1)),$P(BDMY(1),U,1)>$P(BDMV,U,1) S BDMV=$P(BDMY(1),U,1)_U_U_U_" (by Diagnosis) V74.1"  ; Q $$DATE^BDMS9B1($P(BDMY(1),U))_"  (by Diagnosis)"
  I BDMV]"" Q $P(BDMV,U,4)_"  "_$P(BDMV,U,2)_"  "_$P(BDMV,U,3)_"  "_$$DATE^BDMS9B1($P(BDMV,U,1))
- S G=$$REFUSAL^BDMDC17(P,9999999.28,$O(^AUTTSK("B","PPD",0)),$$DOB^AUPNPAT(P),DT,"R")
+ S G=$$REFUSAL^BDMDD17(P,9999999.28,$O(^AUTTSK("B","PPD",0)),$$DOB^AUPNPAT(P),DT,"R")
  I G Q G
  Q ""
 PPDS(P) ;EP
@@ -126,9 +135,9 @@ PPDS(P) ;EP
  S X=P_"^LAST HEALTH [DM AUDIT TB HEALTH FACTORS" S E=$$START1^APCLDF(X,"BDMS(")
  I $D(BDMS) Q "Known Positive PPD or Hx of TB (Health Factor)"
 PPDSPL ;CHECK PL
- N T S T=$O(^ATXAX("B","DM AUDIT TUBERCULOSIS DXS",0))
+ N T S T="DM AUDIT TUBERCULOSIS DXS"
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^BDMUTL(Y,T,9) S I=1
  I I Q "Known Positive PPD or Hx of TB (Problem List DX)"
  ;check povs
  K BDMS S X=P_"^FIRST DX [DM AUDIT TUBERCULOSIS DXS" S E=$$START1^APCLDF(X,"BDMS(")
@@ -172,14 +181,14 @@ MAMREF(P,LMAM) ;EP
  S I=0 F  S I=$O(^AUPNPREF("AA",P,71,I)) Q:I'=+I   D
  .S C=$P($G(^RAMIS(71,I,0)),U,9)
  .Q:C=""
- .Q:'$$ICD^ATXCHK(C,$O(^ATXAX("B","BGP CPT MAMMOGRAM",0)),1)
+ .Q:'$$ICD^BDMUTL(C,$O(^ATXAX("B","BGP CPT MAMMOGRAM",0)),1)
  .S D=$O(^AUPNPREF("AA",P,71,I,0))  ;last date
  .S D=9999999-D
  .I D>$P(LAST,U,1) S LAST=D_U_"Patient Refused a Mammogram ("_C_") on "_$$DATE^BDMS9B1(D)
  ;now check cpt refusals
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I'=+I   D
  .S C=I
- .Q:'$$ICD^ATXCHK(C,$O(^ATXAX("B","BGP CPT MAMMOGRAM",0)),1)
+ .Q:'$$ICD^BDMUTL(C,$O(^ATXAX("B","BGP CPT MAMMOGRAM",0)),1)
  .S D=$O(^AUPNPREF("AA",P,81,I,0))  ;last date
  .S D=9999999-D
  .I D>$P(LAST,U,1) S LAST=D_U_"Patient Refused a Mammogram ("_C_") on "_$$DATE^BDMS9B1(D)

@@ -1,5 +1,5 @@
-LA7VCN5A ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VCN5A ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027,1033**;NOV 01, 1997
  ; This routine is a continuation of LA7VIN5.
  ; It is performs processing of fields in OBX segments.
  Q
@@ -127,6 +127,27 @@ PRDID(LA7PRDID,LA7SFAC,LA7CS) ; Process/Store Producer's ID
  Q
  ;
  ;
+RPTFAC(LA7PRDID,LA7SFAC,LA7CS) ; Process/Store Producer's ID
+ ; Store where test was performed.
+ ; Call with LA7PRDID = Producer's ID field
+ ;            LA7SFAC = sending facility
+ ;              LA7CS = component encoding character
+ ;
+ N LA74,LA7X,LA7Y
+ ;
+ ;S LA7X=$P(LA7PRDID,LA7CS,2),LA74=""
+ S LA7X=LA7PRDID,LA74=""
+ ;
+ I $P(LA7PRDID,LA7CS,3)="99VA4" S LA74=$$FIND1^DIC(4,"","OMX",$P(LA7PRDID,LA7CS))
+ I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7PRDID,LA7CS),1,1)
+ ;I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7SFAC,LA7CS),1,1)
+ ;
+ ; Store producer's id in LAH global with results.
+ I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74
+ ;
+ Q
+ ;
+ ;
 REFRNG(LA7X) ; Process/Store References Range.
  ; Call with LA7X = reference range to store.
  ;
@@ -174,7 +195,8 @@ ABFLAG(LA7X) ; Process/Store Abnormal Flags.
  ;
  ; Store abnormal flags in LAH global with results.
  ; Currently only storing high/low and critical flags
- S LA7Y=$S(LA7X="L":"L",LA7X="H":"H",LA7X="LL":"L*",LA7X="HH":"H*",1:"")
+ ;S LA7Y=$S(LA7X="L":"L",LA7X="H":"H",LA7X="LL":"L*",LA7X="HH":"H*",1:"")
+ S LA7Y=LA7X  ;ihs/cmi/maw MU2 pass through
  S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",2)=LA7Y
  ;
  ; Critical or designated abnormal tests generate bulletin/alert

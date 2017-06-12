@@ -1,5 +1,5 @@
-RACMP1 ;HISC/GJC,RVD-Complication Report (Part 2 of 3) ;05/13/09  11:08
- ;;5.0;Radiology/Nuclear Medicine;**99**;Mar 16, 1998;Build 5
+RACMP1 ;HISC/GJC,RVD-Complication Report (Part 2 of 3) ; 06 Oct 2013  11:02 AM
+ ;;5.0;Radiology/Nuclear Medicine;**99,1005**;Mar 16, 1998;Build 13
  ;Supported IA #10103 reference to ^XLFDT
  ;Supported IA #2056 reference to ^DIQ
  ;Supported IA #10060 reference to ^VA(200
@@ -67,7 +67,11 @@ PRT1 ; Output subroutine two
  . Q
  Q
 PRSC ;DISPLAY pregnancy screen and comment, patch 99
- I $$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .N RAOR751 S RAOR751=$P($G(^RADPT(RADFN,"DT",$G(RAINVDT),"P",$G(RA5),0)),U,11)
  .W !,"Pregnant at time of order entry: ",$$GET1^DIQ(75.1,$G(RAOR751)_",",13)
  .N R3,RAPCOMM S R3=$G(^RADPT(RADFN,"DT",$G(RAINVDT),"P",$G(RA5),0))

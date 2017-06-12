@@ -1,5 +1,5 @@
-BLRAG05C ; IHS/MSC/SAT - SUPPORT FOR LABORATORY ACCESSION GUI RPCS ; NOV 14, 2012
- ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997;Build 185
+BLRAG05C ; IHS/MSC/SAT - SUPPORT FOR LABORATORY ACCESSION GUI RPCS ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1031,1034**;NOV 01, 1997;Build 88
  Q
  ;
 BILL ;-- this is where we ask billing type
@@ -7,21 +7,51 @@ BILL ;-- this is where we ask billing type
  D SETINS
  F BLRJK=1:1:$L(BLRAGDX,":") D
  .S BLRADX=0
- .S BLRDXS=$$ICDDX^ICDCODE($P(BLRAGDX,":",BLRJK))
+ .; S BLRDXS=$$ICDDX^ICDCODE($P(BLRAGDX,":",BLRJK))
+ .S BLRDXS=$$ICDDX^ICDEX($P(BLRAGDX,":",BLRJK),,,"I")     ; IHS/MSC/MKK - LR*5.2*1034
  .D SETDX
  Q
  ;
 DX(PAT) ;-- get the diagnosis for billing
  K DIC,BLRDXS,BLRADX,BLRDXA
+ ;
  S BLRADX=1
- S DIC="^ICD9("
- S DIC("S")="I '$P($G(^(0)),U,9)"
- S DIC(0)="AEMQZ",DIC("A")="What is the ICD Diagnosis code for billing: "
- D ^DIC
+ ;
+ ; S DIC="^ICD9("
+ ; S DIC("S")="I '$P($G(^(0)),U,9)"
+ ; S DIC(0)="AEMQZ",DIC("A")="What is the ICD Diagnosis code for billing: "
+ ; D ^DIC
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ ; AICD 4.0 re-structured File 80.  There is no longer an INACTIVE FLAG.
+ ; STATUS is now a multiple.  Note that STATUS=1 is ACTIVE; STATUS=0 is INACTIVE.
+ ; This means the D ^DIC call will no longer work: have to use D ^DIR.
+ NEW ICD10DT,ICD10PTR
+ ;
+ D ^XBFMK
+ ;
+ ; Try to use 80.4 to determine ICD-10 Date
+ S ICD10PTR=+$$FIND1^DIC(80.4,,,"ICD-10-CM")
+ S ICD10DT=+$P($$GET1^DIQ(80.4,ICD10PTR,"IMPLEMENTATION DATE","I"),".")
+ S:ICD10DT<1 ICD10DT=3151001   ; If no ICD10DT, hard set to 10/1/2015.
+ ;
+ ; If Date >= ICD-10 date, just return ACTIVE ICD-9 & ICD-10 entries
+ I $$DT^XLFDT>=ICD10DT S DIR("S")="I $P($G(^ICD9(+Y,66,+$O(^ICD9(+Y,66,""A""),-1),0)),""^"",2)"
+ ;
+ ; If Date < ICD-10 date, only ICD-9 AND ACTIVE entries are returned
+ I $$DT^XLFDT<ICD10DT S DIR("S")="I +$G(^ICD9(+Y,1))<30&($P($G(^ICD9(+Y,66,+$O(^ICD9(+Y,66,""A""),-1),0)),""^"",2))"
+ ;
+ S DIR(0)="PO^80:AEMQZ"
+ S DIR("A")="What is the ICD Diagnosis code for billing: "
+ D ^DIR
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ ;
  I Y<0 D  Q
  . D ADDDX(BLRTSTDA)
  . K BLRADX
- S BLRDXS=$$ICDDX^ICDCODE(+Y)
+ ;
+ ; S BLRDXS=$$ICDDX^ICDCODE(+Y)
+ S BLRDXS=$$ICDDX^ICDEX(+Y,,,"I")       ; IHS/MSC/MKK - LR*5.2*1034
  I $G(BLRDXA(+Y)) D  G ENDDX
  . W !,"You have already selected this Diagnosis"
  S BLRDXA(+Y)=1

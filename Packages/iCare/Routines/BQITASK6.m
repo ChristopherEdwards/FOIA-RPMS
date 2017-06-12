@@ -1,7 +1,10 @@
 BQITASK6 ;GDIT/HS/ALA-MU CQ Job ; 30 Sep 2011  1:06 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,3,4**;Apr 18, 2012;Build 66
  ;
-NIN ;EP -- BQI UPDATE MU CQM 90 DAYS
+NIN ;EP -- BQI UPDATE MU CQM monthly
+ ;
+ I $G(DUZ(2))="" D
+ . D DZ^BQITASK1 M DUZ=^XTMP("BQIRMDR","DUZ")
  ;
  NEW DESC,BJOB,BCJOB,BQPROH
  S BQPROH=+$P(^BQI(90508,1,12),U,7)
@@ -27,15 +30,18 @@ NIN ;EP -- BQI UPDATE MU CQM 90 DAYS
  ;
  I $O(^XTMP("BQIMCQMPT",0))="" S ^XTMP("BQICQMPT",0)=$$FMADD^XLFDT(DT,14)_U_DT_U_"MU CQ Patients"
  S BGPPROV=$P(^BQI(90508,1,12),U,3),BCJOB=$P(^BQI(90508,1,12),U,5)
- S STOP=0,BQPROH=+$P(^BQI(90508,1,12),U,7)
+ S STOP=0
  F  S BGPPROV=$O(^BQI(90508,1,14,"B",BGPPROV)) Q:BGPPROV=""  D  Q:STOP
  . D MON^BQIMUPRS(BGPPROV)
  . S $P(^BQI(90508,1,12),U,3)=BGPPROV
  . S ^XTMP("BQIMUMON",BGPPROV)=$P(^BQI(90508,1,12),U,8)_U_$P(^BQI(90508,1,12),U,9)
  . ; If not prohibited, keep running
+ . S BQPROH=+$P(^BQI(90508,1,12),U,7)
  . I 'BQPROH Q
  . ; If prohibited, check the date and time to see if the job needs to stop
  . S BQIMUDTM=$$NOW^XLFDT(),BQIMUDT=$P(BQIMUDTM,".",1),BQIMUTIM=$P(BQIMUDTM,".",2)
+ . ; if it is a holiday, keep running
+ . I $D(^HOLIDAY("B",DT)) Q
  . S CDOW=$$DOW^XLFDT(BQIMUDT,1)
  . ; If day of week is Saturday, keeping running even if prohibited
  . I CDOW=6 Q
@@ -62,25 +68,19 @@ HOS ; Hospital CQ
  . S BGPMUT="H" ; BGPMU Hospital Measures
  . S BGPRTYPE=4,BGP0RPTH="A"
  . S BGPBEN=3
- . S X=0 F  S X=$O(^BGPMUIND(BGPMUYF,"AMS","H",X)) Q:X'=+X  S BGPIND(X)=""
+ . S X=0 F  S X=$O(^BGPMUIND(BGPMUYF,X)) Q:'X  I $P(^BGPMUIND(BGPMUYF,X,0),U,4)="H" S BGPIND(X)=""
  . S BQIGREF=$NA(^TMP("BQICQMH9",$J)) K @BQIGREF
- . ; 90 days
+ . ;
  . S FAC=$$HME^BQIGPUTL()
  . S BGPBD=$P(^BQI(90508,1,12),U,8),BGPED=$P(^BQI(90508,1,12),U,9)
  . S BQTDT=$E(BGPBD,1,5)_"00"
  . S BQTMN=$O(^BQIFAC(FAC,50,"B",BQTDT,""))
  . I BQTMN="" D UPH
- . ;S BQTDT=$O(^BQIFAC(FAC,60,"B",""),-1)
- . ;I BQTDT="" D UPH
- . ;S BQTMN=$O(^BQIFAC(FAC,60,"B",BQTDT,""))
- . ;I BQTMN="" Q
  . ; Already data there, don't recalculate and quit
- . I $G(^BQIFAC(FAC,50,BQTMN,1,1,0))'="" Q
+ . ;I $G(^BQIFAC(FAC,50,BQTMN,1,1,0))'="" Q
  . S BGPBD=$P(^BQI(90508,1,12),U,8),BGPED=$P(^BQI(90508,1,12),U,9)
- . ;S BGPBD=$P(^BQIFAC(FAC,60,BQTMN,0),U,2),BGPED=$P(^(0),U,3)
- . ;S BGPBD=$$DATE^BQIUL1("T-90"),BGPED=DT
  . ; Previous
- . S BGPPBD=$$DATE^BQIUL1("T-181"),BGPPED=$$DATE^BQIUL1("T-91")
+ . S BGPPBD="",BGPPED=""
  . ; Baseline
  . S BGPBBD=BGPPBD,BGPBED=BGPPED
  . D BQI^BGPMUEHD(.BQIGREF)
@@ -106,6 +106,7 @@ HOS ; Hospital CQ
  S BQIUPD(90508,DA_",",12.03)=+BGPPROV
  I +BGPPROV=0 D
  . S BMDT=$P(^BQI(90508,1,12),U,9),BMDT=$$FMADD^XLFDT(BMDT,1)
+ . S BMDT=$E(BMDT,1,5)_"00"
  . I $D(^XTMP("BQIMMON",BMDT)) K ^XTMP("BQIMMON",BMDT)
  . S BQIUPD(90508,DA_",",12.05)="@"
  D FILE^DIE("","BQIUPD","ERROR")

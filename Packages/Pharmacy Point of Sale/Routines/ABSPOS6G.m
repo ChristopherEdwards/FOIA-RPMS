@@ -1,5 +1,5 @@
 ABSPOS6G ; IHS/FCS/DRS - DUR stuff ;
- ;;1.0;PHARMACY POINT OF SALE;**1,31**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,31**;JUN 21, 2001;Build 15
  Q
 DURBRIEF(RXI)      ;EP - from ABSPOS6B ;
  ; $$ brief version - for the list manager line

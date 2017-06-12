@@ -1,5 +1,5 @@
 APCHPWHU ; IHS/CMI/LAB - PCC HEALTH SUMMARY ;
- ;;2.0;IHS PCC SUITE;**6,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**6,7,11**;MAY 14, 2009;Build 58
  ;
 SUBHEAD ;EP - print subheader
  NEW X
@@ -70,7 +70,7 @@ CPT(P,BDATE,EDATE,T,F,SCEX) ;EP - return ien of CPT entry if patient had this CP
  ..Q:'$D(^AUPNVCPT("AD",V))
  ..I SCEX]"",SCEX[$P(^AUPNVSIT(V,0),U,7) Q
  ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=X
+ ...I $$ICD^ATXAPI($P(^AUPNVCPT(X,0),U),T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -98,7 +98,7 @@ RAD(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT
  ..Q:'$D(^AUPNVRAD("AD",V))
  ..S X=0 F  S X=$O(^AUPNVRAD("AD",V,X)) Q:X'=+X!(G)  D
  ...S C=$P(^AUPNVRAD(X,0),U) Q:C=""  S C=$P($G(^RAMIS(71,C,0)),U,9) Q:C=""
- ...I $$ICD^ATXCHK(C,T,1) S G=X
+ ...I $$ICD^ATXAPI(C,T,1) S G=X
  ...Q
  ..Q
  .Q
@@ -125,7 +125,7 @@ TRAN(P,BDATE,EDATE,T,F) ;EP - return ien of CPT entry if patient had this CPT IN
  ..Q:'$D(^AUPNVSIT(V,0))
  ..Q:'$D(^AUPNVTC("AD",V))
  ..S X=0 F  S X=$O(^AUPNVTC("AD",V,X)) Q:X'=+X!(G)  D
- ...I $$ICD^ATXCHK($P(^AUPNVTC(X,0),U,7),T,1) S G=X
+ ...I $$ICD^ATXAPI($P(^AUPNVTC(X,0),U,7),T,1) S G=X
  ...Q
  ..Q
  .Q

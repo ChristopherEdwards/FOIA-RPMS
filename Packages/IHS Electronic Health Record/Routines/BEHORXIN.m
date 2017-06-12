@@ -1,8 +1,7 @@
-BEHORXIN ;MSC/IND/DKM - Installation Support for Med Management;22-Jan-2013 11:50;PLS
- ;;1.1;BEH COMPONENTS;**009002,009005**;Mar 20, 2007
+BEHORXIN ;MSC/IND/DKM - Installation Support for Med Management;07-Jul-2015 16:19;PLS
+ ;;1.1;BEH COMPONENTS;**009002,009005,009012,009013**;Mar 20, 2007
  ;=================================================================
 PREINIT ;EP - Preinitialization
- D RNMFMT
  Q
 POSTINIT ;EP - Postinitialization
  D REGNMSP^CIAURPC("APSP","CIAV VUECENTRIC")

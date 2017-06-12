@@ -1,5 +1,5 @@
 ABMDEMLE ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,6,8,9,10,11,13,14,15,18**;NOV 12, 2009;Build 289
  ;
  ; IHS/SD/SDR - v2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
  ; IHS/SD/SDR - v2.5 p6 - 7/9/04 - IM14079 and IM14121 - Edited code for TOS
@@ -15,6 +15,11 @@ ABMDEMLE ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES ;
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for SV5 segment
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added code for 2400 DTP Test Date
  ;IHS/SD/SDR - 2.6*13 - exp mode 35.  Linked occurrence codes (01 and 11) to page 3 questions (Date First Symptom and Injury Date)
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Changed to use $$GET1^DIQ so output transform will execute for SNOMED/Provider Narrative; also
+ ;  made change so provider narrative can't be edited if there are SNOMED codes present on claim
+ ;IHS/SD/SDR - 2.6*14 - HEAT165301 - Removed link between page 9a and 3 introduced in patch 13
+ ;IHS/SD/SDR - 2.6*15 - Added change so they can edit the POA even if there is a SNOMED on the claim
+ ;IHS/SD/SDR - 2.6*18 - HEAT240919 - put code back from p14 so user can edit provider narrative
  ;
 E1 ; Edit Multiple
  I ABMZ("NUM")=0 W *7,!!,"There are no entries to edit, you must first ADD an entry.",! K DIR S DIR(0)="E" D ^DIR K DIR Q
@@ -39,10 +44,15 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  ;end new code NARR
  G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT)
  I $D(ABMZ("DIAG")) D DX^ABMDEMLC G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT) S ABMZ("DR")=ABMZ("DR")_ABMZ("DIAG")_"////"_$G(Y(0))
- I $D(ABMZ("NARR")),$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)) D
- .S ABMX("DICB")=$G(^AUTNPOV($P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)),0))_U_$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3))
+ I $D(ABMZ("NARR")),$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)) D  ;abm*2.6*14 HEAT161263  ;abm*2.6*18 IHS/SD/SDR HEAT240919  uncommented line
+ .;I $D(ABMZ("NARR")),$G(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,$P(ABMZ(ABMX("Y")),U,2),1))="",$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)) D  ;only allow editing of prv narr if SNOMED not present  ;abm*2.6*14 HEAT161263
+ .;S ABMX("DICB")=$G(^AUTNPOV($P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3)),0))_U_$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3))  ;abm*2.6*14 HEAT161263
+ .S IENS=$P(ABMZ(ABMX("Y")),U,$P(ABMZ("NARR"),U,3))  ;abm*2.6*14 HEAT161263
+ .S ABMX("DICB")=$$GET1^DIQ(9999999.27,IENS,".01","E")  ;abm*2.6*14 HEAT161263
  .D NARR^ABMDEMLC S ABMZ("DR")=ABMZ("DR")_$P(ABMZ("NARR"),U)_+Y
- .I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"
+ .;I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"  ;abm*2.6*15
+ ;end old abm*2.6*18 IHS/SD/SDR HEAT240919
+ I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"  ;abm*2.6*15
  ; don't do POS if page 5 (Dxs)
  I $G(ABMZ("SUB"))'=17 D
  .D POSA^ABMDEMLC  ;abm*2.6*9 NOHEAT  ;abm*2.6*10 IHS/SD/AML HEAT76189 - <<REACTIVATED LINE>> REMOVE DUPLICATE POS FIELD FROM 8G, ASKS FOR POS NOW
@@ -86,7 +96,7 @@ E2 W !!!,"[",+Y,"]  ",$P(ABMZ(+Y),U) S ABMX("Y")=+Y
  .I $P($G(^ICPT($P(ABMZ(ABMX("Y")),U),0)),U,3)="" Q  ;CPT has no CPT category to check
  .I ($P($G(^DIC(81.1,$P($G(^ICPT(+$P(ABMZ(ABMX("Y")),U),0)),U,3),0)),U)["IMMUNIZATION") S DR="15//" D ^DIE
  ;end new code 5010
- I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE($P(ABMZ(ABMX("Y")),U,2),0)),U)_"^") S ABMOIEN=$P(ABMZ(ABMX("Y")),U,2) D OCCURCD^ABMDEML  ;abm*2.6*13 exp mode 35
+ ;I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE($P(ABMZ(ABMX("Y")),U,2),0)),U)_"^") S ABMOIEN=$P(ABMZ(ABMX("Y")),U,2) D OCCURCD^ABMDEML  ;abm*2.6*13 exp mode 35  ;abm*2.6*14 HEAT165301
 PROV ;
  S DA=$P(ABMZ(ABMX("Y")),U,2)
  I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),DA,"P",0))>0 D

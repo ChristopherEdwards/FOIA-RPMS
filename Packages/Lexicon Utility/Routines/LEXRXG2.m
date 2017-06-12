@@ -1,5 +1,5 @@
 LEXRXG2 ;ISL/KER - Re-Index 757.33 ACT/AMAP/AREV ;08/17/2011
- ;;2.0;LEXICON UTILITY;**81**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**81**;Sep 23, 1996;Build 10
  ;               
  ; Global Variables
  ;    ^LEX(               SACC 1.3

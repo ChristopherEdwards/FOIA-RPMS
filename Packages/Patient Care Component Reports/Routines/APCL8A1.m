@@ -1,5 +1,5 @@
 APCL8A1 ; IHS/CMI/LAB - Process APC 8A report ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/7/2007 code set verisioning in CHKPV
  ;
@@ -83,11 +83,11 @@ CHKPV ;
  N APCLVDT
  S APCLVDT=+$P($G(^AUPNVSIT(APCLVDFN,0)),".")
  ;cmi/anch/maw 9/7/2007 end of mods
- S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  S P=$P(^AUPNVPOV(X,0),U),I=$P($$ICDDX^ICDCODE(P,APCLVDT),U,2) D  ;cmi/anch/maw 9/7/2007 code set versioning
- .I $E(I)="E" S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="E code used a diagnosis" Q
- .I I=.9999 S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)=".9999 code used as POV" Q
- .I $P(^ICD9(P,0),U,9)]"" S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Inactive ICD code used" Q
- .I $L($P(I,".",2))>2 S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Invalid 6 digit ICD code used" Q
+ S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  S P=$$VALI^XBDIQ1(9000010.07,X,.01),I=$$VAL^XBDIQ1(9000010.07,X,.01) D
+ .I $$CAUSE^APCDAPOV(P,$$IMP^AUPNSICD($$VD^APCLV(APCLVDFN))) S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Cause of Injury used a diagnosis" Q
+ .I I=.9999!(I="ZZZ.999") S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Uncoded DX code used as POV" Q
+ .;I $P(^ICD9(P,0),U,9)]"" S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Inactive ICD code used" Q
+ .;I $L($P(I,".",2))>2 S ^XTMP("APCL8A",APCLJOB,APCLBT,"VISITS",APCLVDFN)="Invalid 6 digit ICD code used" Q
  .Q
  Q
 CHKDISC ;

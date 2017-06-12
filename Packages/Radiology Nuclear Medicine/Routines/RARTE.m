@@ -1,5 +1,5 @@
-RARTE ;HISC/FPT,GJC AISC/MJK,RMO-Edit/Delete Reports ;05/22/09  10:20
- ;;5.0;Radiology/Nuclear Medicine;**18,34,45,56,99,47**;Mar 16, 1998;Build 21
+RARTE ;HISC/FPT,GJC AISC/MJK,RMO-Edit/Delete Reports ; 06 Oct 2013  11:05 AM
+ ;;5.0;Radiology/Nuclear Medicine;**18,34,45,56,99,47,1005**;Mar 16, 1998;Build 13
  ;Supported IA #3544 ^VA(200,"ARC"
  ;Supported IA #10076 ^XUSEC(
  ;Supported IA #2056 ^GET1^DIQ
@@ -72,7 +72,11 @@ SS1 I RA18EX=-1 Q  ;P18
  W !?1,"Exam Date: ",RADATE,?40,"Technologist: " I $O(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"TC",0))>0,$D(^VA(200,+^($O(^(0)),0),0)) W $E($P(^(0),"^"),1,25)
  W !?1,"Req Phys    : ",$E($S($D(^VA(200,+$P(Y(0),"^",14),0)):$P(^(0),"^"),1:""),1,25)
  ; p99: get pt sex and display pregnancy data
- I $$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .N RA3,RAPCOMM S RA3=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0))
  .S RAPCOMM=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCOMM"))
  .W:$P(RA3,U,32)'="" !?1,"Pregnancy Screen: ",$S($P(RA3,"^",32)="y":"Patient answered yes",$P(RA3,"^",32)="n":"Patient answered no",$P(RA3,"^",32)="u":"Patient is unable to answer or is unsure",1:"")

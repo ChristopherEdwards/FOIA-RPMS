@@ -1,9 +1,14 @@
 AMERD ; IHS/ANMC/GIS - PRIMARY ROUTINE FOR ER DISCHARGE ; 
- ;;3.0;ER VISIT SYSTEM;**4**;MAR 03, 2009;Build 24
+ ;;3.0;ER VISIT SYSTEM;**4,5,6,8**;MAR 03, 2009;Build 23
  ;
 CHECK ;
  I '$D(^AMERADM("B")) W !!!,*7,"Sorry...I have no record of any current admissions to the ER.",!,"Session cancelled!",!!! H 2 Q
  D EXIT1^AMER K ^TMP("AMER",$J,1),^(2),^(3),AMERQUIT,AMER
+ ;
+ ;Set up discharge flag
+ NEW AMERDSC
+ S AMERDSC=1
+ ;
 VAR ; ENTRY POINT FOR BATCH MODE
  S %="",$P(%,"~",80)="",AMERLINE=%,AMERSTRT=1,AMERFIN=27,AMERQSEQ="" K %
  S IOP=0 D ^%ZIS
@@ -11,24 +16,58 @@ VAR ; ENTRY POINT FOR BATCH MODE
  W @IOF
 EDIT ; ENTRY POINT FROM AMER4 AND AMER
  S AMERQSEQ=""
-RUN F AMERRUN=AMERSTRT:1 Q:$D(AMERBFLG)  Q:AMERRUN>AMERFIN  Q:$D(AMERQUIT)  D
+RUN F AMERRUN=AMERSTRT:1 Q:$D(AMERBFLG)  Q:AMERRUN>AMERFIN  Q:$D(AMERQUIT)  D  Q:$D(AMERQUIT)
  . I '$D(^AMER(2.3,"B",("QD"_AMERRUN))) Q
+ . ;
  . S AMERQNO=AMERRUN W $$LINE^AMER("QD"_AMERRUN)
  . D OPT^AMER("QD"_AMERRUN)
  . D TRG
  . D @("QD"_AMERRUN_"^AMER"_$S(AMERRUN<10:2,AMERRUN<20:3,AMERRUN<30:"2A",AMERRUN<50:"2B",1:"2C"))
+ . ;
  . D SET
+ . ;
+ . ;AMER*3.0*5;Log activity
+ . D
+ .. NEW ERIEN,AFIELD,ADMFLD
+ .. S AFIELD=""
+ .. S ERIEN=$O(^AMER(2.3,"B","QD"_AMERRUN,"")) Q:ERIEN=""
+ .. S ADMFLD=$$GET1^DIQ(9009082.3,ERIEN,.04,"I")
+ .. I ADMFLD]"" S AFIELD=$P($G(^DD(9009081,ADMFLD,0)),U)
+ .. I AFIELD="" D
+ ... S ADMFLD=$$GET1^DIQ(9009082.3,ERIEN,.05,"I")
+ ... I ADMFLD]"" S AFIELD=$P($G(^DD(9009080,ADMFLD,0)),U)
+ .. Q:AFIELD=""
+ .. ;
+ .. ;Now log the activity
+ .. NEW AUDDFN
+ .. S AUDDFN=$G(DFN) S:AUDDFN="" AUDDFN=$G(AUPNPAT)
+ .. D LOG^AMERBUSA("P","E","AMER","AMER: Entered Patient ER visit information - "_AFIELD_" ("_AUDDFN_")",AUDDFN)
+ .. KILL AUDDFN
+ . ;
  . I $D(AMEREFLG),AMERRUN=9 S AMERRUN=98
  . K DIR,DIC
  . Q
+ ;
  I $D(AMERTFLG)!($D(AMEREFLG)) Q
  I $D(AMERBFLG) Q
  I $D(AMERQUIT) G EXIT
 FIX D ^AMER4 I $D(AMERQUIT) K AMEREFLG G EXIT
 ELOOP I $D(AMEREFLG) G FIX
  I '$D(AMERBCH),$P($G(^AMER(3,+$G(^TMP("AMER",$J,2,14)),0)),U)="HOME" D PRINT I $D(AMERQUIT) G EXIT
- I $D(AMERTRG) D TRGSET  G EXIT
+ I $D(AMERTRG) D TRGSET D  G EXIT
+ . ;
+ . ;AMER*3.0*8;Update V EMERGENCY VISIT RECORD entry
+ . D VER^AMERVER(DFN,"")
+ ;
  D ^AMERSAV I $D(AMERQUIT) G EXIT
+ ;
+ ;AMER*3*5;Added auditing call
+ NEW AMERVIS
+ S AMERVIS=$$GET1^DIQ(9009080,AMERDA_",",.03,"I")
+ D LOG^AMERBUSA("P","E","AMERD","AMER: Patient Discharged from the ER ("_AMERVIS_")",DFN)
+ ;
+ ;AMER*3.0*8;Update V EMERGENCY VISIT RECORD entry
+ D VER^AMERVER(DFN,AMERVIS)
  ;
  ;AMER*3.0*4
  ;Supply information to BEDD application if loaded
@@ -42,6 +81,9 @@ ELOOP I $D(AMEREFLG) G FIX
  . ;
  . ;Call routine to pass info to BEDD
  . I $G(AMERDA)]"" D DISCH^BEDDUTW(AMERDA)
+ . ;
+ . ;AMER*3*5;Added auditing call
+ . D LOG^AMERBUSA("P","E","AMERD","AMER: Patient Discharged from the ED Dashboard ("_AMERVIS_")",DFN)
  ;
  I $D(AMERBCH) Q
 EXIT D EXIT^AMER
@@ -50,8 +92,8 @@ EXIT D EXIT^AMER
 SET K AMERMAND I $D(AMERQUIT) Q
  I AMERRUN=98 Q
  ;IHS/OIT/SCR 10/15/08 try to catch a REGISTERED IN ERROR visit and stop processing
- I (AMERRUN=95&&$D(AMERBCH)) W !,"Session terminated..." S AMERQUIT="" Q
- I (AMERRUN=95&&'$D(AMRBCH)) D  Q
+ I ((AMERRUN=95)&$D(AMERBCH)) W !,"Session terminated..." S AMERQUIT="" Q
+ I ((AMERRUN=95)&'$D(AMRBCH)) D  Q
  .S AMERPCC=$$EXISTING^AMERPCC(AMERDFN)
  .I AMERPCC>0 D
  ..S APCDVDLT=AMERPCC
@@ -140,3 +182,21 @@ DEMO ; ENTRY POINT FOR DEMO MODE
  D AMERD
  K AMERDEMO
  Q
+ ;
+DXCK(AUPNPAT) ; Entry point to check for valid Dx entry for visit
+ ;
+ ;Quit if DFN not passed in (used to retrieve visit)
+ I $G(AUPNPAT)="" Q "1"
+ ;
+ NEW AMERDXLT,AMERDCNT
+ ;
+ ;Make call to get list of V POV entries
+ S AMERDCNT=+$$POV^AMERUTIL(AUPNPAT,"",.AMERDXLT)
+ ;
+ ;If no V POV entries, inform user and quit
+ I AMERDCNT=0 D
+ . D EN^DDIOL("**No Purpose of Visit (POV) information has been entered for this visit**","","!!")
+ . D EN^DDIOL("**Please use EHR/PCC to enter POV information then proceed with the discharge**","","!")
+ . H 3
+ ;
+ Q AMERDCNT

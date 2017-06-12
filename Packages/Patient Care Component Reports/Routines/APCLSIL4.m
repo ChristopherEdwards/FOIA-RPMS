@@ -1,5 +1,5 @@
 APCLSIL4 ; IHS/CMI/LAB - ILI surveillance export ; 
- ;;3.0;IHS PCC REPORTS;**28,29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**28,29,30**;FEB 05, 1997;Build 27
  ;
 HASPVAC(V) ;EP - get flu iz
  NEW C,X,Y,Z,T
@@ -42,12 +42,12 @@ PCVFEB(APCLV,D) ;EP
  .S Z="",Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(Z]"")  D
  ..S Q=$P($G(^AUPNVPOV(Y,0)),U)
  ..Q:Q=""
- ..Q:'$$ICD^ATXCHK(Q,T,9)  ;not in taxonomy
+ ..Q:'$$ICD^APCLSILU(Q,T,9)  ;not in taxonomy
  ..S Z=$$VAL^XBDIQ1(9000010.07,Y,.01)  ;code
  ..Q
  .I Z="" Q  ;NO SEIZURE
  .;IF HAD SEIZURE IS THERE A EPILEPSY ON THE SAME DAY, IF SO QUIT
- .S S=$$LASTDXT^APCLAPIU(P,$$VD^APCLV(X),$$VD^APCLV(X),"SURVEILLANCE EPILEPSY","A ")
+ .S S=$$LASTDXT^APCLAPIU(P,$$VD^APCLV(V),$$VD^APCLV(V),"SURVEILLANCE EPILEPSY","A")
  .I S Q  ;had epilepsy on this day also
  .S G=Z_","_$$VD^APCLV(V)  ;code and date of febrile seizure
  Q G
@@ -84,7 +84,7 @@ PCVE .;
  .S Z="",Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(Z]"")  D
  ..S Q=$P($G(^AUPNVPOV(Y,0)),U)
  ..Q:Q=""
- ..Q:'$$ICD^ATXCHK(Q,T,9)  ;not in taxonomy
+ ..Q:'$$ICD^APCLSILU(Q,T,9)  ;not in taxonomy
  ..S Z=$$VAL^XBDIQ1(9000010.07,Y,.01)  ;code
  ..Q
  .I Z="" Q  ;NO enceph
@@ -123,7 +123,7 @@ ANGIO1 .;
  .S Z="",Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(Z]"")  D
  ..S Q=$P($G(^AUPNVPOV(Y,0)),U)
  ..Q:Q=""
- ..Q:'$$ICD^ATXCHK(Q,T,9)  ;not in taxonomy
+ ..Q:'$$ICD^APCLSILU(Q,T,9)  ;not in taxonomy
  ..S Z=$$VAL^XBDIQ1(9000010.07,Y,.01)  ;code
  ..Q
  .I Z="" Q  ;NO ANGIO
@@ -154,7 +154,7 @@ PCVASTH(APCLV,D) ;EP
  .S Z="",Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(Z]"")  D
  ..S Q=$P($G(^AUPNVPOV(Y,0)),U)
  ..Q:Q=""
- ..Q:'$$ICD^ATXCHK(Q,T,9)  ;not in taxonomy
+ ..Q:'$$ICD^APCLSILU(Q,T,9)  ;not in taxonomy
  ..S Z=$$VAL^XBDIQ1(9000010.07,Y,.01)  ;code
  ..Q
  .I Z="" Q  ;NO ASTHMA
@@ -179,7 +179,7 @@ PCVIMMUN(APCLV,D) ;EP
  .S Z="",Y=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(Z]"")  D
  ..S Q=$P($G(^AUPNVPOV(Y,0)),U)
  ..Q:Q=""
- ..Q:'$$ICD^ATXCHK(Q,T,9)  ;not in taxonomy
+ ..Q:'$$ICD^APCLSILU(Q,T,9)  ;not in taxonomy
  ..S Z=$$VAL^XBDIQ1(9000010.07,Y,.01)  ;code
  ..Q
  .I Z="" Q  ;NO IMMUNO
@@ -194,9 +194,10 @@ SET ;EP
  ;is this a test system?
  NEW TST,F
  S TST=0
- I '$$PROD^XUPROD() S TST=1
+ ;I '$$PROD^XUPROD() S TST=1
  I $P($G(^APCLILIC(1,0)),U,5)="T" S TST=1
- S F=$S(TST:"FLZ",$G(APCLFLF):"FLF",1:"FLU")_"_"_APCLASU_"_"_$$DATE^APCLSILI(DT)_".txt"
+ S F=$S(TST:"FLZ",$G(APCLFLF):"FLF",1:"FLU")_"_"_APCLASU_"_"_$$DATE^APCLSIHL(DT)_"_P30.txt"
+ ;S F=$S(TST:"FLZ",$G(APCLFLF):"FLF",1:"FLU")_"_"_APCLASU_"_"_$$DATE^APCLSILI(DT)_".txt"
  S APCLFDA(9001003.312,APCLIENS,.02)=F
  S APCLFDA(9001003.312,APCLIENS,.05)=$S(XBFLG:0,1:1)
  S APCLFDA(9001003.312,APCLIENS,.04)=APCLVTOT
@@ -258,11 +259,11 @@ D ;
 HASADN61 .;
  .S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X!(C>4)  D
  ..S T=$P(^AUPNVPOV(X,0),U)
- ..I $$ICD^ATXCHK(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENTS DXS",0)),9) D
+ ..I $$ICD^APCLSILU(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENTS DXS",0)),9) D
  ...Q:$$VD^APCLV(V)=APCLVDAT  ;$$VD^APCLV(APCLV)  ;NOT SAME DATE AS VACCINE
  ...;Q:$$VD^APCLV(V)>$$FMADD^XLFDT($$VD^APCLV(APCLV),14)
  ...D SET6 Q
- ..I $$ICD^ATXCHK(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENTS LIVE",0)),9) D  Q
+ ..I $$ICD^APCLSILU(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENTS LIVE",0)),9) D  Q
  ...S A=$$AGE^APCLSILU(PAT,2,$$VD^APCLV(V))
  ...Q:A<24
  ...Q:A>59
@@ -270,7 +271,7 @@ HASADN61 .;
  ...Q:$$VD^APCLV(V)>$$FMADD^XLFDT(APCLVDAT,14)
  ...D SET6
  ...Q
- ..I $$ICD^ATXCHK(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENT FEBRILE",0)),9) D  Q
+ ..I $$ICD^APCLSILU(T,$O(^ATXAX("B","SURVEILLANCE ADV EVENT FEBRILE",0)),9) D  Q
  ...S A=$$AGE^APCLSILU(PAT,2,$$VD^APCLV(V))
  ...Q:A>59
  ...Q:$$VD^APCLV(V)>$$FMADD^XLFDT(APCLVDAT,15)
@@ -284,3 +285,39 @@ SET6 ;
  S $P(D,",",P1)=$$VAL^XBDIQ1(9000010.07,X,.01)
  S $P(E,",",P1)=$$VD^APCLV(V)
  Q
+HASAVM(V) ;EP
+ NEW C,X,Y,Z,T,L,M,N
+ S T=$O(^ATXAX("B","FLU ANTIVIRAL MEDS",0))
+ S C="",X=0 F  S X=$O(^AUPNVMED("AD",V,X)) Q:X'=+X!(C)  S Y=$P($G(^AUPNVMED(X,0)),U) D
+ .Q:'Y
+ .Q:'$D(^PSDRUG(Y,0))
+ .S Z=0
+ .S N=$P(^PSDRUG(Y,0),U)
+ .I $D(^ATXAX(T,21,"B",Y)) S Z=1
+ .I N["OSELTAMIVIR" S Z=1
+ .I N["ZANAMIVIR" S Z=1
+ .I N["RIMANTADINE" S Z=1
+ .I N["AMANTADINE" S Z=1
+ .I Z=1 S C=1_U_N_U_$P(^AUPNVMED(X,0),U,7)
+ .Q
+ Q C
+HASNVAC(V) ;EP - get h1n1 vaccine
+ NEW C,X,Y,Z,T,L,M
+ S T=$O(^ATXAX("B","SURVEILLANCE PANDEMIC CVX",0))
+ S C=0,X=0 F  S X=$O(^AUPNVIMM("AD",V,X)) Q:X'=+X!(C)  S Y=$P($G(^AUPNVIMM(X,0)),U) D
+ .Q:'Y
+ .Q:'$D(^AUTTIMM(Y,0))
+ .S Z=$P(^AUTTIMM(Y,0),U,3)
+ .Q:'$D(^ATXAX(T,21,"B",Z))
+ .S C=1_U_Z_U_$$VAL^XBDIQ1(9000010.11,X,.05) I $P(^AUPNVIMM(X,0),U,5),$D(^AUTTIML($P(^AUPNVIMM(X,0),U,5),0)) S C=C_U_$$VAL^XBDIQ1(9999999.41,$P(^AUPNVIMM(X,0),U,5),.02)
+ .S Z=$$VALI^XBDIQ1(9000010.11,X,1201)
+ .S $P(C,U,5)=$S(Z:$P(Z,".",1),1:$$VD^APCLV(V))
+ .Q
+ I C Q C
+ S T=$O(^ATXAX("B","SURVEILLANCE PANDEMIC CPT",0))
+ I 'T Q C
+ S C=0,X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  S Y=$P($G(^AUPNVCPT(X,0)),U) D
+ .Q:'Y
+ .Q:'$$ICD^APCLSILU(Y,T,1)
+ .S C=1_U_$$VAL^XBDIQ1(9000010.18,X,.01)
+ Q C

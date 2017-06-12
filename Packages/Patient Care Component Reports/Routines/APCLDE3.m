@@ -1,5 +1,5 @@
 APCLDE3 ; IHS/CMI/LAB - list DEPRESSION screenings ; 
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,10,11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -11,7 +11,7 @@ INFORM ;
  W !,"the user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
  W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
- W !?5,"- Diagnoses V79.0, 14.1 (Behavioral Health Problem Code)"
+ W !?5,"- Diagnoses V79.0 (there are no ICD10 codes), 14.1 (Behavioral Hlth Code)"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
  W !,"This report will tally the patients by age, gender, screening exam result,"
@@ -54,10 +54,10 @@ EXCL ;
  S APCLEXPC=Y
 SEX ;
  S APCLSEX=""
- S DIR(0)="S^F:FEMALES Only;M:MALES Only;B:Both MALE and FEMALES",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^F:FEMALES Only;M:MALES Only;U:UNKNOWN GENDER Only;B:ALL GENDERS",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G EXCL
  S APCLSEX=Y
- I APCLSEX="B" S APCLSEX="MF"
+ I APCLSEX="B" S APCLSEX="MFU"
 AGE ;Age Screening
  K APCLAGE,APCLAGET
  W ! S DIR(0)="YO",DIR("A")="Would you like to restrict the report by Patient age range",DIR("B")="YES"

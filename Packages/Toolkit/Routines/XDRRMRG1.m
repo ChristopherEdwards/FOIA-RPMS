@@ -1,6 +1,6 @@
-XDRRMRG1 ;SF-IRMFO.SEA/JLI - DUP VERIFICATION FOR ANCILLARY SERVICES ;08/09/2000  11:12 [ 04/02/2003   8:47 AM ]
- ;;7.3;TOOLKIT;**23,29,46,47,49,1001,1003**;Apr 03, 1995
- ;IHS/OIT/LJF 07/28/2006 PATCH 1003 display IHS Patient file fields (multiple lines changed or added)
+XDRRMRG1 ;SF-IRMFO.SEA/JLI - DUP VERIFICATION FOR ANCILLARY SERVICES ;10/21/2010
+ ;;7.3;TOOLKIT;**23,29,46,47,49,126**;Apr 25, 1995;Build 3
+ ;;Per VHA Directive 2004-038, this routine should not be modified.
  ;
 EN ;
  I '$D(XQADATA) Q
@@ -38,13 +38,7 @@ LDATE F XDRI=1,2 S DFN=$S(XDRI=1:DFNFR,1:DFNTO) S DFNNAM=$S(XDRI=1:"DFNFR",1:"DF
  . . S @DFNNAM@(LASTNAM)=""
  . . I XDAT1>0 S @DFNNAM@(LASTNAM)=$$FMTE^XLFDT(XDAT1\1)
  . I @DFNNAM'="",'$D(@FILEDIC) S @DFNNAM=""
- ;
- ;IHS/OIT/LJF 07/28/2006 PATCH 1003
- ;D SHOW
- I XDRFILE=2,$$GET^XPAR("PKG","BPM USE IHS LOGIC") D  S XDRFILE=2
- . F XDRFILE=2,9000001 D SHOW Q:$D(DIRUT)
- E  D SHOW
- ;
+ D SHOW
  S:XDRFILE'=63 DFNFR=DFNFRX,DFNTO=DFNTOX ;REM - LAB is handled differently
  I IOST'["C-" Q
  D CHK
@@ -81,26 +75,16 @@ SHOW ;
 CHK ;
  N DIR
 CHK1 K DIR
- ;
  S DIR(0)="S^V:VERIFIED DUPLICATE;N:VERIFIED, NOT A DUPLICATE;U:UNABLE TO DETERMINE;H:HEALTH SUMMARY;R:REVIEW DATA AGAIN;S:SELECT/REVIEW OVERWRITES",DIR("A")="Select Action",DIR("B")="HEALTH SUMMARY"
- ;
- ;IHS/OIT/LJF 07/28/2006 PATCH 1003 removed select/review overwrites (put under Verify)
- I $$GET^XPAR("PKG","BPM USE IHS LOGIC") S DIR(0)="S^V:VERIFIED DUPLICATE;N:VERIFIED, NOT A DUPLICATE;U:UNABLE TO DETERMINE;H:HEALTH SUMMARY;R:REVIEW DATA AGAIN"
- ;
  D ^DIR K DIR S XDRY=Y I $D(DIRUT) K XQAKILL Q
- ;
- ;IHS/OIT/LJF 07/28/2006 PATCH 1003 show IHS patient file fields & allow users to mark overwrites before "V"
- ;I XDRY="R" S REVIEW=0 D SHOW G CHK1
- I XDRY="R",'$$GET^XPAR("PKG","BPM USE IHS LOGIC") S REVIEW=0 D SHOW G CHK1
- I XDRY="R" S REVIEW=0 D  G CHK1
- . F XDRFILE=2,9000001 D SHOW Q:$D(DIRUT)
- ;
+ I XDRY="R" S REVIEW=0 D SHOW G CHK1
  I XDRY="S" S REVIEW=1 D SHOW G CHK1
  I XDRY'="H" D  Q
  . K XQAKILL
  . I XDRY'="^" D
  . . S XQAKILL=$S(XDRY'="U":0,1:1)
  . . S XDRDIR=""
+ . . I XDRY="V" D VERWARN ;p126-REM
  . . I XDRY="V",PACKAGE="PRIMARY" D
  . . . S DIR=0 F DFN=DFNFRX,DFNTOX I $D(@FILEDIC) S DIR=DIR+1
  . . . I DIR'>1 K DIR Q  ; DON'T NEED TO SELECT DIRECTION UNLESS DATA IN BOTH ENTRIES
@@ -123,9 +107,6 @@ CHK1 K DIR
  . . S XDRFDA(15.02,XDRDA1,.04)=$$NOW^XLFDT()
  . . I XDRDIR'="" S XDRFDA(15.02,XDRDA1,.05)=XDRDIR
  . . D UPDATE^DIE("S","XDRFDA")
- . . ;
- . . ;IHS/OIT/LJF 07/28/2006 PATCH 1003 line added for overwrites to 2 patient files
- . . I $$GET^XPAR("PKG","BPM USE IHS LOGIC"),$L($T(OVERWRIT^BPMVER)),XDRY="V" F XDRFILE=2,9000001 S REVIEW=1 D SHOW I $D(OVERWRIT) D OVERWRIT^BPMVER(XDRFILE,XDRDA,.OVERWRIT) K OVERWRIT
  . . ;
  . . I $D(OVERWRIT)!(XDRDIR=2&(PACKAGE'="PRIMARY")) D
  . . . N I
@@ -215,4 +196,13 @@ SETUP(XDRDA) ;
  . F I=0:0 S I=$O(^VA(15.1,PRIFILE,2,XDRAID,1,I)) Q:I'>0  S X=^(I,0) D
  . . S XQA(X)=""
  . D SEND^XDRRMRG0 K R
+ Q
+VERWARN ;Warning message when ready to Verified Dupicates; p126-REM
+ W !!,"*** WARNING!!!  You have verified these two records are the SAME"
+ W !,"patient.  Once these records are merged, there is no automated way to"
+ W !,"""un-do"" the merge.  If you are not certain these are the same patient,"
+ W !,"edit the status back to 'Potential Duplicate, Unverified' and repeat the"
+ W !,"verification process.  For additional assistance, please log a NOIS/Remedy"
+ W !,"ticket. ***"
+ W !!
  Q

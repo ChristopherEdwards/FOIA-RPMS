@@ -1,5 +1,5 @@
 AMERBSDU ; IHS/OIT/SCR - PRIMARY ROUTINE FOR INTERFACE WITH PIMS OUTSIDE OF AMER NAMESPACE
- ;;3.0;ER VISIT SYSTEM;**1,2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,2,5**;MAR 03, 2009;Build 14
  ;
 APPNTMNT(AMERDFN,AMERTALK,AMERTIME,AMERARR) ; EP FROM AMER1 and ERCHECKIN
  ; called by AMER1 to display scheduled appoitments for all clinics from day of admission forward
@@ -102,7 +102,7 @@ ERCHCKIN(AMERDFN,AMERTIME) ; EP FROM AMER0 after admission information has been 
  ..D ^%DT
  ..Q:Y'=$P(AMERTIME,".",1)
  ..S DIR("A")="Check-in to this scheduled visit"
- ..S DIR(0)="Y",DIR("B")="YES"
+ ..S DIR(0)="Y",DIR("B")="NO"
  ..D ^DIR
  ..S AMERANS=Y
  ..I AMERANS=1 D

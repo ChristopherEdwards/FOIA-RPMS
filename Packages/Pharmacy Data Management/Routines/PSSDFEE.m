@@ -1,5 +1,5 @@
-PSSDFEE ;BIR/ASJ-VARIOUS FILES ENTER EDIT ROUTINE ;01/21/00
- ;;1.0;PHARMACY DATA MANAGEMENT;**38,48,125,129**;9/30/97;Build 67
+PSSDFEE ;BIR/ASJ-VARIOUS FILES ENTER EDIT ROUTINE ;25-Sep-2013 11:33;DU
+ ;;1.0;PHARMACY DATA MANAGEMENT;**38,48,125,129,1017**;9/30/97;Build 40
 DF ;Dosage File Enter/Edit
  D ^PSSDEE2 N DIC,PSSDF,DLAYGO,PSSREC,X,Y,D,%,%X,%Y,DIE,DA,DR,DIR,DTOUT,DUOUT,DIROUT,DIRUT,D0
  F  W !! S DIC(0)="QEAMZ",DIC="^PS(50.606,",DIC("S")="I '$P(^(0),""^"",2)!($P(^(0),""^"",2)>DT)" D ^DIC S PSSREC=+Y Q:PSSREC<0  W !!,"NAME: ",Y(0,0) D EDT(DIC,PSSREC,"[PSS DOSAGE FORM]",50.606)
@@ -15,7 +15,7 @@ CF ;Rx Consult File
  F  W !! S DIC(0)="QEAMZIL",DIC="^PS(54,",DLAYGO=54 D ^DIC Q:Y<0  S PSSREC=+Y D EDT(DIC,PSSREC,"[PSS RX CONSULT]",54)
  W @IOF Q
  ;
-EDT(DIE,DA,DR,PSFILE)    ;
+EDT(DIE,DA,DR,PSFILE) ;
  N PSREC S PSREC=DA
  L +^PS(PSFILE,PSREC):$S($G(DILOCKTM)>0:DILOCKTM,1:3)
  I '$T W !!,$C(7),"Another person is editing this entry." Q
@@ -27,7 +27,7 @@ EDT(DIE,DA,DR,PSFILE)    ;
  Q
  ;
 STN ;Standard Med Route Mapping
- N PSSDMRX,PSSDMRNW,PSSDMRFL
+ N PSSDMRX,PSSDMRNW,PSSDMRFL,ZDATA,IN,SNOMED,PSSMRNM,FNUM,IENS,FDA,ERR
  I '$P($G(^PS(51.2,PSSDMREN,0)),"^",4) Q
  I PSSDMRA S PSSDMRX=0 D  I PSSDMRX Q:PSSDMRQT  W !!,"Mapping Remains Unchanged.",! K DIR S DIR(0)="E",DIR("A")="Press Return to continue, '^' to exit" D ^DIR K DIR S:$D(DTOUT)!($D(DUOUT)) PSSDMRQT=1 Q
  .W !!,"Already mapped to:",!,"Stnd Route: '"_$P($G(^PS(51.23,PSSDMRA,0)),"^")_"'  FDB Route: '"_$P($G(^PS(51.23,PSSDMRA,0)),"^",2)_"'"
@@ -37,6 +37,18 @@ STN ;Standard Med Route Mapping
  W ! S DA=PSSDMREN,DIE="^PS(51.2,",DR=10 D ^DIE I $D(Y)!($D(DTOUT)) D:'$P($G(^PS(51.2,PSSDMREN,1)),"^") MESSA W ! K DIR S DIR(0)="E",DIR("A")="Press Return to continue, '^' to exit" D ^DIR K DIR S:$D(DTOUT)!($D(DUOUT)) PSSDMRQT=1 Q
  S PSSDMRNW=$P($G(^PS(51.2,PSSDMREN,1)),"^")
  I 'PSSDMRNW D MESS Q
+ ;IHS/MSC/MGH Patch 1017 Add Apelon lookup to map to SNOMED
+ W !,"Querying Apelon site..."
+ S PSSMRNM=$P($G(^PS(51.23,PSSDMRNW,0)),"^")
+ S IN=PSSMRNM_"^32774" S ZDATA=$$ASSOC^BSTSAPI(IN)
+ S SNOMED=$P(ZDATA,U,1)
+ S FNUM=51.2
+ S IENS=PSSDMREN_","
+ S FDA=$NA(FDA(FNUM,IENS))
+ S @FDA@(9999999.01)=SNOMED
+ D FILE^DIE("E","FDA","ERR")
+ I '$D(ERR) W !,"SNOMED Added "_SNOMED
+ ;end mod
  S PSSDMRFL=0 I PSSDMRA,PSSDMRNW,PSSDMRA'=PSSDMRNW S PSSDMRFL=1
  I PSSDMRA,PSSDMRNW,'PSSDMRFL D  W ! K DIR S DIR(0)="E",DIR("A")="Press Return to continue, '^' to exit" D ^DIR S:$D(DTOUT)!($D(DUOUT)) PSSDMRQT=1 K DIR Q
  .W !!,"No mapping changes made.",!
@@ -44,6 +56,8 @@ STN ;Standard Med Route Mapping
  W !!!,"Local Route: '"_$P($G(^PS(51.2,PSSDMREN,0)),"^")_"' has been "_$S(PSSDMRFL:"remapped",1:"mapped")_" to",!,"Stnd Route: '"_$P($G(^PS(51.23,PSSDMRNW,0)),"^")_"'   FDB Route: '"_$P($G(^(0)),"^",2)_"'",!
  W ! K DIR S DIR(0)="E",DIR("A")="Press Return to continue, '^' to exit" D ^DIR S:$D(DTOUT)!($D(DUOUT)) PSSDMRQT=1 K DIR
  Q
+ ;IHS/MSC/MGH Patch 1017 Display the Snomed code
+SNO(DA) Q $$GET1^DIQ(51.2,DA,9999999.01)
  ;
 MESS ;
  W !!!," *** No dosing checks will be performed on orders containing this local",!,"  medication route until it is mapped to a standard medication route.***",!

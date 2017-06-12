@@ -1,5 +1,5 @@
 BGP5PDL ; IHS/CMI/LAB - IHS gpra print 01 Jul 2010 8:02 PM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
 DEL ;
@@ -171,19 +171,13 @@ HEADER ;EP
  S BGPI=$O(^BGPCTRL("B",2015,0))
  S BGPX=0 F  S BGPX=$O(^BGPCTRL(BGPI,14,BGPX)) Q:BGPX'=+BGPX  D
  .S X=^BGPCTRL(BGPI,14,BGPX,0) D S(X,1,1)
- I $G(BGPEXPT) S X="A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D S(X,1,1)
+ I $G(BGPEXPT) S X="A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D S(X,1,1)
  S X="It will reside in the public/export directory.  This file should be sent to your Area Office." D S(X,1,1)
  S X=" " D S(X,1,1)
  I $G(BGPALLPT) S X="All Communities Included." D S(X,1,1)
  I '$G(BGPALLPT),'$G(BGPSEAT) S X="Community Taxonomy Name: "_$P(^ATXAX(BGPTAXI,0),U) D S(X,1,1)
  I '$G(BGPALLPT),'$G(BGPSEAT) S X="The following communities are included in this report:" D S(X,1,1) D
  .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(BGPTAX(BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_BGPZZ
- .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
- ..S X=$E($P(Y,";",BGPZZ),1,20),$E(X,3)=$E($P(Y,";",(BGPZZ+1)),1,20),$E(X,60)=$E($P(Y,";",(BGPZZ+2)),1,20)
- ..Q
- I $G(BGPMFITI) S X="MFI Location Taxonomy Name: "_$P(^ATXAX(BGPMFITI,0),U) D S(X,1,1)
- I $G(BGPMFITI) S X="The following locations are used for patient visits in this report:" D S(X,1,1) D
- .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(^ATXAX(BGPMFITI,21,"B",BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P($G(^DIC(4,BGPZZ,0)),U)
  .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
  ..S X=$E($P(Y,";",BGPZZ),1,20),$E(X,3)=$E($P(Y,";",(BGPZZ+1)),1,20),$E(X,60)=$E($P(Y,";",(BGPZZ+2)),1,20)
  ..Q

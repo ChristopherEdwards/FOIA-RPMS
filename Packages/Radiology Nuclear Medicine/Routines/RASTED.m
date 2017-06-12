@@ -1,5 +1,5 @@
-RASTED ;HISC/CAH,FPT,GJC,SS AISC/TMP,TAC,RMO-Edits for status tracking ;05/22/09  12:30
- ;;5.0;Radiology/Nuclear Medicine;**1,10,18,28,45,71,82,99**;Mar 16, 1998;Build 5
+RASTED ;HISC/CAH,FPT,GJC,SS AISC/TMP,TAC,RMO-Edits for status tracking ; 06 Oct 2013  11:06 AM
+ ;;5.0;Radiology/Nuclear Medicine;**1,10,18,28,45,71,82,99,1005**;Mar 16, 1998;Build 13
  ;last modif by SS for P18 JUN 19,2000
  ;02/10/2006 BAY/KAM RA*5*71 Add ability to update exam data to V/R
  ; *** 'RASTED' is called from the routine; 'CASE^RASTEXT1'. ***
@@ -42,8 +42,13 @@ CHANGE W !!,"Name: ",RANME,?40,"Case #  : ",RACN,!,"Division : ",$S($D(^DIC(4,+$
  W ?40,"Location: ",$S('$D(^RA(79.1,+$P(RADT0,"^",4),0)):"",$D(^SC(+^(0),0)):$P(^(0),"^"),1:"")
  W !,"Procedure: ",RAPRC
  D PRCCPT^RAPROD
+ ;
  ;p99: get sex and display pregnancy data if available for female pt.
- I $$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .N RAORD0,RAPCOMM S RAORD0=$P(RACN0,U,11)
  .S RAPCOMM=$G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"PCOMM"))
  .W !,"PREGNANT AT TIME OF ORDER ENTRY: ",?22,$$GET1^DIQ(75.1,RAORD0_",",13)

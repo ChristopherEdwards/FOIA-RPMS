@@ -1,5 +1,6 @@
-GMRAPST7 ;HIRMFO/WAA- ADVERSE DRUG REACTION REPORT ;3/5/97  15:17
- ;;4.0;Adverse Reaction Tracking;**7,33**;Mar 29, 1996;Build 5
+GMRAPST7 ;HIRMFO/WAA- ADVERSE DRUG REACTION REPORT ;20-Jul-2016 11:12;DU
+ ;;4.0;Adverse Reaction Tracking;**7,33,1009**;Mar 29, 1996;Build 11
+ ;IHS/MSC/MGH Patch 1009 changed to use HRCN
 EN1 ; This routine will loop through the ADT entry point to get all
  ; the entries in that date range.
  S GMRAOUT=0
@@ -21,7 +22,7 @@ PRINTER ;Select printer
  U IO D PRINT U IO(0)
  Q
 PRINT ;Queue point for report
- ;loop through the 120.85 file and look for the field that 
+ ;loop through the 120.85 file and look for the field that
  K ^TMP($J,"GMRAPST7")
  D NOW^%DTC S GMRADPDT=X
  S GMRADATE=GMAST-.0001,GMRAPG=1
@@ -33,7 +34,12 @@ PRINT ;Queue point for report
  ..S GMRAPA(0)=$G(^GMR(120.8,GMRAPA,0)) Q:GMRAPA(0)=""  ; Bad node
  ..Q:+$G(^GMR(120.8,GMRAPA,"ER"))  ;Entered in error data
  ..S GMRACA=$P(GMRAPA(0),U,2) ; Causative Agent
- ..S DFN=$P(GMRAPA(0),U),GMRACA=$E(GMRACA,1,22)_"-"_$E($P(^DPT(DFN,0),U),1)_$E($P(^(0),U,9),6,9)
+ ..;Patch 1009 change to HRCN
+ ..S DFN=$P(GMRAPA(0),U)
+ ..S HRCN=$$HRCN^GMRAPST6(DFN,+$G(DUZ(2)))
+ ..;GMRACA=$E(GMRACA,1,22)_"-"_$E($P(^DPT(DFN,0),U),1)_$E($P(^(0),U,9),6,9)
+ ..S GMRACA=$E(GMRACA,1,22)_"-"_HRCN
+ ..;end mod
  ..Q:'$$PRDTST^GMRAUTL1(DFN)  ;GMRA*4*33 Exclude test patients from report if production or legacy environment.
  ..S ^TMP($J,"GMRAPST7",GMRADDT,GMRACA,GMRAPA1)=GMRAPA
  ..Q

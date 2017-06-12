@@ -1,5 +1,5 @@
 ABSPOSH2 ; IHS/SD/lwj - Assemble frmted claim for 5.1 ;[ 08/22/2002  2:05 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,11,17,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,11,17,23**;JUN 21, 2001;Build 15
  ;---
  ; This routine is a clone of ABSPECA2.  While ABSPECA2 will put
  ; together the ascii formatted record for 3.2 claims, this routine

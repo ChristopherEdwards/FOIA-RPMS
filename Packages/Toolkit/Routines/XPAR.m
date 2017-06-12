@@ -1,5 +1,5 @@
 XPAR ; SLC/KCM - Parameters File Calls ;11/03/2003  16:17
- ;;7.3;TOOLKIT;**26,60,63,79,82**;Apr 25, 1995
+ ;;7.3;TOOLKIT;**26,60,63,79,82,1018**;Apr 25, 1995;Build 12
  ;
  ; (Need to add proper locking)
  ;
@@ -40,10 +40,29 @@ UPD1 ;                       ; enter here if data already validated
  I ($L(ENT,"^")>1)!(ENT["ALL") S ERR=$$ERR^XPARDD(89895007) Q  ;no lists
  D INTERN^XPAR1 Q:ERR
  I '$D(TYP) S TYP=$S(VAL="@":"D",+$O(^XTV(8989.5,"AC",PAR,ENT,INST,0)):"C",1:"A")
- I TYP="A" G DOADD^XPAR2 ; use GO to emulate case statement
- I TYP="C" G DOCHG^XPAR2
- I TYP="D" G DODEL^XPAR2
- I TYP="R" G DOREP^XPAR2
+ ;IHS/OIT/FBD - XT*7.3*1018 - MODIFIED TO ENCAPSULATE OPERATION AND PROVIDE A
+ ;                            SINGLE POINT OF EXIT FOR PARAMETER AUDITING PURPOSES
+ ;********** START OF XT*7.3*1018 MODIFICATION **********
+ N PREVAL,POSTVAL  ;VARIABLE TO CAPTURE 'BEFORE' VALUE FOR CHANGE/DELETE/REPLACE FUNCTIONS
+ I TYP="A" D  ;                           IF OPERATION = 'ADD',
+ .S PREVAL=""  ;                          THEN PRE-EXISTING VALUE DOES NOT EXIST
+ E  D  ;                                  FOR ALL OTHERS,
+ .S PREVAL=$$VAL^BXPAUDIT(PAR,ENT,INST)  ;GET PRE-EXISTING VALUE
+ ;I TYP="A" G DOADD^XPAR2 ; use GO to emulate case statement  ;IHS/OIT/FBD - XT*7.3*1018 - 4 ORIGINAL LINES COMMENTED OUT
+ ;I TYP="C" G DOCHG^XPAR2
+ ;I TYP="D" G DODEL^XPAR2
+ ;I TYP="R" G DOREP^XPAR2
+ I TYP="A" D DOADD^XPAR2 I 1  ;IHS/OIT/FBD - XT*7.3*1018 - 4 LINES MODIFIED TO PERFORM 'DO' INSTEAD OF 'GOTO'
+ E  I TYP="C" D DOCHG^XPAR2 I 1
+ E  I TYP="D" D DODEL^XPAR2 I 1
+ E  I TYP="R" D DOREP^XPAR2 I 1
+ I 'ERR D  ;IF OPERATION WAS SUCCESSFULLY COMPLETED, LOG THE RESULT
+ .I TYP="D" D  ;                           IF OPERATION = 'DELETE',
+ ..S POSTVAL=""  ;                          THEN POST-OPERATION VALUE DOES NOT EXIST
+ .E  D  ;                                  FOR ALL OTHERS,
+ ..S POSTVAL=$$VAL^BXPAUDIT(PAR,ENT,INST)  ;GET PRE-EXISTING VALUE
+ .D LOG^BXPAUDIT(TYP,PAR,ENT,INST,PREVAL,POSTVAL)
+ ;********** END OF XT*7.3*1018 MODIFICATION **********
  Q
 NDEL(ENT,PAR,ERR) ; Delete all instances of a parameter for an entity
  N INST,DA

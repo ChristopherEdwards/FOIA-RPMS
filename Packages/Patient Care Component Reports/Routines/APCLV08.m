@@ -1,5 +1,5 @@
 APCLV08 ; IHS/CMI/LAB - procedure functions ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in E,C,P
  ;
@@ -30,10 +30,10 @@ I ;
  S %=P Q
 E ;
  ;S %=$P(^ICD0(P,0),U,4) Q  ;cmi/anch/maw 9/12/2007 orig line
- S %=$P($$ICDOP^ICDCODE(P),U,5) Q  ;cmi/anch/maw 9/12/2007 csv
+ S %=$P($$ICDOP^ICDEX(P,,,"I"),U,5) Q  ;cmi/anch/maw 9/12/2007 csv
 C ;
  ;S %=$P(^ICD0(P,0),U) Q  ;cmi/anch/maw 9/12/2007 orig line
- S %=$P($$ICDOP^ICDCODE(P),U,2) Q  ;cmi/anch/maw 9/12/2007 csv
+ S %=$P($$ICDOP^ICDEX(P,,,"I"),U,2) Q  ;cmi/anch/maw 9/12/2007 csv
 D ;
  S %=$P(^AUPNVPRC(Z,0),U,6) Q
 G ;

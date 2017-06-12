@@ -1,5 +1,5 @@
 BISITE1 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  INIT FOR EDIT SITE PARAMETERS.
  ;   PATCH 2: Fix display of default Low Supply Alert.  INIT+72
@@ -7,6 +7,7 @@ BISITE1 ;IHS/CMI/MWR - EDIT SITE PARAMETERS; MAY 10, 2010
  ;;  PATCH 8: Changes to accommodate new TCH Forecaster   INIT+55,+66,+92,+132
  ;;  PATCH 9: Return the IP Address used for the TCH Forecaster.  INIT+139
  ;;           Update display of selected High Risk parameters.  INIT+165
+ ;;  PATCH 13: Add Flu Season Date Range parameter. INIT+197
  ;
  ;
  ;----------
@@ -205,6 +206,15 @@ INIT ;EP
  S X="  20) Visit Selection Menu.........: "_X
  D WRITE(.BILINE,X)
  K X
+ ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Flu Season Date Range.
+ S X=$$FLUDATS^BIUTL8(BISITE)
+ S X="  21) Flu Season Start & End Dates.: "_$P(X,"%")_" to "_$P(X,"%",2)
+ D WRITE(.BILINE,X)
+ K X
+ ;**********
  ;
  S VALMSG="Scroll down to view more Parameters."
  S VALMCNT=BILINE

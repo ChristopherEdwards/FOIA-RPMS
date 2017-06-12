@@ -1,5 +1,5 @@
 APCDVCHK ; IHS/CMI/LAB - CHECK VISIT ;
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,11,15,17**;MAY 14, 2009;Build 18
  ;
  ; APCDVSIT must equal the VISIT DFN to be checked.
  ; U must exist and be equal to "^".
@@ -23,7 +23,7 @@ START ;
  E  I APCDVC1>1 W !,"WARNING:  Multiple primary providers were entered for this visit!",!,$C(7) S APCDMPQ=0
  I $D(^AUPNVPRC("AD",APCDVSIT)),$P(APCDVREC,U,7)'="H" D CHKPRC
  I $$CLINIC^APCLV(APCDVSIT,"C")=30 D CHKER   ;IHS/CMI/GRL
- I "AOSCTR"[$P(^AUPNVSIT(APCDVSIT,0),U,7),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")>$P(^APCCCTRL(DUZ(2),0),U,12) D CHKEHR
+ I "AOSCTRM"[$P(^AUPNVSIT(APCDVSIT,0),U,7),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")>$P(^APCCCTRL(DUZ(2),0),U,12) D CHKEHR
  ;above added for EHR and auditing of visits, d/e created
 CHKH ;
  I $P(APCDVREC,U,7)="H",$P(APCDVREC,U,3)'="C" D CHKH1
@@ -37,7 +37,7 @@ CHKPRC ;check outpatient procedures vs. dx for priv. billing
  Q
 CHKDXOP2 ;
  K APCDFOUN F  S APCDDX=$O(APCDDXP(APCDDX)) Q:APCDDX=""  I APCDDX=APCDOPDX S APCDFOUN=1
- I '$D(APCDFOUN) W !,$C(7),"WARNING: Operation ",$P($$ICDOP^ICDCODE($P(^AUPNVPRC(APCDPX,0),U,1)),U,2)," Not for Diagnosis in V POV file!",!,"Notify your Supervisor or Correct!",!
+ I '$D(APCDFOUN) W !,$C(7),"WARNING: Operation ",$$CODEC^ICDEX(80.1,$P(^AUPNVPRC(APCDPX,0),U,1))," Not for Diagnosis in V POV file!",!,"Notify your Supervisor or Correct!",!
  Q
  ;
 CHKH1 ;
@@ -54,17 +54,18 @@ CHKH1 ;
  ;W !,"This visit will be exported to the Data Warehouse."
  S DIE="^AUPNVINP(",DA=$O(^AUPNVINP("AD",APCDVSIT,"")),DR=".15///@" D ^DIE
  Q
+CHKEHR2 ;
+ ;if visit is deleted, don't bother with status update
+ I $P(^AUPNVSIT(APCDVSIT,0),U,11) Q  ;visit is deleted.
+ I "AOSCTRM"[$P(^AUPNVSIT(APCDVSIT,0),U,7),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")>$P(^APCCCTRL(DUZ(2),0),U,12) D CHKEHR
+ Q
 CHKEHR ;
  Q:$G(APCDCAF)="IN CAF"
- ;Q:'$D(^AUPNVPRV("AD",APCDVSIT))
- ;Q:'$D(^AUPNVPOV("AD",APCDVSIT))
- K DIR,DIRUT,DUOUT,DTOUT,X,Y
- S DIR(0)="Y",DIR("A")="Is coding complete for this visit (is all data entry completed)",DIR("B")=$P($G(^APCDSITE(DUZ(2),0)),U,29) D ^DIR K DIR S:$D(DUOUT) DIRUT=1
- I $D(DIRUT) S APCDYN="N"
- S APCDYN=Y
- W !!,"Please update the visit status for this visit.",! D UPDATE Q
- ;S DIE="^AUPNVSIT(",DA=APCDVSIT,DR="1111///R" D ^DIE K DIE,DA,R
- Q
+ ;K DIR,DIRUT,DUOUT,DTOUT,X,Y
+ ;S DIR(0)="Y",DIR("A")="Is coding complete for this visit (is all data entry completed)",DIR("B")=$P($G(^APCDSITE(DUZ(2),0)),U,29) D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ ;I $D(DIRUT) S APCDYN=0 G N
+ ;S APCDYN=Y
+N W !!,"Please update the visit status for this visit.",! D UPDATE Q
 CHKCHA ;
  Q:'$P($G(^APCDSITE(DUZ(2),0)),U,35)
 CHA ;
@@ -111,22 +112,21 @@ UPDATE ;
  I Y=-1 W !!,"updating status failed" H 2 G UPDATEX
  K DIC,DD,D0,DIADD,DLAYGO
  S (APCDVCA,DA)=+Y
+UPD0 ;EP
+ K DIC,DD,D0,DO
+ ;
 UPD1 ;
  D ^XBFMK
- S DA=APCDVCA,DIE="^AUPNVCA(",DR=".04//"_$S(APCDYN:"REVIEWED/COMPLETE",1:"INCOMPLETE") D ^DIE K DA,DIE,DR
-R ;
- I 'APCDYN S DA=APCDVCA,DIE="^AUPNVCA(",DR=".06"_$S($P($G(^APCDSITE(DUZ(2),0)),U,32):"R",1:"") D ^DIE K DA,DIE,DR I $P($G(^APCDSITE(DUZ(2),0)),U,32),$P(^AUPNVCA(APCDVCA,0),U,6)="" G R
- D ^XBFMK
+ S DA=APCDVCA,DIE="^AUPNVCA(",DR=".04" D ^DIE K DA,DIE,DR
  S APCDCAR=$P(^AUPNVCA(APCDVCA,0),U,4)
  I APCDCAR="" W !!,"You must enter a status" G UPD1
+ S APCDERR=$$ERRORCHK^APCDCAF(APCDVSIT)
+ I APCDERR]"",APCDCAR="R" W !!,"This visit has the following error: ",APCDERR,!,"You cannot mark a visit as Reviewed/Completed if there is an error." S DA=APCDVCA,DIE="^AUPNVCA(",DR=".04///I" D ^DIE G UPD1
  S DIE="^AUPNVSIT(",DA=APCDVSIT,DR=".13////"_DT_";1111////"_APCDCAR D ^DIE K DIE,DA,DR
- ;PUT CHART AUDIT NOTE HERE
- K DIR S DIR(0)="Y",DIR("A")="Do you want to update the Chart Audit Notes for this visit",DIR("B")="N" KILL DA D ^DIR KILL DIR
- I $D(DIRUT) G UPDATEX
- I 'Y G UPDATEX
- I '$D(^AUPNCANT(APCDVSIT)) D ADDCANT
- I '$D(^AUPNCANT(APCDVSIT)) W !!,"adding entry to chart audit notes failed." H 3 G UPDATEX
- S DA=APCDVSIT,DIE="^AUPNCANT(",DR=1100 D ^DIE K DIE,DA,DR
+ I APCDCAR="R" D RNU^APCDCAF4 G UPDATEX
+R ;
+ D EN^XBNEW("EN^APCDCAF6(APCDVSIT)","APCDVSIT")
+ I '$$FINDPEND^APCDCAF6(APCDVSIT),$$VALI^XBDIQ1(9000010,APCDVSIT,1111)'="R",$P(^APCDSITE(DUZ(2),0),U,32) W !!,"A chart Deficiency reason is required." H 3 G R
  ;
 UPDATEX ;
  K DIADD,DLAYGO

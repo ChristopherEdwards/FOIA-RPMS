@@ -1,7 +1,6 @@
 APCLTENP ; IHS/CMI/LAB - cont. of top ten ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;
- ;cmi/anch/maw 9/12/2007 code set versioning EXCLP,PPOV
  ;
 PRINT W:$D(IOF) @IOF,?20,"***** FREQUENCY OF DIAGNOSIS REPORT *****",!!
 COVPAGE ;EP
@@ -25,8 +24,7 @@ EXCLP ;
  .W !!,"The following diagnoses are excluded"
  .S APCLX=0 F  S APCLX=$O(APCLDXT(APCLX)) Q:APCLX'=+APCLX!($D(APCLQ))  D
  ..I $Y>(IOSL-5) D PAUSE^APCLVL01 W:$D(IOF) @IOF
- ..;W ":",$P(^ICD9(APCLX,0),U)  ;cmi/anch/maw 9/12/2007 orig line
- ..W ":",$P($$ICDDX^ICDCODE(APCLX),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ ..W ":",$P($$ICDDX^ICDEX(APCLX),U,2)  ;cmi/anch/maw 9/12/2007 csv
  ..Q
  .Q
 COUNT ;if COUNTING entries only   
@@ -46,11 +44,9 @@ PPOV I $E(IOST)="C",IO=IO(0),$Y>(IOSL-4) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y
  .S APCLPOV=@F@(I)
  .I $Y>(IOSL-4) D FF Q:$D(APCLQUIT)
  .I I=1,APCLCHRT="B" D SETDASH(A)
- .;I APCLCHRT="L" W !?3,I,".",?7,$P(^ICD9(APCLPOV,0),U),?15,$P(^ICD9(APCLPOV,0),U,3) D  Q  ;cmi/anch/maw 9/12/2007 orig line
- .I APCLCHRT="L" W !?3,I,".",?7,$P($$ICDDX^ICDCODE(APCLPOV),U,2),?15,$P($$ICDDX^ICDCODE(APCLPOV),U,4) D  Q  ;cmi/anch/maw 9/12/2007 csv
+ .I APCLCHRT="L" W !?3,I,".",?7,$P($$ICDDX^ICDEX(APCLPOV),U,2),?17,$E($P($$ICDDX^ICDEX(APCLPOV),U,4),1,40) D  Q  ;cmi/anch/maw 9/12/2007 csv
  ..W ?58,@A,?70,$J($G(^XTMP("APCLTEN",APCLJOB,APCLBT,"PCOUNT",APCLPOV)),7,0)
- .;W !,$E($P(^ICD9(APCLPOV,0),U,3),1,17),?18," (",$P(^ICD9(APCLPOV,0),U),")",?27,"|" S L=+(@A),D=L\APCLDASH F %=1:1:D W "*"  ;cmi/anch/maw 9/12/2007 orig line
- .W !,$E($P($$ICDDX^ICDCODE(APCLPOV),U,4),1,17),?18," (",$P($$ICDDX^ICDCODE(APCLPOV),U,2),")",?27,"|" S L=+(@A),D=L\APCLDASH F %=1:1:D W "*"  ;cmi/anch/maw 9/12/2007 csv
+ .W !,$E($P($$ICDDX^ICDEX(APCLPOV),U,4),1,17),?18," (",$P($$ICDDX^ICDEX(APCLPOV),U,2),")",?27,"|" S L=+(@A),D=L\APCLDASH F %=1:1:D W "*"  ;cmi/anch/maw 9/12/2007 csv
  .W " ",+(@A)
  .Q
  G:$D(APCLQUIT) PEXIT

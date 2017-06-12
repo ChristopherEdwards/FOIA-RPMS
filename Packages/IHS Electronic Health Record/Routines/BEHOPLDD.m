@@ -1,0 +1,127 @@
+BEHOPLDD ; IHS/MSC/MGH - Problem Details ;23-Mar-2016 14:30;PLS
+ ;;1.1;BEH COMPONENTS;**034002,034003,034004**;Mar 20, 2007;Build 3
+ ;---------------------------------------------
+DETAIL(RET,IEN,DFN) ;Get a detail report on one problem
+ N ZERO,CNT,PROB,CLASS,STATUS,ACLASS,PIP,ONSET,SNOMED,DESC,IN,OUT,ACT
+ S VIEN=$G(VIEN)
+ S ZERO=$G(^AUPNPROB(IEN,0))
+ S ACT=$G(ACT),NUM=$G(NUM)
+ S RET=$$TMPGBL,CNT=0
+ I $G(IEN)="" D ADD("No problem entered")
+ D ADD2(""),ADD2("PROBLEM DATA")
+ D ADD1($$GET1^DIQ(9000011,IEN,.07),"  ID:")
+ S PROB=$$GET1^DIQ(9000011,IEN,.05)
+ I $P(PROB,"|",2)=""!($P(PROB,"|",2)=" ") S PROB=$P(PROB,"|",1)
+ D ADD1(PROB,"Problem:")
+ D CHANGED^BGOPAUD(IEN,.05)
+ D ADD1($$GET1^DIQ(9000011,IEN,.01)," * Mapped ICD:")
+ D CHANGED^BGOPAUD(IEN,.01)
+ S CLASS=$$GET1^DIQ(9000011,IEN,.04)
+ S STATUS=$$GET1^DIQ(9000011,IEN,.12)
+ I CLASS'="" S STATUS=STATUS_" * Class: "_CLASS
+ D ADD1(STATUS," * Status:")
+ D CHANGED^BGOPAUD(IEN,.12)
+ I $$GET1^DIQ(9000011,IEN,.13)="" S ONSET="UNKNOWN"
+ E  S ONSET=$$GET1^DIQ(9000011,IEN,.13)
+ D ADD1(ONSET," * Date of Onset:")
+ D ADD1($$GET1^DIQ(9000011,IEN,.08)," * Date Entered:")
+ D ADD1($$GET1^DIQ(9000011,IEN,.03)," * Date Last Modified:")
+ D ADD1($$GET1^DIQ(9000011,IEN,1.04)," * Recorded By:")
+ S ACLASS=$$GET1^DIQ(9000011,IEN,.15)
+ I ACLASS'="" D ADD1(ACLASS," * Asthma Class:")
+ D CHANGED^BGOPAUD(IEN,.15)
+ S PIP=$$GET1^DIQ(9000011,IEN,.19,"I")
+ I PIP=1 D ADD1(PIP," * Pregnancy DX:")
+ S SNOMED=$P($G(^AUPNPROB(IEN,800)),U,1)
+ D ADD1(SNOMED," * Concept CT:")
+ D CHANGED^BGOPAUD(IEN,80001)
+ S DESC=$P($G(^AUPNPROB(IEN,800)),U,2)
+ D ADD1(DESC," * Desc CT: ")
+ D CHANGED^BGOPAUD(IEN,80002)
+ D ADD2("")
+ D ICD(IEN)
+ D QUAL(IEN)
+ D NOTES
+ I VIEN="" D POV(IEN),ADD2("")
+ D INPT(IEN)
+ D RECON(IEN)
+ Q
+NOTES ; Get the notes for this problem
+ N AIEN,IEN2,BY,WHEN,NUM,FAC,NARR,I,NOTES,STAT
+ D NOTES^BGOPRBN(.NOTES,IEN,1)
+ I $D(NOTES)>1 D ADD2("") D ADD2("          NOTES")
+ S I="" F  S I=$O(NOTES(I)) Q:I=""  D
+ .S FAC=$P(NOTES(I),U,1)
+ .S FAC=$$GET1^DIQ(9999999.06,FAC,.01)
+ .D CHANGED^BGOPAUD(IEN,"9000011.11,.01")
+ .S NUM=$P(NOTES(I),U,3)
+ .S STAT=$P(NOTES(I),U,5) I STAT="A" S STATUS="ACTIVE"
+ .S BY=$P(NOTES(I),U,7)
+ .S BY=$$GET1^DIQ(200,BY,.01)
+ .S WHEN=$$FMTE^XLFDT($P(NOTES(I),U,6))
+ .S NARR=$P(NOTES(I),U,4)
+ .D ADD2("Site: "_FAC_"  Number: "_NUM_" Status: "_STAT)
+ .D ADD2("Entered By: "_BY_"   On: "_WHEN)
+ .D ADD2(NARR)
+ .D ADD2("")
+ Q
+ICD(IEN) ;Get any additional ICD codes for this problem
+ N AIEN,IEN2
+ I $D(^AUPNPROB(IEN,12)) D ADD2("     Additional ICD Codes")
+ S IEN2=0 F  S IEN2=$O(^AUPNPROB(IEN,12,IEN2)) Q:'+IEN2  D
+ .S AIEN=IEN2_","_IEN_","
+ .D ADD2($$GET1^DIQ(9000011.12,AIEN,.01))
+ Q
+QUAL(IEN) ;Get any qualifiers for this problem
+ N AIEN,IEN2,BY,WHEN,FNUM,X,Q,FLD
+ F X=13,17,18 D
+ .I $D(^AUPNPROB(IEN,X)) D ADD2("     QUALIFIERS")
+ .S FNUM=$S(X=13:9000011.13,X=17:9000011.17,X=18:9000011.18)
+ .S IEN2=0 F  S IEN2=$O(^AUPNPROB(IEN,X,IEN2)) Q:'+IEN2  D
+ ..S AIEN=IEN2_","_IEN_","
+ ..I X=13 D
+ ...S BY=$$GET1^DIQ(FNUM,AIEN,.02)
+ ...S WHEN=$$GET1^DIQ(FNUM,AIEN,.03)
+ ..S Q=$$GET1^DIQ(FNUM,AIEN,.01)
+ ..S Q=$$CONCEPT^BGOPAUD(Q)
+ ..D ADD2(Q)
+ ..I X=13 D ADD2("Entered by: "_BY_"    On: "_WHEN)
+ ..S FLD=$S(X=13:1301,X=17:1701,X=18:1801)
+ ..D CHANGED^BGOPAUD(IEN,FLD_",.01")
+ Q
+POV(IEN) ;See if this problem has been used as a POV
+ N AIEN,IEN2,BY,WHEN,CLIN,VSIT
+ I $D(^AUPNPROB(IEN,14)) D ADD2("     Visits when used as POV")
+ S IEN2=0 F  S IEN2=$O(^AUPNPROB(IEN,14,IEN2)) Q:'+IEN2  D
+ .S VSIT=$G(^AUPNPROB(IEN,14,IEN2,0))
+ .S CLIN=$P($G(^AUPNVSIT(VSIT,0)),U,8)
+ .;IHS/MSC/MGH Remove quitting if pharamcy visit
+ .;Q:CLIN=39           ;Don't include pharmacy visits
+ .S AIEN=IEN2_","_IEN_","
+ .D ADD2($$GET1^DIQ(9000011.14,AIEN,.01))
+ Q
+INPT(IEN) ;See if this problem has been used for inpt visits
+ N AIEN,IEN2,BY,WHEN
+ I $D(^AUPNPROB(IEN,15))>10 D ADD2("     Used for Inpt Visits")
+ S IEN2=0 F  S IEN2=$O(^AUPNPROB(IEN,15,IEN2)) Q:'+IEN2  D
+ .S AIEN=IEN2_","_IEN_","
+ .D ADD2($$GET1^DIQ(9000011.15,AIEN,.01))
+ Q
+RECON(IEN) ;Display the reconciliation data for this problem
+ N REC,AIEN,WHEN,BY,RIEN
+ S REC=""
+ F  S REC=$O(^BEHOCIR("G","P",IEN,REC)) Q:REC=""  D
+ .S RIEN="" F  S RIEN=$O(^BEHOCIR("G","A",IEN,REC,RIEN)) Q:RIEN=""  D
+ ..S AIEN=RIEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..W ?10,"Reconciled on: "_WHEN_" by "_BY,!
+ Q
+ADD1(TXT,LBL) ;
+ S CNT=CNT+1 S @RET@(CNT)=$S($D(LBL):$$LJ^XLFSTR(LBL,20),1:"")_$G(TXT),LBL=""
+ Q
+ADD2(TXT) ;
+ S CNT=CNT+1 S @RET@(CNT)=TXT
+ Q
+TMPGBL(X) ;EP
+ K ^TMP("BGOPRDD",$J) Q $NA(^($J))

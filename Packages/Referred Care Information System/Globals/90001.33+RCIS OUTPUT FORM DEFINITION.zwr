@@ -1,8 +1,8 @@
-RCIS OUTPUT FORM DEFINITION
-ZWR
+OSEHRA ZGO Export: RCIS OUTPUT FORM DEFINITION
+12-JUN-2017 09:47:29 ZWR
 ^BMCTFORM(0)="RCIS OUTPUT FORM DEFINITION^90001.33^10^10"
 ^BMCTFORM(1,0)="STANDARD IHS REFERRAL LETTER^Referral for Contract Professional Services"
-^BMCTFORM(1,1,0)="^90001.331^22^22^3060922^^^^"
+^BMCTFORM(1,1,0)="^90001.331^22^22^3140514^^^^"
 ^BMCTFORM(1,1,1,0)="To the contract provider: CHS funds are authorized as specified above,"
 ^BMCTFORM(1,1,2,0)="subject to the conditions below:"
 ^BMCTFORM(1,1,3,0)=" "
@@ -25,7 +25,7 @@ ZWR
 ^BMCTFORM(1,1,20,0)=" "
 ^BMCTFORM(1,1,21,0)="* This referral is a request for health services, not a guarantee of"
 ^BMCTFORM(1,1,22,0)="payment."
-^BMCTFORM(1,2,0)="^90001.332^8^8^3060922^^^^"
+^BMCTFORM(1,2,0)="^90001.332^8^8^3140514^^^^"
 ^BMCTFORM(1,2,1,0)="To the contract provider:"
 ^BMCTFORM(1,2,2,0)=" "
 ^BMCTFORM(1,2,3,0)="CHS funds are NOT AUTHORIZED.  The patient (and any alternative resources"
@@ -34,7 +34,7 @@ ZWR
 ^BMCTFORM(1,2,6,0)=" "
 ^BMCTFORM(1,2,7,0)="Please submit a consultation report or discharge summary to the"
 ^BMCTFORM(1,2,8,0)="referring Indian Health Service provider as soon as possible."
-^BMCTFORM(1,3,0)="^90001.333^20^20^3060922^^^^"
+^BMCTFORM(1,3,0)="^90001.333^20^20^3140514^^^^"
 ^BMCTFORM(1,3,1,0)="TO THE CONTRACT PROVIDER:  CHS Funds are not authorized because we do not"
 ^BMCTFORM(1,3,2,0)="yet have adequate information to make that determination.  The patient"
 ^BMCTFORM(1,3,3,0)="(and any alternative resources to which he/she is entitled) is responsible"

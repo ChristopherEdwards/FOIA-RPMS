@@ -1,21 +1,21 @@
-PXRMVALC ; SLC/KR Validate Codes (format/value)    ; 05/16/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+PXRMVALC ; SLC/KR - VAL Validate Codes (format/value)    ;31-May-2013 13:35;DU
+ ;;2.0;CLINICAL REMINDERS;**4,1001**;Feb 04, 2005;Build 21
  Q
- ;   
+ ;
  ; Entry points (extrinsic functions)
- ;   
+ ;
  ;     ICD^PXRMVALC(<code>)   Validate ICD-9-CM Diagnosis Code
  ;     ICP^PXRMVALC(<code>)   Validate ICD-9-CM Procedure Code
  ;     CPT^PXRMVALC(<code>)   Validate CPT-4 Procedure Code
- ;   
+ ;
  ;  All entry points return:
- ;  
+ ;
  ;    <validity>^<input>^<output>^<error>^<file #>^<global root>^
  ;    <type of code>^<input IEN>^<input flag>^<output IEN>^
  ;    <output flag>^<description>
- ;   
+ ;
 ICD(X) ; Validate ICD-9-CM Diagnosis Code from file 80
- S X=$G(X),U="^" N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,EXP,FNUM,FORM,IENI,IENO,IFIN,IFOUT,NAME,NUMERIC,PAT,TY,VAL,Y
+ S X=$G(X),U="^" N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,FNUM,FORM,IENI,IENO,IFIN,IFOUT,NAME,NUMERIC,PAT,TY,VAL,Y
  S VAL=1,FNUM=80,DIC="ICD9(",(IFIN,IFOUT,NAME)="",CIN=$TR(X,"""",""),U="^"
  S FORM=$S($E(X,1)="E":2,$E(X,1)="V":3,$E(X,1)?1N:1,1:1),TY=$S(FORM=2:"ICD ""E"" code",FORM=3:"ICD ""V"" code",FORM=1:"ICD code",1:"ICD code")
  S ERR="Valid "_TY,CHKD=$S(FORM=2:"ICD-9-CM ""E"" external cause code",FORM=3:"ICD-9-CM ""V"" health factor code",FORM=1:"ICD-9-CM diagnosis code",1:"ICD-9-CM code")
@@ -23,9 +23,13 @@ ICD(X) ; Validate ICD-9-CM Diagnosis Code from file 80
  ; Code transformation
  S CODE=X S:CODE'["." CODE=CODE_"."
  S:FORM=1&($L($P(CODE,".",1))=1)&(+($P(CODE,".",1))>0) $P(CODE,".",1)="00"_$P(CODE,".",1) S:FORM=1&($L($P(CODE,".",1))=2)&(+($P(CODE,".",1))>0) $P(CODE,".",1)="0"_$P(CODE,".",1) S X=CODE
- S CODE=$P(CODE,".",1,2),CODE=$$NEXT^PXRMVALU(CODE,80),COUT=CODE,(IENI,IENO)=""
- I $D(^ICD9("BA")),$D(^ICD9("BA",(COUT_" "))) D
- . S IENO=+($O(^ICD9("BA",(COUT_" "),0))),NAME=$P($G(^ICD9(+IENO,0)),U,3),IFOUT=$P($G(^ICD9(+IENO,0)),U,9)
+ S CODE=$P(CODE,".",1,2),CODE=$$NEXT^ICDAPIU(CODE),COUT=CODE,(IENI,IENO)=""
+ I +$$CODEN^ICDCODE(COUT,80)>0 D
+ .N ICD9,IFOUTX
+ .S IENO=+$$CODEN^ICDCODE(COUT,80)
+ .S ICD9=$$ICDDX^ICDCODE(+IENO)
+ .S NAME=$P(ICD9,U,4)
+ .S IFOUTX=$P(ICD9,U,10),IFOUT=$S(IFOUTX=0:1,IFOUTX=1:0,1:"")
  S ES="Invalid "_TY_" format "
  ; Format
  ;    not enough digits
@@ -50,27 +54,42 @@ ICD(X) ; Validate ICD-9-CM Diagnosis Code from file 80
  I $E(CIN,1)?1N,$P(CIN,".",1)'?3N D ERR((ES_"("_PAT_")")) G AQ
  ; Value
  ;    not found
- I $D(^ICD9("BA")),'$D(^ICD9("BA",(CIN_" "))) D  G AQ
+ I +$$CODEN^ICDCODE(CIN,80)<0 D  G AQ
  . N TC D ERR((TY_" not found in the ICD-9 file (#80)"))
  . S TC=COUT S:'$L(TC) TC=CIN I $E(TC,$L(TC))="0" D
- . . N SC,COUT S (SC,COUT)=TC F  S TC=$E(TC,1,($L(TC)-1)) S:$D(^ICD9("BA",(TC_" "))) SC=TC Q:$E(TC,$L(TC))'="0"!(SC'=COUT)  Q:TC=""
+ . . N SC,COUT S (SC,COUT)=TC F  S TC=$E(TC,1,($L(TC)-1)) S:+$$CODEN^ICDCODE(TC,80)>0 SC=TC Q:$E(TC,$L(TC))'="0"!(SC'=COUT)  Q:TC=""
  . . S TC="" S:SC'=COUT TC=SC
  . S:$L(TC) COUT=TC
- . S:$D(^ICD9("BA",(CIN_"0 "))) COUT=CIN_"0"
- . I $D(^ICD9("BA")),$D(^ICD9("BA",(COUT_" "))) D
- . . S IENO=+($O(^ICD9("BA",(COUT_" "),0))),NAME=$P($G(^ICD9(+IENO,0)),U,3),IFOUT=$P($G(^ICD9(+IENO,0)),U,9)
+ . S:+$$CODEN^ICDCODE(CIN_"0")>0 COUT=CIN_"0"
+ . I +$$CODEN^ICDCODE(COUT,80)>0 D
+ . . N ICD9,IFOUTX
+ . . S IENO=+$$CODEN^ICDCODE(COUT,80)
+ . . S ICD9=$$ICDDX^ICDCODE(+IENO)
+ . . S NAME=$P(ICD9,U,4)
+ . . S IFOUTX=$P(ICD9,U,10),IFOUT=$S(IFOUTX=0:1,IFOUTX=1:0,1:"")
  ;    found
- I $D(^ICD9("BA")),$D(^ICD9("BA",(CIN_" "))) D  G AQ
- . D ERR(("Valid "_TY)) S VAL=1,IENI=+($O(^ICD9("BA",(CIN_" "),0)))
- . S NAME=$P($G(^ICD9(+IENI,0)),U,3),IFIN=$P($G(^ICD9(+IENI,0)),U,9) S:(+(IFOUT)+(IFIN))>0 ERR="Inactive "_TY
+ I $$CODEN^ICDCODE(CIN,80)>0 D  G AQ
+ . D ERR(("Valid "_TY)) S VAL=1
+ . S IENI=+$$CODEN^ICDCODE(CIN,80)
+ . N ICD9,IFINX
+ . S ICD9=$$ICDDX^ICDCODE(IENI)
+ . S NAME=$P(ICD9,U,4)
+ . S IFINX=$P(ICD9,U,10),IFIN=$S(IFINX=0:1,IFINX=1:0,1:"")
+ . S:(+(IFOUT)+(IFIN))>0 ERR="Inactive "_TY
  G AQ
- ;   
+ ;
 ICP(X) ; Validate ICD-9-CM Procedure Code from file 80.1
- S X=$G(X),U="^" N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,EXP,FNUM,FORM,IENI,IENO,IFIN,IFOUT,NAME,NUMERIC,PAT,TY,VAL,Y
+ S X=$G(X),U="^" N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,FNUM,FORM,IENI,IENO,IFIN,IFOUT,NAME,NUMERIC,PAT,TY,VAL,Y
  S FNUM=80.1,DIC="ICD0(",VAL=1,(NAME,IFIN,IFOUT)="",CIN=$TR(X,"""","")
  ; Code transformation
- S CODE=X,TY="ICD Procedure code",PAT="NN.nn",CHKD=TY S:CODE'["." CODE=CODE_"." S:$L($P(CODE,".",1))=1 CODE="0"_CODE S CODE=$$NEXT^PXRMVALU(CODE,80.1),COUT=CODE
- S VAL=1,ERR="Valid "_TY I $D(^ICD0("BA")),$D(^ICD0("BA",(CODE_" "))) S IENO=+($O(^ICD0("BA",(CODE_" "),0))),NAME=$P($G(^ICD0(+IENO,0)),U,4),IFOUT=$P($G(^ICD0(+IENO,0)),U,9)
+ S CODE=X,TY="ICD Procedure code",PAT="NN.nn",CHKD=TY S:CODE'["." CODE=CODE_"." S:$L($P(CODE,".",1))=1 CODE="0"_CODE S CODE=$$NEXT^ICDAPIU(CODE),COUT=CODE
+ S VAL=1,ERR="Valid "_TY
+ I +$$CODEN^ICDCODE(CODE,80.1)>0 D
+ .S IENO=+$$CODEN^ICDCODE(CODE,80.1)
+ .N ICDO,IFOUTX
+ .S ICDO=$$ICDOP^ICDCODE(+IENO)
+ .S NAME=$P(ICDO,"^",5)
+ .S IFOUTX=$P(ICDO,U,10),IFOUT=$S(IFOUTX=0:1,IFOUTX=1:"",1:"")
  S ES="Invalid "_TY_" format "
  ; Format
  ;    not enough digits
@@ -89,29 +108,39 @@ ICP(X) ; Validate ICD-9-CM Procedure Code from file 80.1
  I $P(CIN,".",1)'?2N D ERR((ES_"("_PAT_")")) G AQ
  ; Value
  ;    not found
- I $D(^ICD0("BA")),'$D(^ICD0("BA",(CIN_" "))) D  G AQ
- . N TC D ERR((TY_" not found in the ICD-9 file (#80.1)")) S COUT=""
+ I +$$CODEN^ICDCODE(CIN,80.1)<0 D  G AQ
+ . N TC D ERR((TY_" not found in the ICD-0 file (#80.1)")) S COUT=""
  . S TC=COUT S:'$L(TC) TC=CIN I $E(TC,$L(TC))="0" D
- . . N SC,COUT S (SC,COUT)=TC F  S TC=$E(TC,1,($L(TC)-1)) S:$D(^ICD0("BA",(TC_" "))) SC=TC Q:$E(TC,$L(TC))'="0"!(SC'=COUT)  Q:TC=""
+ . . N SC,COUT S (SC,COUT)=TC F  S TC=$E(TC,1,($L(TC)-1)) S:+$$CODEN^ICDCODE(TC,80.1)>0 SC=TC Q:$E(TC,$L(TC))'="0"!(SC'=COUT)  Q:TC=""
  . . S TC="" S:SC'=COUT TC=SC
  . S:$L(TC) COUT=TC
- . S:$D(^ICD0("BA",(CIN_"0 "))) COUT=CIN_"0"
- . I $D(^ICD0("BA")),$D(^ICD0("BA",(COUT_" "))) D
- . . S IENO=+($O(^ICD0("BA",(COUT_" "),0))),NAME=$P($G(^ICD0(+IENO,0)),U,3),IFOUT=$P($G(^ICD0(+IENO,0)),U,9)
+ . S:+$$CODEN^ICDCODE(CIN_"0",80.1)>0 COUT=CIN_"0"
+ . I +$$CODEN^ICDCODE(COUT,80.1)>0 D
+ . . S IENO=+$$CODEN^ICDCODE(COUT,80.1)
+ . . N ICDO,IFOUTX
+ . . S ICDO=$$ICDOP^ICDCODE(+IENO)
+ . . S NAME=$P(ICDO,"^",5)
+ . . S IFOUTX=$P(ICDO,U,10),IFOUT=$S(IFOUTX=0:1,IFOUTX=1:"",1:"")
  ;    found
- I $D(^ICD0("BA")),$D(^ICD0("BA",(CIN_" "))) D  G AQ
- . S VAL=1,ERR="Valid "_TY,IENI=+($O(^ICD0("BA",(CIN_" "),0)))
- . S NAME=$P($G(^ICD0(+IENI,0)),U,4),IFIN=$P($G(^ICD0(+IENI,0)),U,9) S:(+(IFOUT)+(IFIN))>0 ERR="Inactive "_TY
+ I $$CODEN^ICDCODE(CIN,80.1)>0 D  G AQ
+ . S VAL=1,ERR="Valid "_TY
+ . S IENI=+$$CODEN^ICDCODE(CIN,80.1)
+ . N ICDO,IFINX
+ . S ICDO=$$ICDOP^ICDCODE(+IENI)
+ . S NAME=$P(ICDO,"^",5)
+ . S IFINX=$P(ICDO,"^",10),IFIN=$S(IFINX=0:1,IFINX=1:"",1:"")
+ . S:(+(IFOUT)+(IFIN))>0 ERR="Inactive "_TY
  G AQ
- ;            
-CPT(X) ; Validate CPT-4 Procedure Code from file 81
+ ;
+CPT(X) ; Validate Procedure Code from file 81
  S X=$G(X),U="^"
- N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,EXP,FNUM,FORM,IENI,IENO,IFIN,IFOUT
+ N CHR,CHKD,CIN,CODE,COUT,DIC,ERR,ES,FNUM,FORM,IENI,IENO,IFIN,IFOUT
  N NAME,NUMERIC,PAT,STATUS,TEMP,TY,VAL,Y
- S VAL=1,FNUM=81,DIC="ICPT(",(IFIN,IFOUT,NAME)="",CIN=$TR(X,"""",""),U="^",FORM=$S($E(X,1)?1N:1,$E(X,1)?1U:2,1:1)
- S TY=$S(FORM=1:"CPT-4 code",FORM=2:"HCPCS code",1:"Procedure code")
- S CHKD=$S(FORM=1:"CPT-4 procedure code",FORM=2:"HCPCS procedure code",1:"CPT-4 procedure code")
- S PAT=$S(FORM=1:"NNNNN",FORM=2:"UNNNN",1:"NNNNN or UNNNN")
+ S VAL=1,FNUM=81,DIC="ICPT(",(IFIN,IFOUT,NAME)="",CIN=$TR(X,"""","")
+ S FORM=$S(CIN?5N:1,CIN?1A4N:2,CIN?4N1A:2,1:0)
+ S TY=$S(FORM=1:"CPT-4 code",FORM=2:"HCPCS code",1:"unknown")
+ S CHKD=$S(FORM=1:"CPT-4 procedure code",FORM=2:"HCPCS procedure code",1:"Unknown format")
+ S PAT=$S(FORM=1:"NNNNN",FORM=2:"ANNNN or NNNNA",1:"")
  S ES="Invalid "_TY_" format "
  ; Code transformation
  ;    HCPCS
@@ -129,9 +158,10 @@ CPT(X) ; Validate CPT-4 Procedure Code from file 81
  . F  Q:$E(NUMERIC,1)'="0"  S NUMERIC=$E(NUMERIC,2,$L(NUMERIC))
  . S NUMERIC=+NUMERIC F  Q:$L(NUMERIC)>4  S NUMERIC="0"_NUMERIC
  . S CODE=NUMERIC
- S CODE=$$NEXT^PXRMVALU(CODE,81),COUT=CODE S (IENI,IENO)=""
- I $L(COUT),$D(^ICPT("B")),$D(^ICPT("B",COUT)) D
- . S IENO=+($O(^ICPT("B",COUT,0)))
+ ;S CODE=$$NEXT^ICPTAPIU(CODE),COUT=CODE S (IENI,IENO)=""   ;Patch 1001
+ S CODE=$$NEXT^PXRMVALU(CODE),COUT=CODE S (IENI,IENO)=""    ;Patch 1001 replaced call
+ I $L(COUT),+$$CODEN^ICPTCOD(COUT)>0 D
+ . S IENO=+$$CODEN^ICPTCOD(COUT)
  . S TEMP=$$CPT^ICPTCOD(IENO)
  . S NAME=$P(TEMP,U,3)
  . S STATUS=$P(TEMP,U,7)
@@ -141,19 +171,15 @@ CPT(X) ; Validate CPT-4 Procedure Code from file 81
  I $L(CIN)<5 D ERR((ES_"(not enough characters)")) G AQ
  ;    too many characters
  I $L(CIN)>5 D ERR((ES_"(too many characters)")) G AQ
- ;    invalid pattern
- ;       CPT-4
- I $E(CIN,1)?1N,CIN'?5N D ERR((ES_"("_PAT_")")) G AQ
- ;       HCPCS
- I $E(CIN,1)?1U,CIN'?1U4N D ERR((ES_"("_PAT_")")) G AQ
- I CIN'?5N&(CIN'?1U.4N) D ERR(("Invalid code format (NNNNN or UNNNN)")) G AQ
- ; Value
- ;    not found
- I $D(^ICPT("B")),'$D(^ICPT("B",CIN)) D ERR((TY_" not found in the CPT file (#81)")) S COUT="" G AQ
+ ; Invalid pattern
+ I FORM=0 D ERR(ES_PAT) G AQ
+ ; Value not found
+ I +$$CODEN^ICPTCOD(CIN)<1 D ERR((TY_" not found in the CPT file (#81)")) S COUT="" G AQ
  ;    found
- I $D(^ICPT("B")),$D(^ICPT("B",CIN)) D  G AQ
- . S VAL=1,ERR="Valid "_TY,IENI=+($O(^ICPT("B",CIN,0)))
- . S TEMP=$$CPT^ICPTCOD(IENO)
+ I +$$CODEN^ICPTCOD(CIN)>0 D  G AQ
+ . S VAL=1,ERR="Valid "_TY
+ . S IENI=+$$CODEN^ICPTCOD(CIN)
+ . S TEMP=$$CPT^ICPTCOD(IENI)
  . S NAME=$P(TEMP,U,3)
  . S STATUS=$P(TEMP,U,7)
  . S IFIN=$S(STATUS:"",1:1)

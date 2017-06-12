@@ -1,5 +1,5 @@
 ABSPOSCE ; IHS/FCS/DRS - New entry in 9002313.02 ;   [ 12/20/2002  11:24 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,5,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,5,42**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Creates an Electronic Claim Submission record

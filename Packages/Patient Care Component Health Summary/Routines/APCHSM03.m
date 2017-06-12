@@ -1,5 +1,5 @@
 APCHSM03 ; IHS/CMI/LAB -- CONTINUATION OF ROUTINES ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,16**;MAY 14, 2009;Build 9
  ;IHS/CMI/LAB - uncommented age limit on pap smear
  ;
  ; ******************** SURVEILLANCE - HARD CODE ********************
@@ -96,12 +96,13 @@ BP ;
  .Q
 BPREG ;regular stuff
  I $$PLTAX^APCHSMU(APCHSPAT,"SURVEILLANCE HYPERTENSION") X APCHSURX Q  ;cancel if pt has hypertension on problem list
+ I $$IPLSNO^APCHSMU1(APCHSPAT,"PXRM HYPERTENSION") X APCHSURX Q  ;cancel if pt has snomed htn on pl
  S APCHSINT="",APCHSCRI=$$SITECRIT^APCHSMU(APCHSITI)
  I APCHSCRI S APCHSINT=$$AGESEX^APCHSMU(APCHSITI,APCHSPAT),APCHMIN=$$MINAGE^APCHSMU(APCHSITI,APCHSPAT)
  I 'APCHSCRI D
- .Q:APCHSAGE<3
+ .Q:APCHSAGE<2
  .S APCHSINT=(2*365)
- .S APCHMIN=3
+ .S APCHMIN=2
  I APCHSINT="" X APCHSURX Q  ;no frequency so skip it
  ;reset APCHSINT if needed depending on last BP diastolic and age
  I 'APCHSCRI D RESET

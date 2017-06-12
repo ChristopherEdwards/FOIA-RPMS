@@ -1,13 +1,13 @@
 BDWBHL ; IHS/CMI/LAB - BDW Populate Various DW1 HL7 Segments ; [ 04/05/2007  2:56 PM ]
- ;;1.0;IHS DATA WAREHOUSE;**1,2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**1,2,4**;JAN 23, 2006;Build 24
  ;       
  ;this routine will set up all of the necessary variables to populate varios DW1 HL7 segments
  ;
  ;cmi/anch/maw 4/5/2007 added hard code of EXO in HDR
  ;
 MAIN ;EP - this is the main routine driver
- S INQUE=1  ;cmi/anch/maw 7/26/04 this appears to suppress output queue setup in GIS for this interfaces A08 message
- D ZVP,DG1,PR1,ZDN,ZIM,ZMD,HF,MSR,XAM,CPT,LAB,PED,SKT
+ S INQUE=1
+ D ZVP,DG1,PR1,ZDN,ZIM,ZMD,HF,MSR,XAM,CPT,LAB,PED,SKT,IFC
  Q
  ;
 ZVP ;EP - populate the dw1 ZVP segment
@@ -39,9 +39,11 @@ DG1 ;EP - populate the dw1 DG1 and ZDX segments
  . S BDWCNT=BDWCNT+1
  . S INDA("DG1",BDWCNT)=""
  . S INA("BDW1DG11",BDWCNT)=BDWCNT
- . S INA("BDW1DG13",BDWCNT)=$P(BDWDATA,U)
+ . ;ihs/cmi/maw 06/10/2014 p5 ALPMR added provider narrative to DG1-3
+ . S INA("BDW1DG13",BDWCNT)=$P(BDWDATA,U)_U_U_$P(BDWDATA,U,10)  ;ihs/cmi/maw 10/17/2012 patch 4 icd10
+ . S INA("BDW1ZDX1",BDWCNT,1)=$P(BDWDATA,U,12)
  . S INA("BDW1ZDX4",BDWCNT,1)=$P(BDWDATA,U,2)
- . S INA("BDW1ZDX6",BDWCNT,1)=$P(BDWDATA,U,3)
+ . S INA("BDW1ZDX6",BDWCNT,1)=$P(BDWDATA,U,3)_U_U_$P(BDWDATA,U,11)  ;ihs/cmi/maw 10/17/2012 patch 4 icd10
  . S INA("BDW1ZDX7",BDWCNT,1)=$P(BDWDATA,U,4)
  S INDA("ZDX",1)=""
  K BDWCNT,BDWDA,BDWDATA,POV
@@ -49,6 +51,7 @@ DG1 ;EP - populate the dw1 DG1 and ZDX segments
  ;
 PR1 ;EP - populate the dw1 PR1 and ZPR segments
  K PRC
+ N PFLG
  S BDWCNT=0
  D PROC^BDWUTIL1(.PRC,BHLVIEN)
  S BDWDA=0 F  S BDWDA=$O(PRC(BDWDA)) Q:'BDWDA  D
@@ -56,7 +59,7 @@ PR1 ;EP - populate the dw1 PR1 and ZPR segments
  . S BDWCNT=BDWCNT+1
  . S INDA("PR1",BDWCNT)=""
  . S INA("BDW1PR11",BDWCNT)=BDWCNT
- . S INA("BDW1PR13",BDWCNT)=$P(BDWDATA,U)
+ . S INA("BDW1PR13",BDWCNT)=$P(BDWDATA,U)_U_U_$P(BDWDATA,U,10)  ;ihs/cmi/maw 10/17/2012 patch 4 icd10
  . S INA("BDW1PR15",BDWCNT)=$$DATE^INHUT($P(BDWDATA,U,2))
  . S INA("BDW1PR111",BDWCNT)=$P(BDWDATA,U,4)
  . S INA("BDW1ZPR5",BDWCNT,1)=$P(BDWDATA,U,3)
@@ -65,9 +68,19 @@ PR1 ;EP - populate the dw1 PR1 and ZPR segments
  . S INA("BDW1ZPR10",BDWCNT,1)=$P(BDWDATA,U,7)
  . S INA("BDW1ZPR11",BDWCNT,1)=$P(BDWDATA,U,8)
  . S INA("BDW1ZPR12",BDWCNT,1)=$P(BDWDATA,U,9)
- S INDA("ZPR",1)=""
+ . S INA("BDW1ZPR13",BDWCNT,1)=$P(BDWDATA,U,13)
+ . S PFLG=$$CHKPFLG(BDWDATA)
+ . S INA("BDW1ZPR13",BDWCNT,1)=$TR(INA("BDW1ZPR13",BDWCNT,1),"!","^")
+ . I $G(PFLG) S INDA("ZPR",BDWCNT,1)="",INDA("ZPR",BDWCNT)=""
  K BDWCNT,BDWDA,BDWDATA,PRC
  Q
+ ;
+CHKPFLG(DATA) ;check to see if we do a ZPR segment
+ N I,FL
+ S FL=0
+ F I=3,5,6,7,8,9,13 D
+ . I $P(DATA,U,I)]"" S FL=1
+ Q FL
  ;
 ZDN ;EP - populate the dw1 ZDN and ZDP segments
  K DEN
@@ -139,15 +152,19 @@ SKT ;EP - populate the dw1 OBX skin test segment
  D SKT^BDWBHL1
  Q
  ;
+IFC ;EP - populate the dw1 OBX infant feeding choice segment
+ D IFC^BDWBHL1
+ Q
+ ;
 ZRC ;EP - generate ZRC segment
- S INQUE=1  ;cmi/anch/maw 7/26/04 this appears to suppress output queue setup in GIS for this interfaces A31 message
+ S INQUE=1
  K INDA("ZRC")
  S BDWCNT=0
  S BDWDA=0 F  S BDWDA=$O(^AUPNPAT(DFN,41,BDWDA)) Q:'BDWDA  D
  . S BDWCNT=BDWCNT+1
  . S BDWDATA=$G(^AUPNPAT(DFN,41,BDWDA,0))
- . I $P(BDWDATA,U)="" S BDWDATA=BDWDA_BDWDATA  ;cmi/maw for missing 1st piece 6/28/04
- . Q:$P($G(^AGFAC($P(BDWDATA,U),0)),U,21)'="Y"  ;filter on reg fac
+ . I $P(BDWDATA,U)="" S BDWDATA=BDWDA_BDWDATA
+ . Q:$P($G(^AGFAC($P(BDWDATA,U),0)),U,21)'="Y"
  . S INDA("ZRC",BDWCNT)=""
  . S INA("BDW1ZRC6",BDWCNT)=$S($P(BDWDATA,U):$P($G(^AUTTLOC($P(BDWDATA,U),0)),U,10),1:"")
  . S INA("BDW1ZRC7",BDWCNT)=$P(BDWDATA,U,2)
@@ -171,7 +188,7 @@ ZRL ;EP - generate ZRL segment
  Q
  ;
 HDR ;-- generate the header record
- S INQUE=1  ;cmi/anch/maw 7/26/04 this appears to suppress output queue setup in GIS for this interfaces HDR message
+ S INQUE=1
  NEW BDWDEST S BDWDEST=$O(^INRHD("B","HL IHS DW1 IE",0)) K ^INLHDEST(BDWDEST) ;IHS/CMI/LAB - kill at beginning of each batch
  ;cmi/anch/maw 3/7/2007 added the following 3 lines for common header vars
  S INA("BDW1ZHS4")="HL7"
@@ -201,7 +218,7 @@ HDR ;-- generate the header record
  Q
  ;
 TRL ;-- generate the trailer record
- S INQUE=1  ;cmi/anch/maw 7/26/04 this appears to suppress output queue setup in GIS for this interfaces TRL message
+ S INQUE=1
  I INA("FILE")=90214 D  Q
  . S INA("BDW1ZTS1")=$$GET1^DIQ(90214,INDA,.18)
  . S INA("BDW1ZTS2")=$$GET1^DIQ(90214,INDA,.05)
@@ -248,10 +265,10 @@ BQ(BHLP) ;-- return blood quantum
  Q $G(BHLY)
  ;
 FLG(BDWSEG,BDWIEN) ;EP -- return status flag based on segment
- I $G(INA("BACKLOAD")) Q "A"  ;everything is a "A" on backlboad
+ I $G(INA("BACKLOAD")) Q "A"
  NEW G,X
  S G=0 F X=1:1:5 I $P($G(^AUPNPAT(BDWIEN,4)),U,X)]"" S G=1
- I 'G Q "A"  ;everything is an "A" if patient never sent to dw before
+ I 'G Q "A"
  N BDWFLG
  S BDWCD="N",BDWFLG=0
  I '$G(^AUPNPAT(BDWIEN,4)) S BDWFLG=1
@@ -278,8 +295,6 @@ FLG(BDWSEG,BDWIEN) ;EP -- return status flag based on segment
  Q BDWCD
  ;
 GETDIR ;get export directory
- ;cmi/anch/maw modified 7/27/2004 to look at default directories based on OS, defaults to UNIX then checks
- ;cmi/anch/maw modified 9/16/2004 to look for correct directory
  S BDWHDIR=$S($P($G(^AUTTSITE(1,1)),U,2)]"":$P(^AUTTSITE(1,1),U,2),1:$G(^XTV(8989.3,1,"DEV")))
  I $G(BDWHDIR)="" S BDWHDIR="/usr/spool/uucppublic/"
  Q
@@ -303,7 +318,7 @@ HFSA(DEST,BHLHDIR,BHLHFNM) ;EP - export from this destination
  .S DA=BHLU,DIE="^INTHU(",DR=".03////C" D ^DIE K DIE,DA,DR
  .Q
  K ^BDWTMP(DEST)
- D AUTOSEND^BDWBHL1  ;cmi/anch/maw 8/8/2007 moved after kill of BDWTMP so a failed ftp will not stop the kill
+ D AUTOSEND^BDWBHL1
 FTP ;
  ;PUT FTP TO DW MACHINE HERE
 BULL ;now send mailman message to user who queued the job
@@ -316,7 +331,6 @@ LPINTHU(BHLUIEN)       ;EP - loop through UIF and set to file
  Q
  ;
 DELAY(IDA,IA) ;-- determine the delay based on records
- ;cmi/maw 11/7/2007 added for dynamic delay based on number of records
  I IA=90215 Q 60
  N BDWRCNT
  S BDWRCNT=$$GET1^DIQ(IA,IDA,.06)

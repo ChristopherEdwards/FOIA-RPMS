@@ -1,5 +1,5 @@
 BGP0GUA ; IHS/CMI/LAB - BGP Gui Utilities 10/29/2004 3:28:39 PM 19 Sep 2005 5:28 PM 27 Apr 2009 10:28 PM ;
- ;;10.0;IHS CLINICAL REPORTING;;JUN 18, 2010
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
 DEBUG(RETVAL,BGPSTR) ;run the debugger
@@ -203,11 +203,14 @@ VC(RETVAL,BGPSTR) ;-- get version number to see if client matches
  S BGPVER=$G(^DIC(9.4,BGPPKG,"VERSION"))
  S BGPVERI=$O(^DIC(9.4,BGPPKG,22,"B",BGPVER,0))
  S BGPPTCH=$O(^DIC(9.4,BGPPKG,22,BGPVERI,"PAH","B",""),-1)
- I ($E(BGPVER,1,2)_BGPPTCH)=BGPVERIN D  Q
+ I $G(BGPPTCH),($E(BGPVER,1,2)_BGPPTCH)=BGPVERIN D  Q
  . S ^BGPTMP($J,BGPI)=1_$C(30)
  . S ^BGPTMP($J,BGPI+1)=$C(31)
- ;S ^BGPTMP($J,BGPI)=0_$C(30)  ;remove the line below when done with testing and uncomment this one
- S ^BGPTMP($J,BGPI)=1_$C(30)
+ I '$G(BGPPTCH),($G(BGPVER)=BGPVERIN) D  Q
+ . S ^BGPTMP($J,BGPI)=1_$C(30)
+ . S ^BGPTMP($J,BGPI+1)=$C(31)
+ S ^BGPTMP($J,BGPI)=0_$C(30)  ;remove the line below when done with testing and uncomment this one
+ ;S ^BGPTMP($J,BGPI)=1_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)
  Q
  ;

@@ -1,5 +1,5 @@
 ABSPOSCC ; IHS/FCS/DRS - Set up ABSP() ;      [ 05/09/2003  9:37 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42,46**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42,46,47**;JUN 01, 2001;Build 15
  ;---
  ; IHS/SD/lwj 03/12/02  some insurers are requiring the entire
  ; untranslated value as the cardholder id - new array budget
@@ -302,6 +302,9 @@ INSGRP() ; Insurer Grp #
  S:PINSTYPE="CARE"&(MDFLG&(MDIEN)) GRPIEN=$P($G(^AUPNMCR(PINSDA,11,MDIEN,0)),U,11)
  Q:GRPIEN $P($G(^AUTNEGRP(GRPIEN,0)),U,2)
  S:PINSTYPE="RR"&(RRDFLG&(RRDIEN)) GRPIEN=$P($G(^AUPNRRE(PINSDA,11,RRDIEN,0)),U,11)
+ Q:GRPIEN $P($G(^AUTNEGRP(GRPIEN,0)),U,2)
+ ;OIT/CAS/RCS Patch 47, Add Medicaid Group #
+ S:PINSTYPE="CAID" GRPIEN=$P($G(^AUPNMCD(PINSDA,0)),U,17)
  Q:GRPIEN $P($G(^AUTNEGRP(GRPIEN,0)),U,2)
  I PINSTYPE'="PRVT" Q ""
  N X S X=$$INS3PPH Q:'X ""

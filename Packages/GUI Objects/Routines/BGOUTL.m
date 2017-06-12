@@ -1,5 +1,5 @@
-BGOUTL ; IHS/BAO/TMD - Utilities ;29-Jun-2009 08:06;PLS
- ;;1.1;BGO COMPONENTS;**1,3,4,5,6**;Mar 20, 2007
+BGOUTL ; IHS/BAO/TMD - Utilities ;04-Feb-2015 08:58;DU
+ ;;1.1;BGO COMPONENTS;**1,3,4,5,6,13,14**;Mar 20, 2007
  ; Compute patient's age
  ;  DFN = Patient IEN
  ;  DAT = Reference date (defaults to today)
@@ -107,8 +107,9 @@ LOCK(RET,INP) ;EP
  ;   SCRN = Screening logic (e.g. => .04="TEST";.07=83)
  ;   ALL  = Return all records, maximum of 9999
  ;   FLDS = Fields to return
+ ;   VDT  = Visit Date for ICD0
 DICLKUP(RET,INP) ;EP
- N GBL,LKP,FROM,DIR,MAX,XREF,XREFS,SCRN,ALL,FLDS,FNUM,CNT
+ N GBL,LKP,FROM,DIR,MAX,VDT,XREF,XREFS,SCRN,ALL,FLDS,FNUM,CNT,IMP
  S RET=$$TMPGBL
  S GBL=$P(INP,U)
  I GBL=9999999.88,$$CSVACT^BGOUTL2 S GBL=81.3
@@ -124,9 +125,11 @@ DICLKUP(RET,INP) ;EP
  S SCRN=$TR($P(INP,U,7),"~",U)
  S ALL=$P(INP,U,8)
  S FLDS=$P(INP,U,9)
+ S VDT=$P(INP,U,10)
  S:FLDS="" FLDS=".01"
  I LKP'="",FROM="" S FROM=LKP
  S CNT=0,MAX=$S(ALL:9999,MAX>0:+MAX,1:100),DIR=$S(DIR'=-1:1,1:-1)
+ I GBL="^ICD0" S SCRN="",FLDS=".01",XREF="D"       ;Patch 14 for old terms
  I XREF'="" D  Q
  .S XREFS=XREF
  .F  S XREF=$P(XREFS,"~"),XREFS=$P(XREFS,"~",2,999) D DL1 Q:(XREFS="")!CNT
@@ -160,15 +163,28 @@ DL1 N NEXT,IEN
  ..D DL2
  Q
  ; Add to output list
-DL2 N VAL,TGT,FLD,IENS,I,X
+DL2 N VAL,TGT,FLD,IENS,I,X,ICDNAME,XVAL
  S IENS=IEN_","
+ S VAL=""
  D GETS^DIQ(FNUM,IENS,FLDS,"I","TGT")
- S VAL=IEN_U_NEXT
+ I GBL="^ICD0" D
+ .I $$AICD^BGOUTL2 D
+ ..S XVAL=$$ICDOP^ICDEX(IEN,"","","I")
+ ..S IMP=$$IMP^ICDEX("10P",VDT)
+ ..I IMP<VDT D
+ ...I $P(XVAL,U,15)=31&($P(XVAL,U,10)=1) S VAL=IEN
+ ..E  I $P(XVAL,U,15)=2&($P(XVAL,U,10)=1) S VAL=IEN
+ .E  D
+ ..S XVAL=$$ICDOP^ICDCODE(IEN,"","","I")
+ ..I $P(XVAL,U,15)=2&($P(XVAL,U,10)=1) S VAL=IEN
+ E  S VAL=IEN_U_NEXT
  F I=1:1 S FLD=$P(FLDS,";",I) Q:'$L(FLD)  D
  .S X=$G(TGT(FNUM,IENS,FLD,"I"))
  .I FNUM(0),FLD=.01 S X=$$EXTERNAL^DILFD(FNUM,FLD,,X)
- .S VAL=VAL_U_X
- S CNT=CNT+1,@RET@(CNT)=VAL
+ .I VAL'="" D
+ ..I GBL="^ICD0" S VAL=VAL_U_X_U_$P(XVAL,U,5)
+ ..E  S VAL=VAL_U_X
+ I VAL'="" S CNT=CNT+1,@RET@(CNT)=VAL
  Q
  ; Fileman Lookup utility (uses FIND^DIC)
  ;  INP = GBL [1] ^ Lookup Value [2] ^ FROM [3] ^ DIR [4] ^ MAX [5] ^ XREF [6] ^ SCRN [7] ^ ALL [8] ^ FLDS [9]
@@ -231,13 +247,14 @@ CPTMODS(RET,INP) ;EP
  ; Perform lookup in lexicon
  ;  INP = Term ^ Type (ICD/CHP)
 LEXLKUP(RET,INP) ;EP
- N TERM,TYPE
+ N TERM,TYPE,VDT
  Q:'$$TEST("LEX^ORWPCE",.RET)
  S TERM=$P(INP,U)
  Q:TERM=""
  S TYPE=$P(INP,U,2)
  Q:TYPE=""
- D LEX^ORWPCE(.RET,TERM,TYPE)
+ S VDT=$P(INP,U,3)
+ D LEX^ORWPCE(.RET,TERM,TYPE,VDT)
  Q
  ; Lexicon ICD lookup
  ;  TERM = Term to lookup
@@ -356,15 +373,17 @@ CVTDATE(X) ;EP
 FMTDATE(X,TM) ;EP
  Q:'X ""
  N M,D,V
- S M=$E(X,4,5),D=$E(X,6,7),V=$E(X,1,3)+1700
- S:M&D V=D_"/"_V
- S:M V=M_"/"_V
- I $G(TM) D
- .S X=X#1
- .Q:'X
- .S X=$TR($J(X*10000\1,4),0)
- .S V=V_" "_$E(X,1,2)_":"_$E(X,3,4)
+ S V=$TR($$FMTE^XLFDT(X,$S($G(TM):"5ZM",1:"5ZD")),"@"," ")
  Q V
+ ;S M=$E(X,4,5),D=$E(X,6,7),V=$E(X,1,3)+1700
+ ;S:M&D V=D_"/"_V
+ ;S:M V=M_"/"_V
+ ;I $G(TM) D
+ ;.S X=X#1
+ ;.Q:'X
+ ;.S X=$TR($J(X*10000\1,4),0)
+ ;.S V=V_" "_$E(X,1,2)_":"_$E(X,3,4)
+ ;Q V
  ; Convert a string to WP format
 TOWP(X) ;EP
  N I,L,L2,Y,Z

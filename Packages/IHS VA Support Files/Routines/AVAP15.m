@@ -1,5 +1,5 @@
 AVAP15 ;IHS/OIRM/DSD/AEF - PATCH AVA*93.2*15 RESTORE X-REFS ON FILE 200 FOR KERNEL UPDATE [ 01/28/2003  4:14 PM ]
- ;;93.2;VA SUPPORT FILES;**15**;JAN 31, 2003
+ ;;93.2;VA SUPPORT FILES;**15**;JAN 31, 2003;Build 8
  ;
  ;This is a special patch for the FileMan22/Kernel Update.  Some of
  ;the Kernel patches deleted or reset some of the IHS crossreferences

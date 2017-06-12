@@ -1,5 +1,5 @@
 ABSPOSCF ; IHS/FCS/DRS - Low-level format of .02 ;  [ 12/02/2002  2:54 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,23,39**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,23,39**;JUN 21, 2001;Build 15
  ;
  ; This routine will read the formats file.  As it reads a field
  ; from the formats file, it will execute the needed get, format,

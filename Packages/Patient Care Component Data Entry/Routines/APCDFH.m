@@ -1,5 +1,5 @@
-APCDFH ; IHS/CMI/LAB - LIST MANAGER API'S FOR FAMILY HISTORY AND API FOR REP FACTORS 19 Jun 2008 2:14 PM ; 02 Sep 2010  7:03 AM
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+APCDFH ; IHS/CMI/LAB - LIST MANAGER API'S FOR FAMILY HISTORY AND API FOR REP FACTORS 
+ ;;2.0;IHS PCC SUITE;**2,5,7,10,11,16**;MAY 14, 2009;Build 9
  ;
 MAIN ;EP - main routine driver
  D ASK
@@ -44,7 +44,7 @@ GETPAT(PAT) ;
  . S APCDFHA(1,0)="No Family History currently on file"
  . S APCDRCNT=0
  S APCDIEN=0 F  S APCDIEN=$O(^AUPNFH("AC",PAT,APCDIEN)) Q:'APCDIEN  D
- .Q:'$D(^AUPNFH(APCDIEN,0))  ;bad xref
+ .Q:'$D(^AUPNFH(APCDIEN,0))
  .S R=$P(^AUPNFH(APCDIEN,0),U,9),O=""
  .I R="" S R="Z",S=$$VAL^XBDIQ1(9000014,APCDIEN,.07),Z=S_" ",O=8 D  G GETPAT1
  ..I S="" S S="UNKNOWN",Z="UNKNOWN "
@@ -83,11 +83,13 @@ FH ;--
  .S APCDX="",$E(APCDX,5)="Age at Death: "_$$VAL^XBDIQ1(9000014.1,R,.05)_"  Cause of Death: "_$P(^AUPNFHR(R,0),U,6)
  .D SET
  I R,$P(^AUPNFHR(R,0),U,7)]""!($P(^AUPNFHR(R,0),U,8)]"") D
- .S APCDX="",$E(APCDX,5)="Multiple Birth: "_$$VAL^XBDIQ1(9000014.1,R,.07)_$S($P(^AUPNFHR(R,0),U,7)="Y":"  Multiple Birth Type: "_$$VAL^XBDIQ1(9000014.1,R,.08),1:"") ;_"  Date Updated: "_$$VAL^XBDIQ1(9000014.1,R,.09)
+ .S APCDX="",$E(APCDX,5)="Multiple Birth: "_$$VAL^XBDIQ1(9000014.1,R,.07)_$S($P(^AUPNFHR(R,0),U,7)="Y":"  Multiple Birth Type: "_$$VAL^XBDIQ1(9000014.1,R,.08),1:"")
  .D SET
-FH1 S APCDX="",$E(APCDX,5)="Dx: "_$$VAL^XBDIQ1(9000014,APCDIEN,.01)_"  "_$$VAL^XBDIQ1(9000014,APCDIEN,.04)
+FH1 S APCDX="",$E(APCDX,5)="Dx: "_$$VAL^XBDIQ1(9000014,APCDIEN,.01)_"  "_$$GET1^DIQ(9000014,APCDIEN,.04)
  D SET
- S APCDX="",$E(APCDX,5)="Age at Onset: "_$$VAL^XBDIQ1(9000014,APCDIEN,.11) ;,$E(APCDX,34)="Date Noted: "_$$VAL^XBDIQ1(9000014,APCDIEN,.03)
+ S APCDX="",$E(APCDX,5)="SNOMED: "_$$VALI^XBDIQ1(9000014,APCDIEN,.13)
+ D SET
+ S APCDX="",$E(APCDX,5)="Age at Onset: "_$$VAL^XBDIQ1(9000014,APCDIEN,.05)
  D SET
  I APCDIEN,$P(^AUPNFH(APCDIEN,0),U,8)]"" S APCDX="",$E(APCDX,5)="Provider who Documented: "_$$VAL^XBDIQ1(9000014,APCDIEN,.08) D SET
  Q
@@ -102,9 +104,9 @@ LDM(I) ;
  S E=$P(^AUPNFH(I,0),U,3) I E>D S D=E
  Q D
  ;
-HDR ;EP - header code
+HDR ;EP
  K VALMHDR
- S VALMHDR(1)="Name: "_IORVON_$E($P(^DPT(AUPNPAT,0),U),1,30)_IOINORM
+ S VALMHDR(1)="Name: "_$E($P(^DPT(AUPNPAT,0),U),1,30)
  S VALMHDR(1)=VALMHDR(1)_"  DOB: "_$$FTIME^VALM1(AUPNDOB)_"  Sex: "
  S VALMHDR(1)=VALMHDR(1)_$P(^DPT(AUPNPAT,0),U,2)_"  HRN: "
  S VALMHDR(1)=VALMHDR(1)_$S($D(^AUPNPAT(AUPNPAT,41,DUZ(2),0)):$P(^AUPNPAT(AUPNPAT,41,DUZ(2),0),U,2),1:"????")
@@ -158,27 +160,57 @@ COND ;
  S DIR(0)="Y",DIR("A")="Add "_$S(APCDSEC:"Another",1:"a")_" Condition for "_$$VAL^XBDIQ1(9000014.1,APCDFHR,.01)_" "_$P(^AUPNFHR(APCDFHR,0),U,3),DIR("B")=$S(APCDSEC:"N",1:"Y") KILL DA D ^DIR KILL DIR
  I $D(DIRUT) W !!,"No condition entered." D PAUSE,ADDX,BACK Q
  I 'Y D ADDX,BACK Q
- S DIR(0)="9000014,.01",DIR("A")="Enter Condition" KILL DA D ^DIR KILL DIR
- I $D(DIRUT) D EN^DDIOL("no diagnosis selected....required") D ADDX,PAUSE,BACK Q
- S APCDICD=+Y
+ ;CODE HERE TO GET SNOMED
+ S APCDICD="" K APCDAICD
+ D SMDX
+Y I $G(APCDCI)="" W !,"SNOMED is required." G COND
+ I $G(APCDICD)="" W !,"A valid code was not selected." G COND
+COND1 ;
  K DIC,DR,DA
  K DD,DO
- S DIC="^AUPNFH(",DIC(0)="L",X=APCDICD,DIC("DR")=".02////"_APCDPAT_";.03////^S X=DT;.12////^S X=DT;.09////"_APCDFHR
+ S DIC="^AUPNFH(",DIC(0)="L",X=APCDICD,DIC("DR")=".02////"_APCDPAT_";.03////^S X=DT;.12////^S X=DT;.09////"_APCDFHR_";.13///"_APCDCI_";.14///"_APCDDI
  D FILE^DICN
+ K DIC,DA,DR,DD,DO,D0,DIE
  S APCDFH=+Y
+ K Y
  S APCDOVRR=1
- S DIR(0)="9999999.27,.01O",DIR("A")="PROVIDER NARRATIVE" KILL DA D ^DIR KILL DIR
- I Y=""!(Y="^") S Y=$P($$ICDDX^ICDCODE(APCDICD,DT),U,4) W "  ",Y
- S DA=APCDFH,DIE="^AUPNFH(",DR=".04///"_Y_";.08" D ^DIE K DA,DR,DIE
- K DIR S APCDAO=""
- W !!?10,"I   In Infancy",!?10,"1   Before age 20",!?10,"2   At age 20-29",!?10,"3   At age 30-39",!?10,"4   At age 40-49",!?10,"5   At age 50-59",!?10,"6   60 and older",!?10,"U   Age Unknown"
- S DA=APCDFH,DIE="^AUPNFH(",DR=".11//" D ^DIE K DA,DR,DIE
- K DIE,DA,DR
+ W !,"This is the ICD code that the SNOMED maps to, you can change it if needed.",!
+ S DIE="^AUPNFH(",DR=".01",DA=APCDFH D ^DIE K DIE,DA,DR
+ ;
+X ;
+ ;
+ S Y=$$GETNARR^APCDFHS()
+ I Y="" D
+ .S Y=$P($$ICDDX^ICDEX(APCDICD,DT),U,4) W "  ",Y
+ S Y=Y_"|"_APCDDI,Y=$TR(Y,";",":")
+ S DA=APCDFH,DIE="^AUPNFH(",DR=".04///"_Y_";.08;.05;.15" D ^DIE K DA,DR,DIE
+ ;now put in additional icd codes if there are any
+ S APCDX=0 F  S APCDX=$O(APCDAICD(APCDX)) Q:APCDX'=+APCDX  D
+ .S DA(1)=APCDFH
+ .S X=APCDAICD(APCDX),X=$P($$ICDDX^ICDEX(X),U,1) Q:X=""  I X]"" S X="`"_X
+ .S DIC="^AUPNFH("_DA(1)_",11,"
+ .S DIC(0)="L"
+ .S DIC("P")=$P(^DD(9000014,1101,0),"^",2)
+ .D ^DIC K DA,DIC
  D EN^DDIOL("Family History added.  ",,"!!")
  K APCDOVRR,DIR
  S APCDSEC=1
  G COND
  ;
+SMDX ;
+ S (APCDCI,APCDDI,APCDPT,APCDICD)=""
+ D ^APCDFHS
+C I APCDCI="" W !!,"No SNOMED selected." Q
+ ;get icd code for this snomed
+ S A=0
+ I APCDICD]"" S APCDICD=$P($$ICDDX^ICDEX(APCDICD),U,1) Q
+ W !!,"There was no map to an ICD Diagnosis code for that SNOMED term, you "
+ W !,"will need to select an ICD Diagnosis code for this Family History.",!
+ I $T(^APCDFHD)="" D
+ .S DIR(0)="9000014,.01",DIR("A")="Enter Condition" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) D EN^DDIOL("no diagnosis selected....required") Q
+ .S APCDICD=+Y
+ Q
 ADDX ;
  K APCDFHR,APCDREL,APCDFH,APCDSEC,APCDOVRR,DIR,DA,DR,APCDICD,APCDR
  D ^XBFMK
@@ -188,7 +220,6 @@ ADDFHR ;
  S APCDFHR=""
  S DIR(0)="9000014.1,.03O",DIR("A")="Enter"_$S($G(APCDREL):" "_$P(^AUTTRLSH(APCDREL,0),U),1:"")_" Relation Description" KILL DA D ^DIR KILL DIR
  I X="^" Q
- ;I $D(DIRUT) Q
  S APCDRELD=$$UP^XLFSTR(Y)
  ;see if already have one
  S Y=0,G=0 F  S Y=$O(APCDR(Y)) Q:Y'=+Y!(G)  S X=$P(APCDR(Y),U,2) I $P(^AUPNFHR(X,0),U,1)=APCDREL,$$UP^XLFSTR($P(^AUPNFHR(X,0),U,3))=APCDRELD S G=X D
@@ -259,60 +290,46 @@ EDITREST ;
  S APCDOVRR=1
  W !!
  I 'APCDFHI S APCDSEC=0 D COND K APCDADD Q
- S DA=APCDFHI,DIE="^AUPNFH(",DR=".09////^S X=APCDRELI;.12///^S X=DT;.01;.04;.08" D ^DIE K DA,DR,DIE
+ W !!,"SNOMED: ",$$CONCPT^AUPNVUTL($P(^AUPNFH(APCDFHI,0),U,13))_" ("_$P(^AUPNFH(APCDFHI,0),U,13)_")"
+ W !,"DX: ",$$GET1^DIQ(9000014,APCDFHI,.01)
+ S DIR(0)="Y",DIR("A")="Do you wish to CHANGE the SNOMED or Diagnosis",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ I Y D EDITSMDX
+ S APCDCI=$P($G(^AUPNFH(APCDFHI,0)),U,13),APCDDI=$P(^AUPNFH(APCDFHI,0),U,14) ;I 'Y
+ S DA=APCDFHI,DIE="^AUPNFH(",DR=".09////^S X=APCDRELI;.12///^S X=DT;.08" D ^DIE K DA,DR,DIE
  I '$D(^AUPNFH(APCDFHI,0)) D BACK Q
- S DA=APCDFHI,DIE="^AUPNFH(",DR=".11//" D ^DIE K DA,DR,DIE
+ ;I APCDCI]"" S X=$$GET1^DIQ(9000014,APCDFHI,.04)_"|"_APCDDI,DA=APCDFHI,DIE="^AUPNFH(",DR=".04///"_X D ^DIE K DA,DIE,DRIT
+ S DA=APCDFHI,DIE="^AUPNFH(",DR=".05;.15" D ^DIE K DA,DR,DIE
  K DIE,DA,DR,APCDOVRR
  D BACK
  K APCDADD
+ Q
+EDITSMDX ;
+ D SMDX
+X1 I APCDCI="" W !,"No SNOMED selected, NO CHANGE" D PAUSE Q
+ S $P(^AUPNFH(APCDFHI,0),U,4)=""  ;WIPE OUT PROVIDER NARRATIVE
+ I APCDICD]"" S DIE="^AUPNFH(",DA=APCDFHI,DR=".01////"_APCDICD D ^DIE K DIE,DA,DR
+ W !,"This is the ICD code that the SNOMED maps to, you can change it if needed.",!
+ S DIE="^AUPNFH(",DA=APCDFHI,DR=".01" D ^DIE K DA,DR,DIE
+ S Y=$$GETNARR^APCDFHS()
+ I Y="" D
+ .S Y=$P($$ICDDX^ICDEX(APCDICD,DT),U,4) W "  ",Y
+ S Y=Y_"|"_APCDDI,Y=$TR(Y,";",":")
+ S DA=APCDFHI,DIE="^AUPNFH(",DR=".04///"_Y_";.13////"_APCDCI_";.14////"_APCDDI_";.08;.05;.15" D ^DIE K DA,DR,DIE
+ ;.04;.13////"_APCDCI_";.14////"_APCDDI D ^DIE K DA,DR,DIE
+ I APCDDI]"" S X=$P(^AUTNPOV($$GET1^DIQ(9000014,APCDFHI,.04,"I"),0),U)_"|"_APCDDI,DA=APCDFHI,DIE="^AUPNFH(",DR=".04///"_X D ^DIE K DA,DIE,DR
  Q
  ;
 EDITX ;
  K APCDADD,APCDOVRR,DIE,DA,DR,APCDRELI,APCDOREL,APCDFHR,APCDFHI
  Q
 DELETE ;
- I 'APCDRCNT D EN^DDIOL("No Family History to Edit",,"!!") H 3 D BACK Q
- D EN^VALM2(XQORNOD(0),"OS")
- I '$D(VALMY) W !,"No FAMILY HISTORY entry selected." Q
- S APCDP=$O(VALMY(0)) I 'APCDP K APCDP,VALMY,XQORNOD W !,"No record selected." D BACK Q
- S (APCDFHI,APCDRELI)=0
- S (X,Y)=0 F  S X=$O(APCDFHA("IDX",X)) Q:X'=+X!(APCDFHI)  I $O(APCDFHA("IDX",X,0))=APCDP S Y=$O(APCDFHA("IDX",X,0)),APCDFHI=$P(APCDFHA("IDX",X,Y),U,1),APCDRELI=$P(APCDFHA("IDX",X,Y),U,2)
- I APCDFHI=0 D  D BACK Q
- .D FULL^VALM1
- .I $D(^AUPNFH("AE",APCDRELI)) W !!,"There are conditions associated with this relation, you cannot delete it." Q
- .W !,"There are no conditions associated with this relation ("_$$VAL^XBDIQ1(9000014.1,APCDRELI,.01),")."
- .S DIR(0)="Y",DIR("A")="Are you sure you want to delete this relation",DIR("B")="N" KILL DA D ^DIR KILL DIR
- .I $D(DIRUT) Q
- .I 'Y Q
- .S DA=APCDRELI,DIK="^AUPNFHR(" D ^DIK
- I '$D(^AUPNFH(APCDFHI,0)) W !,"Not a valid FAMILY HISTORY ENTRY." K APCDP S APCDFHI=0 D BACK Q
- D FULL^VALM1
- W !!
- S DIC="^AUPNFH(",DR=0,DA=APCDFHI
- D EN^DIQ
- W !
- S DIR(0)="Y",DIR("A")="Are you sure you want to delete this entry",DIR("B")="N" KILL DA D ^DIR KILL DIR
- I $D(DIRUT) D BACK Q
- I 'Y D BACK Q
- S DA=APCDFHI,DIK="^AUPNFH(" D ^DIK K DIK,DA
- D BACK
+ D DELETE^APCDFH1
  Q
  ;
-HS ;EP - called from protocol
- D FULL^VALM1
- S X="" I DUZ(2),$D(^APCCCTRL(DUZ(2),0))#2 S X=$P(^(0),U,3) I X,$D(^APCHSCTL(X,0)) S X=$P(^APCHSCTL(X,0),U)
- I $D(^DISV(DUZ,"^APCHSCTL(")) S Y=^("^APCHSCTL(") I $D(^APCHSCTL(Y,0)) S X=$P(^(0),U,1)
- S:X="" X="ADULT REGULAR"
- K DIC,DR,DD S DIC("B")=X,DIC="^APCHSCTL(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DD,D0,D1,DQ
- I Y=-1 D PAUSE^APCDPL1,BACK Q
- S APCHSTYP=+Y,APCHSPAT=APCDPAT
- S APCDHDR="PCC Health Summary for "_$P(^DPT(APCHSPAT,0),U)
- D VIEWR^XBLM("EN^APCHS",APCDHDR)
- S (DFN,Y)=APCDPAT D ^AUPNPAT
- K APCHSPAT,APCHSTYP,APCHSTAT,APCHSMTY,AMCHDAYS,AMCHDOB,APCDHDR
- D BACK
+HS ;EP
+ D HS^APCDFH1
  Q
- ;
 BACK ;EP -BACK
  D TERM^VALM0
  S VALMBCK="R"
@@ -381,12 +398,12 @@ FP12 ;
  K Y
  Q
  ;
-RF ;EP - called from XBNEW call
+RF ;EP
  S APCDREPI=DA
  D EN^XBNEW("RF1^APCDFH","APCDREPI;APCDDATE")
  K Y
  Q
-RF1 ;EP - called from xbnew
+RF1 ;EP
  S APCDRFS="",APCDPARS=""
  I '$D(^AUPNREP(APCDREPI)) S X=$$RFADD(APCDREPI) I 'X W $P(X,U,2) Q
 RF11 ;

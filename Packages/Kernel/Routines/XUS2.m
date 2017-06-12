@@ -1,24 +1,7 @@
-XUS2 ;SF/RWF - TO CHECK OR RETURN USER ATTRIBUTES ;11/29/2006
-  ;;8.0;KERNEL;**1016**;APR 1, 2003;Build 5
- ;;8.0;KERNEL;**59,180,313,419,437**;Jul 10, 1995;Build 2
- ;IHS/MSC/DKM - Modified to support minimum verify code length
+XUS2 ;SF/RWF - TO CHECK OR RETURN USER ATTRIBUTES ;2/1/2012
+ ;;8.0;KERNEL;**59,180,313,419,437,574**;Jul 10, 1995;Build 8
+ ;Per VHA Directive 2004-038, this routine should not be modified
  Q
- ; Modified from FOIA VISTA,
- ; Copyright (C) 2007 WorldVistA
- ;
- ; This program is free software; you can redistribute it and/or modify
- ; it under the terms of the GNU General Public License as published by
- ; the Free Software Foundation; either version 2 of the License, or
- ; (at your option) any later version.
- ;
- ; This program is distributed in the hope that it will be useful,
- ; but WITHOUT ANY WARRANTY; without even the implied warranty of
- ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ; GNU General Public License for more details.
- ;
- ; You should have received a copy of the GNU General Public License
- ; along with this program; if not, write to the Free Software
- ; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  ;
 ACCED ; ACCESS CODE EDIT from DD
  I "Nn"[$E(X,1) S X="" Q
@@ -61,7 +44,7 @@ AST(XUH) ;Change ACCESS CODE and index.
  ;
 GET ;Get the user input and convert case.
  S X=$$ACCEPT^XUS I (X["^")!('$L(X)) D DIRUT
- I '$D(ASKINGVC)!'$$GET^XPAR("SYS","XU VC CASE SENSITIVE") S X=$$UP^XLFSTR(X) ;for VOE allow case sensitive Verify Code
+ S X=$$UP^XLFSTR(X)
  Q
  ;
 DIRUT S DIRUT=1
@@ -82,10 +65,10 @@ CVC ;From XUS1
  W !,"You must change your VERIFY CODE at this time."
  ;Fall into next code
 VERED ; VERIFY CODE EDIT From DD
- N DIR,DIR0,XUAUTO,ASKINGVC
+ N DIR,DIR0,XUAUTO,XUSVCMIN,XUSVCACCT S XUSVCACCT=$$SVCACCT(DA),XUSVCMIN=$S(+XUSVCACCT:12,1:8)
  I "Nn"[$E(X,1) S X="" Q
  I "Yy"'[$E(X,1) K X Q
- S ASKINGVC=1,XUH="",XUAUTO=($P($G(^XTV(8989.3,1,3)),U,3)="y") S:DUZ=DA XUAUTO="n" ;Auto only for admin
+ S XUH="",XUAUTO=($P($G(^XTV(8989.3,1,3)),U,3)="y") S:DUZ=DA XUAUTO="n" ;Auto only for admin
 VC1 D CLR,VASK:'XUAUTO,VAUTO:XUAUTO G OUT:$D(DIRUT) D REASK G OUT:$D(DIRUT),VC1:'XUK D CLR,VST(XUH,1)
  D CALL^XUSERP(DA,2)
  G OUT
@@ -99,12 +82,10 @@ VASK1 W "Enter a new VERIFY CODE: " D GET Q:$D(DIRUT)
  ;
 VCHK(S,EC) ;Call with String and Encrypted versions
  ;Updated per VHA directive 6210 Strong Passwords
- ;IHS/MSC/DKM - Added support for configurable verify code length
- N PUNC,NA,VLEN S PUNC="~`!@#$%&*()_-+=|\{}[]'<>,.?/",VLEN=+$G(^XTV(8989.3,1,"XUS2"),8)
- S NA("FILE")=200,NA("FIELD")=.01,NA("IENS")=DA_",",NA=$$HLNAME^XLFNAME(.NA)
- ; for VOE allow case sensitive Verify Code with S'?.ANP
- I ($L(S)<VLEN)!($L(S)>20)!$S($$GET^XPAR("SYS","XU VC CASE SENSITIVE"):S'?.ANP,1:S'?.UNP)!(S[";")!(S["^")!(S[":") Q "1^"_$$AVHLPTXT(VLEN)
- I (S?.AN)!(S?.AP)!(S?.NP) Q "2^VERIFY CODE must be a mix of alpha and numerics and punctuation."
+ N PUNC,NA,XUPAT S PUNC="~`!@#$%&*()_-+=|\{}[]'<>,.?/"
+ S NA("FILE")=200,NA("FIELD")=.01,NA("IENS")=DA_",",NA=$$HLNAME^XLFNAME(.NA),XUPAT=XUSVCMIN_".20"
+ I ($L(S)<XUSVCMIN)!($L(S)>20)!(S'?.UNP)!(S[";")!(S["^")!(S[":") Q "1^"_$$AVHLPTXT
+ I (S?@(XUPAT_"A"))!(S?@(XUPAT_"N"))!(S?@(XUPAT_"P"))!(S?@(XUPAT_"AN"))!(S?@(XUPAT_"AP"))!(S?@(XUPAT_"NP")) Q "2^VERIFY CODE must be a mix of alpha and numerics and punctuation."
  I $D(^VA(200,DA,.1)),EC=$P(^(.1),U,2) Q "3^This code is the same as the current one."
  I $D(^VA(200,DA,"VOLD",EC)) Q "4^This has been used previously as the VERIFY CODE."
  I EC=$P(^VA(200,DA,0),U,3) Q "5^VERIFY CODE must be different than the ACCESS CODE."
@@ -117,6 +98,9 @@ VST(XUH,%) ;
  S:XUH="" XUH="@" ;11.2 get triggerd
  S FDA(200,IEN,11)=XUH D FILE^DIE("","FDA","ERR")
  I $D(ERR) D ^%ZTER
+ I (DUZ'=(+IEN))&$$SVCACCT(+IEN)&(XUH'="@") D  ;override trigger of 11.2 by 11 for svc accts
+ .K FDA,ERR S FDA(200,IEN,11.2)=$H D FILE^DIE("","FDA","ERR")
+ .I $D(ERR) D ^%ZTER
  S:DA=DUZ DUZ("NEWCODE")=XUH Q
  ;
 DEL ;
@@ -178,16 +162,19 @@ CHK1 W "Please enter your CURRENT verify code: " D GET Q:$D(DIRUT) 0
  Q 0
  ;
 BRCVC(XV1,XV2) ;Broker change VC, return 0 if good, '1^msg' if bad.
- N XUU,XUH
+ N XUU,XUH,XUSVCMIN S XUSVCMIN=8
  Q:$G(DUZ)'>0 "1^Bad DUZ" S DA=DUZ,XUH=$$EN^XUSHSH(XV2)
  I $P($G(^VA(200,DUZ,.1)),"^",2)'=$$EN^XUSHSH(XV1) Q "1^Sorry that isn't the correct current code"
  S Y=$$VCHK(XV2,XUH) Q:Y Y
  D VST(XUH,0),CALL^XUSERP(DA,2)
  Q 0
  ;
+SVCACCT(XUSDUZ) ;return 1^CONNECTOR PROXY if CP svc acct; 0 if not svc acct
+ Q:$$ISUSERCP^XUSAP1(XUSDUZ) "1^CONNECTOR PROXY"
+ Q 0
+ ;
 AVHLPTXT(%) ;
- S %=$S('$G(%):8,%<6:6,1:%)
- Q "Enter "_%_$S(%=20:"",1:"-20")_" characters mixed alphanumeric and punctuation (except '^', ';', ':')."
+ Q "Enter "_$S($G(%):"6-20",+$G(XUSVCMIN):XUSVCMIN_"-20",1:"8-20")_" characters mixed alphanumeric and punctuation (except '^', ';', ':')"
  ;
  ;Left over code, Don't think it is called anymore.
  G XUS2^XUVERIFY ;All check or return user attributes moved to XUVERIFY

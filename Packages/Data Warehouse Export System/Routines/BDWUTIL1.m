@@ -1,5 +1,5 @@
 BDWUTIL1 ; IHS/CMI/LAB - Data Warehouse Utilities ;
- ;;1.0;IHS DATA WAREHOUSE;**1,2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**1,2,4**;JAN 23, 2006;Build 24
  ;
  ;
  ;
@@ -18,6 +18,7 @@ CHART(V) ;PEP - returns ASUFAC_HRN ( 12 digits, HRN is left zero filled)
  ;V = visit ien, returns asufac_hrn for this visit
  NEW L,%,C,S,P,Z
  S %=""
+ I V="" Q $$CHARTREG^BDWUTIL1(DFN)  ;p4
  I '$D(^AUPNVSIT(V,0)) Q %  ;bogus visit
  S Z=^AUPNVSIT(V,0)
  S P=$P(Z,U,5) ;get patient pointer
@@ -101,6 +102,20 @@ ST(RETVAL,BDWV) ;EP -
  .Q
  Q
  ;
+IFC(RETVAL,BDWV) ;EP - 
+ K RETVAL
+ I '$G(BDWV) Q
+ I '$D(^AUPNVSIT(BDWV)) Q
+ NEW BDWI,BDWC,BDWE,BDWIE
+ S (BDWI,BDWC)=0
+ F  S BDWI=$O(^AUPNVIF("AD",BDWV,BDWI)) Q:BDWI'=+BDWI  D
+ .Q:'$D(^AUPNVIF(BDWI,0))
+ .S BDWIE=$$GET1^DIQ(9000010.44,BDWI,.01,"I")
+ .S BDWE=$$GET1^DIQ(9000010.44,BDWI,.01)
+ .S BDWC=BDWC+1,RETVAL(BDWC)=BDWIE_"^"_BDWE
+ .Q
+ Q
+ ;
 PROV(RETVAL,BDWV) ;EP
  NEW BDWP,BDWS,BDWC,BDWPIEN,BDWCS,BDWAD,X,Y,G,D
  K RETVAL
@@ -148,7 +163,26 @@ PROC(RETVAL,BDWV) ;EP
  NEW BDWP,BDWC
  S (BDWP,BDWC)=0 F  S BDWP=$O(^AUPNVPRC("AD",BDWV,BDWP)) Q:BDWP'=+BDWP  D
  .S BDWC=BDWC+1
+ .N CS,ICDP  ;ihs/cmi/maw 10/17/2012 patch 4 added coding system for icd10
+ .S ICDP=$P($G(^AUPNVPRC(BDWP,0)),U)
+ .I $D(^ICDS(0)) S CS=$S($P($$ICDOP^ICDEX(ICDP,,,"I"),U,15)=31:"I10",1:"I9")
+ .I '$D(^ICDS(0)) S CS="I9"
  .S RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.08,BDWP,.01)_"^"_$P(^AUPNVPRC(BDWP,0),"^",6)_"^"_$P(^AUPNVPRC(BDWP,0),"^",8)_"^"_$$O($P(^AUPNVPRC(BDWP,0),"^",11))_"^"_$$X(BDWP)_"^"_$$VAL^XBDIQ1(9000010.08,BDWP,.16)
+ .S $P(RETVAL(BDWC),"^",10)=$G(CS)  ;coding system
+ . N MOD1,MOD1C,MOD1I,MOD2,MOD2C,MOD2I,MOD1STR,MOD2STR
+ . S MOD1I=$$GET1^DIQ(9000010.08,BDWP,.17,"I")
+ . S MOD1=$$GET1^DIQ(9000010.08,BDWP,.17)
+ . S MOD1C=$$GET1^DIQ(81.3,MOD1I,.02)
+ . S MOD1STR=$S(MOD1]"":MOD1_"!"_MOD1C_"!"_"CPTM",1:"")
+ . S MOD2I=$$GET1^DIQ(9000010.08,BDWP,.18,"I")
+ . S MOD2=$$GET1^DIQ(9000010.08,BDWP,.18)
+ . S MOD2C=$$GET1^DIQ(81.3,MOD2I,.02)
+ . S MOD2STR=$S(MOD2]"":MOD2_"!"_MOD2C_"!"_"CPTM",1:"")
+ . I $G(MOD1STR)]"" D
+ .. S $P(RETVAL(BDWC),"^",13)=MOD1STR
+ .. I $G(MOD2STR)]"" S $P(RETVAL(BDWC),"^",13)=MOD1STR_"~"_MOD2STR
+ . I $G(MOD1STR)="" D
+ .. I $G(MOD2STR)]"" S $P(RETVAL(BDWC),"^",13)=MOD2STR
  .S Y=$P(^AUPNVPRC(BDWP,0),"^",11) ;ien in file 200 should be in Y
  .Q:'Y
  .I $P(^DD(9000010.08,.11,0),U,2)[6 S Y=$G(^DIC(16,$P(^AUPNVPRC(BDWP,0),"^",11),"A3"))
@@ -159,7 +193,22 @@ PROC(RETVAL,BDWV) ;EP
  .I D="" Q
  .S G=$$PCC(Y,D)
  .S $P(RETVAL(BDWC),"^",7)=G
- .Q
+ .S $P(RETVAL(BDWC),"^",10)=$G(CS)  ;coding system
+ .;the following is for CPT modifier
+ . N MOD1,MOD1C,MOD1I,MOD2,MOD2C,MOD2I,MOD1STR,MOD2STR
+ . S MOD1I=$$GET1^DIQ(9000010.08,BDWP,.17,"I")
+ . S MOD1=$$GET1^DIQ(9000010.08,BDWP,.17)
+ . S MOD1C=$$GET1^DIQ(81.3,MOD1I,.02)
+ . S MOD1STR=$S(MOD1]"":MOD1_"!"_MOD1C_"!"_"CPTM",1:"")
+ . S MOD2I=$$GET1^DIQ(9000010.08,BDWP,.18,"I")
+ . S MOD2=$$GET1^DIQ(9000010.08,BDWP,.18)
+ . S MOD2C=$$GET1^DIQ(81.3,MOD2I,.02)
+ . S MOD2STR=$S(MOD2]"":MOD2_"!"_MOD2C_"!"_"CPTM",1:"")
+ . I $G(MOD1STR)]"" D
+ .. S $P(RETVAL(C),"^",13)=MOD1STR
+ .. I $G(MOD2STR)]"" S $P(RETVAL(C),"^",13)=MOD1STR_"~"_MOD2STR
+ . I $G(MOD1STR)="" D
+ .. I $G(MOD2STR)]"" S $P(RETVAL(C),"^",13)=MOD2STR
  .Q
  Q
 IMM(RETVAL,BDWV) ;EP
@@ -254,6 +303,7 @@ MED(RETVAL,BDWV) ;EP
  .S BDWC=BDWC+1
  .S BDWQ=$P(^AUPNVMED(BDWI,0),"^",6)
  .S BDWNDC=$P($G(^PSDRUG($P(^AUPNVMED(BDWI,0),"^"),2)),"^",4)
+ .I BDWNDC="" S BDWNDC=$P($G(^PSDRUG($P(^AUPNVMED(BDWI,0),"^"),2)),"^",4)
  .S BDWCLS=$P(^PSDRUG($P(^AUPNVMED(BDWI,0),"^"),0),"^",2)
  .S RETVAL(BDWC)=$P(^PSDRUG(BDWD,0),"^")_"^"_BDWQ_"^"_BDWNDC_"^"_BDWCLS
  .Q
@@ -312,3 +362,11 @@ MC(RETVAL,BDWV) ;EP
  .S RETVAL(BDWC)="HF"_"^"_$P(^AUTTHF(BDWH,0),"^")_"^"_$P(^AUTTHF(BDWH,0),"^",2)_"^"_$$VAL^XBDIQ1(9999999.64,BDWH,.03)_"^"_$S($P(^AUTTHF(BDWH,0),"^",3)]"":$P(^AUTTHF($P(^AUTTHF(BDWH,0),"^",3),0),"^",2),1:"")
  .Q
  Q
+CDEATH(PAT) ;-- get the cause of death and coding system
+ N CDI,CD,CS
+ S CDI=$$GET1^DIQ(9000001,PAT,1114,"I")
+ I 'CDI Q ""
+ S CD=$$GET1^DIQ(9000001,PAT,1114)
+ S CS=$S($D(^ICDS(0)):$P($$ICDDX^ICDEX(CD),U,20),1:"")
+ Q CD_U_U_$S(CS=30:"I10",1:"I9")
+ ;

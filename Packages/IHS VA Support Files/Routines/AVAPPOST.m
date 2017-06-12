@@ -1,5 +1,5 @@
 AVAPPOST ;IHS/ORDC/LJF - POSTINIT TO DELETE AVAP PACKAGE ENTRY; [ 08/25/95  1:18 PM ]
- ;;93.2;VA SUPPORT FILES;;**6**;JUL 01, 1993
+ ;;93.2;VA SUPPORT FILES;;**6**;Build 8
  ;
  ; delete package entry with namespace of AVAP
  ; FELS used as scratch package to send files, templates,etc.

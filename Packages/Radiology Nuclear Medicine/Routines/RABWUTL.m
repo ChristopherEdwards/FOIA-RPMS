@@ -1,5 +1,5 @@
-RABWUTL ;HISC/SM - Billing Aware utilities ;3/24/04
- ;;5.0;Radiology/Nuclear Medicine;**41,70**;Mar 16,1998;Build 7
+RABWUTL ;HISC/SM - Billing Aware utilities ; 04 Apr 2014  7:07 AM
+ ;;5.0;Radiology/Nuclear Medicine;**41,70,1006**;Mar 16,1998;Build 2
  Q
 ODX(RA) ;ordering diagnosis
  ;RA = ien file 75.1
@@ -22,7 +22,13 @@ WRTDX ; write DX and Clin. Inds.
  W !,"Ordering Diagnoses:"
  S I=0
  F  S I=$O(RAX(I)) Q:'I  D
- . W !?2,$$GET1^DIQ(80,+RAX(I),.01),?10,$$GET1^DIQ(80,+RAX(I),3)
+ . ;
+ . ;IHS/BJI/DAY - Patch 1006 ICD-10
+ . ;Change next line to use ICD API
+ . ;W !?2,$$GET1^DIQ(80,+RAX(I),.01),?10,$$GET1^DIQ(80,+RAX(I),3)
+ . W !?2,$P($$ICDDX^ICDCODE(+RAX(I)),U,2),?10,$P($$ICDDX^ICDCODE(+RAX(I)),U,4)
+ . ;End patch
+ . ;
  . S X=$P(RAX(I),U,2,9)
  . Q:X'["1"
  . W !,?10,"Clinical Indicator(s):  "

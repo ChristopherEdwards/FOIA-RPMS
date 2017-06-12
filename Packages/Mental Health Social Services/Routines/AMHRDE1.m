@@ -1,5 +1,5 @@
 AMHRDE1 ; IHS/CMI/LAB - list DEPRESSION ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 INFORM ;
@@ -10,7 +10,7 @@ INFORM ;
  W !,"DEPRESSION screening or a refusal documented in the time frame specified by "
  W !,"the user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
- W !?5,"- Measurements: PHQ2, PHQ9"
+ W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
  W !?5,"- Diagnoses V79.0, 14.1"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"
@@ -162,7 +162,7 @@ BHALCS(P,BDATE,EDATE) ;EP - pass back last BH screening
  ..;get measurements 
  ..S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VAL^XBDIQ1(9002011.12,X,.01)
- ...I M="PHQ2"!(M="PHQ9") S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
+ ...I M="PHQ2"!(M="PHQ9")!(M="PHQT") S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
  ..I R]"" Q
  ..;get exam
  ..S E=$P($G(^AMHREC(V,14)),U,5)

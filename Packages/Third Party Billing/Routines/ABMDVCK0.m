@@ -1,5 +1,5 @@
 ABMDVCK0 ; IHS/ASDST/DMJ - PCC Visit Edits ;      
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,19**;NOV 12, 2009;Build 300
  ;Original;TMD;08/19/96 4:49 PM
  ;Split off from ABMDVCK
  ;
@@ -11,9 +11,14 @@ ABMDVCK0 ; IHS/ASDST/DMJ - PCC Visit Edits ;
  ;      and TPB thinks it's unbillable if inpatient.  Changing the clinic
  ;      to general if inpatient and clinic is pharmacy.
  ;
- ; IHS/SD/SDR - v2.5 p12 - IM25368
- ;   Changes so duplicate claims won't generate and claims
+ ; IHS/SD/SDR - v2.5 p12 - IM25368 - Changes so duplicate claims won't generate and claims
  ;   will generate under correct DUZ(2).
+ ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT109144 - Updated error 191 so it will check for visit 72 hours after
+ ;  discharge if visit being checked is inpatient.  Also added check so it will see if outpt visit
+ ;   was within last 72 hours and give warning 255 if so.
+ ;IHS/SD/SDR - 2.6*19 - HEAT251398 - Changed claim generator to allow service category TELEMEDICINE to
+ ;  generate claims.
  ;
  ; *********************************************************************
  ;
@@ -112,7 +117,8 @@ VCHX(ABMVDFN) ;EP -  CHECK EACH VISIT
  I ABMP("CLN")]"",$D(^ABMDPARM(DUZ(2),1,15,ABMP("CLN"))) D PCFL^ABMDVCK2(11) Q
  ;
  ;21= PCC service category not amb, hosp, in hosp, observ, or day surg
- I "ADHOISRT"'[$P(ABMCHV0,U,7) D PCFL^ABMDVCK2(21) Q
+ ;I "ADHOISRT"'[$P(ABMCHV0,U,7) D PCFL^ABMDVCK2(21) Q  ;abm*2.6*19 IHS/SD/SDR HEAT251398
+ I "ADHOISRTM"'[$P(ABMCHV0,U,7) D PCFL^ABMDVCK2(21) Q  ;abm*2.6*19 IHS/SD/SDR HEAT251398
  I ABMP("CLN")="" S ABMP("CLN")=1
  ;
  ;12= Previous claim exists for this patient, visit date, and clinic
@@ -278,7 +284,40 @@ IN72HVIS(ABMVIEN) ;Extrinsic to tell if visit is inside 72 hour rule
  ..F  S ABMV=$O(^AUPNVSIT("AA",ABMP("PDFN"),W,ABMV)) Q:'ABMV  D
  ...Q:ABMV=ABMVIEN
  ...S ABM72=1
+ .;start new abm*2.6*19 IHS/SD/SDR HEAT109144
+ .;check for outpt visit 72 hrs after discharge
+ .S X1=ABMP("DDT")
+ .S X2=3
+ .D C^%DTC
+ .S ABMRDM3=9999999-ABMP("VDT")+.25
+ .S W=9999999-X
+ .F  S W=$O(^AUPNVSIT("AA",ABMP("PDFN"),W)) Q:'W!(W>ABMRDM3)  D
+ ..S ABMV=""
+ ..F  S ABMV=$O(^AUPNVSIT("AA",ABMP("PDFN"),W,ABMV)) Q:'ABMV  D
+ ...Q:ABMV=ABMVIEN
+ ...S ABM72=1
+ .;end new abm*2.6*19 IHS/SD/SDR HEAT109144
  .Q
+ ;
+ ;start new abm*2.6*19 IHS/SD/SDR HEAT109144
+ ;check for inpt admit visit 72 hours before visit
+ S X1=ABMP("VDT")
+ S X2=-3
+ D C^%DTC
+ S ABMRDM3=9999999-X+.25
+ S W=9999999-ABMP("VDT")-.1
+ F  S W=$O(^AUPNVSIT("AAH",ABMP("PDFN"),W)) Q:'W!(W>(ABMRDM3))  D
+ .;AAH X-REF is only hospitalizations -- patient, inverse date, visit
+ .S ABMV=""
+ .F  S ABMV=$O(^AUPNVSIT("AAH",ABMP("PDFN"),W,ABMV)) Q:'ABMV  D
+ ..S ABM72=1
+ ;Check for inpt discharge 72 hrs before visit
+ S W=9999999-ABMP("VDT")-.1
+ F  S W=$O(^AUPNVINP("AA",ABMP("PDFN"),W)) Q:'W!(W>(ABMRDM3))  D
+ .S ABMV=""
+ .F  S ABMV=$O(^AUPNVINP("AA",ABMP("PDFN"),W,ABMV)) Q:'ABMV  D
+ ..S ABM72=1
+ ;end new abm*2.6*19 HEAT109144
  S X1=ABMP("VDT")
  S X2=3
  D C^%DTC

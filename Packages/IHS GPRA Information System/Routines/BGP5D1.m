@@ -1,5 +1,5 @@
-BGP5D1 ; IHS/CMI/LAB - calc measures  ; 09 Sep 2014  9:39 AM
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+BGP5D1 ; IHS/CMI/LAB - calc measures  ; 06 Apr 2015  2:35 PM
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 PROC ;EP
  S BGPBT=$H
@@ -18,9 +18,9 @@ PROC ;EP
  S BGPB3YE=$$FMADD^XLFDT(BGPBED,-1096)
  ;process each patient
  S DFN=0 F  S DFN=$O(^AUPNPAT(DFN)) Q:DFN'=+DFN  D
- .;;I DUZ=2881,'$D(^DIBT(14137,1,DFN)) Q
- .;;I DUZ=2881,DFN'=26214 Q
- .;;I DUZ=5634 Q:DFN'=116831
+ .;I DUZ=2881,'$D(^DIBT(14173,1,DFN)) Q
+ .;I DUZ=2881,DFN'=26214 Q  ;599
+ .;I DUZ=2881 Q:DFN'=116831
  .;I DUZ=2881 Q:$$HRN^AUPNPAT(DFN,DUZ(2))'=145905
  .Q:'$D(^AUPNPAT(DFN,0))
  .;I $G(BGPDESGP) S P=$$DP(DFN) I P'=BGPDESGP Q
@@ -168,7 +168,6 @@ V1DM(P,D,EDATE) ;
  .Q:$P(^AUPNVSIT(V,0),U,11)
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .Q:'$D(^AUPNVPRV("AD",V))
  .;Q:$P(^AUPNVSIT(V,0),U,6)'=DUZ(2) ;PER TERRY
  .Q:'$D(^AUPNVPOV("AD",V))
@@ -199,7 +198,6 @@ V2(P,BDATE,EDATE) ;EP
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .S G=G+1
  .Q
  Q $S(G<2:"",1:1)
@@ -220,7 +218,6 @@ V2DM(P,BDATE,EDATE) ;
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^BGP5UTL2(%,T,9) S D=1
  .Q:'D
  .S G=G+1
@@ -262,7 +259,6 @@ ACTCL(P,BDATE,EDATE) ;EP - clinical user
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .S B=$$CLINIC^APCLV(V,"C")
  .Q:B=""
  .I 'G,$D(^BGPCTRL($O(^BGPCTRL("B",2015,0)),11,"B",B)) S G=V  ;must be a primary clinic S G=V
@@ -279,7 +275,6 @@ ACTCLBH(P,BDATE,EDATE) ;EP - clinical user
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .S B=$$CLINIC^APCLV(V,"C")
  .Q:B=""
  .I 'G,$D(^BGPCTRL($O(^BGPCTRL("B",2015,0)),11,"B",B)) S G=V  ;must be a primary clinic S G=V
@@ -309,7 +304,6 @@ LASTVD(P,BDATE,EDATE) ;
  .Q:"SAHO"'[$P(^AUPNVSIT(V,0),U,7)
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .Q:$P(^AUPNVSIT(V,0),U,6)=""
- .I $G(BGPMFITI),'$D(^ATXAX(BGPMFITI,21,"B",$P(^AUPNVSIT(V,0),U,6))) Q
  .S G=1
  .Q
  Q G

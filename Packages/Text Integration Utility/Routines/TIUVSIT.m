@@ -1,5 +1,5 @@
-TIUVSIT ; SLC/JER - Interactive Visit look-up;18-Jul-2012 12:52;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**39,91,107,117,179,1007,1010**;Jun 20, 1997;Build 24
+TIUVSIT ; SLC/JER - Interactive Visit look-up;09-Apr-2014 16:23;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**39,91,107,117,179,1007,1010,190,1011,1012**;Jun 20, 1997;Build 45
  ;IHS/ITSC/LJF 02/27/2003 added IHS calls
  ;IHS/MSC/MGH  02/25/2010 Added mods back after patch 179
  ;IHS/MSC/MGH  Patch 10 added parameter to MAIN entry point
@@ -15,6 +15,7 @@ ENPN(TIUY,DFN,ALLOWNEW) ; Entry point for Progress Notes
  Q
 MAIN(TIUY,DFN,TIUSSN,TIUVDT,TIULDT,TIUDFLT,TIUMODE,TIULOC,TIUOCC,LETNEW,TIUCAT) ;Control
  N TIUFUTUR
+ S TIUCAT=$G(TIUCAT)
 AGN K ^TMP("TIUVN",$J),^TMP("TIUVDT",$J),^TMP("TIUVNI",$J),^TMP("TIUNOT",$J),^TMP($J,"SDAMA301")
  N C,I,N,TIUI,TIUII,TIUDA,TIUER,TIUOK,TIUX,TIUOUT,X,TIUNVIS,VASD,VAERR
  N TIUPICK,TIULAST,TIUSDC,TIUVTRY,TIUAPPTS,TIUARR
@@ -25,9 +26,11 @@ AGN K ^TMP("TIUVN",$J),^TMP("TIUVDT",$J),^TMP("TIUVNI",$J),^TMP("TIUNOT",$J),^TM
  K BTIUQ D FINDVST^BTIUVSIT Q:$G(BTIUQ)  K BTIUQ G IHS1   ;IHS/ITSC/LJF
  ;
  S TIUARR("FLDS")="1;2"
- S TIUARR(1)=2000000,TIUARR(4)=DFN
+ S TIUARR(1)=2000000,TIUARR(4)=DFN,TIUARR("MAX")=1
  S TIUAPPTS=$$SDAPI^SDAMA301(.TIUARR)
  K ^TMP($J,"SDAMA301")
+ I TIUAPPTS=-1 D  Q
+ . W !!,"Could not retrieve patient information due to a problem with the database.",!,"Please contact IRM"
  I '$G(TIUAPPTS),(+TIUMODE'>0) Q
  ; No appointments
  I '$G(TIUAPPTS),(+TIUMODE>0) D  I +$G(TIUX)'>0 Q
@@ -82,7 +85,6 @@ IHS1 ;IHS/ITSC/LJF  02/27/2003 Added line label
  I $S(+TIUER:1,$G(X)["?":1,$G(X)["F":1,1:0) G AGN
  I +TIUOK,'+$G(TIUNVIS) D
  . S TIUX=$$GETVSIT(+TIUOK)
- . D RECALL^DILFD(2.98,$P(TIUX,";",2)_","_DFN_",",DUZ)
  . W "  ",$$DATE^TIULS(+$P(TIUX,";",2),"AMTH DD CCYY@HR:MIN")
 VADPT D PATVADPT^TIULV(.TIUY,DFN,"",$G(TIUX),$G(TIUSDC))
 CLEAN K ^TMP("TIUVN",$J),^TMP("TIUVDT",$J),^TMP("TIUVNI",$J),^TMP("TIUNOT",$J)
@@ -95,9 +97,9 @@ BREAK ; Handle prompting
  ;W:'(TIUII#20) "<M>ORE VISITS, " W "<U>NSCHEDULED VISITS, "
  W:'(TIUII#20) "<M>ORE VISITS, " W "<V>IEW VISITS, "
  ;I +$P(TIUPRM0,U,14) W:'+LETNEW " or " W "<F>UTURE VISITS, "
- W:+LETNEW "or <N>EW VISIT: "
+ W:+LETNEW "or <N>EW VISIT"
  ;W:$D(^TMP("TIUVN",$J,TIUII+1)) !,"<RETURN> TO CONTINUE",!,"OR '^' TO QUIT"
- W:$D(^TMP("TIUVN",$J,TIUII+1)) !,"<RETURN> TO CONTINUE or '^' TO QUIT  "
+ W:$D(^TMP("TIUVN",$J,TIUII+1)) !,"<RETURN> TO CONTINUE or '^' TO QUIT "
  ;W ": " W:$D(TIUPICK) $P(^TMP("TIUVN",$J,TIUPICK),U),"// " R X:DTIME
  R X:DTIME
  ;IHS/ITSC/LJF 05/08/2003 end of mods
@@ -105,7 +107,7 @@ BREAK ; Handle prompting
  S X=$$UP^XLFSTR(X)
  I $S('$T:1,X["^":1,1:0) S (TIUER,TIUOUT)=1 Q
  S:X=""&$D(TIUPICK) X=TIUPICK
- I X?1"V".N D VV^BTIUPCC(X) S TIUI=0 D BREAK Q  ;IHS/ITSC/LJF 05/08/2003 call view code
+ I X?1"V".N D VV^BTIUPCC(X) S TIUI=0 D BREAK Q  ;IHS/ITSC/LJF 05/08/2003
  I X["?" D HELP^TIUVSITH(X) Q
  I $S(X="M":1,X="MORE":1,1:0) D MORE Q
  ;I $S(X="F":1,X["FUT":1,1:0) D FUTURE Q        ;IHS/ITSC/LJF 05/08/2003
@@ -114,7 +116,6 @@ BREAK ; Handle prompting
  ;I +LETNEW,$S(X="N":1,X="NEW":1,X=""&'$D(^TMP("TIUVN",$J,TIUII+1)):1,1:0) D ADD(DFN,.TIUX,$S(X="N":0,X="NEW":0,1:1),.TIUSDC) I +$G(TIUX)'>0 S (TIUER,TIUOUT)=1 Q   ;IHS/ITSC/LJF 02/27/2003
  I +LETNEW,$S(X="N":1,X="NEW":1,X=""&'$D(^TMP("TIUVN",$J,TIUII+1)):1,1:0) D ADD(DFN,.TIUX,$S(X="N":0,X="NEW":0,1:1),.TIUSDC) I +$G(TIUER) S TIUOUT=1 Q              ;IHS/ITSC/LJF 02/27/2003 change quit logic
  I $S(X="":1,X="N":1,X="NEW":1,1:0) Q
- I X=" ",$D(^DISV(DUZ,"^DPT("_DFN_",""S"",")) S TIUX=^("^DPT("_DFN_",""S"",") I $D(^TMP("TIUVDT",$J,+TIUX)) S TIUOK=^(+TIUX) Q
  I X'=+X!'$D(^TMP("TIUVN",$J,+X)) W !!,$C(7),"INVALID RESPONSE",! G BREAK
  S TIUOK=X
  Q
@@ -129,6 +130,9 @@ MORE ; Modify date range, list more visits
  Q
 FUTURE ; Get future appointments
  D GETAPPT^TIUVSIT1(DFN,$G(TIULOC),$G(TIUOCC),$G(TIULDT),"",.TIULAST,$G(TIUVDT),1)
+ I $D(^TMP("TIUVERR",$J)) D
+ . W !!,$G(^TMP("TIUVERR",$J)),!
+ . I $D(^TMP("TIUVERR",$J,115)) W ^TMP("TIUVERR",$J,115),!
  I $P(+$G(^TMP("TIUVNI",$J,1)),".")'>+$$NOW^XLFDT D
  . W !!,"No Future Appointments found...",!
  E  I $P(+$G(^TMP("TIUVNI",$J,1)),".")'>$$FMADD^XLFDT(DT,1) D
@@ -153,7 +157,7 @@ ADD(DFN,VSTR,ASK,VSTOP) ; Add a visit for patient
  . S TIUY=$$READ^TIUU("YAO","Do you wish to add a NEW Visit? ","NO")
  I +ASK,(+TIUY'>0) S TIUX=0,TIUER=1 Q
  ;
- D ADD^BTIUVSIT($G(DFN),"",$G(TIUSDC)) Q   ;IHS/ITSC/LJF 02/27/2003 use IHS code to add visit then quit
+ D ADD^BTIUVSIT($G(DFN),"",$G(TIUSDC)) Q   ;IHS/ITSC/LJF 02/27/2003 use IHS code to add visit, then quit
  ;
  I $G(VLOC)']"" S VLOC=$$SELLOC
  I +VLOC'>0 S TIUER=1 Q

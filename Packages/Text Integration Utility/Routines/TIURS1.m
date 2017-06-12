@@ -1,6 +1,5 @@
-TIURS1 ; SLC/JER - Additional /es/ actions ;1/18/05
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,36,58,100,109,142,156,184**;Jun 20, 1997
- ;12/11/00 Moved ELSIG,MULTIPRN,LIST here from TIURS
+TIURS1 ; SLC/JER - Additional /es/ actions ; 11/21/12 4:18pm
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,36,58,100,109,142,156,184,233,261,274**;Jun 20, 1997;Build 6
 ELSIG ; Sign rec
  N TIULST,TIUSLST,TIURJCT,TIUES,TIUI,X,X1,Y,TIUDAARY,TIUCHNG
  I '$D(TIUPRM0) D SETPARM^TIULE
@@ -48,7 +47,8 @@ ELSIG ; Sign rec
  . . . . W !!,"Item #",TIUI,": MUST have a Procedure Summary Code and Date/Time Performed",!,"before you may sign."
  . . . . W !!,"Removed from signature list.",!
  . . . . I $$READ^TIUU("FOA","Press RETURN to continue...")
- . . I $S(+$$REQCOSIG^TIULP(+TIU0,+TIUDA,DUZ):1,+$P(TIU15,U,6):1,1:0),(+$P(TIU12,U,8)'>0) D  Q:+TIUPOP
+ . . ; VMP/RJT - *233
+ . . I $S(+$$REQCOSIG^TIULP(+TIU0,+TIUDA,DUZ):1,+$P(TIU15,U,6):1,1:0),(+$P(TIU12,U,8)'>0),'+$G(XTRASGNR)   D  Q:+TIUPOP
  . . . N COSIGNER
  . . . W !!,"Item #",TIUI,": ",TIUTYPE," for "
  . . . W $$PTNAME^TIULC1($P(TIU0,U,2))," will need cosignature..."
@@ -58,6 +58,11 @@ ELSIG ; Sign rec
  . . . . W !!,"Item #",TIUI,": MUST have a cosigner, before you may sign."
  . . . . W !!,"Removed from signature list.",!
  . . . . I $$READ^TIUU("FOA","Press RETURN to continue...")
+ . . ; TIU*1.0*274 DJH Do not allow notes without any text to be signed
+ . . I $$EMPTYDOC^TIULF(+TIUDA)  D  Q
+ . . . W !!,"Item #",TIUI,": This note contains no text and cannot be signed."
+ . . . W !!,"Removed from signature list.",!
+ . . . I $$READ^TIUU("FOA","Press RETURN to continue...")
  . . N TIU,TIUY
  . . D EN^VALM("TIU SIGN/COSIGN")
  I $D(TIUSLST)'>9 D  G ELSIGX
@@ -80,7 +85,7 @@ ELSIG ; Sign rec
  . D FULL^VALM1
 ELSIGX I $G(TIUCHNG("ADDM"))!$G(TIUCHNG("DELETE")) S TIUCHNG("RBLD")=1
  E  S TIUCHNG("UPDATE")=1
- D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY
+ M TIUVALMY=VALMY D UPRBLD^TIURL(.TIUCHNG,.TIUVALMY) K VALMY,TIUVALMY
  S VALMBCK="R"
  D VMSG($G(TIULST),.TIUDAARY,"signed")
  Q
@@ -139,7 +144,7 @@ ADDSIG(TIUDA,DA) ; Apply extra signatures to a document
  D SEND^TIUALRT(TIUDA)
  Q
 CNVPOST ; Change Titles/Convert Postings
- N TIUI,TIULST,Y,TIUVIEW,TIUCHNG,TIUDAARY
+ N TIUI,TIULST,Y,TIUVIEW,TIUCHNG,TIUDAARY,DIROUT
  I $G(TIUGLINK) W !,"Please finish attaching the interdisciplinary note before changing title.",! H 3 Q
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
  S TIUI=0
@@ -160,14 +165,15 @@ CNVPOST ; Change Titles/Convert Postings
  . S TIUDAARY(TIUI)=TIUDA
  . I +$G(TIUCHNG) S TIULST=$G(TIULST)_$S($G(TIULST)]"":",",1:"")_TIUI
  ; -- Update list: --
- S TIUCHNG("UPDATE")=1
- D UPRBLD^TIURL(.TIUCHNG,.VALMY) K VALMY
+ S TIUCHNG("UPDATE")=1 M TIUVALMY=VALMY
+ D UPRBLD^TIURL(.TIUCHNG,.TIUVALMY) K VALMY,TIUVALMY
  S VALMBCK="R"
  D VMSG($G(TIULST),.TIUDAARY,"Title changed")
  Q
 CNVPOST1 ; Convert Single Posting to another title
  N TIUD0,DIE,DR,TIUTITL,CHKSUM,TIUCHTTL,TIUCLSS,TIUCON,TIUQUIT
  N DA,X,Y
+ N TIUCHNGD ;261
  ; Added TIUCON for **142
  S TIUD0=$G(^TIU(8925,TIUDA,0)),TIUCHNG=0
  ; Added TIUNOCS for **142
@@ -193,13 +199,18 @@ CNVPOST1 ; Convert Single Posting to another title
  D PRFCT^TIUPRF1(+TIUD0,TIUTITL,TIUDA)
  ;<-*184
  I $G(TIUQUIT)=1 G POST1Q
- S DIE=8925,DA=TIUDA
- S DR=".01////^S X="_TIUTITL_";.04////^S X="_$$DOCCLASS^TIULC1(TIUTITL)
- D ^DIE
+ D WTRMARK^TIURB3(TIUDA,TIUTITL,.TIUCHNGD) I $G(TIUQUIT)=1 G POST1Q ;261
+ I 'TIUCHNGD D TLDIE(TIUDA,TIUTITL)
  I +$G(^TIU(8925,+TIUDA,0))'=+TIUD0 S TIUCHNG=1
  S CHKSUM=+$$CHKSUM^TIULC("^TIU(8925,"_+TIUDA_",""TEXT"")")
  D AUDIT^TIUEDI1(TIUDA,CHKSUM,CHKSUM)
 POST1Q ;clean up, linetag put in with *171
  L -^TIU(8925,TIUDA,0)
  K TIUNOCS
+ Q
+ ;
+TLDIE(DA,TIUTITL) ; Change title of DA to TIUTITL
+ N DIE,DR S DIE=8925
+ S DR=".01////^S X="_TIUTITL_";.04////^S X="_$$DOCCLASS^TIULC1(TIUTITL)
+ D ^DIE
  Q

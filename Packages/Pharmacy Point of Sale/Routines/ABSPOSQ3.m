@@ -1,5 +1,5 @@
 ABSPOSQ3 ; IHS/FCS/DRS - tasked from ABSPOSQ2 ;     [ 09/12/2002  10:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,14**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,14**;JUN 01, 2001;Build 15
  Q
  ; 
  ; Subroutines split away from ABSPOSQ3:

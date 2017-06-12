@@ -1,5 +1,5 @@
 ABSPOSS8 ; IHS/FCS/DRS - 9002313.99 ;  
- ;;1.0;PHARMACY POINT OF SALE;**19,39,45,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**19,39,45,46**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;IHS/SD/RLT 11/7/06 - Patch 19
  ; Force user to run BAS setup option first.  Running other options

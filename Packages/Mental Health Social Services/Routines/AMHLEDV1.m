@@ -1,5 +1,5 @@
 AMHLEDV1 ; IHS/CMI/LAB - ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**5**;JUN 02, 2010;Build 18
  ;
  ;
  ;
@@ -28,7 +28,7 @@ REC ;
 GETPROB ;
  S AMHP=$O(^AMHRPRO("AD",AMHV,0)),AMHPREC=^AMHRPRO(AMHP,0)
  S X=$P(^AMHPROB($P(AMHPREC,U),0),U),X=$$LBLK(X,6)_" "
- S X=X_$S($P(AMHPREC,U,4)]"":$P(^AUTNPOV($P(AMHPREC,U,4),0),U),1:"<provider narrative missing>")
+ S X=X_$$GET1^DIQ(9002011.01,AMHP,.04)
  S AMHX=AMHX_X
  Q
 RBLK(V,L) ;left blank fill

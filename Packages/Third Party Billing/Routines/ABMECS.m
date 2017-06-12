@@ -1,5 +1,5 @@
 ABMECS ; IHS/ASDST/DMJ - ELECTRONIC CLAIMS SUBMISSION ;   
- ;;2.6;IHS Third Party Billing System;**2,6**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**2,6,10,19**;NOV 12, 2009;Build 300
  ;Original;DMJ;01/02/96 4:18 PM
  ;
  ; This routine is called from the EMC Create a Batch Menu option.
@@ -17,6 +17,7 @@ ABMECS ; IHS/ASDST/DMJ - ELECTRONIC CLAIMS SUBMISSION ;
  ;    to update A/R.
  ; IHS/SD/SDR - abm*2.6*2 - 5PMS10005 - Populate EXPORT NUMBER RE-EXPORT mult
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added clearinghouse code
+ ;IHS/SD/SDR - 2.6*19 - HEAT138428 - Made change to stop programming error <UNDEF>START+24^ABMEF31, <UNDEF>START+24^ABMEF32, <UNDEF>START+24^ABMEF33
  ; ********************************************************************
 START ;
  K ABME,ABMER
@@ -46,67 +47,139 @@ START ;
 CHFILE ;
  S ABMER("CNT")=0,ABMER("LAST")=0
  S ABMCH=$P(ABMER(ABMSEQ),U)
- S ABMINS("IEN")=0
- F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABMCH,ABMINS("IEN"))) Q:'(ABMINS("IEN"))  S ABMER("LAST")=+$G(ABMER("LAST"))+1
- S ABMINS("IEN")=0
- F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABMCH,ABMINS("IEN"))) Q:'(ABMINS("IEN"))  D
- .S ABMITYP=$P(^AUTNINS(ABMINS("IEN"),2),U) ; Insurance type
- .S ABMVTYPE=$P(ABMER(ABMSEQ),U,2)          ; Visit type
- .S ABMEXP=$P(ABMER(ABMSEQ),U,3)            ; export type
- .; Loop through locations in TMP global created by EMCREAT^ABMECDSP
- .S ABMLOC=""
- .F  S ABMLOC=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC)) Q:ABMLOC=""  D
- ..Q:$D(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE))<2
- ..S ABMER("CNT")=+$G(ABMER("CNT"))+1
- ..D NEWB    ; Create a new batch in 3P TX STATUS
- ..I $G(Y)<0 D MSG^ABMERUTL("Could not enter batch in 3P TX STATUS file.") Q
- ..; Add bill to detail in 3P TX STATUS for this batch
- ..S ^ABMDTXST(DUZ(2),DA(1),2,0)="^9002274.61P^^"
- ..S ABMAPOK=1
- ..S ABMDA=0
- ..F  S ABMDA=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,ABMDA)) Q:'+ABMDA  D
- ...S X=ABMDA
- ...S DIC="^ABMDTXST(DUZ(2),DA(1),2,"
- ...S DIC(0)="LXNE"
- ...S DINUM=X
- ...K DD,DO D FILE^DICN
- ...Q:+Y<0
- ...S DA=+Y
- ...S DIE="^ABMDTXST(DUZ(2),DA(1),2,"
- ...S ABMAPRV=$O(^ABMDBILL(DUZ(2),ABMDA,41,"C","A",0))
- ...S:ABMAPRV ABMAPRV=$P(^ABMDBILL(DUZ(2),ABMDA,41,ABMAPRV,0),U)
- ...I ABMAPRV D
- ....S DR=".02///`"_ABMAPRV
- ....D ^DIE
- ....K ABMAPRV
- ...S ABMSBR=$$SBR^ABMUTLP(ABMDA)
- ...S DR=".03///"_ABMSBR
- ...D ^DIE
- ...K ABMSBR
- ...S DIE="^ABMDBILL(DUZ(2),"
- ...S DA=ABMDA
- ...S DR=".04////B;.16////A"_$S($P($G(^ABMDBILL(DUZ(2),ABMDA,1)),U,7)="":";.17////"_ABMP("XMIT"),1:"")
- ...S ABMREX("BDFN")=ABMDA
- ...D ^DIE
- ..K ABMAPOK
- ..; Write record  (Create EMC unix file)
- ..D @("^ABMEF"_$P(ABMER(ABMSEQ),U,3))
- ..I $G(POP) D
- ...S DIE="^ABMDTXST(DUZ(2),"
- ...S DA=ABMP("XMIT")
- ...S DR=".14///NOPEN"
- ...D ^DIE
+ ;start old abm*2.6*19 IHS/SD/SDR HEAT138428
+ ;S ABMINS("IEN")=0
+ ;F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABMCH,ABMINS("IEN"))) Q:'(ABMINS("IEN"))  S ABMER("LAST")=+$G(ABMER("LAST"))+1
+ ;S ABMINS("IEN")=0
+ ;F  S ABMINS("IEN")=$O(^TMP($J,"S-CH",ABMSEQ,ABMCH,ABMINS("IEN"))) Q:'(ABMINS("IEN"))  D
+ ;.;S ABMITYP=$P(^AUTNINS(ABMINS("IEN"),2),U) ; Insurance type
+ ;.S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMINS("IEN"),".211","I"),1,"I") ; Insurance type  ;abm*2.6*10 HEAT73780
+ ;.S ABMVTYPE=$P(ABMER(ABMSEQ),U,2)          ; Visit type
+ ;.S ABMEXP=$P(ABMER(ABMSEQ),U,3)            ; export type
+ ;.; Loop through locations in TMP global created by EMCREAT^ABMECDSP
+ ;.S ABMLOC=""
+ ;.F  S ABMLOC=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC)) Q:ABMLOC=""  D
+ ;..Q:$D(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE))<2
+ ;..;S ABMER("CNT")=+$G(ABMER("CNT"))+1  ;abm*2.6*@@ IHS/SD/SDR HEAT138428
+ ;..S ABMER("CNT")=+$G(ABMER("LAST"))  ;abm*2.6*@@ IHS/SD/SDR HEAT138428
+ ;..D NEWB    ; Create a new batch in 3P TX STATUS
+ ;..I $G(Y)<0 D MSG^ABMERUTL("Could not enter batch in 3P TX STATUS file.") Q
+ ;..; Add bill to detail in 3P TX STATUS for this batch
+ ;..S ^ABMDTXST(DUZ(2),DA(1),2,0)="^9002274.61P^^"
+ ;..S ABMAPOK=1
+ ;..S ABMDA=0
+ ;..F  S ABMDA=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,ABMDA)) Q:'+ABMDA  D
+ ;...S X=ABMDA
+ ;...S DIC="^ABMDTXST(DUZ(2),DA(1),2,"
+ ;...S DIC(0)="LXNE"
+ ;...S DINUM=X
+ ;...K DD,DO D FILE^DICN
+ ;...Q:+Y<0
+ ;...S DA=+Y
+ ;...S DIE="^ABMDTXST(DUZ(2),DA(1),2,"
+ ;...S ABMAPRV=$O(^ABMDBILL(DUZ(2),ABMDA,41,"C","A",0))
+ ;...S:ABMAPRV ABMAPRV=$P(^ABMDBILL(DUZ(2),ABMDA,41,ABMAPRV,0),U)
+ ;...I ABMAPRV D
+ ;....S DR=".02///`"_ABMAPRV
+ ;....D ^DIE
+ ;....K ABMAPRV
+ ;...S ABMSBR=$$SBR^ABMUTLP(ABMDA)
+ ;...S DR=".03///"_ABMSBR
+ ;...D ^DIE
+ ;...K ABMSBR
+ ;...S DIE="^ABMDBILL(DUZ(2),"
+ ;...S DA=ABMDA
+ ;...S DR=".04////B;.16////A"_$S($P($G(^ABMDBILL(DUZ(2),ABMDA,1)),U,7)="":";.17////"_ABMP("XMIT"),1:"")
+ ;...S ABMREX("BDFN")=ABMDA
+ ;...D ^DIE
+ ;..K ABMAPOK
+ ;..; Write record  (Create EMC unix file)
+ ;..D @("^ABMEF"_$P(ABMER(ABMSEQ),U,3))
+ ;..I $G(POP) D
+ ;...S DIE="^ABMDTXST(DUZ(2),"
+ ;...S DA=ABMP("XMIT")
+ ;...S DR=".14///NOPEN"
+ ;...D ^DIE
+ ;end new code 5010
+ ;end old start new abm*2.6*19 IHS/SD/SDR HEAT138428
+ S ABMER("LAST")=0
+ S ABMLOC="",ABMLOCSV=""
+ ;F  S ABMLOC=$O(^TMP($J,"FILE",ABMLOC)) Q:ABMLOC=""  S ABMER("LAST")=+$G(ABMER("LAST"))+1
+ F  S ABMLOC=$O(^TMP($J,"FILE",ABMLOC)) Q:ABMLOC=""  D
+ .S ABMINS=0
+ .F  S ABMINS=$O(^TMP($J,"FILE",ABMLOC,ABMINS)) Q:'ABMINS  D
+ ..S ABMVTYP=0,ABMVTYPS=0
+ ..F  S ABMVTYP=$O(^TMP($J,"FILE",ABMLOC,ABMINS,ABMVTYP)) Q:'ABMVTYP  D
+ ...S ABMEXP=0,ABMEXPSV=0
+ ...F  S ABMEXP=$O(^TMP($J,"FILE",ABMLOC,ABMINS,ABMVTYP,ABMEXP)) Q:'ABMEXP  D
+ ....I (ABMLOCSV'=ABMLOC)!(ABMVTYPS'=ABMVTYPE)!(ABMEXPSV'=ABMEXP) S ABMER(ABMLOC,"LAST")=+$G(ABMER(ABMLOC,"LAST"))+1
+ ....S ABMLOCSV=ABMLOC,ABMVTYPS=ABMVTYPE,ABMEXPSV=ABMEXP
+ ;
+ S ABMLOC=""
+ S ABMLOCSV=""
+ F  S ABMLOC=$O(^TMP($J,"FILE",ABMLOC)) Q:ABMLOC=""  D
+ .S ABMER("CNT")=0
+ .S ABMER("LAST")=$G(ABMER(ABMLOC,"LAST"))
+ .S ABMINS("IEN")=0
+ .F  S ABMINS("IEN")=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"))) Q:'ABMINS("IEN")  D
+ ..S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMINS("IEN"),".211","I"),1,"I") ; Insurance type
+ ..S ABMVTYPE=0,ABMVTYPS=0
+ ..F  S ABMVTYPE=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE)) Q:'ABMVTYPE  D
+ ...S ABMEXP=0,ABMEXPSV=0
+ ...F  S ABMEXP=$O(^TMP($J,"FILE",ABMLOC,ABMINS("IEN"),ABMVTYPE,ABMEXP)) Q:'ABMEXP  D
+ ....Q:$D(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE))<2
+ ....S ABMER("CNT")=+$G(ABMER("CNT"))+1
+ ....I (ABMLOCSV'=ABMLOC)!(ABMVTYPS'=ABMVTYPE)!(ABMEXPSV'=ABMEXP) D NEWB    ; Create a new batch in 3P TX STATUS
+ ....S ABMLOCSV=ABMLOC,ABMVTYPS=ABMVTYPE,ABMEXPSV=ABMEXP
+ ....I $G(Y)<0 D MSG^ABMERUTL("Could not enter batch in 3P TX STATUS file.") Q
+ ....; Add bill to detail in 3P TX STATUS for this batch
+ ....S ^ABMDTXST(DUZ(2),DA(1),2,0)="^9002274.61P^^"
+ ....S ABMAPOK=1
+ ....S ABMDA=0
+ ....F  S ABMDA=$O(^TMP($J,"D",ABMINS("IEN"),ABMLOC,ABMVTYPE,ABMEXP,ABMDA)) Q:'+ABMDA  D
+ .....S X=ABMDA
+ .....S DIC="^ABMDTXST(DUZ(2),DA(1),2,"
+ .....S DIC(0)="LXNE"
+ .....S DINUM=X
+ .....K DD,DO D FILE^DICN
+ .....Q:+Y<0
+ .....S DA=+Y
+ .....S DIE="^ABMDTXST(DUZ(2),DA(1),2,"
+ .....S ABMAPRV=$O(^ABMDBILL(DUZ(2),ABMDA,41,"C","A",0))
+ .....S:ABMAPRV ABMAPRV=$P(^ABMDBILL(DUZ(2),ABMDA,41,ABMAPRV,0),U)
+ .....I ABMAPRV D
+ ......S DR=".02///`"_ABMAPRV
+ ......D ^DIE
+ ......K ABMAPRV
+ .....S ABMSBR=$$SBR^ABMUTLP(ABMDA)
+ .....S DR=".03///"_ABMSBR
+ .....D ^DIE
+ .....K ABMSBR
+ .....S DIE="^ABMDBILL(DUZ(2),"
+ .....S DA=ABMDA
+ .....S DR=".04////B;.16////A"_$S($P($G(^ABMDBILL(DUZ(2),ABMDA,1)),U,7)="":";.17////"_ABMP("XMIT"),1:"")
+ .....S ABMREX("BDFN")=ABMDA
+ .....D ^DIE
+ ....K ABMAPOK
+ ....; Write record  (Create EMC unix file)
+ ....D @("^ABMEF"_$P(ABMER(ABMSEQ),U,3))
+ ....I $G(POP) D
+ .....S DIE="^ABMDTXST(DUZ(2),"
+ .....S DA=ABMP("XMIT")
+ .....S DR=".14///NOPEN"
+ .....D ^DIE
+ ;end new abm*2.6*19 IHS/SD/SDR HEAT138428
  S DIR(0)="E"
  D ^DIR
  K DIR
  K ABMER,ABMP,ABMSEQ
  Q
- ;end new code 5010
 FILE ;
  ; File bills to 3P TX STATUS FILE
  S ABMER("CNT")=1,ABMER("LAST")=1  ;abm*2.6*6 5010
  S ABMINS("IEN")=$P(ABMER(ABMSEQ),U)       ; Active Insurer IEN
- S ABMITYP=$P(^AUTNINS(ABMINS("IEN"),2),U) ; Insurance type
+ ;S ABMITYP=$P(^AUTNINS(ABMINS("IEN"),2),U) ; Insurance type  ;abm*2.6*10 HEAT73780
+ S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMINS("IEN"),".211","I"),1,"I") ; Insurance type  ;abm*2.6*10 HEAT73780
  S ABMVTYPE=$P(ABMER(ABMSEQ),U,2)          ; Visit type
  S ABMEXP=$P(ABMER(ABMSEQ),U,3)            ; export type
  ; Loop through locations in TMP global created by EMCREAT^ABMECDSP

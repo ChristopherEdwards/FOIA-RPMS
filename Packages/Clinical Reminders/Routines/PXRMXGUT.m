@@ -1,52 +1,41 @@
-PXRMXGUT ; SLC/PJH - General utilities for reminder reports;02/26/2001
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
+PXRMXGUT ; SLC/PJH - General utilities for reminder reports; 11/16/2007
+ ;;2.0;CLINICAL REMINDERS;**4,6**;Feb 04, 2005;Build 123
  ;
- ;=======================================================================
+ ;=======================================
 EOR ;End of report display.
- I $E(IOST)="C",IO=IO(0) D
+ I $E(IOST,1,2)="C-",IO=IO(0) D
  . S DIR(0)="EA"
  . S DIR("A")="End of the report. Press ENTER/RETURN to continue..."
  . W !
  . D ^DIR K DIR
  Q
  ;
- ;=======================================================================
+ ;=======================================
 EXIT ;Clean things up.
  D ^%ZISC
  D HOME^%ZIS
  K IO("Q")
- K DIRUT,DTOUT,DUOUT,POP,ZTREQ
- I $D(ZTSK) D KILL^%ZTLOAD
- K ZTSK,ZTQUEUED
+ K DIRUT,DTOUT,DUOUT,POP
  K ^TMP(PXRMXTMP)
  K ^XTMP(PXRMXTMP)
- K ^TMP($J)
  K ^TMP("PXRMX",$J)
+ K ^TMP($J,"PXRM PATIENT LIST")
+ K ^TMP($J,"PXRM PATIENT EVAL")
+ K ^TMP($J,"PXRM FUTURE APPT")
+ K ^TMP($J,"PXRM FACILITY FUTURE APPT")
+ K ^TMP($J,"SDAMA301")
+ K ^TMP($J,"SORT")
  Q
  ;
- ;=======================================================================
-VLIST(SLIST,LIST,MESSAGE) ;Make sure all the elements of LIST are in
- ;SLIST.  If they are, then LIST is valid.  The elements of LIST can be
- ;separated by commas and spaces.
- N IC,LE,LEN,VALID
- S LIST=$TR(LIST,",","")
- S LIST=$TR(LIST," ","")
- ;Make the test case insensitive.
- S SLIST=$$UP^XLFSTR(SLIST)
- S LIST=$$UP^XLFSTR(LIST)
- S VALID=1
- S LEN=$L(LIST)
- I LEN=0 D
- . W !,"The list is empty!"
- . S VALID=0
- F IC=1:1:LEN D
- . S LE=$E(LIST,IC,IC)
- . I SLIST'[LE D
- .. W !,LE,MESSAGE
- .. S VALID=0
- Q VALID
+ ;=======================================
+TIMING ;Print report timing data.
+ N IND
+ W !!,"Report timing data:"
+ S IND=""
+ F  S IND=$O(^XTMP(PXRMXTMP,"TIMING",IND)) Q:IND=""  W !," ",^XTMP(PXRMXTMP,"TIMING",IND)
+ Q
  ;
- ;=======================================================================
+ ;=======================================
 USTRINS(STRING,CHAR) ;Given a string, which is assumed to be in alphabetical
  ;order and a character which is not already in the string insert the
  ;character into the string in alphabetical order. For example:
@@ -84,4 +73,26 @@ USTRINS(STRING,CHAR) ;Given a string, which is assumed to be in alphabetical
  ;done then append CHAR.
  I ('DONE) S STR=STR_CHAR
  Q STR
+ ;
+ ;=======================================
+VLIST(SLIST,LIST,MESSAGE) ;Make sure all the elements of LIST are in
+ ;SLIST.  If they are, then LIST is valid.  The elements of LIST can be
+ ;separated by commas and spaces.
+ N IC,LE,LEN,VALID
+ S LIST=$TR(LIST,",","")
+ S LIST=$TR(LIST," ","")
+ ;Make the test case insensitive.
+ S SLIST=$$UP^XLFSTR(SLIST)
+ S LIST=$$UP^XLFSTR(LIST)
+ S VALID=1
+ S LEN=$L(LIST)
+ I LEN=0 D
+ . W !,"The list is empty!"
+ . S VALID=0
+ F IC=1:1:LEN D
+ . S LE=$E(LIST,IC,IC)
+ . I SLIST'[LE D
+ .. W !,LE,MESSAGE
+ .. S VALID=0
+ Q VALID
  ;

@@ -1,7 +1,6 @@
-LRRP1 ;DALOI/RWF/BA-PRINT THE DATA FOR INTERIM REPORTS ;December 16, 2010 1:45 PM
- ;;5.2;LAB SERVICE;**1004,1013,1016,1018,1025,1026,1027,1028,1030,1031**;NOV 01, 1997
+LRRP1 ;DALOI/RWF/BA-PRINT THE DATA FOR INTERIM REPORTS ; 17-Dec-2015 15:37 ; MKK
+ ;;5.2;LAB SERVICE;**1004,1013,1016,153,221,283,1018,1025,1026,286,1027,1028,1030,1031,1033,1038**;NOV 01, 1997;Build 6
  ;
- ;;VA LR Patche(s): 153,221,283,286,356,372
  ;from LRRP, LRRP2, LRRP3
  ;
 PRINT S:'$L($G(SEX)) SEX="M" S:'$L($G(DOB)) DOB="UNKNOWN"
@@ -78,10 +77,13 @@ TEST ; EP -- IHS/OIT/MKK - LR*5.2*1027 - IHS Modified TEST Code
  D ORU             ; Accession info
  ;
  W !,?5,"Provider: ",LRDOC
- D:'$G(BLRGUI) ESIGINFO^BLRUTIL3
+ ; D:'$G(BLRGUI) ESIGINFO^BLRUTIL3
+ D:'$G(BLRGUI) ESIGINFO^BLRUTIL5  ; IHS/MSC/MKK - LR*5.2*1033
  ; W !,?5,"Specimen:",$E($P(^LAB(61,LRSPEC,0),U),1,23)
  W !,?5,"Specimen:",$E($P($G(^LAB(61,LRSPEC,0)),U),1,23)       ; Naked Ref fix - IHS/OIT/MKK - LR*5.2*1031
  W ?42,"Spec Collect Date/Time:",$$FMTE^XLFDT(LRCDT,"2MZ")
+ ;
+ D CONDSPEC^BLRLRRP1    ; IHS/MSC/MKK - LR*5.2*1033
  ;
  D COLHEADS
  ;
@@ -114,6 +116,9 @@ COLHEADS ; EP - IHS/OIT/MKK - LR*5.2*1027
  ;
 BOTTOMPG ; EP - IHS/OIT/MKK - LR*5.2*1027
  NEW STR
+ NEW IOM      ; IHS/MSC/MKK - LR*5.2*1038
+ S IOM=80     ; IHS/MSC/MKK - LR*5.2*1038
+ ;
  W !,$TR($J("",IOM)," ","=")
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030 -- Add "Abnormal" & make two lines
  S STR="KEY: A=Abnormal          L=Abnormal Low          H=Abnormal High"
@@ -161,7 +166,14 @@ DATA ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA code
  S LRTSTS=+LRDATA,LRPC=$P(LRDATA,U,5),LRSUB=$P(LRDATA,U,6)
  S X=$P(LRDATA,U,7) Q:X=""
  S LR63DATA=$$TSTRES^LRRPU(LRDFN,LRSS,LRIDT,$P(LRDATA,U,10),LRTSTS)
+ ;
  S LRLO=$P(LR63DATA,"^",3),LRHI=$P(LR63DATA,"^",4),LRREFS=$$EN^LRLRRVF(LRLO,LRHI),LRPLS=$P(LR63DATA,"^",6),LRTHER=$P(LR63DATA,"^",7)
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033 - MU2 Special Code
+ S:$E(LRREFS,1,7)="Ref: <=" LRREFS=$TR(LRREFS,"=")
+ S:$E(LRREFS,1,7)="Ref: >=" LRREFS=$TR(LRREFS,"=")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033 - MU2 Special Code
+ ;
  I LRPLS S LRPLS(LRPLS)=LRPLS
  ;
  W !,$S($L($P(LRDATA,U,2))>15:$P(LRDATA,U,3),1:$P(LRDATA,U,2))
@@ -169,13 +181,15 @@ DATA ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA code
  ; W ?16,@$S(LRPC="":"$J(X,LRCW)",1:LRPC)," ",$P(LR63DATA,"^",2)
  W ?16,@$S(LRPC="":"$J(X,LRCW)",1:LRPC)
  W ?26,$P(LR63DATA,"^",2)
+ ; W ?26,$S($P(LR63DATA,"^",2)="N":"",1:$P(LR63DATA,"^",2))
  W ?29,$P(LR63DATA,"^",5)
  I $G(LRREFS)["$S(" D MUMPRNGE(.LRREFS)
- W ?43,$E(LRREFS,1,15)  K LRREFS
- W ?55,$S(LRTHER:"(TR)",1:"")
+ ; W ?43,$E(LRREFS,1,15)  K LRREFS
+ ; W ?55,$S(LRTHER:"(TR)",1:"")
  ;
- I LRPLS'="" W ?59,$J("["_LRPLS_"]",6)
- W ?66,$$GETCOMPD^BLRUTIL4                       ; IHS/MSC/MKK - LR*5.2*1031
+ ; I LRPLS'="" W ?59,$J("["_LRPLS_"]",6)
+ ; W ?66,$$GETCOMPD^BLRUTIL4                       ; IHS/MSC/MKK - LR*5.2*1031
+ D LRREFS^BLRLRRP1      ; IHS/MSC/MKK - LR*5.2*1033
  ;
  D CONT Q:LRSTOP
  ;
@@ -185,6 +199,7 @@ DATA ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified DATA code
  ;
  Q
  ;
+ ;
 MUMPRNGE(RANGE) ; EP -- MUMPS Code in Reference Range -- Evaluate and store
  NEW LOW,HIGH,RV1,RV2
  ;
@@ -192,7 +207,7 @@ MUMPRNGE(RANGE) ; EP -- MUMPS Code in Reference Range -- Evaluate and store
  ;     If there is only one (1) Reference Range for a test, the LRLRRVF routine returns the Single Ref Range
  ;     with "Ref: " prefixed to it.  (See DATA+6 above.)  However, that Ref Range could have a $SELECT statement,
  ;     which means it gets passed to this subroutine.  At this point, the RANGE variable must be a valid Mumps
- ;     string, with no prefix.  The 1032 changes below will try to ensure that.
+ ;     string, with no prefix.  The 1031 changes below will try to ensure that.
  ;
  S LOW=$$TRIM^XLFSTR($P(RANGE,"-"),"LR"," ")
  S:$E(LOW,1,4)="Ref:" LOW=$P(LOW," ",2,999)           ; IHS/OIT/MKK - LR*5.2*1031 - Strip off "Ref: " string
@@ -241,7 +256,8 @@ CONTORIG I $Y+5>IOSL D FOOT Q:LRSTOP  D HDR W !?20,">> CONTINUATION OF ",$P(LR0,
  Q   ; End CONT Original Code
  ;
 CONT ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 -- IHS Modified CONT code
- Q:($Y+5)<IOSL
+ ; Q:($Y+5)<IOSL
+ Q:($Y+9)<IOSL     ; IHS/MSC/MKK - LR*5.2*1038
  ;
  D BOTTOMPG
  D FOOT
@@ -285,6 +301,7 @@ FOOT ;EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified FOOT Code
  ;
  ; Check again due to TRUE issues with the ELSE statement.
  I $G(LRIRAP)="YES" F I=$Y:1:(IOSL-4) W !     ; "Go to" bottom of the page
+ I $G(LRIRAP)="YES" F I=$Y:1:(IOSL-5) W !   ; LR*5.2*1038 - "Go to" bottom of the page
  ;
  I $E(IOST,1,2)'="C-" D  Q
  . NEW DONOTF                                    ; DO NOT FILE flag
@@ -292,7 +309,8 @@ FOOT ;EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified FOOT Code
  . I $G(DONOTF)["Y" W !,"INTERIM REPORT DO NOT FILE",?30,$E(PNM,1,23),"   HRCN:",HRCN,?70,LRDT0,!
  . I $G(DONOTF)'["Y" W PNM,"   HRCN:",HRCN,?70,LRDT0,!
  ;
- W !,$E(PNM,1,23),?28,HRCN,?40,LRDT0
+ ; W !,$E(PNM,1,23),?28,HRCN,?40,LRDT0
+ W !,PNM,?30,"  HRCN:",HRCN,?46,LRDT0    ; IHS/MSC/MKK - LR*5.2*1038
  R ?60,"PRESS '^' TO STOP ",X:DTIME S:X="" X=1 S:(".^"[X)!('$T) LRSTOP=1
  Q
  ; End - IHS/OIT/MKK - LR*5.2*1027 - IHS Modified FOOT Code
@@ -324,7 +342,8 @@ HDR ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified HDR Code
  S LRHF=0,LRJ02=1
  I '$D(LRPG) S LRPG=0
  S LRPG=LRPG+1
- I $E(IOST,1)="P" W !!!!,$$CJ^XLFSTR("CLINICAL LABORATORY REPORT",IOM),!
+ ; I $E(IOST,1)="P" W !!!!,$$CJ^XLFSTR("CLINICAL LABORATORY REPORT",IOM),!
+ I $E(IOST)'="C" W !!!!,$$CJ^XLFSTR("CLINICAL LABORATORY REPORT",80),!  ; IHS/MSC/MKK - LR*5.2*1038
  I $D(DUZ("AG")),$L(DUZ("AG")),"ARMYAFN"[DUZ("AG") D ^LRAIPRIV W !
  W "Printed at: ",?65,"page ",LRPG     ; IHS/OIT/MKK - LR*5.2*1028
  D LABHDR^BLRUTIL2
@@ -343,7 +362,13 @@ HDR ; EP - Begin IHS/OIT/MKK - LR*5.2*1027 - IHS Modified HDR Code
  ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1030
  W ?20,"SEX:",SEX
  W ?27,"DOB:",$S(DOB>0:$$FMTE^XLFDT(DOB),1:" ")
- W:+$G(AGE)>0 ?45,"CURRENT AGE:",AGE
+ ; W:+$G(AGE)>0 ?45,"CURRENT AGE:",AGE
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ NEW DOD
+ S DOD=+$$GET1^DIQ(2,DFN,.351,"I")     ; Date of Death
+ W:'DOD&(AGE) ?45,"CURRENT AGE:",AGE
+ W:DOD ?45,"DIED:",$$FMTE^XLFDT(DOD,"D")
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
  NEW LOCIEN,LOCDESC
  S LOCIEN=+$P($P(LR0,"^",13),";")
  S LOCDESC=$P($G(^SC(LOCIEN,0)),"^")
@@ -366,3 +391,15 @@ ORU ; Display remote ordering info if available
  . D EN^DDIOL(" Ordering Site UID: "_$P(LRX,"^",5),"","?43")
  I $P(LRX,"^",2) D EN^DDIOL("Collecting Site: "_$$GET1^DIQ(63.04,IENS,.32,""),"","!")
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+LASTPAGE ; EP - Last Page
+ NEW CNT,HNOW,I
+ S (CNT,I)=0  F  S I=$O(LRPLS(I)) Q:I=""  S CNT=CNT+1
+ S CNT=CNT+1
+ I $E(IOST,1,2)="C-" F I=$Y:1:((IOSL-6)-CNT) W !
+ E  W !!
+ D SITELIST^LRRP2
+ W !!,PNM,?30,"  HRCN:",HRCN,?54,LRDT0
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038

@@ -1,5 +1,5 @@
-LRMIEDZ2 ;SLC/CJS/BA,AVAMC/REG - MICROBIOLOGY EDIT ROUTINE ;3/2/03  18:06
- ;;5.2;LAB SERVICE;**1010,1013,1015,1030,1031**;NOV 01, 1997
+LRMIEDZ2 ;SLC/CJS/BA,AVAMC/REG - MICROBIOLOGY EDIT ROUTINE ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1010,1013,1015,1030,1031,1033**;NOV 01, 1997
  ;
  ;;VA LR Patche(s): 23,104,242,295
  ;
@@ -13,8 +13,8 @@ PAT ; EP
 PAT1 ; EP
  S LRDFN=+^LRO(68,LRAA,1,LRAD,1,LRAN,0),LRIDT=9999999-^(3),LRCDT=+^(3),LREAL=$P(^(3),U,2),LRI=+$O(^(5,0)),LRSPEC=$S($D(^(LRI,0)):+^(0),1:"")
  I '$O(^LRO(68,LRAA,1,LRAD,1,LRAN,4,0)) W !,"No tests associated with this accession" D  S LRANOK=0 Q
- .Q:$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))," ")=$P(^LRO(68,LRAA,0),U,11)
- .W !,"Verify with accession #: ",$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ . Q:$P($G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))," ")=$P(^LRO(68,LRAA,0),U,11)
+ . W !,"Verify with accession #: ",$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
  L +^LR(LRDFN,"MI",LRIDT):1 I '$T W !!?10,"Someone else is editing this accession ",!,$C(7) S LRANOK=0 Q
  I $D(^LR(LRDFN,"MI",LRIDT,0)) S (LRBG0,Y(0))=^(0)
  I '$D(^LR(LRDFN,"MI",LRIDT,0)) D BB
@@ -49,8 +49,10 @@ PAT1 ; EP
  ; ----- END IHS/OIT/MKK - LR*5.2*1030
  S (X,DR)=$P($P(LRTX(LRI),"[",2),"]",1) S:$L(X) X=+$O(^DIE("B",X,0)) I X<1,'$D(^DIE(+X,"DR",2,63.05)) W !,DR," template doesn't exist for Microbiology." K DR Q
  S J=1 F  S J=+$O(^DIE(X,"DR",J)) Q:J<1  S K=+$O(^DIE(X,"DR",J,0)),DR(J-1,K)=^DIE(X,"DR",J,K)
+ ;
  ; S DR=DR(1,63.05) D ^DIE,UPDATE^LRPXRM(LRDFN,"MI",LRIDT),EC3 K DR
  ; S DR=DR(1,63.05) D ^DIE,EC3 K DR  ; IHS/OIT/MKK - LR*5.2*1030 - RPMS Does NOT use Clinical Reminders
+ ;
  I $$PATCH^BLRUTIL4("PXRM*1.5*12") S DR=DR(1,63.05) D ^DIE,UPDATE^LRPXRM(LRDFN,"MI",LRIDT),EC3 K DR  ; IHS/MSC/MKK - LR*5.2*1031
  I '$$PATCH^BLRUTIL4("PXRM*1.5*12") S DR=DR(1,63.05) D ^DIE,EC3 K DR                                 ; IHS/MSC/MKK - LR*5.2*1031
  Q
@@ -59,6 +61,9 @@ BB ; EP
  I '$D(^LR(LRDFN,"MI",0)) S ^LR(LRDFN,"MI",0)="^63.05DA^"
  S ^LR(LRDFN,"MI",0)=$P(^LR(LRDFN,"MI",0),U,1,2)_U_LRIDT_U_(1+$P(^(0),U,4))
  S ^LR(LRDFN,"MI",LRIDT,0)=LRCDT_U_LREAL_"^^^"_LRSPEC_U_$P(^LRO(68,LRAA,0),U,11)_" "_$E(LRAD,2,3)_" "_LRAN_"^^UNKNOWN",(LRBG0,Y(0))=^(0)
+ ;
+ D LABSTOR^BLRRLMUM(LRDFN,"MI",LRIDT)       ; IHS/MSC/MKK - LR*5.2*1033 -- Store the HL7 data
+ ;
  Q
  ;
 EC3 ; EP

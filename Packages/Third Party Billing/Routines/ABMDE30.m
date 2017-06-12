@@ -1,5 +1,5 @@
 ABMDE30 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,9**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,9,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR - v2.5 p3 - nda-0402-180192 - Added new block 19 stuff
  ; IHS/SD/SDR - V2.5 p5 - Added code to change PATIENT to DISCHARGE STATUS
@@ -16,6 +16,7 @@ ABMDE30 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - modified AoB to accept "W"
  ; IHS/SD/SDR - 2.6*9 - NOHEAT - added accident state to display if populated
+ ;IHS/SD/SDR - 2.6*14 - fixed discharge status display
  ; *********************************************************************
 W1 ;EP - release of information
  W "Release of Information..: "
@@ -269,7 +270,8 @@ W22 ;EP Admission Source
  Q
  ;**********************************************************************
 W23 ;EP Patient Status
- W "Discharge Status..........: "
+ ;W "Discharge Status..........: "  ;abm*2.6*14
+ W "Discharge Status........: "  ;abm*2.6*14
  S ABM(23)=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),5)),U,3)
  I $D(^ABMDCODE(+ABM(23),0)) D
  .I $L($P(^ABMDCODE(+ABM(23),0),U))=1 W 0

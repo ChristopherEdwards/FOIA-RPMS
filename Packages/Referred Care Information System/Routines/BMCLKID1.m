@@ -1,5 +1,5 @@
 BMCLKID1 ; IHS/PHXAO/TMJ - IDENTIFIERS FOR REFERRAL LOOKUP 2 ;    [ 09/27/2006  1:37 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**1**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**1**;JAN 09, 2006;Build 51
  ;This Routine Displays Lookup for BMCREF Global
  ;This routine is called from ^BMCADD and uses different global
  ;references than ^BMCLKID

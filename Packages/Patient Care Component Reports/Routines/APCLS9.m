@@ -1,0 +1,9 @@
+APCLS9 ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON AUG 12, 2014;
+ ;;3.0;IHS PCC REPORTS;**30**;FEB 05, 1997;Build 27
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^APCLS9A ;   SURVEILLANCE PANDEMIC CVX
+ D ^APCLS9B ;   SURVEILLANCE FLU CVX CODES
+ Q

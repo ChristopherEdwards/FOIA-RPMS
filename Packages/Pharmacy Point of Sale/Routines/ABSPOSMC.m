@@ -1,5 +1,5 @@
 ABSPOSMC ; IHS/FCS/DRS - General Inquiry/Report .57; [ 09/12/2002  10:14 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ; Local array ABSPOSMA() contains the parameters:
  ; ABSPOSMA("BY WHICH DATE")="TRANSACTION" or "RELEASED"

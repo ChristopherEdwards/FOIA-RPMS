@@ -1,5 +1,6 @@
-ORCMEDT4 ;SLC/MKB-Prompt Editor ;6/19/01  15:05
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95,245**;Dec 17, 1997;Build 2
+ORCMEDT4 ;SLC/MKB-Prompt Editor ;21-Nov-2013 15:18;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**8,46,95,245,1013**;Dec 17, 1997;Build 2
+ ; Modified - IHS/MSC/PLS - 11/21/2013 - Line DISABLE+2
 EN ; -- Enter/edit prompts
  N PRMT F  S PRMT=+$$PROMPT Q:PRMT'>0  D  W !
  . I $P($G(^ORD(101.41,PRMT,0)),U,7)=$O(^DIC(9.4,"C","OR",0)) D  Q
@@ -41,7 +42,7 @@ NM I $L($P($G(^ORD(101.41,IFN,0)),U,3))>0 W !,!,"(This "_$$GETITM(IFN)_" has bee
  . I $D(^ORD(101.41,"AD",IFN)) W $C(7),!,"Cannot delete - currently in use!",! S X="" Q
  . I $$INUSE^ORCMEDT5(IFN) W $C(7),!,"Cannot delete - currently an Add Orders Menu!",! S X="" Q
  . I NODELETE D DISABLE(IFN) S X="" Q
- . I '$$SURE(IFN) S X="" Q  ;reask       
+ . I '$$SURE(IFN) S X="" Q  ;reask
  . N IDX1,IDX2 S IDX1=0
  . F  S IDX1=$O(^ORD(101.44,"C",IFN,IDX1)) Q:'IDX1  D
  . . S IDX2=0
@@ -69,7 +70,9 @@ SURE(DLG) ; -- Are you sure?
  ;
 DISABLE(DLG) ; Disable item - return true if disabled
  N DIR,X,Y,ITM,DA,DR,DIE,DIDEL,DISABLED
- W $C(7),!,!,"Deletion not allowed outside of FileMan."
+ ;IHS/MSC/PLS - 11/21/2013
+ ;W $C(7),!,!,"Deletion not allowed outside of FileMan."
+ W $C(7),!,!,"Deletion not allowed, please inactivate."
  S ITM=$$GETITM(DLG)
  S DISABLED=$L($P($G(^ORD(101.41,IFN,0)),U,3))>0
  S DIR(0)="YA"

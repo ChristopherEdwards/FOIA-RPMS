@@ -1,5 +1,5 @@
 BQIIPBNL ;VNGT/HS/ALA-IPC Bundle Logic ; 24 Jun 2011  11:53 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  ;
 EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
@@ -9,7 +9,7 @@ EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
  ;   CODE  - Code name
  ;   BQI(90508,1,22,CRN,1,MSN,1
  ;
- NEW TDEN,TNUM,CNT,CD,BQIDOD
+ NEW TDEN,TNUM,CNT,CD,BQIDOD,NA,YES,NO,NDA
  S TDEN=0,TNUM=0,CNT=0
  K XX
  D BUN(CRSN,BNIEN,.XX)
@@ -17,6 +17,7 @@ EN(CRSN,BNIEN,BQDATE,CODE) ;EP - do the bundle for monthly update
  ;
  S PRV=""
  F  S PRV=$O(^AUPNPAT("AK",PRV)) Q:PRV=""  D
+ . I $P(^VA(200,PRV,0),U,13)'="" Q
  . S DFN="",PCT=0,TP=0
  . F  S DFN=$O(^AUPNPAT("AK",PRV,DFN)) Q:DFN=""  D
  .. ;B:PRV=877
@@ -56,7 +57,7 @@ BUN(CRSN,BNIEN,XX) ;EP - Get values for bundle
  Q
  ;
 PAT(DFN,XX) ;EP - See if patient meets bundle criteria
- NEW BCT,PCT,CNT,CD,IEN,NUM,DEN,BQIDOD
+ NEW BCT,PCT,CNT,CD,IEN,NUM,DEN,BQIDOD,NA,YES,NO,NDA
  S BCT=0,PCT=0,CNT=0,NA=0,YES=0,NO=0,NDA=0
  S BQIDOD=$$GET1^DIQ(2,DFN_",",.351,"I")
  I BQIDOD'="" Q "{D}"

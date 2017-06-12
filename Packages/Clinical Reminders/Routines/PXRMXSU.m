@@ -1,12 +1,12 @@
-PXRMXSU ; SLC/PJH - Reminder Reports DIC Prompts;11/16/2001
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
+PXRMXSU ; SLC/PJH - Reminder Reports DIC Prompts;01/06/2006
+ ;;2.0;CLINICAL REMINDERS;**4**;Feb 04, 2005;Build 21
  ;
  ;Called by PXRMXD
  ;
  ;Exits from SEL subroutine
 QUIT() I $D(DTOUT)!$D(DUOUT) Q 1
- ;Detail Report allow only one entry
- I RPT="D",(CNT>0) Q 1
+ ;Only one entry allowed
+ I ONE="D",(CNT>0) Q 1
  ;Mandatory entry
  I Y=-1,(CHECK=3)!(CNT>0) Q 1
  ;Categories may already contain reminders
@@ -16,9 +16,9 @@ QUIT() I $D(DTOUT)!$D(DUOUT) Q 1
  ;
  ;Repeated Prompt using DIC
  ;-------------------------
-SEL(FILE,MODE,CNT,ARRAY,RPT,CHECK) ;
+SEL(FILE,MODE,CNT,ARRAY,ONE,CHECK) ;
  ;
- ; RPT   = D - detailed report only allows one reminder
+ ; ONE   = only allows one entry
  ; CHECK = number or null - validation of facility
  ;
  N X,Y,ARRAYN
@@ -31,6 +31,8 @@ SEL(FILE,MODE,CNT,ARRAY,RPT,CHECK) ;
  .I CHECK=1 D FACT^PXRMXAP
  .I CHECK=2 S DIC("S")=DIC("S")_",'(+$P(^(0),U,6))"
  .I CHECK=3 S DIC("S")=DIC("S")_",$$OK^PXRMXS1(+Y)"
+ .I CHECK=4 S DIC("S")=DIC("S")_",$P($G(^PXRMXP(810.5,+Y,30,0)),U,3)>0"
+ .I CHECK=5 S DIC("S")=DIC("S")_",$P($G(^OR(100.21,+Y,10,0)),U,3)>0"
  .I CNT>0 S DIC("A")=LIT
  .D ^DIC
  .I X=(U_U) S DTOUT=1
@@ -56,7 +58,7 @@ LOC0 K DIROUT,DIRUT,DTOUT,DUOUT
  S DIR("A")=ADEF
  S DIR("B")=BDEF
  S DIR("?")="Select from the codes displayed. For detailed help type ??"
- S DIR("??")=U_"D HELP^PXRMXSD(8)"
+ S DIR("??")=U_"D HELP^PXRMXHLP(8)"
  D ^DIR K DIR
  I $D(DIROUT) S DTOUT=1
  I $D(DTOUT)!($D(DUOUT)) Q
@@ -88,11 +90,11 @@ HLOC N IEN,SC,X,Y,CHECK
  ..I '$D(PXRMFACN(FACILITY)) D  Q
  ...W !,"Location has a different facility code" Q
  ..;Check for duplicates
- ..I (NHL>0),$$DUP(IEN,.PXRMLCHL) W !,"Error - Duplicate entry" Q
+ ..I (NHL>0),$$DUP(IEN,.PXRMLCHL,2) W !,"Error - Duplicate entry" Q
  ..S NHL=NHL+1
  ..;Get the stop code.
  ..S X=$P(^SC(IEN,0),U,7)
- ..S SC="Unknown" I +X>0 S SC=$P(^DIC(40.7,X,0),U,2) ; DBIA 557
+ ..S SC="Unknown" I +X>0 S SC=$P(^DIC(40.7,X,0),U,2) ; DBIA #557
  ..I $L(SC)=0 S SC="Unknown"
  ..;Save the external form of the name, then IEN, and the stop code.
  ..S PXRMLCHL(NHL)=$P(Y(0,0),U,1)_U_IEN_U_SC
@@ -109,7 +111,7 @@ HLOC N IEN,SC,X,Y,CHECK
  S NHL=$$SORT(NHL,"PXRMLCHL",2)
  ;Build array by IEN
  S IC=""
- F  S IC=$O(PXRMLCHL(IC)) Q:IC=""  D
+ F  S IC=$O(PXRMLCHL(IC)) Q:IC'>0  D
  .S PXRMLOCN($P(PXRMLCHL(IC),U,2))=IC
  Q
  ;---
@@ -128,7 +130,7 @@ FACILITY(SEL) ;Select facility (COPIED EX- PXRR)
  .I X=(U_U) S DTOUT=1
  .I '$D(DTOUT),('$D(DUOUT)),+Y'=-1 D
  ..;Check for duplicates
- ..I (NFAC>0),$$DUP($P(Y(0,0),U),.PXRMFAC) W !,"Error - Duplicate entry" Q
+ ..I (NFAC>0),$$DUP($P(Y,U,1),.PXRMFAC,1) W !,"Error - Duplicate entry" Q
  ..S NFAC=NFAC+1,PXRMFAC(NFAC)=Y_U_Y(0,0)
  .K DIC
  ;
@@ -154,6 +156,15 @@ CGRP(TEMP) ; Clinic Group Selection
  .S PXRMCGRN($P(PXRMCGRP(IC),U,1))=IC,NCGRP=IC
  Q
  ; ---
+LIST(TEMP) ; Patient List
+ N LIT,LIT1,DIC,NLIST
+ S DIC("A")="Select REMINDER PATIENT LIST: ",NLIST=0
+ S DIC("?")="Select a patient list to run the reminder report against."
+ S LIT="Select another PATIENT LIST: ",LIT1="You must select a list!"
+ D SEL(810.5,"AEQMZ",.NLIST,.TEMP,"",4)
+ Q
+ ;
+ ; ---
 PCMM(TEMP) ; PCMM teams
  N LIT,LIT1,DIC
  S DIC("A")="Select PCMM TEAM: ",NOTM=0
@@ -165,7 +176,7 @@ OERR(TEAM) ; OE/RR teams
  N LIT,LIT1,DIC
  S DIC("A")="Select TEAM: ",NOTM=0
  S LIT="Select another TEAM: ",LIT1="You must select a team!"
- D SEL(100.21,"AEQMZ",.NOTM,.TEAM,"","")
+ D SEL(100.21,"AEQMZ",.NOTM,.TEAM,"",5)
  Q
  ; ---
 RCAT(REMCAT,REM) ;Reminder Category/Reminder selection
@@ -240,6 +251,7 @@ SORT(N,ARRAY,KEY)       ;Sort an ARRAY with N elements
  ;return the number of unique elements.  KEY is the piece of ARRAY on
  ;which to base the sort.  The default is the first piece.
  ;
+ K ^TMP($J,"SORT")
  I (N'>0)!(N=1) Q N
  N IC,IND
  I '$D(KEY) S KEY=1
@@ -251,9 +263,9 @@ SORT(N,ARRAY,KEY)       ;Sort an ARRAY with N elements
  Q IC-1
  ;
  ;Check for duplicate entries
-DUP(VALUE,ARRAY) ;
+DUP(VALUE,ARRAY,PIECE) ;
  N IC,DUP
  S IC=0,DUP=0
  F  S IC=$O(ARRAY(IC)) Q:IC=""  D  Q:DUP
- .I $P(ARRAY(IC),U,2)=VALUE S DUP=1
+ .I $P(ARRAY(IC),U,PIECE)=VALUE S DUP=1
  Q DUP

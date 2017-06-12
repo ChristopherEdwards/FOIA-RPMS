@@ -1,5 +1,5 @@
-BHSMEDG ;IHS/CIA/MGH - Health Summary for V MED file ;02-Aug-2011 17:08;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,6**;March 17, 2006;Build 5
+BHSMEDG ;IHS/CIA/MGH - Health Summary for V MED file ;01-May-2014 11:06;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,6,9**;March 17, 2006;Build 16
  ;===================================================================
  ;Taken from APCHS71
  ; IHS/TUCSON/LAB - PART 7 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;  [ 01/20/04  8:46 PM ]
@@ -109,7 +109,9 @@ CHRONIC(N) ;
  I 'Y Q ""
  Q 1
 SETARRAY ;DISPLAY MEDICATION
+ N DRG,RXNORM
  S %=^AUPNVMED(N,0)
+ S DRG=+%
  ;d = external value of date, t=internal value of date
  S V=$P(%,U,3) I V S T=$P($P(^AUPNVSIT(V,0),U),"."),D=$$FMTE^XLFDT(T,"2D")
  I 'V S (D,T)="<???>"
@@ -120,6 +122,9 @@ SETARRAY ;DISPLAY MEDICATION
  D SITE ;I S]"" S G=G_"  ["_S_"]"
  S X="",$E(X,5)=K,$E(X,47)="# "_$S(Q:Q,1:"?"),$E(X,65)=D D S(X)
  S X="",$E(X,5)="Dispensed at: "_S D S(X)
+ ;Patch 8 Add Rxnorm code here
+ S RXNORM=$$GET1^DIQ(50,DRG,9999999.27)
+ S X="",$E(X,6)="RxNorm: "_RXNORM D S(X)
  S X="     Sig: "_G D S(X)
  Q
  ;

@@ -1,5 +1,5 @@
 AMHRDE5 ; IHS/CMI/LAB - list refusals ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 INFORM ;
@@ -14,7 +14,7 @@ INFORM ;
  W !,"screening or a refusal was documented in the time frame specified by the"
  W !,"user.  Depression Screening is defined as any of the following documented:"
  W !?5,"- Depression Screening Exam (Exam code 36)"
- W !?5,"- Measurements: PHQ2, PHQ9"
+ W !?5,"- Measurements: PHQ2, PHQ9, PHQT"
  W !?5,"- Diagnoses V79.0, 14.1"
  W !?5,"- Education Topics: DEP-SCR"
  W !?5,"- refusal of exam code 36"

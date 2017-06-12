@@ -1,5 +1,5 @@
 AMQQOPT1 ; IHS/CMI/THL - OVERFLOW FROM AMQQOPT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;-----
  Q
 CHK I $D(DTOUT)+$D(DUOUT)+(Y=-1)+(Y="")+(Y=U) K AMQQOPT,DIRUT,DUOUT,DTOUT S AMQQQUIT="" Q
@@ -49,7 +49,7 @@ KTAX W !!!,"You can only erase your own taxonomies created within Q-MAN...",!!
  S DIC("A")="TAXONOMY NAME: "
  S DIC(0)="AEQ"
  S DIC="^ATXAX("
- S DIC("S")="I $P(^(0),U,5)=DUZ,'$P(^(0),U,8)"
+ S DIC("S")="I $P(^(0),U,5)=DUZ,'$P(^(0),U,8),'$P(^(0),U,22),$P(^(0),U,4)="""""
  D ^DIC
  I $D(DUOUT)+$D(DTOUT)+(Y=-1) K DUOUT,DTOUT Q
 ASK1 W !,"Are you sure you want to do this"

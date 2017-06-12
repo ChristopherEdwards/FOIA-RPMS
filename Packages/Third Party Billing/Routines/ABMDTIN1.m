@@ -1,14 +1,16 @@
 ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;   
- ;;2.6;IHS Third Party Billing;**1,6,8,9,10,11,13**;NOV 12, 2009;Build 213
- ;IHS/SD/SDR -2.6*1-FIXPMS10028-prompt for UB04 FL38
- ;IHS/SD/SDR -2.6*6-5010-added code for BHT06
- ;IHS/SD/SDR -2.6*9-HEAT46087-Added parameter chk for 4 vs 8 DXs
+ ;;2.6;IHS Third Party Billing;**1,6,8,9,10,11,13,14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR-2.6*1-FIXPMS10028 - prompt for UB04 FL38
+ ;IHS/SD/SDR-2.6*6-5010 - added code for BHT06
+ ;IHS/SD/SDR-2.6*9-HEAT46087 - Added parameter chk for 4 vs 8 DXs
  ;IHS/SD/SDR-2.6*13 -Added chk for new exp mode 35
+ ;IHS/SD/SDR-2.6*14-Changed dt from 10/1/14 to 10/1/15
  ; *****************
  W ! K DIC
  S X="`"_ABM("DFN"),DIC="^ABMNINS(DUZ(2),",DIC(0)="LX" D ^DIC Q:+Y<0
  ;S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11;.12//10/1/2013" D ^DIE  ;abm*2.6*10 ICD10 023  ;abm*2.6*13 ICD10 023
- S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11;.12//10/1/2014" D ^DIE  ;abm*2.6*13 ICD10 023
+ ;S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11;.12//10/1/2014" D ^DIE  ;abm*2.6*13 ICD10 023  ;abm*2.6*14
+ S DIE=DIC,DA=+Y,DR=".02;.03;.04;.05;.08;.09;.11;.12//10/1/2015" D ^DIE  ;abm*2.6*14
  S DR=".13" D ^DIE  ;abm*2.6*13 exp mode 35
  I $D(^DD(9002274.093)) D
  .W !
@@ -27,6 +29,7 @@ ABMDTIN1 ; IHS/ASDST/DMJ - Maintenance of INSURER FILE part 2 ;
  .S DA=+Y
  .S DR=".02"
  .D ^DIE
+ ;D PROV2^ABMDTIN2  ;abm*2.6*6 5010
 DISP ;DISPLAY VISIT TYPE TABLE
  D VHDR
  S DA=0 F  S DA=$O(^ABMNINS(DUZ(2),ABM("DFN"),1,DA)) Q:'DA  S ABM(0)=^(DA,0) D
@@ -67,8 +70,7 @@ DIC ;LOOK-UP WITH LAYGO
  S DR=".07Billable (Y/N/E)....:" D ^DIE G XIT:$D(Y)
  I X="N" D INACTVTM(ABM("DFN"),ABM("VTYP"),DT) G DISP
  S DR=".25Reporting purposes only:" D ^DIE G XIT:$D(Y)  ;abm*2.6*6 5010
- D DISPRPL  ;display info about replacement ins/vtyp
- ;
+ D DISPRPL  ;display info about replacement insurer/visit type
  K DIR,X,Y
  S DIR(0)="YO"
  S DIR("A")="Do you want to replace with another insurer/visit type"
@@ -82,11 +84,10 @@ DIC ;LOOK-UP WITH LAYGO
  S ABMMIMIC=Y
  G XIT:$D(DUOUT)!$D(DIROUT)
  I X=""!("Nn"[X) D  ;didn't respond or NO for replacement
- .I $G(ABMVTI)'="" D  ;active replacement ins
+ .I $G(ABMVTI)'="" D  ;active replacement insurer
  ..W !?5,"Active replacement insurer entry: " W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3)'="" $P($G(^AUTNINS($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3),0)),U)
  ..W !?10,"Effective: ",$$SDT^ABMDUTL($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U))
  ..W "Use Visit Type: " W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4)'="" $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4),!
- ..;
  ..K DIR,X,Y
  ..S DIR(0)="Y"
  ..S DIR("A",1)="WARNING: you are about to answer visit type set up prompts and there is a"
@@ -109,7 +110,7 @@ DIC ;LOOK-UP WITH LAYGO
  I +$G(ABMMIMIC)>0 D
  .D REPLCEIT  ;replace it!
  .D REPLCECK  ;make sure replcmnt is valid
- I $G(ABMINACK)'="" D INACTVTM(ABM("DFN"),ABM("VTYP"),DT)  ;inact. other entries
+ I $G(ABMINACK)'="" D INACTVTM(ABM("DFN"),ABM("VTYP"),DT)  ;inact other entries
  I $G(ABMATCK)'="" K ABMATCK G DISP
  K DR,DIC,DIE,DIR
  S DA=DA(1)
@@ -133,8 +134,7 @@ DIC2 S DA=ABM("VTYP")
  ;I ("^3^14^22^27^32^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) D  ;abm*2.6*13 export mode 35
  I ("^3^14^22^27^32^35^"[("^"_($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4))_"^")) D  ;abm*2.6*13 export mode 35
  .S DR=".15Block 24K..........:"
- .;I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR=DR_";118Block 28...........:"  ;abm*2.6*13 exp mode 35
- .I "^27^35^"[("^"_$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)_"^") S DR=DR_";118Block 28...........:"  ;abm*2.6*13 exp mode 35
+ .I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR=DR_";118Block 28...........:"
  .S DR=DR_";.17Block 29...........:;.2Block 33 PIN#......:"
  ;end new HEAT72503
  ;start new abm*2.6*11 HEAT66367
@@ -142,8 +142,10 @@ DIC2 S DA=ABM("VTYP")
  .S DR="119Block 48..........:"
  ;end new HEAT66367
  D:($G(DR)) ^DIE G XIT:$D(Y)
- ;I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($P(^AUTNINS(ABM("DFN"),2),U)="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*9 HEAT46087  ;abm*2.6*10 HEAT73780
- I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*10 HEAT73780
+ ;end new FIXPMS10028
+ ;I $P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=27 S DR="116//"_$S($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*10 HEAT73780  ;abm*2.6*13 export mode 35
+ ;below line new abm*2.6*13 export mode 35
+ I "^27^35^"[("^"_$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)_"^") S DR="116//"_$S($$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="R":8,1:4)  D ^DIE G XIT:$D(Y)  ;abm*2.6*10 HEAT73780
  ;I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$P($G(^AUTNINS(ABM("DFN"),2)),U)="D" D  ;abm*2.6*10 HEAT73780
  I ($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=3!($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,ABM("VTYP"),0)),U,4)=14)),$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABM("DFN"),".211","I"),1,"I")="D" D  ;abm*2.6*10 HEAT73780
  .S DR="107Dash in block 1A?" D ^DIE
@@ -177,6 +179,7 @@ DIC2 S DA=ABM("VTYP")
  ..S DA(1)=ABM("DFN")
  ..S DIE="^ABMNINS(DUZ(2),DA(1),1,"
  ..S DA=ABM("VTYP")
+ ..;S DR="113////N"  ;abm*2.6*10 HEAT61723
  ..S DR="113////N;111////@;112////@"  ;abm*2.6*10 HEAT61723
  ..D ^DIE
  .S DA(1)=ABM("DFN")
@@ -231,15 +234,15 @@ DISPRPL ; EP-display active replacement insurer/visit
  .F  S ABMMVTD=$O(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,"B",ABMMVTD),-1) Q:ABMMVTD=""!($G(ABMVFLG)=1)  D
  ..S ABMVTI=""
  ..F  S ABMVTI=$O(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,"B",ABMMVTD,ABMVTI)) Q:ABMVTI=""!($G(ABMVFLG)=1)  D  Q:$G(ABMVFLG)=1
- ...Q:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,2)'=""  ;end dt exists
+ ...Q:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,2)'=""  ;end date exists
  ...;active was found-display replacment info and flag to quit
  ...W !!,"This VISIT TYPE is currently replaced with the following:"
- ...W !?3,$$SDT^ABMDUTL($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U))  ;eff dt
- ...W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3)'="" ?20,$P($G(^AUTNINS($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3),0)),U)  ;ins
- ...W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4)'="" ?45,$P($G(^ABMDVTYP($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4),0)),U),!  ;vtyp
+ ...W !?3,$$SDT^ABMDUTL($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U))  ;eff date
+ ...W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3)'="" ?20,$P($G(^AUTNINS($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,3),0)),U)  ;insurer
+ ...W:$P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4)'="" ?45,$P($G(^ABMDVTYP($P($G(^ABMNINS(DUZ(2),ABM("DFN"),1,DA,12,ABMVTI,0)),U,4),0)),U),!  ;visit type
  ...S ABMVFLG=1
  Q
-REPLCEIT ;EP- prompt for replacement ins/vtyp
+REPLCEIT ;EP- prompt for replacement insurer/visit type
  S DA(2)=ABM("DFN"),DA(1)=ABM("VTYP")
  S ABMATCK=1,ABMPSINS=+Y
  S DIC("P")=$P(^DD(9002274.091,12,0),U,2)

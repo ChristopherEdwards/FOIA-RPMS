@@ -1,9 +1,9 @@
 TIUTSK ; SLC/JER - TIU's Nightly Daemon ;4/18/03 [10/18/04 10:34am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,53,100,113,157,210**;Jun 20, 1997;Build 1
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,53,100,113,157,210,221**;Jun 20, 1997;Build 2
 MAIN ; All records are read. DC date updated, Record purged, Alerts are 
  ; generated if appropriate
  N TIUDA,TIUPRM0,TIUPRM1,TIUDATE,TIUENTDT,TIUPDT,TIUODT
- N TIUSTART,TIUEND
+ N TIUSTART,TIUEND,TIUADDL
  D SETPARM^TIULE
  S TIUSTART=$$TSKPARM(1),TIUEND=$$TSKPARM(2)
  ; Traverse "FIX" X-ref to fix temporary reference dates & back-fill
@@ -17,11 +17,13 @@ MAIN ; All records are read. DC date updated, Record purged, Alerts are
  ; Traverse "F" X-ref to identify records overdue for signature or purge
  ; NOTE: Following VHA Directive 10-92-077, the purge is disabled until
  ;       further notice **53**
+ ;VMP/ELR PATCH 221  SET UP TIUADDL IS OVERDUE ONLY BECAUSE OF ADDITIONAL SIGNER TO STOP AMENDMENT ALERT
+ S TIUADDL=0
  S TIUENTDT=($$TSKPARM(3)-1)+.999999
  F  S TIUENTDT=$O(^TIU(8925,"F",TIUENTDT)) Q:+TIUENTDT'>0!(TIUENTDT>TIUODT)  D
  . S TIUDA=0 F  S TIUDA=$O(^TIU(8925,"F",+TIUENTDT,TIUDA)) Q:+TIUDA'>0  D
  . . ; I (TIUPDT<$$FMADD^XLFDT(DT,-90)),+$$PURGE^TIULC(TIUDA) D PURGE(TIUDA) Purges old records (see NOTE above) **53**
- . . I +$$OVERDUE(TIUDA,TIUSTART,TIUEND) D SEND^TIUALRT(TIUDA,1) ;Alert for overdue
+ . . I +$$OVERDUE(TIUDA,TIUSTART,TIUEND) D SEND^TIUALRT(TIUDA,1) S TIUADDL=0     ;Alert for overdue
  ; If upload buffer rec older than 30 days, delete it & its alerts
  S TIUDA=0 F  S TIUDA=$O(^TIU(8925.2,TIUDA)) Q:TIUDA'>0  D
  . N TIUDATE
@@ -89,7 +91,7 @@ OVERDUE(TIUDA,TIUSTART,TIUEND) ;Checks whether or not a given document is overdu
  F  S TIUXTRA=$O(^TIU(8925.7,"B",TIUDA,TIUXTRA)) Q:'TIUXTRA  D
  . I TIUDATE<$G(TIUSTART)!(TIUDATE>$G(TIUEND)) Q
  . I '$$TSKPARM^TIUTSK(1) Q
- . I $$FMDIFF^XLFDT(DT,TIUDATE)>$P(TIUPRM0,U,5),('$P($G(^TIU(8925.7,TIUXTRA,0)),U,4)) S TIUY=1
+ . I $$FMDIFF^XLFDT(DT,TIUDATE)>$P(TIUPRM0,U,5),('$P($G(^TIU(8925.7,TIUXTRA,0)),U,4)) S TIUY=1,TIUADDL=1
 OVERX Q TIUY
 TSKPARM(TIUDA) ;Calculate a tiu parameter for the nightly task
  ; TIUDA = 1 then return NIGHTLY TASK START computation

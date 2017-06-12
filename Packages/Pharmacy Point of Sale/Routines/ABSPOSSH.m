@@ -1,5 +1,5 @@
 ABSPOSSH ; IHS/SD/RLT - Special sets for formats - cont;      [ 7/11/2007  9:40 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**23,29,39**;JUL 11, 2007
+ ;;1.0;PHARMACY POINT OF SALE;**23,29,39**;JUL 11, 2007;Build 15
  ;---
  ; New diagnosis code fields in clinical segment.
  ; Set logic for flds 491, 492 and 424 in this routine to 

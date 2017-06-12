@@ -1,5 +1,5 @@
-GMRCSLM2 ;SLC/DCM,WAT - LM Detailed  display and printing ;31-Jan-2012 09:20;PLS
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,18,15,17,23,22,65,1003**;DEC 27,1997;Build 14
+GMRCSLM2 ;SLC/DCM,WAT - LM Detailed  display and printing ;05-Aug-2013 12:52;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,18,15,17,23,22,65,1003,1004**;DEC 27,1997;Build 12
  ;
  ; This routine invokes IA #872 ^ORD(101   #875 ORDER STATUS file point   #2467 $$OI^ORX8   #2638 ORDER STATUS file access
  ;#2056 $$GET1^DIQ   #10104 XLFSTR   #4156 $$CVEDT^DGCV   #10117  ^VALM10   #2849 ORDERS file
@@ -84,6 +84,22 @@ DT(GMRCO,GMRCIERR) ;;Entry point to set-up detailed display.
  .. Q
  . Q
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)=" ",GMRCCT=GMRCCT+1
+ N TXT,SNOTXT,SNO,PROB,PROBTXT,PROBIEN
+ S (SNOTXT,PROBTXT)=""
+ ;IHS/MSC/MGH Patch 1004
+ I $D(^GMR(123,+GMRCO,9999999)) D
+ .S SNO=$P($G(^GMR(123,+GMRCO,9999999)),U,1)
+ .S PROBIEN=$P($G(^GMR(123,+GMRCO,9999999)),U,2)
+ .I SNO'="" D
+ ..S SNOTXT=$$CONC^BSTSAPI(SNO_"^30^^1")
+ ..S TXT="Snomed: "_$P(SNOTXT,U,4)_" ("_SNO_")"
+ ..S ^TMP("GMRCR",$J,"DT",GMRCCT,0)=TXT,GMRCCT=GMRCCT+1
+ .I PROBIEN'="" D
+ ..S PROB=$$GET1^DIQ(9000011,PROBIEN,80002)
+ ..S PROBTXT=$$GET1^DIQ(9000011,PROBIEN,.05)
+ ..S TXT="Associated Problem: "_PROBTXT_" ("_PROB_")"
+ ..S ^TMP("GMRCR",$J,"DT",GMRCCT,0)=TXT,GMRCCT=GMRCCT+1
+ ;end mods patch 1004
  ; get inter-facility consult info
  S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Inter-facility Information",GMRCCT=GMRCCT+1
  I '$P(GMRCO(0),"^",23) D
@@ -118,6 +134,21 @@ DT(GMRCO,GMRCIERR) ;;Entry point to set-up detailed display.
  .S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="Significant Findings:  "_$S(GMRCSF="Y":"YES",GMRCSF="N":"NO",1:"Unknown")
  .S GMRCCT=GMRCCT+1
  .Q
+ ;IHS/MSC/MGH SNOMEDS added for MU stage 2
+ N I,CLOSED,IN,OUT,ARR,BY,WHEN,X,TXT,AIEN
+ I $D(^GMR(123,+GMRCO,9999999.11,0)) D
+ .S I=0 F  S I=$O(^GMR(123,+GMRCO,9999999.11,I)) Q:I=""  D
+ ..S AIEN=I_","_+GMRCO_","
+ ..S CLOSED=$$GET1^DIQ(123.999999911,AIEN,.01)
+ ..S BY=$$GET1^DIQ(123.999999911,AIEN,1)
+ ..S WHEN=$$GET1^DIQ(123.999999911,AIEN,2)
+ ..S IN=CLOSED_"^30^^1"
+ ..S OUT="ARR"
+ ..S X=$$CNCLKP^BSTSAPI(.OUT,.IN)
+ ..I X>0 D
+ ...S TXT=@OUT@(1,"PRE","TRM")
+ ...S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="  Closed Action: "_TXT_" ("_CLOSED_")",GMRCCT=GMRCCT+1
+ ...S ^TMP("GMRCR",$J,"DT",GMRCCT,0)="  On: "_WHEN_" By: "_BY,GMRCCT=GMRCCT+1
  I $G(GMRCIERR) Q  ;don't need results or activities on IFC errors
  D ACTLOG^GMRCSLM4(+GMRCO)
  ; any inter-facility results?

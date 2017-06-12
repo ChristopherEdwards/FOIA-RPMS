@@ -1,5 +1,5 @@
 BARRCHK ; IHS/SD/LSL - Report Utility to Check Parms ;07/23/2010
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,6,7,10,19,23,24*;OCT 26, 2005;Build 69
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**4,6,7,10,19,23,24,25*;OCT 26, 2005;Build 6
  ; MODIFIED XTMP($J,"ZTSRREJ-" ERROR WITH XTMP($J,"BAR-"_;MRS:BAR*1.8*6 IM29892
  ; MODIFIED XTMP FILE NAME TO TMP TO MEET SAC REQUIREMENTS;MRS:BAR*1.8*7 IM29892
  ; 
@@ -7,12 +7,13 @@ BARRCHK ; IHS/SD/LSL - Report Utility to Check Parms ;07/23/2010
  ;      Add (Employer) Group Plan filter for A/R Statistical
  ;       report. requirement 4PMS10022
  ;
- ; IHS/SD/POTT HEAT 03/13 ADDED NEW VA billing  - BAR1.8*23
- ; IHS/SD/POTT HEAT 07/13 ADDED SUPPORT FOR ICD-10 - BAR1.8*23
- ; IHS/SD/POTT 09/13 BUG FIX: NOT SETING DX("P") CORRECTLY - BAR1.8*23
- ; IHS/SD/POTT 09/13 FIXED <UNDEFINED>BILL+30^BARRCHK *BAR("DX",1) IF NO DX - BAR1.8*24
- ; IHS/SD/POTT 02/09/14 HEAT150941 Allow ALL DX9/10; if no DX selected: show ALL DX of ALL available coding systems - BAR1.8*24
- ; ***********************************************************************
+ ; IHS/SD/POT HEAT 03/13 ADDED NEW VA billing  - BAR*1.8*23
+ ; IHS/SD/POT HEAT 07/13 ADDED SUPPORT FOR ICD-10 - BAR*1.8*23
+ ; IHS/SD/POT 09/13 FIXED <UNDEFINED>BILL+30^BARRCHK *BAR("DX",1) IF NO DX - BAR*1.8*24
+ ; IHS/SD/POT 02/09/14 HEAT150941 Allow ALL DX9/10; if no DX selected:
+ ;                      show ALL DX of ALL available coding systems - BAR*1.8*24
+ ; IHS/SD/POT 09/12/14 CR4073 HEAT182059 FIXED MATCHING OF SELECTED INDIVIDUAL ICD-10 DIAGNOSES  - BAR*1.8*25
+ ; ********************************************
  Q
  ;
 BILL ;EP
@@ -57,7 +58,7 @@ BILL ;EP
  . I ",R,MC,MD,MH,MMC,"[(","_BAR("BI")_",") S BAR("ALL")="R" Q  ; 
  . I ",D,FPL,K,"[(","_BAR("BI")_",") S BAR("ALL")="D" Q  ; 
  . I ",F,M,H,P,"[(","_BAR("BI")_",") S BAR("ALL")="P" Q  ;
- . I ",V,"[(","_BAR("BI")_",") S BAR("ALL")="V" Q        ; - BAR1.8*23
+ . I ",V,"[(","_BAR("BI")_",") S BAR("ALL")="V" Q        ; - BAR*1.8*23
  I $G(BAR("ALL"))=""  S BAR("ALL")="No Allowance Category"
  I BAR("L")=""!(BAR("I")="")!(BAR("P")="")!(BAR("D")="") D  Q
  . I $G(BARDEBUG) S ^TMP($J,"BAR-"_BAR("SUBR"),"REASON REJECTED","NULL LOCATION^INS TYPE^PATIENT^DOS BEGIN",BAR)=BAR("L")_U_BAR("I")_U_BAR("P")_U_BAR("D") D DBGMSG
@@ -93,7 +94,7 @@ ARACCT1  ;
  I $D(BARY("DSVC")),BARY("DSVC")'=BAR("DS") D  Q      ;Not chosn disch svc
  .I $G(BARDEBUG) S ^TMP($J,"BAR-"_BAR("SUBR"),"REASON REJECTED","NOT CHOSEN (DSVC) DISCH SVC",BAR)="" D DBGMSG
  ;
- I $D(BARY("DX9"))!$D(BARY("DX10")) D DX Q:'BAR("DX","HIT")       ; Check DX - BAR1.8*23
+ I $D(BARY("DX9"))!$D(BARY("DX10")) D DX Q:'BAR("DX","HIT")       ; Check DX - BAR*1.8*23
  I $D(BARY("TYP")),(U_BARY("TYP")_U)'[(U_BAR("BI")_U) D  Q     ; Not chosen Bill entity 
  . I $G(BARDEBUG) S ^TMP($J,"BAR-"_BAR("SUBR"),"REASON REJECTED","NOT CHOSEN ABILL ENTITY",BAR)="" D DBGMSG
  I $D(BARY("ITYP")),BARY("ITYP")'=BAR("BI") D  Q   ; Not chosen Ins Type
@@ -130,7 +131,7 @@ TRANS ;EP
  D TRANS^BARRCHK1  ;BAR*1.8*6 SQA ROUTINE SIZE LIMIT
  Q
  ;
-DX ; - BAR1.8*23
+DX ; - BAR*1.8*23
  S BAR("DX","HIT")=0
  N I,BARDX
  ;FOR EACH PAT DX RUN MATCHING PROCESS
@@ -181,27 +182,31 @@ DX9(BARDX) ;BARDX=BAR("DX")
  Q
 DX10(BARDX) ;
  NEW BARDXY,BAROK,BARI
- I $D(BARY("DX10",3)) D  I BAROK S BAR("DX10","HIT")=1 QUIT  ;FOUND INDIVIDUAL DX MATCHING
+ ;old code I $D(BARY("DX10",3)) D  I BAROK S BAR("DX10","HIT")=1 QUIT  ;INDIVIDUAL DX MATCHING
+ I $D(BARY("DX10",3)) D  I BAROK S BAR("DX","HIT")=1 QUIT  ;INDIVIDUAL DX MATCHING HEAT182059 - BAR*1.8*25
  . S BAROK=0
  . S BARDXY="" F BARI=1:1 S BARDXY=$O(BARY("DX10",3,BARDXY)) Q:BARDXY=""  D  I BARDXY=BARDX S BAROK=1 Q
  . . I $G(BARDBG) W !,BARI,". ",BARDX
  Q:$G(BARY("DX10",1))=""
  Q:$G(BARY("DX10",2))=""
- I (BARDX=BARY("DX10",1)!(BARDX]BARY("DX10",1)))&(BARDX']BARY("DX10",2)) D  S BAR("DX","HIT")=1
+ I $$NUM^ICDEX(BARDX)<$$NUM^ICDEX(BARY("DX10",1)) Q  ;< LOW NO MATCH
+ I $$NUM^ICDEX(BARDX)>$$NUM^ICDEX(BARY("DX10",2)) Q  ;> HIGH - NO  MATCH
+ D  S BAR("DX","HIT")=1
  . I $G(BARDBG) W !,1,". ",BARDX
  Q
+ ;END NEW CODE
 GETBI(D0) ;keep D0 intact
  I D0="" Q ""
  Q $$VALI^BARVPM(8)     ; Insurer Type CODE 
  ;
-GETICD(BARDX)  ; 3/10/2014
+GETICD(BARDX)  ;
  N BARFILE,BARX
  I BARDX="" Q 0  ;NIL  - NO DG
  I BARDX=" " Q 0  ;NO DG
  I $T(+1^ICDEX)="" Q 9  ;IS ICD9 (NO OTHER EXISTS)
  S BARFILE=$$CODEFI^ICDEX(BARDX) ; File for code
  S BARX=$$CODECS^ICDEX(BARDX,BARFILE,"") ; Coding system for code/file
- I BARX["ICD-9" Q 9  ;3/12/2014
+ I BARX["ICD-9" Q 9
  Q 10
  ;
  ;EOR 

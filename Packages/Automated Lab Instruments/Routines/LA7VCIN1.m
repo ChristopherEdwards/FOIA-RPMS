@@ -1,5 +1,5 @@
-LA7VCIN1 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VCIN1 ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027,1033**;NOV 01, 1997
  ; This routine is a continuation of LA7VIN and is only called from there.
  ; It is called with each message found in the incoming queue.  
  Q
@@ -166,6 +166,9 @@ OBX ;; Process OBX segment
  . ;
  . ; Process "MI" subscript results.
  . ;I $G(LA7SS)="MI" D OBX^LA7VIN7
+ . I $G(LA7SS)="MI" D
+ .. I '$G(LA7ISQN) Q  ; No place to store results
+ .. D ^LA7VCMI  ;ihs/cmi/maw 02/21/2013 added for micro
  . ;
  . ; Process "BB" subscript results.
  . ;I $G(LA7SS)="BB",$L($T(OBX^LA7VIN8)) D OBX^LA7VIN8
@@ -180,6 +183,18 @@ OBX ;; Process OBX segment
  S LA7SEQ=40
  Q
  ;
+ ;
+TQ1 ;; Process TQ1 segment
+ D KILLTQ1
+ D TQ1^LA7VCIN9
+ S LA7SEQ=45
+ Q
+ ;
+SPM ;; Process SPM segment
+ D KILLSPM
+ D SPM^LA7VCIN9
+ S LA7SEQ=70
+ Q
  ;
 ORC ;; Process ORC segment
  ;
@@ -248,7 +263,7 @@ KILLPID ; Clean up variables used by PID and following segments
  K DFN
  K LA7DOB,LA7ICN,LA7PNM,LA7PRACE,LA7PTID2,LA7PTID3,LA7PTID4
  K LA7SEX,LA7SPID,LA7SSN
- K LRDFN,LRTDFN
+ K LRDFN,LRTDFN,LA7RACE
  ;
 KILLPV1 ; Clean up variables used by PV1 and following segments
  K LA7LOC,LA7SPV1
@@ -259,12 +274,20 @@ KILLORC ; Clean up variables used by ORC and following segments
  K LA7OTYPE,LA7OUR,LA7PEB,LA7PON,LA7POP,LA7PVB,LA7SM
  ;
 KILLOBR ; Clean up variables used by OBR and following segments
- K LA70070,LA760,LA761,LA762,LA7624,LA7696
- K LA7AA,LA7AD,LA7ACC,LA7AN,LA7CDT,LA7FID,LA7ISQN,LA7LWL,LA7ONLT,LA7OTST
+ K LA70070,LA760,LA761,LA762,LA7624,LA7696,LA7RSTAT
+ K LA7AA,LA7AD,LA7ACC,LA7AN,LA7CDT,LA7FID,LA7LWL,LA7ONLT,LA7OTST
  K LA7POC,LA7SAC,LA7SID,LA7SOBR,LA7SPEC,LA7SPTY,LA7SS,LA7UID,LA7UR
  ;
 KILLOBX ; Clean up variables used by OBX and following segments
- K LA7ORS,LA7RLNC,LA7RMK,LA7RNLT,LA7RO,LA7SOBX
+ K LA7ORS,LA7RLNC,LA7RMK,LA7RNLT,LA7RO,LA7SOBX,LA7PMD
+ ;
+KILLSPM ;clean up variables used by SPM
+ K LA7SPTYP,LA7SPTSN,LA7SPTHL,LA7SPTYI,LA7SPCND,LA7SPCSN,LA7SPCNI,LA7SPCDT,LA7SPCST,LA7SPRJR
+ Q
+ ;
+KILLTQ1 ;clean up variables used by TQ1
+ K LA7STT,LA7STP
+ Q
  ;
 KILLBLG ;Clean up variables used by BLG and following segments
  ;

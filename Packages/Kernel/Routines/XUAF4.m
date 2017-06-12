@@ -1,5 +1,5 @@
 XUAF4 ;ISC-SF/RWF/RAM - Institution file access. ;04/01/99  08:07
- ;;8.0;KERNEL;**43,112,206,209,232,217,261,394**;Jul 10, 1995
+ ;;8.0;KERNEL;**43,112,206,209,232,217,261,394,549,555**;Jul 10, 1995;Build 6
  Q  ;No access from the top.
  ;
 PARENT(ROOT,CHILD,ASSO) ;sr. Return array of IEN's of parents
@@ -195,7 +195,7 @@ IDT(IEN) ; inactive date
 SCRN() ;sreen IEN
  N X S X=$E(N99,1,3)
  I FLAG["A",$P(N99,U,4) Q "0^inactive facility"
- I FLAG["M",$S(X=358:0,X<400:1,X>759:1,X<700:0,X<750:1,1:0),$G(DUZ("AG"))="V" Q "0^not a treating facility"
+ I FLAG["M",$S(X=358:0,X=740:0,X<400:1,X>759:1,X<700:0,X<750:1,1:0),$G(DUZ("AG"))="V" Q "0^not a treating facility"
  Q IEN
  ;
 LOOKUP ; -- lookup an enty by coding system / ID pair
@@ -221,6 +221,9 @@ IDX(CDSYS,ID) ; -- return IEN for a given coding system / ID pair
  Q:CDSYS="" "0^CDSYS required"
  Q:ID="" "0^ID required"
  ;
+ I CDSYS="VASTANUM" Q $O(^DIC(4,"D",ID,0))
+ I CDSYS="NPI"  Q $O(^DIC(4,"ANPI",ID,0))
+ ;
  S IEN=$O(^DIC(4,"XUMFIDX",CDSYS,ID,0))
  ;
  Q $S(IEN:IEN,1:"0^not found")
@@ -238,6 +241,9 @@ ID(CDSYS,IEN) ; returns the ID for a given coding system / IEN
  S CDSYS=$G(CDSYS),IEN=$G(IEN)
  Q:CDSYS="" "" Q:'IEN "" Q:'$D(^DIC(4,IEN)) ""
  ;
+ I CDSYS="VASTANUM" Q $P($G(^DIC(4,+IEN,99)),U)
+ I CDSYS="NPI"  Q $P($G(^DIC(4,+IEN,"NPI")),U)
+ ;
  S IDX=$O(^DIC(4,IEN,9999,"B",CDSYS,0)) Q:'IDX ""
  ;
  Q $P($G(^DIC(4,IEN,9999,IDX,0)),U,2)
@@ -248,7 +254,8 @@ CDSYS(Y) ; coding systems
  ;       .Y     Y(CDSYS) = $D local system ^ coding system name
  ;
  S Y("DMIS")=$D(^DIC(4,"XUMFIDX","DMIS"))_U_"DoD DMIS ID"
- S Y("VASTANUM")=$D(^DIC(4,"XUMFIDX","VASTANUM"))_U_"VA Station Number"
+ S Y("VASTANUM")=$D(^DIC(4,"D"))_U_"VA Station Number"
+ S Y("NPI")=$D(^DIC(4,"ANPI"))_U_"NPI"
  S Y("CLIA")=$D(^DIC(4,"XUMFIDX","CLIA"))_U_"CLIA number"
  S Y("MAMMO-ACR")=$D(^DIC(4,"XUMFIDX","MAMMO-ACR"))_U_"MAMMO-ACR number"
  ;
@@ -258,9 +265,17 @@ LCDSYS(Y) ;  list coding systems
  ;
  N CDSYS
  S CDSYS=""
+ S CDSYS("NPI")="",CDSYS("VASTANUM")=""
  F  S CDSYS=$O(^DIC(4,"XUMFIDX",CDSYS)) Q:CDSYS=""  D
  .S Y(CDSYS)=""
  ;
  Q
  ;
- 
+BNIEN(IEN) ; -- Billing Facility Name - Internal Entry Number
+ ;
+ Q $P($G(^DIC(4,+IEN,99)),U,2)
+ ;
+BNSTA(STA) ; -- Billing Facility Name - Station Number
+ ;
+ Q $P($G(^DIC(4,+$$IEN^XUAF4(STA),99)),U,2)
+ ;

@@ -1,5 +1,5 @@
 APCDCAF4 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;; ;
  ;
 DISP ;EP
@@ -52,6 +52,7 @@ RN1 ;
  Q
 RNU ;EP 
  ;edit note or remove note
+ I '$D(^AUPNCANT("B",APCDVSIT)) Q
  W !!,"Chart Audit Notes for this visit: ",!
  I '$D(^AUPNCANT("B",APCDVSIT)) W !!?4,"There are no Chart Audit Notes on file for this visit.",! D PAUSE^APCDALV1 Q
  S X=0 F  S X=$O(^AUPNCANT(APCDVSIT,11,X)) Q:X'=+X  W !,^AUPNCANT(APCDVSIT,11,X,0)

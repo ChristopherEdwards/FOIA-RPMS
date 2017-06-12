@@ -1,10 +1,12 @@
 BIPATVW2 ;IHS/CMI/MWR - ADD/EDIT/DELETE VISITS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
+ ;;BIB PROTOTYPE; JAN 31,2015
  ;;  ADD, EDIT, DELETE VISITS VIA LIST MANAGER.
  ;;  PATCH 1: Do not stuff default VFC if patient < 19 yrs.  ADDIMM+33
  ;;  PATCH 9: Add Admin Date and VIS Presented Date to array. EDITIMM+87
  ;;           If patient is adult, set Eligibility default="V01".  ADDIMM+40
+ ;;  PATCH 10: Add Skin Test Lot Number.  EDITIMM+113
  ;
  ;
  ;----------
@@ -36,7 +38,14 @@ ADDIMM ;EP
  ;
  ;---> Check that DFN for this patient is present.
  I '$G(BIDFN) D ERRCD^BIUTL2(405,,1) D RESET Q
- N BI S BI("A")=BIDFN
+ ;
+ ;
+ ;********** BARCODE PROTO, v8.5, JAN 31,2015, IHS/CMI/MWR
+ ;---> Parse parameter of scanned values for adding new Lot Numbers.
+ ;N BI S BI("A")=BIDFN
+ I '$G(BISCANA) N BI
+ S BI("A")=BIDFN
+ ;**********
  ;
  ;---> Set default VFC Eligibility.
  ;---> If Patient Ben Type is 01 (Am Indian/AK Native), set VFC default=4.
@@ -226,6 +235,10 @@ EDITIMM ;EP
  .S BI("W")=$P(Y,V,16)      ;Volume.
  .S BI("X")=$P(Y,V,17)      ;Skin Test Reader.
  .;
+ .;********** PATCH 9, v8.5, OCT 01,2014, IHS/CMI/MWR
+ .;---> Add Skin Test Lot Number.
+ .S BI("LL")=$P(Y,V,19)
+ .;**********
  .S DR="[BI FORM-SKIN VISIT ADD/EDIT]"
  ;
  ;

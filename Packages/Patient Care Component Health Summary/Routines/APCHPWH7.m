@@ -1,5 +1,5 @@
 APCHPWH7 ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;
  ;EO MEASURES IN PWH
 ASTHMA ;EP
@@ -59,7 +59,7 @@ PERASTH(P,BDATE,EDATE) ;EP
  .Q:'K
  .Q:"V"[$P(^AUPNVSIT(V,0),U,3)
  .S Y=$$PRIMPOV^APCLV(V,"I")
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^ATXAPI(Y,T,9)
  .S G=1_U_$$FMTE^XLFDT($P($P(^AUPNVSIT(V,0),U),".")) ;got one
  ;
  I G Q 1_U_"DX ON HOSP/OR ER ON "_$P(G,U,2)  ;had prim dx on 30 or H so meets denom
@@ -77,7 +77,7 @@ PER3 ;
  .Q:'$P(^AUPNVSIT(V,0),U,9)
  .Q:$P(^AUPNVSIT(V,0),U,11)
  .Q:"AOS"'[$P(^AUPNVSIT(V,0),U,7)
- .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXCHK(%,APCHT,9) S D=1
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  I $D(^AUPNVPOV(Y,0)) S %=$P(^AUPNVPOV(Y,0),U) I $$ICD^ATXAPI(%,APCHT,9) S D=1
  .I D S G=G+1 ;got one visit
  .S Y=0 F  S Y=$O(^AUPNVMED("AD",V,Y)) Q:Y'=+Y  D
  ..S S=0
@@ -169,7 +169,7 @@ TIAFIB(P,BDATE,EDATE,APCHR) ;EP
  .S X=0,G=0,E=0,B=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  ..S C=$P($G(^AUPNVPOV(X,0)),U)
  ..Q:C=""
- ..I $$ICD^ATXCHK(C,T,9) S G=1,$P(APCHG(A),U,15)=$$VAL^XBDIQ1(9000010.07,X,.01)
+ ..I $$ICD^ATXAPI(C,T,9) S G=1,$P(APCHG(A),U,15)=$$VAL^XBDIQ1(9000010.07,X,.01)
  ..I $$VAL^XBDIQ1(9000010.07,X,.01)="427.31" S E=1
  .I G,E S B=1  ;have both
  .I 'B K APCHG(A)  ;no tia diagnosis

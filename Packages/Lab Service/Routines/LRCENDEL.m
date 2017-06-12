@@ -1,6 +1,8 @@
-LRCENDEL ;SLC/CJS/DALOI/FHS-ORDER CANCELING NO TEST DELETE ;8/11/97 [ 04/24/2003  10:12 AM ]
- ;;5.2T9;LR;**1010,1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**100,121,202,221,263**;Sep 27, 1994
+LRCENDEL ;SLC/CJS/DALOI/FHS-ORDER CANCELING NO TEST DELETE ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LR;**1010,1013,1018,1033**;NOV 1, 1997
+ ;
+ ;;VA Lab Patches: 100,121,202,221,263 ; Sep 27, 1994
+ ;
  W @IOF N LRCANK,LRTN
  ;----- BEGIN IHS MODIFICATION LR*5.2*1018
  ;S:$G(BLROPT)=""!($G(BLROPT(0))'=$P(XQY0,U)) BLROPT="DELORD",BLROPT(0)=$P(XQY0,U)  ;IHS/OIRM TUC/AAB 2/1/97
@@ -10,7 +12,8 @@ LRCENDEL ;SLC/CJS/DALOI/FHS-ORDER CANCELING NO TEST DELETE ;8/11/97 [ 04/24/2003
  ;----- END IHS MODIFICATIONS
 FIND S LREND=0 D ^LRPARAM I $G(LREND) G END
  K LRDFN,LRONE,LRNATURE
- I '$D(LRLABKY) W !?3,"If lab has received the sample (i.e. the test has an accession),",!,"you can't change this order.  If so, call the lab to change the test."
+ ; I '$D(LRLABKY) W !?3,"If lab has received the sample (i.e. the test has an accession),",!,"you can't change this order.  If so, call the lab to change the test."
+ W !?3,"If lab has received the sample (i.e. the test has an accession),",!,?3,"you can't change this order.  If so, use the REMOVE AN ACCESSION option",!,?3,"to change the test."  ; IHS/OIT/MKK - LR*5.2*1033
  D
  . N DIR
  . S DIR("A")="ENTER ORDER NUMBER: "
@@ -27,7 +30,8 @@ LOOK ;
  S LRCNT=0,LRODT=$O(^LRO(69,"C",LRORD,0)) I LRODT<1 W !,"Not found." Q
  S (LRCANK,LROV,LRSN,LRCOL)=0
  F  S LRSN=$O(^LRO(69,"C",+LRORD,LRODT,LRSN)) Q:LRSN<1!($G(LREND))  D:'$G(LREND) SHOW^LROS S LRCNT=1 S:$S($D(^LRO(69,LRODT,1,LRSN,3)):$P(^(3),U,2),1:0) LROV=1 D
- . I $L($P($G(^LRO(69,LRODT,1,LRSN,1)),U,4)),'$D(LRLABKY) S LRCOL=1
+ . ; I $L($P($G(^LRO(69,LRODT,1,LRSN,1)),U,4)),'$D(LRLABKY) S LRCOL=1
+ . I $L($P($G(^LRO(69,LRODT,1,LRSN,1)),U,4)) S LRCOL=1     ; IHS/OIT/MKK - LR*5.2*1033
  . L +^LRO(69,"C",+LRORD):1 I '$T W !?5,"Someone Else is Editing this order, try later",! S LREND=1 Q
  . S LRTN=0 F  S LRTN=$O(^LRO(69,LRODT,1,LRSN,2,LRTN)) Q:LRTN<1  S X=^(LRTN,0) I '$P(X,"^",11) S LRCANK=1 Q
  I $G(LREND) D UNL69,END Q
@@ -36,7 +40,8 @@ LOOK ;
  I $G(LRCOL) D  D UNL69,END Q
  . W !!?5," You CAN NOT change the status of test(s) on this order."
  . W !,"Test sample(s) have already been received into the laboratory."
- . W !,"You must CONTACT the Laboratory to have test(s) status changed.",$C(7)
+ . ; W !,"You must CONTACT the Laboratory to have test(s) status changed.",$C(7)
+ . W !,"You must use the REMOVE AN ACCESSION option to have the test(s) status changed.",$C(7)
  D NAME
  S LRNOP=0 I 'LROV F I=0:0 W !,"Change entire order" S %=2 D YN^DICN Q:%  W "Answer 'Y'es or 'N'o."
  I 'LROV G END:%=-1,OUT:%=1
@@ -89,7 +94,14 @@ ALLDEL ;D:BLRLOG ^BLRSLTL("M","D",$G(BLROPT),"ORDER")   ;IHS/OIRM TUC/AAB 11/14/
  ;D:BLRLOG ^BLREVTQ("M","D",$G(BLROPT),"ORDER")
  ;-----END IHS MODIFICATION
  K LRNATURE G FIND
-% R %:DTIME Q:%=""!(%["N")!(%["Y")  W !,"Answer 'Y' or 'N': " G %
+% ; EP
+ ; R %:DTIME Q:%=""!(%["N")!(%["Y")  W !,"Answer 'Y' or 'N': " G %
+ ; ----- BEGIN IHS/OIT/MKK - LR*5.2*1033
+ K DIR,X,Y,%
+ S DIR(0)="YO"
+ D ^DIR
+ S %=$E(X)
+ ; ----- END IHS/OIT/MKK - LR*5.2*1033
  Q
 UNL69 ;
  L -^LRO(69,"C",+LRORD)

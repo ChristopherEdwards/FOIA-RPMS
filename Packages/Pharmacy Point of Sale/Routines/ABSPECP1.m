@@ -1,5 +1,5 @@
 ABSPECP1 ; IHS/FCS/DRS - printing for PCS ;  [ 10/09/2002  8:01 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,12,17,23,42,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,12,17,23,42,44**;JUN 21, 2001;Build 15
  ;
  ;---------------------------------
  ;IHS/SD/lwj 10/08/02  NCPDP 5.1 changes

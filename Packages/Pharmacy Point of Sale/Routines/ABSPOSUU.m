@@ -1,5 +1,5 @@
 ABSPOSUU ; IHS/OIT/CNI/RAN REPORT - utilities[ 05/04/2010  5:18 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**38,39,40,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**38,39,40,44,47**;JUN 1, 2001;Build 15
  Q
  ;----------------------------------------------------------------------
  ;IHS/OIT/CNI/RAN 05042010 patch 38 - Following two subroutines are new and facilitate paging.
@@ -61,7 +61,7 @@ DIC W !! S DIC("A")="Select INSURER: ",DIC(0)="QEAM"
  G XIT:X=""!(X["^")!$D(DUOUT)!$D(DTOUT)
  I +Y<1 G DIC
  S DA=+Y
- W $$EN^ABMVDF("IOF") W !?80-$L(ABSPSUB)-21\2,"*** ",ABSPSUB," FILE INQUIRY ***"
+ W:$D(IOF) @IOF W !?80-$L(ABSPSUB)-21\2,"*** ",ABSPSUB," FILE INQUIRY ***" ;OIT/CAS/RCS 050515 Patch 47
  S ABM="",$P(ABM,"=",80)="" W !!,ABM K S
  D EN^DIQ W ABM
  G DIC

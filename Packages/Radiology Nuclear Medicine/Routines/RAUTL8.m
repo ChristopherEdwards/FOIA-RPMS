@@ -1,5 +1,5 @@
-RAUTL8 ;HISC/CAH-Utility routines ; 17 Aug 2011  10:00 AM
- ;;5.0;Radiology/Nuclear Medicine;**45,72,99,90,1003**;Nov 01, 2010;Build 3
+RAUTL8 ;HISC/CAH-Utility routines ; 06 Oct 2013  11:07 AM
+ ;;5.0;Radiology/Nuclear Medicine;**45,72,99,90,1003,1005**;Nov 01, 2010;Build 13
  ;
  ;Called by File 70, Exam subfile, Procedure Fld 2 Input transform
  ;RA*5*45: modified -  logic in PRC1, ASK, ASK1, & MES1 subroutines
@@ -254,6 +254,12 @@ ASKSEX() ;RA*5.0*99 - Determine the sex of the patient by asking the user.
  ;Return: the place holder value ('Y' is reset in the RA ORDER EXAM input template)
  ;necessary for branching within that template.
  ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;RA ORDER EXAM already screens out Males, and we want to treat any
+ ;non-males as if they are female, so don't even ask the question
+ S RAY=Y
+ Q Y
+ ;
  N DIR,DTOUT,DUOUT,DIROUT,DIRUT,RAY,X S RAY=Y S DIR(0)="Y",DIR("B")="No"
  S DIR("A")="THE SEX OF THIS PATIENT IS NOT AVAILABLE. IS PATIENT FEMALE"
  S DIR("?")="Enter 'YES' if patient is female, or 'NO' if patient is male."
@@ -277,11 +283,14 @@ ASKPREG() ;RA*5.0*99 - Evaluate the conditions to present the PREGNANCY
  D:+Y GETS^DIQ(74,Y,5,"I","RAST","RAERR")
  S RAST=$G(RAST(74,Y,5,"I"),"")
  ;
- ;IHS/BJI/DAY - Patch 1003 - Allow Pregnancy Edit of Verified Reports
+ ;IHS/BJI/DAY - Patch 1005 - Allow Pregnancy Edit of Verified Reports
  ;Controlled by a site parameter
- I +$G(RAMDIV),$P($G(^RA(79,+RAMDIV,9999999)),U,3)=1,$$PTSEX^RAUTL8(RADFN)'="F"!((RAGE>55)!(RAGE<12))!(RAST="EF") S RAY="@8001" Q RAY
+ I +$G(RAMDIV),$P($G(^RA(79,+RAMDIV,9999999)),U,3)=1,$$PTSEX^RAUTL8(RADFN)'="M",(RAGE<56),(RAGE>11) Q RAY
  ;End patch
  ;
- I $$PTSEX^RAUTL8(RADFN)'="F"!((RAGE>55)!(RAGE<12))!(RAST="V")!(RAST="EF") S RAY="@8001"
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)'="F"!((RAGE>55)!(RAGE<12))!(RAST="V")!(RAST="EF") S RAY="@8001"
+ I $$PTSEX^RAUTL8(RADFN)="M"!(RAGE>55)!(RAGE<12)!(RAST="V")!(RAST="EF") S RAY="@8001"
+ ;
  Q RAY
  ;

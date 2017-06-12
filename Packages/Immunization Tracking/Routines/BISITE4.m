@@ -1,9 +1,11 @@
 BISITE4 ;IHS/CMI/MWR - SELECT GPRA COMMUNITIES.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**13**;AUG 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  SELECT COMMUNITIES TO BE INCLUDED IN GPRA GROUPS AND REPORTS.
  ;;  PATCH 8: Update Help Text to exclude influenza.  TEXT2+3
  ;;  PATCH 9: Update options to include Hep B. TEXT1+24
+ ;;  PATCH 12: Use BIDUZ2.  GETGPRA+9
+ ;;  PATCH 13: Add Flu Season Date Range parameter. FLUDATS+0
  ;
  ;
  ;----------
@@ -44,18 +46,22 @@ GPRA ;EP
  ;
  ;
  ;----------
-GETGPRA(BIGPRA,BIDUZ,BIERR) ;PEP - Return GPRA Communities Array.
+GETGPRA(BIGPRA,BIDUZ2,BIERR) ;PEP - Return GPRA Communities Array.
  ;---> Retrieve GPRA Communities Array of IEN's for this DUZ(2).
  ;---> Parameters:
  ;     1 - BIGPRA (ret) Array of GPRA IEN's in the COMMUNITY file - ^AUTTCOM(.
- ;     2 - BIDUZ  (req) Site IEN or DUZ(2).
+ ;     2 - BIDUZ2 (req) Site IEN or DUZ(2).
  ;     3 - BIERR  (ret) Error text, if any.
  ;
- I '$G(BIDUZ) S BIDUZ=$G(DUZ(2))
- I '$G(BIDUZ) D ERRCD^BIUTL2(109,.BIERR) Q
- I '$O(^BISITE(DUZ(2),2,0)) D ERRCD^BIUTL2(110,.BIERR) Q
+ I '$G(BIDUZ2) S BIDUZ2=$G(DUZ(2))
+ I '$G(BIDUZ2) D ERRCD^BIUTL2(109,.BIERR) Q
+ ;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ ;---> Use BIZUZ2 as passed rather than DUZ(2).
+ ;I '$O(^BISITE(DUZ(2),2,0)) D ERRCD^BIUTL2(110,.BIERR) Q
+ I '$O(^BISITE(BIDUZ2,2,0)) D ERRCD^BIUTL2(110,.BIERR) Q
  N N S N=0
- F  S N=$O(^BISITE(DUZ(2),2,N)) Q:'N  S BIGPRA(N)=""
+ ;F  S N=$O(^BISITE(DUZ(2),2,N)) Q:'N  S BIGPRA(N)=""
+ F  S N=$O(^BISITE(BIDUZ2,2,N)) Q:'N  S BIGPRA(N)=""
  Q
  ;
  ;
@@ -66,7 +72,7 @@ INPTCHK ;EP
  ;---> Called by Protocol BI SITE INPATIENT CHECK ENABLE.
  ;
  Q:$$BISITE^BISITE2
- D FULL^VALM1,TITLE^BIUTL5("ENABLE/DISABLE INPATIENT VISIT CHECK"),TEXT1
+ D FULL^VALM1,TITLE^BIUTL5("ENABLE/DISABLE INPATIENT VISIT CHECK"),TEXT5
  N BIDFLT,DIR,DIRUT,Y
  S DIR(0)="SOA^E:Enable;D:Disable"
  S DIR("A")="     Please select either Enable or Disable: "
@@ -78,6 +84,109 @@ INPTCHK ;EP
  .I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3()
  D RESET^BISITE
  Q
+ ;
+ ;
+ ;********** PATCH 13, v8.5, AUG 01,2016, IHS/CMI/MWR
+ ;---> Flu Season Date Range.
+ ;----------
+FLUDATS ;EP
+ ;---> Edit the parameters that determines the start and end of the Flu
+ ;---> forecasting season.
+ ;
+ Q:$$BISITE^BISITE2
+ D FULL^VALM1,TITLE^BIUTL5("FLU SEASON START & END DATES"),TEXT5
+ ;
+ N BIDATES,BISTART,BIEND
+ S BIDATES=$$FLUDATS^BIUTL8(BISITE)
+ N BIPOP,DIRUT
+ ;---> Edit Start Date.
+ D FLUDATS1("START",BIDATES,.BISTART,.DIRUT)
+ ;
+ ;---> If user ^'d out, quit.
+ I $G(DIRUT) D  Q
+ .W !!?10,"No changes made." D DIRZ^BIUTL3(),RESET^BISITE
+ ;
+ ;---> Edit End Date.
+ D FLUDATS1("END",BIDATES,.BIEND,.DIRUT)
+ ;
+ ;---> If user ^'d out, quit.
+ I $G(DIRUT) D  Q
+ .W !!?10,"No changes made." D DIRZ^BIUTL3(),RESET^BISITE
+ ;
+ ;---> Save new (or unchanged) values for this site.
+ N BIFLD,BIERR S BIFLD(.31)=BISTART,BIFLD(.32)=BIEND
+ D FDIE^BIFMAN(9002084.02,BISITE,.BIFLD,.BIERR,1)
+ I BIERR]"" W !!?3,BIERR D DIRZ^BIUTL3(),RESET^BISITE Q
+ ;
+ W !!?5,"Flu Season dates are now: ",BISTART," to ",BIEND
+ D DIRZ^BIUTL3()
+ D RESET^BISITE
+ Q
+ ;
+ ;
+ ;----------
+FLUDATS1(BIMODE,BIDATES,BIRESULT,DIRUT) ;EP
+ ;---> Edit Start/End date.
+ ;     1 - BIMODE   (req) Equals START or END.
+ ;     2 - BIDATES  (req) Default Start & End Dates from Site Parmeter.
+ ;     3 - BIRESULT (ret) Selected date in the form mm/dd.
+ ;     4 - DIRUT    (RET) =1 if user ^'d out.
+ ;
+ F  D  Q:BIPOP
+ .N DIR,Y S BIPOP=0
+ .S DIR("?")="     Enter the "_BIMODE_" Date of the Flu Season as mm/dd"
+ .S DIR(0)="FA^3:5",DIR("A")="     Enter "_BIMODE_" Date: "
+ .N BIDEFLT S BIDFLT=$S(BIMODE="START":$P(BIDATES,"%"),1:$P(BIDATES,"%",2))
+ .S DIR("B")=BIDFLT
+ .D ^DIR
+ .I $D(DIRUT) S BIPOP=1 Q
+ .;
+ .;---> Add leading zeros if necessary.
+ .I $L($P(Y,"/"))=1,$P(Y,"/")>0 S Y="0"_Y
+ .I $L($P(Y,"/",2))=1,$P(Y,"/",2)>0 S Y=$P(Y,"/")_"/"_"0"_$P(Y,"/",2)
+ .;
+ .;---> Check pattern match.
+ .I Y'?2N1"/"2N D  S BIPOP=0 Q
+ ..W !!?10,"Using numbers, please enter the month, then a slash, then the day.",!
+ .;
+ .;---> Check valid month.
+ .I (+$P(Y,"/")<1)!(+$P(Y,"/")>12) D  S BIPOP=0 Q
+ ..W !!?10,$P(Y,"/")," is not a valid MONTH."
+ ..W !?10,"Using numbers, please enter the month, then a slash, then the day.",!
+ .;
+ .;---> Check valid day.
+ .I (+$P(Y,"/",2)<1)!(+$P(Y,"/",2)>31) D  S BIPOP=0 Q
+ ..W !!?10,$P(Y,"/",2)," is not a valid DAY."
+ ..W !?10,"Using numbers, please enter the month, then a slash, then the day.",!
+ .;
+ .;---> Check for legit day, given the month.
+ .I +$P(Y,"/")=2,+$P(Y,"/",2)>29 D  S BIPOP=0 Q
+ ..W !!?10,Y, " is not a valid date",!
+ .N Z S Z=+$P(Y,"/") I (Z=4)!(Z=6)!(Z=9)!(Z=11) I +$P(Y,"/",2)>30 D  S BIPOP=0 Q
+ ..W !!?10,Y, " is not a valid date",!
+ .;
+ .;---> If START is earlier than 07/01 or the END is later than 6/30, reject.
+ .I BIMODE="START",+$P(Y,"/")<7 D  S BIPOP=0 Q
+ ..W !!?10,"START Date cannot be before 07/01.",!
+ .I BIMODE="END",+$P(Y,"/")>6 D  S BIPOP=0 Q
+ ..W !?5,"END Date cannot be after 06/30.",!
+ .;
+ .;---> Set new Date.
+ .S BIRESULT=Y,BIPOP=1
+ Q
+ ;
+ ;
+ ;----------
+TEXT5 ;EP
+ ;;Please select the Start and End Dates for the Influenza Season.
+ ;;
+ ;;Enter the dates in the numeric form: mm/dd
+ ;;For example, August 15 would be entered as 08/15.
+ ;;             April 1st would be entered as 04/01.
+ ;;
+ D PRINTX("TEXT5")
+ Q
+ ;**********
  ;
  ;
  ;----------

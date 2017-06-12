@@ -1,10 +1,11 @@
-BMCADD1 ; IHS/PHXAO/TMJ - add a referral part 2 ;      
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+BMCADD1 ; IHS/PHXAO/TMJ - add a referral part 2 ;
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3,9,10**;JAN 09, 2006;Build 51
  ;
  ;IHS/ITSC/FCJ ADD REQUEST TO SEND A MESSAGE
  ;    MODIFIED COMMENTS SECTION, TO ALLOW
  ;    BUS OFF AND MED HX TO CALL FROM BMCADD
  ;4.0*3 9.27.2007 IHS/OIT/FCJ Added test to send Alert to Physicians
+ ;4.0*9 1-1-2013 IHS/OIT/FCJ Multiple changes for ICD-10
  ;
 DXPX ;EP GET PROVIDIONAL DIAGNOSES/PROCEDURES IF WANTED
  D MEDHX
@@ -21,25 +22,37 @@ MEDHX ; GET PROVISIONAL DIAGNOSES
  W !!
  D MEDCOM^BMCADD ;IHS/ITSC/FCJ ADDED FOR MED HX COM NO LONGER ON FORM
  Q
-DX I $G(BMCRR),$O(^BMCRTNRF(BMCRR,61,0)) D ADDDX^BMCADD1,DX^BMCMOD Q
- S DIR(0)="Y",DIR("A")="Do you want to enter a Provisional Diagnosis",DIR("B")="N",DIR("?")="Enter 'YES' to enter provisional diagnoses now."
- D ^DIR K DIR
- Q:$D(DIRUT)
- S BMCASK=Y
- I BMCASK=1,BMCDXCPT=1 S BMCQ=0 D ^BMCDXSTF G DXASK
- I BMCASK=1 S BMCQ=0 F  D  Q:BMCQ
+DX ;EP FROM BMCMOD
+ I $G(BMCRR),$O(^BMCRTNRF(BMCRR,61,0)) D ADDDX,DX^BMCMOD Q   ;template edit
+ I $G(BMCV)'="DX" D  Q:$D(DIRUT)
+ .S DIR(0)="Y",DIR("A")="Do you want to enter a Provisional Diagnosis",DIR("B")="N",DIR("?")="Enter 'YES' to enter provisional diagnoses now."
+ .D ^DIR K DIR
+ .S BMCASK=Y
+ I $G(BMCASK)=1,BMCDXCPT=1 S BMCQ=0 D ^BMCDXSTF G DXASK    ;stuffs dx if par=y
+ S BMCDOS=$$AVDOS^BMCRLU(BMCRIEN,"N") S:+BMCDOS<1 BMCDOS=$P(^BMCREF(BMCRIEN,0),U)   ;BMC*4.0*9
+ I BMCDOS<$$IMPDATE^LEXU("10D") S (BMCICD,BMCICD1)="ICD"     ;BMC*4.0*9
+ E  S (BMCICD,BMCICD1)="10D"                   ;BMC*4.0*9
+ S BMCLEX=+($$CSYS^LEXU(BMCICD))             ;Get Coding System ;BMC*4.0*9
+ I ($G(BMCASK)=1)!($G(BMCV)="DX") S BMCQ=0 F  D  Q:BMCQ
  . S BMCLOOK=1
- .;IHS/ITSC/FCJ REQUEST TO DSPLY ICD INSTEAD OF DX PROMPTS;MOD NXT SEC
- . S DIC="^ICD9(",DIC(0)="AMEQ",DIC("A")="Enter ICD-9 DX code: "
- . D ^DIC
- . I Y=-1 S BMCQ=1 Q
- . S X="`"_$P(Y,U),DIADD=1,DIC(0)="L",DIC="^BMCDX(",DLAYGO=90001.01 D ^DIC
- . S DA=$P(Y,U),DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P"_";.05;.06"
+ .;IHS/ITSC/FCJ ;MOD NXT SEC BMC*4.0*9 CHG TO LEXICON
+ . ;S DIC="^ICD9(",DIC(0)="AMEQ",DIC("A")="Enter ICD-9 DX code: "
+ . ;D ^DIC
+ . D CONFIG^LEXSET(BMCICD,BMCICD1,BMCDOS)        ;BMC*4.0*9
+ . W !! S DIC("A")="Enter ICD DX code: " K X D ^LEXA1   ;BMC*4.0*9
+ . I +Y<0 S BMCQ=1 Q
+ . S X=$P($$CODEN^ICDEX($G(Y(+BMCLEX)),80),"~") ;BMC*4.0*9 
+ . I +X<1 W !!,"INVALID CODE cannot add." Q
+ . K DIC,Y
+ . ;S X="`"_$P(Y,U),DIADD=1,DIC(0)="L",DIC="^BMCDX(",DLAYGO=90001.01 D ^DIC  ;BMC*4.0*9
+ . S DIC(0)="L",DIC="^BMCDX(",DLAYGO=90001.01 D FILE^DICN
+ . I +Y<0 W !,"Unable to add DX code." S BMCQ=1 Q   ;BMC*4.0*9
+ . S DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P"_";.05;.06"
  . S DIE="^BMCDX("
  . D DIE^BMCFMC
  . K BMCLOOK
  . W !
- K BMCDX,DIC,DIE,DR,DA,DIC("A"),DIADD,DIC(0)
+ K BMCDX,DIC,DIE,DR,DA,X,LEXQ,LEXVDT,ICDV,BMCLEX
 DXASK ;
  S BMCDXASK=0
  D ^BMCRCHK
@@ -49,21 +62,27 @@ DXASK ;
  ;
 PX ; GET PROVISIONAL PROCEDURES
  W !
- I $G(BMCRR),$O(^BMCRTNRF(BMCRR,62,0)) D ADDPX^BMCADD1,PROC^BMCMOD Q
+ I $G(BMCRR),$O(^BMCRTNRF(BMCRR,62,0)) D ADDPX,PROC^BMCMOD Q
  S DIR(0)="Y",DIR("A")="Do you want to enter a Provisional Procedure",DIR("B")="N",DIR("?")="Enter 'YES' to enter provisional procedures now."
  D ^DIR K DIR
  Q:$D(DIRUT)
  S BMCASK=Y
  I BMCASK=1,BMCDXCPT=1 S BMCQ=0 D ^BMCPXSTF G PXASK
- I BMCASK=1 S BMCQ=0 F  D  Q:BMCQ
- . S BMCLOOK=1
+ D PROC^BMCMOD ;BMC*4.0*9
+ ;I BMCASK=1 S BMCQ=0 F  D  Q:BMCQ   ;BMC*4.0*9
  . S BMCPXT="P"
- . S DIE="^BMCREF(",DA=BMCRIEN,DR="[BMC PROCEDURE ADD]"
+ .;BMC*4.0*9 REWROTE NXT SECTION
+ . S DIC="^ICPT(",DIC(0)="AMEQ",DIC("A")="Enter CPT Procedure code: "
+ . D ^DIC
+ . I Y=-1 S BMCQ=1 Q
+ . ;S DIE="^BMCREF(",DA=BMCRIEN,DR="[BMC PROCEDURE ADD]"
+ . ;D DIE^BMCFMC
+ . S DIC(0)="L",DIC="^BMCPX(",DLAYGO=90001.02 D FILE^DICN
+ . I +Y<0 W !,"Unable to add CPT Procedure code." S BMCQ=1 Q
+ . S DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P"_";.05;.06"
+ . S DIE="^BMCPX("
  . D DIE^BMCFMC
- . K BMCLOOK
- . I $G(BMCPX) ;*************
- . S:'$G(BMCPX) BMCQ=1
- . K BMCPX
+ ;
 PXASK ;Check Existence of Primary PX
  S BMCPXASK=0
  D ^BMCRCHK1
@@ -127,7 +146,8 @@ STATIC ;EP - STORE STATIC DATA
  S DR=DR_";5112///"_$$PI^AUPNPAT(BMCDFN,%) ;    private insurance
  ;
  S DIE="^BMCREF(",DA=BMCRIEN
- D DIE^BMCFMC
+ D DIE^BMCFMC K DIE,DR
+ D:'BMCPCC REFSNO ;BMC*4.0*9
  W !,"Entry of Referral ",$P(^BMCREF(BMCRIEN,0),U,2)," is complete.",!
  ;IHS/ITSC/FCJ REQUEST TO SEND A MESSAGE NXT 4 LNES
  I BMCCHSA,BMCRTYPE="C" D ENMM^BMCMM
@@ -143,11 +163,16 @@ ADDDX ;EP auto stuff dx and proc from routine referral
  W !,"Adding referral diagnoses.."
  K BMCAR D ENPM^XBDIQ1(90001.61,BMCRR_",0",".01","BMCAR(","I")
  Q:'$D(BMCAR)
- S BMCI=0 F  S BMCI=$O(BMCAR(BMCI)) Q:BMCI'=+BMCI  S X=$G(BMCAR(BMCI,.01,"I")) I X S DLAYGO=90001.01,DIC="^BMCDX(",DIC(0)="L" K DD,DA,D0 D FILE^DICN D
- .I Y=-1 W !!,"bad news -- error creating dx record - notify programmer" Q
- .S DIE="^BMCDX(",DA=+Y,DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P" D ^DIE
- .I $D(Y) W !!,"ADDING DX FAILED" Q
- .D ^XBFMK
+ ;BMC*4.0*9 MODIFIED NXT SECTION FOR ICD-10 CHNGS, test for valid code vs dos
+ S BMCI=0,BMCDI=0,BMCTST=0 F  S BMCI=$O(BMCAR(BMCI)) Q:BMCI'=+BMCI  S BMCTST=0 D
+ .S BMCCDI=$G(BMCAR(BMCI,.01,"I")),BMCCD=$G(BMCAR(BMCI,.01)) I BMCCDI D
+ ..I '(+($$STATCHK^ICDEX(BMCCD,BMCDOS,80))) S BMCTST=1 Q
+ ..S X=BMCCDI,DLAYGO=90001.01,DIC="^BMCDX(",DIC(0)="L" K DD,DA,D0 D FILE^DICN D
+ ...I Y=-1 W !!,"bad news -- error creating dx record - notify programmer" Q
+ ...S DIE="^BMCDX(",DA=+Y,DR=".02////"_BMCDFN_";.03////"_BMCRIEN_";.04////P" D ^DIE
+ ...I $D(Y) W !!,"ADDING DX FAILED" Q
+ ...D ^XBFMK
+ I BMCTST=1 W !,"INVALID ICD DX CODE FOR DATE OF SERVICE, Please Edit DX for Template" H 1
  K BMCAR,X,BMCI
  Q
 ADDPX ;EP auto stuff proc from routine referral
@@ -160,4 +185,26 @@ ADDPX ;EP auto stuff proc from routine referral
  .I $D(Y) W !!,"ADDING PROC FAILED" Q
  .D ^XBFMK
  K BMCAR,BMCI
+ Q
+DXCAT ;EP From Add referrals, test for active DX Cat codes;BMC*4.0*9 NEW SUB
+ K HLP,DDSERROR
+ I '$D(DA) S BMCDOS="" Q  ;BMC*3.1*10
+ S BMCDOS=$$GET^DDSVAL(90001,DA,1106,,"I")
+ S:'BMCDOS BMCDOS=$$GET^DDSVAL(90001,DA,1105,,"I")
+ S:'BMCDOS BMCDOS=$P(^BMCREF(BMCRIEN,0),U)
+ S BMCDOS=$P(BMCDOS,".")  ;BMC 4.0*11
+ Q
+DOSDX(Y) ;EP FR DD SCREEN FOR DX CATEGORY
+ I '$G(BMCDOS) S BMCDOS=DT
+ I ((($P(^BMCTDXC(Y,0),U,2)-1)<BMCDOS)&'$P(^(0),U,3))!((($P(^(0),U,2)-1)<BMCDOS)&($P(^(0),U,3)>BMCDOS)) Q 1
+ Q 0
+ ;
+REFSNO ;EP FR BMCMODS AND BMCADDS;BMC*4.0*9 ADD SNOMED CODE FOR SITE W/O PCC
+ ;
+ S X=BMCSCOD,DIC="^BMCREF("
+ S DIADD=1,DIC(0)="L",LAYGO=90001 S:'$D(^BMCREF(BMCRIEN,22)) DIC("P")=90001.22
+ S DIC=DIC_BMCRIEN_",22,",DA(1)=BMCRIEN
+ D ^DIC
+ I +Y<0 W !,"The snomed clinical term was not added to the referral."
+ K DIC,DA
  Q

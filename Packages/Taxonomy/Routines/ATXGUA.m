@@ -1,5 +1,5 @@
 ATXGUA ;cmi/anch/maw - ATX Gui Taxonomy Utilities (con't)
- ;;5.1;TAXONOMY;**9,10**;FEB 04, 1997
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ;
  ;generic Taxonomy GUI calls
  ;
@@ -46,16 +46,16 @@ TAX(ATXRET,ATXSTR) ;
  .... ;I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($G(^ICD9($O(^ICD9(ATXXRF,ATXL,0)),0)),U,3)_$C(30) Q
  .... ;I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($G(^ICD0($O(^ICD0(ATXXRF,ATXL,0)),0)),U,4)_$C(30) Q
  .... I $G(ATXFL)=81 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($$CPT^ICPTCOD($TR(ATXL," ")),U,3)_$C(30) Q
- .... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($$ICDDX^ICDCODE(ATXL),U,4)_$C(30) Q
- .... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($$ICDOP^ICDCODE(ATXL),U,5)_$C(30) Q
+ .... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($$ICDDX^ICDEX(ATXL),U,4)_$C(30) Q
+ .... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=$P($G(@ATXGRF@(0)),U)_"-"_$P($$ICDOP^ICDEX(ATXL,"","","E"),U,5)_$C(30) Q
  ... S ^ATXTMP($J,ATXI)=ATXL_$C(30)
  ... I $G(ATXFL)=95.3 S ^ATXTMP($J,ATXI)=ATXL_"/"_$G(^LAB(95.3,$P(ATXL,"-"),80))_$C(30) Q
  ... ;I $G(ATXFL)=81 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($G(^ICPT($TR(ATXL," "),0)),U,2)_$C(30) Q
  ... ;I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($G(^ICD9($O(^ICD9(ATXXRF,ATXL,0)),0)),U,3)_$C(30) Q
  ... ;I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($G(^ICD0($O(^ICD0(ATXXRF,ATXL,0)),0)),U,4)_$C(30) Q
  ... I $G(ATXFL)=81 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($$CPT^ICPTCOD($TR(ATXL," ")),U,3)_$C(30) Q
- ... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($$ICDDX^ICDCODE(ATXL),U,4)_$C(30) Q
- ... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($$ICDOP^ICDCODE(ATXL),U,5)_$C(30) Q
+ ... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($$ICDDX^ICDEX(ATXL),U,4)_$C(30) Q
+ ... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXL_"-"_$P($$ICDOP^ICDEX(ATXL,"","","E"),U,5)_$C(30) Q
  .. S ATXGRF=ATXGL_""""_ATXXRF_""")"
  .. N ATXIEN
  .. S ATXIEN=$O(@ATXGRF@(ATXL),-1)
@@ -67,8 +67,8 @@ TAX(ATXRET,ATXSTR) ;
  ... ;I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($G(^ICD9($O(^ICD9(ATXXRF,ATXIEN,0)),0)),U,3)_$C(30) Q
  ... ;I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($G(^ICD0($O(^ICD0(ATXXRF,ATXIEN,0)),0)),U,4)_$C(30) Q
  ... I $G(ATXFL)=81 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($$CPT^ICPTCOD($TR(ATXIEN," ")),U,3)_$C(30) Q
- ... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($$ICDDX^ICDCODE(ATXIEN),U,4)_$C(30) Q
- ... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($$ICDOP^ICDCODE(ATXIEN),U,5)_$C(30) Q
+ ... I $G(ATXFL)=80 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($$ICDDX^ICDEX(ATXIEN),U,4)_$C(30) Q
+ ... I $G(ATXFL)=80.1 S ^ATXTMP($J,ATXI)=ATXIEN_"-"_$P($$ICDOP^ICDEX(ATXIEN,"","","E"),U,5)_$C(30) Q
  S ^ATXTMP($J,ATXI+1)=$C(31)_$G(ATXERR)
  Q
  ;

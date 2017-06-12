@@ -1,6 +1,21 @@
-APCLVLU1 ; IHS/CMI/LAB - GEN RETR UTILITIES ;
- ;;2.0;IHS PCC SUITE;**2,4,5,7**;MAY 14, 2009
- ;
+APCLVLU1 ; IHS/CMI/LAB - GEN RETR UTILITIES ; 27 Aug 2014  10:52 AM
+ ;;2.0;IHS PCC SUITE;**2,4,5,7,11**;MAY 14, 2009;Build 58
+RACESCR ;
+ NEW Y,Z
+ K Z
+ D LIST^DIC(2.02,","_DFN_",","@;.01E","P",,,,,,,"Z")
+ S Y=0 F  S Y=$O(Z("DILIST",Y)) Q:Y=""  S X($P(Z("DILIST",Y,0),U,1))=""
+ Q
+RACEPRT ;
+ NEW Z,Y
+ D LIST^DIC(2.02,","_DFN_",","@;.01E","P",,,,,,,"Z")
+ S Y=0 F  S Y=$O(Z("DILIST",Y)) Q:Y=""  D
+ .S APCLPCNT=APCLPCNT+1
+ .S X($P(Z("DILIST",Y,0),U,1))=""
+ .S APCLPCNT=APCLPCNT+1,APCLPRNM(APCLPCNT)=$P(Z("DILIST",Y,0),U,2)
+ .S APCLPRNM(APCLPCNT,"I")=$P(Z("DILIST",Y,0),U,1)
+ .Q
+ Q
 MCR ;MCR display all current medicare data
  NEW APCLMIFN
  I '$D(^DPT(P,0)) G MCRX

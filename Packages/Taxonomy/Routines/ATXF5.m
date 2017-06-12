@@ -1,0 +1,11 @@
+ATXF5 ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON MAY 27, 2016;
+ ;;5.1;TAXONOMY;;MAY 27, 2016;Build 26
+ ;
+ ; See referenced routines to see taxonomies being loaded.
+ ;
+START ;
+ D ^ATXF5A ;    BGP HYSTERECTOMY DXS
+ D ^ATXF5B ;    BJPC AAA DX
+ D ^ATXF5C ;    BJPC EVER SMOKER
+ D ^ATXF5D ;    BGP BILATERAL BLINDNESS DXS
+ Q

@@ -1,5 +1,5 @@
 APCLV1 ; IHS/CMI/LAB - visit entry utilities/get codes ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ;IHS/TUCSON/LAB - patch 1 modified subroutine FACTX to check
  ;for existence of AUTTLOC( node 3/4/97
@@ -173,6 +173,24 @@ ADMTYPE ;EP
  I $P(^DD(9000010.02,.07,0),U,2)[42.1 Q $S('Y:%,$G(F)="C":$P($G(^DIC(42.1,Y,9999999)),U),$G(F)="I":Y,$G(F)="E":$P(^DIC(42.1,Y,0),U),1:"")
  I $P(^DD(9000010.02,.07,0),U,2)[405.1 Q $S('Y:%,$G(F)="C":$P($G(^DG(405.1,Y,"IHS")),U),$G(F)="I":Y,$G(F)="E":$P(^DG(405.1,Y,0),U),1:"")
  Q ""
+ADMUB ;EP
+ I 'V Q -1
+ I '$D(^AUPNVSIT(V)) Q -1
+ NEW %,Y,Z
+ S %="",Z=$O(^AUPNVINP("AD",V,0))
+ I 'Z Q %
+ I $G(F)="C" Q $$VALI^XBDIQ1(9000010.02,Z,6101)
+ Q $$VAL^XBDIQ1(9000010.02,Z,6101)
+ADMSOURC ;EP
+ I 'V Q -1
+ I '$D(^AUPNVSIT(V)) Q -1
+ NEW %,Y,Z
+ S %="",Z=$O(^AUPNVINP("AD",V,0))
+ I 'Z Q %
+ I $G(F)="C" D  Q Y
+ .S Y=$$VALI^XBDIQ1(9000010.02,Z,6102) I 'Y Q
+ .S Y=$$VAL^XBDIQ1(9999999.53,Y,.02)
+ Q $$VAL^XBDIQ1(9000010.02,Z,6102)
 DSCHTYPE ;EP
  I 'V Q -1
  I '$D(^AUPNVSIT(V)) Q -1
@@ -191,6 +209,14 @@ DSCHDATE ;EP
  S Y=$P(^AUPNVINP(Z,0),U)
  I Y="" Q Y
  Q $S($G(F)="S":$$FMTE^XLFDT(Y,"2D"),$G(F)="E":$$FMTE^XLFDT(Y,"1D"),1:$P(Y,"."))
+DDTM ;EP
+ I 'V Q -1
+ I '$D(^AUPNVSIT(V)) Q -1
+ NEW Y,Z
+ S Z=$O(^AUPNVINP("AD",V,0)) I 'Z Q Z
+ S Y=$P(^AUPNVINP(Z,0),U)
+ I Y="" Q Y
+ Q $S($G(F)="S":$$FMTE^XLFDT(Y,"2"),$G(F)="E":$$FMTE^XLFDT(Y),1:Y)
 CONSULTS ;EP
  I 'V Q -1
  I '$D(^AUPNVSIT(V)) Q -1

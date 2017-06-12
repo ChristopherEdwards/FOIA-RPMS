@@ -1,5 +1,5 @@
-GMRANKA ;HIRMFO/WAA-ALLERGY/ADVERSE REACTION PATIENT NKA DRIVE ;10/12/06  11:03
- ;;4.0;Adverse Reaction Tracking;**2,21,36**;Mar 29, 1996;Build 9
+GMRANKA ;HIRMFO/WAA-ALLERGY/ADVERSE REACTION PATIENT NKA DRIVE ;01-Aug-2013 16:39;DU
+ ;;4.0;Adverse Reaction Tracking;**2,21,36,1007**;Mar 29, 1996;Build 18
 NKA(DFN) ;See if patient has reaction on file
  ;  Input Variables:
  ;       DFN = Patient Internal Entry Number
@@ -18,7 +18,7 @@ NKAASK(DFN,GMRAOUT) ; Ask a Patient if patient has any known allergens
  ;  GMRAOUT = Up Caret or time out flag
  ;
  ;Ask if patient has allergies
- N DIR,Y,DIROUT,DTOUT,DIRUT,DUOUT,GMAOLD
+ N DIR,Y,DIROUT,DTOUT,DIRUT,DUOUT,GMAOLD,SNOMED
  S GMAOLD=$P($G(^GMR(120.86,DFN,0)),U,2)
  S DIR(0)="120.86,1^AO^I Y=0&'$$NKASCR^GMRANKA(DFN) D INFO^GMRANKA K X"
  S DIR("A")="Does this patient have any known allergies or adverse reactions? "
@@ -31,8 +31,12 @@ NKAASK(DFN,GMRAOUT) ; Ask a Patient if patient has any known allergens
  ; User Hits return and doesn't answer question
  I Y="",GMAOLD="" Q  ;36
  I Y'="",GMAOLD'=Y D
+ . ;Patch 1007 for SNOMED
  . N DIE,DA,DR
- . S DIE="^GMR(120.86,",DA=DFN,DR=$S(GMAOLD="":(".01////"_DFN_";"),1:"")_"1////"_Y_";2////"_DUZ_";3///NOW" ;36
+ . I Y=0 S SNOMED=160244002
+ . I Y=1 S SNOMED="@"
+ . S DIE="^GMR(120.86,",DA=DFN
+ . S DR=$S(GMAOLD="":(".01////"_DFN_";"),1:"")_"1////"_Y_";2////"_DUZ_";3///NOW;9999999.01///"_SNOMED ;36
  . D ^DIE
  . Q
  Q

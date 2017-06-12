@@ -1,5 +1,5 @@
 APCDCAFJ ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,8,11**;MAY 14, 2009;Build 58
  ;; ;
  ;
 PROCESS ;EP
@@ -10,10 +10,6 @@ PROCESS ;EP
  .S APCDVIEN=0 F  S APCDVIEN=$O(^AUPNVSIT("B",APCDODAT,APCDVIEN)) Q:APCDVIEN'=+APCDVIEN  D
  ..S APCDV0=$G(^AUPNVSIT(APCDVIEN,0))
  ..Q:APCDV0=""
- ..;Q:"AOSTCR"'[$P(APCDV0,U,7)  ;SERV CAT - NO I's per Dorene
- ..;I $P(APCDV0,U,7)="I",'$D(^APCDSITE(DUZ(2),13,"B","I")) G N
- ..;Q:"AOSTCR"'[$P(APCDV0,U,7)
- ..;Q:'$$SCW^APCDCAF($P(APCDV0,U,7))
 N ..;
  ..Q:'$P(APCDV0,U,9)        ;NO DEP ENTRIES
  ..Q:$P(APCDV0,U,11)        ;DELETED
@@ -28,15 +24,16 @@ N ..;
  ..I APCDVCLN="",$D(APCDCLNS) Q  ;clinic blank and want certain clinics
  ..I $D(APCDCLNS),'$D(APCDCLNS(APCDVCLN)) Q  ;not a CLINIC we want
  ..S APCDVHL=$P(APCDV0,U,22)
- ..I APCDVHL="",$D(APCDHLS) Q  ;HOSP LOC blank and want certain HOSP LOCS
+ ..I APCDVHL="",$D(APCDHLS) Q
  ..I $D(APCDHLS),'$D(APCDHLS(APCDVHL)) Q  ;not a HOSP LOC we want
- ..I APCDVPP="",$D(APCDPRVS) Q  ;PRIM PROV blank and want certain PRIM PROVS
+ ..I APCDVPP="",$D(APCDPRVS) Q
  ..I $D(APCDPRVS),'$D(APCDPRVS(APCDVPP)) Q  ;not a PRIM PROV we want
- ..S APCDVCDR=$$LASTCDR(APCDVIEN)  ;last chart deficiency reason
- ..I APCDVCDR="",$D(APCDCDRS) Q  ;
- ..I $D(APCDCDRS),'$D(APCDCDRS(APCDVCDR)) Q
+ ..K APCDVCDR D GETVCDR^APCDCAFS(APCDVIEN,"APCDVCDR")  ;GET ALL PENDING REASONS
+ ..I '$D(APCDVCDR),$D(APCDCDRS) Q  ;
+ ..S G=0 I $D(APCDCDRS) D
+ ...S X=0 F  S X=$O(APCDVCDR(X)) Q:X'=+X  I $D(APCDCDRS(X)) S G=1
+ ..I $D(APCDCDRS),'G Q
  ..S ^XTMP("APCDCAFI",APCDJ,APCDH,"VISITS",$$SORT(APCDVIEN,APCDSORT),APCDVIEN)=""
- ..Q
  .Q
  Q
  ;
@@ -52,7 +49,8 @@ ERRORCHK ;
  S APCDERR=""
  I '$D(^AUPNVPOV("AD",APCDV)) S APCDERR="NO POV"
  S X=0 F  S X=$O(^AUPNVPOV("AD",APCDV,X)) Q:X'=+X  D
- .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S APCDERR=".9999 POV "
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)=".9999" S APCDERR=".9999 POV " Q
+ .I $$VAL^XBDIQ1(9000010.07,X,.01)="ZZZ.999" S APCDERR="ZZZ.999 POV "
  S X=0,C=0 F  S X=$O(^AUPNVPRV("AD",APCDV,X)) Q:X'=+X  D
  .I $P(^AUPNVPRV(X,0),U,4)="P" S C=C+1
  I C>1 S APCDERR=APCDERR_"MULT PRIM PROV"
@@ -68,15 +66,15 @@ LBLK(V,L) ;left blank fill
  ;
 LASTCDR(V,F) ;EP - get last chart deficiency reason
  I $G(F)="" S F="I"  ;default to ien
- I '$D(^AUPNVCA(V)) Q ""
+ I '$D(^AUPNVCA("AD",V)) Q ""
  NEW X,A,D,L
  S X=0 F  S X=$O(^AUPNVCA("AD",V,X)) Q:X'=+X  D
  .Q:'$D(^AUPNVCA(X,0))
  .S D=$P(^AUPNVCA(X,0),U)
  .S A((9999999-$P(D,".")))=X
  S L=$O(A(0)) I L="" Q ""
- S L=A(0)
- Q $S(F="I":$P(^AUPNVCA(X,0),U,5),1:$$VAL^XBDIQ1(9000010.45,X,.05))
+ S L=A(L)
+ Q $S(F="I":$P(^AUPNVCA(L,0),U,6),1:$$VAL^XBDIQ1(9000010.45,L,.06))
  ;
 SORT(V,S) ;
  NEW R
@@ -150,7 +148,6 @@ TSORT ;
  ;
 EOP ;EP - End of page.
  Q:$E(IOST)'="C"
- ;Q:$D(ZTQUEUED)!'(IOT="TRM")!$D(IO("S"))
  NEW DIR
  K DIRUT,DFOUT,DLOUT,DTOUT,DUOUT
  S DIR("A")="Press Enter to Continue",DIR(0)="E" D ^DIR
@@ -213,12 +210,29 @@ PRN1 ;EP
  W !,$$FMTE^XLFDT($P(APCDVR,U)),?19,APCDHRN,?31,$E($P(^DPT(DFN,0),U),1,17),?50,$E($P(^DIC(4,$P(APCDVR,U,6),0),U),1,10),?61,$P(APCDVR,U,7)
  W ?64,$$CLINIC^APCLV(APCDV,"C"),?67,$E($$VAL^XBDIQ1(9000010,APCDV,.22),1,11),?78,$P(APCDVR,U,9)
  W:$$PRIMPROV^APCLV(APCDV,"N")]"" !," PRIMARY PROVIDER: ",$$PRIMPROV^APCLV(APCDV,"N")
- I $P($G(^AUPNVSIT(APCDV,12)),U,11)]"" W !," Ext Acct #: ",$P($G(^AUPNVSIT(APCDV,12)),U,11) ;IHS/CMI/LAB - added acct # display
+ I $P($G(^AUPNVSIT(APCDV,12)),U,11)]"" W !," Ext Acct #: ",$P($G(^AUPNVSIT(APCDV,12)),U,11)
  Q
 NOTES ;
+ W !?1," Pending Deficiencies:"
+ S APCDG=0,APCDN1=0 F  S APCDN1=$O(^AUPNCANT(APCDV,12,APCDN1)) Q:'APCDN1  D
+ . S IENS=APCDN1_","_APCDV
+ . I $$GET1^DIQ(9000095.12,IENS,.03)]"" Q
+ . I $$GET1^DIQ(9000095.12,IENS,.08)]"" Q
+ . ;
+ . S PROV=$$GET1^DIQ(9000095.12,IENS,.01,"I")             ;provider IEN
+ . S PROVN=$$GET1^DIQ(9000095.12,IENS,.01)                ;provider name
+ . ;
+ . S LINE=" "_$$PAD^APCDCAF6($E(PROVN,1,22),25)_$$GET1^DIQ(9000095.12,IENS,.02)   ;provider & deficiency
+ . S LINE=$$PAD^APCDCAF6(LINE,60)_$$GET1^DIQ(9000095.12,IENS,.11)           ;resolution status
+ . W !,LINE S APCDG=1
+ . S LINE=" "_$$PAD^APCDCAF6("Entered by: "_$$GET1^DIQ(9000095.12,IENS,.05),50)_"Date Entered: "_$$GET1^DIQ(9000095.12,IENS,.04)
+ . W !,LINE
+ . ;
+ I 'APCDG W "  None Recorded"
+ ;NOW OLD ONES
  S APCDX=0,APCDC=0 F  S APCDX=$O(^AUPNVCA("AD",APCDV,APCDX)) Q:APCDX'=+APCDX!($D(APCDQUIT))  D
  .I $Y>(IOSL-4) D HEAD Q:$D(APCDQUIT)
- .S APCDC=APCDC+1 I APCDC=1 W !?1,"Status Update",?27,"User",?45,"Chart Deficiency Reason"
+ .S APCDC=APCDC+1 I APCDC=1 W !?1,"Status Update",?27,"User" ;,?45,"Chart Deficiency Reason(s)"
  .W !?1,$$FMTE^XLFDT($P($P(^AUPNVCA(APCDX,0),U,1),"."),5),?12,$E($$VAL^XBDIQ1(9000010.45,APCDX,.04),1,12),?27,$E($$VAL^XBDIQ1(9000010.45,APCDX,.05),1,15),?45,$E($$VAL^XBDIQ1(9000010.45,APCDX,.06),1,21)
  K ^UTILITY($J,"W")
  S APCDNDA=$O(^AUPNCANT("B",APCDV,0)) Q:'APCDNDA
@@ -255,7 +269,7 @@ HEAD1 ;
  W !!,"VISIT DATE",?19,"HRN",?31,"PATIENT NAME",?50,"LOCATION",?61,"SC",?64,"CL",?67,"HOSP LOC",?77,"DEC"
  W !,APCD80S
  Q
-CTR(X,Y) ;EP - Center X in a field Y wide.
+CTR(X,Y) ;EP
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X
  ;----------
 COVPAGE ;

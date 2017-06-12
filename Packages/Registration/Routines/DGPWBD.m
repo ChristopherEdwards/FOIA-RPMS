@@ -1,10 +1,12 @@
 DGPWBD ;ALB/CAW - Device Specifications for Patient Wristband ;2/14/95
- ;;5.3;Registration;**62,82,246,385,1004,1009,1015**;Aug 13, 1993;Build 21
+ ;;5.3;Registration;**62,82,246,385,1004,1009,1015,1018**;MAY 28, 2004;Build 27
  ;IHS/OIT/LJF 11/04/2005 PATCH 1004 barcode will be facility code & chart #
  ;cmi/anch/maw 02/18/2008 PATCH 1009 requirement 3
+ ;IHS/OIT/CLS  03/31/2015 PATCH 1018 added code at label ADD for BCMA print of wristbands
  ;
 BL ; Barcode Blazer
  N LINE
+ I IOST["P-TCP-ZEBR WRISTB" G ADD
  U IO
  S LINE=$G(^%ZIS(2,IOST(0),203)) W LINE,LINE1,!
  S LINE=$G(^%ZIS(2,IOST(0),205)) W LINE,LINE2,!
@@ -20,4 +22,58 @@ BL ; Barcode Blazer
  W VARIABLE  ;cmi/maw 2/18/2008 PATCH 1009 requirement 3
  Q
 ADD ; Add different barcode set up here
+ ;FOXK VAOIT 3-2013,1-2014
+ N CPSIO,I,CPSPID1,CPSLINE,CPSPID
+ ;PRINT 12 DIGIT HRCN ON LABEL.
+ S CPSPID=0 ;DEFAULTS TO NO
+ ;GET CONTROL CODE FROM TERMINAL TYPE
+ S I=0 F  S I=$O(^%ZIS(2,IOST(0),55,I)) Q:'I  S X0=$G(^(I,0)) I X0]"" S CPSIO($P(X0,"^"))=^(1)
+ S CPSIO=$S('$D(CPSIO):0,1:1)
+ S CPSPID1=$S(DUZ("AG")="I":$$HRCNF^BDGF2(DFN,DUZ(2)),1:$$SSN^DPTLK1(DFN))
+ U IO
+ ;LINES ARE DEFINED IN ^DIC(39.1, FOR WRISTBAND ITEMS.
+ F I="FI","SL" I $G(CPSIO(I))]"" X CPSIO(I)
+ ;NAME
+ F I="SLIN1","STF" I $G(CPSIO(I))]"" X CPSIO(I)
+ W $E(LINE1,1,28)   ;ONLY 28 LENGTH
+ F I="ETF","ELIN1" I $G(CPSIO(I))]"" X CPSIO(I)
+ W !
+ ;HRCN
+ I CPSPID=1 D
+ .F I="SHR","STF" I $G(CPSIO(I))]"" X CPSIO(I)
+ .W $S(DUZ("AG")="I":+$E(CPSPID1,7,$L(CPSPID1)),1:+CPSPID1) ;STRIP ASUFAC FOR IHS ONLY
+ .F I="ETF","EHR" I $G(CPSIO(I))]"" X CPSIO(I)
+ .W !
+ ;DO LINES 2-4
+ F NUM=2:1:4 D
+ .F I="SLIN"_NUM,"STF" I $G(CPSIO(I))]"" X CPSIO(I)
+ .S CPSLINE="LINE"_NUM W @CPSLINE
+ .F I="ETF","ELIN"_NUM I $G(CPSIO(I))]"" X CPSIO(I)
+ .W !
+ ;INFANT ONLY MOTHERS NAME
+ I $G(CPSMOM)=1 D
+ .F I="SMOM","STF" I $G(CPSIO(I))]"" X CPSIO(I)
+ .W "Mom:"_$$GET1^DIQ(9000001,DFN,2604.2)
+ .F I="EMOM","ETF" I $G(CPSIO(I))]"" X CPSIO(I)
+ .W !
+ ;PRINTED DT
+ F I="PTDT","STF" I $G(CPSIO(I))]"" X CPSIO(I)
+ W "Printed: "_$E(DT,4,5),"/",$E(DT,6,7),"/",$E(DT,2,3)
+ F I="ETF","EPTDT" I $G(CPSIO(I))]"" X CPSIO(I)
+ W !
+ ;BARCODE DATA MATRIX
+ S:'+$G(DMCNT) DMCNT=1 ;DEFAULT TO 1 IF NOT SET
+ F J=1:1:DMCNT D
+ .F I="SBALL","SBF" I $G(CPSIO(I))]"" X CPSIO(I)
+ .W CPSPID1
+ .F I="EBF","EBALL" I $G(CPSIO(I))]""  X CPSIO(I)
+ .W !
+ F I="SB128","SBF" I $G(CPSIO(I))]"" X CPSIO(I)
+ W $S(DUZ("AG")="I":+$E(CPSPID1,7,$L(CPSPID1)),1:+CPSPID1) ;STRIP ASUFAC FOR IHS ONLY
+ F I="EBF","EB128" I $G(CPSIO(I))]"" X CPSIO(I)
+ W !
+ ;END LABEL
+ F I="EL" I $G(CPSIO(I))]"" X CPSIO(I)
+ W !
+ D ^%ZISC
  Q

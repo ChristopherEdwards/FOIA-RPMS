@@ -1,5 +1,5 @@
 LEXNDX9 ;ISL/KER - Set/kill indexes 757.33 ;01/03/2011
- ;;2.0;LEXICON UTILITY;**73**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**73**;Sep 23, 1996;Build 10
  ;
  ; Set and Kill Activation History
  ;   File 757.33, field 1

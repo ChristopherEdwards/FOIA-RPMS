@@ -1,5 +1,5 @@
-BGP7P1 ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 28 Jan 2005 1:34 PM ;
- ;;7.0;IHS CLINICAL REPORTING;**1**;JAN 24, 2007
+BGP7P1 ; IHS/CMI/LAB - v11.0 patch 1 env routine 08 Dec 2010 3:10 PM ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
  ;SEND OUT BGP TAXONOMIES
@@ -7,22 +7,18 @@ BGP7P1 ; IHS/CMI/LAB - NO DESCRIPTION PROVIDED 28 Jan 2005 1:34 PM ;
  ; Routines..." questions from being asked during the install.
  I $G(XPDENV)=1 S (XPDDIQ("XPZ1"),XPDDIQ("XPZ2"))=0
  F X="XPO1","XPZ1","XPZ2","XPI1" S XPDDIQ(X)=0
- I $$VERSION^XPDUTL("ACPT")'="2.07" S BGPSTAL="ACPT",BGPV="2.07" D IMEV,SORRY(2) Q
- I $$VERSION^XPDUTL("BGP")'="7.0" S BGPSTAL="BGP",BGPV="7.0" D IMEV,SORRY(2) Q
+ ;;I '$INSTALLD("BGP*11.0*1") D SORRY(2)
+ ;;I '$INSTALLD("BJPC*2.0*5") D SORRY(2)
+ I +$$VERSION^XPDUTL("BGP")<11 D MES^XPDUTL($$CJ^XLFSTR("Version 11.0 of BGP is required.  Not installed.",80)) D SORRY(2) I 1
+ ;E  D MES^XPDUTL($$CJ^XLFSTR("Requires BMX v4.0....Present.",80))
  Q
  ;
 PRE ;EP
- F BGPX=1:1:50 S DA=BGPX,DIK="^BGPELIA(" D ^DIK
- F BGPX=1:1:50 S DA=BGPX,DIK="^BGPHEIA(" D ^DIK
- F BGPX=1:1:120 S DA=BGPX,DIK="^BGPINDA(" D ^DIK
  Q
 POST ;EP - called from kids build
- ;install taxonomies for mammogram
- ;fix taxonomy entries
- S BGPX=0 F  S BGPX=$O(^ATXAX(BGPX)) Q:BGPX'=+BGPX  D
- .I $P($G(^ATXAX(BGPX,21,0)),U,2)[90530 S $P(^ATXAX(BGPX,21,0),U,2)="9002226.02101A"
- .I $P($G(^ATXAX(BGPX,41,0)),U,2)[90530 S $P(^ATXAX(BGPX,41,0),U,2)="9002226.04101P"
- D ^BGP7P1X
+ ;wipe out partial area files.
+ S BGPX=0 F  S BGPX=$O(^BGPGPDCG(BGPX)) Q:BGPX'=+BGPX  D
+ .I '$D(^BGPGPDCG(BGPX,1.1)) S DA=BGPX,DIK="^BGPGPDCG(" D ^DIK S DA=BGPX,DIK="^BGPGPDPG(" D ^DIK S DA=BGPX,DIK="^BGPGPDBG(" D ^DIK
  Q
 INSTALLD(BGPSTAL) ;EP - Determine if patch BGPSTAL was installed, where
  ; BGPSTAL is the name of the INSTALL.  E.g "AG*6.0*11".
@@ -42,9 +38,6 @@ INSTALLD(BGPSTAL) ;EP - Determine if patch BGPSTAL was installed, where
  Q $S(BGPY<1:0,1:1)
 IMES ;
  D MES^XPDUTL($$CJ^XLFSTR("Patch """_BGPSTAL_""" is"_$S(Y<1:" *NOT*",1:"")_" installed.",IOM))
- Q
-IMEV ;
- D MES^XPDUTL($$CJ^XLFSTR(BGPSTAL_" version "_BGPV_" is not installed.",IOM))
  Q
 SORRY(X) ;
  KILL DIFQ

@@ -1,5 +1,5 @@
 ABSPOSIZ ; IHS/FCS/DRS - Filing with .51,.59 ;    [ 11/04/2002  2:01 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,6,23,34**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,6,23,34**;JUN 01, 2001;Build 15
  Q
  ; Locking:
  ; 1. Locking this routine's code.

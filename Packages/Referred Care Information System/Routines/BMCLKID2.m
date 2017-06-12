@@ -1,5 +1,5 @@
 BMCLKID2 ; IHS/OIT/FCJ - IDENTIFIERS FOR REFERRAL LOOKUP 3 ;      [ 09/27/2006  2:03 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**2**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**2**;JAN 09, 2006;Build 51
  ;4.0*2 IHS/OIT/FCJ Added Entry point for API rtn
  ;      and test variable to screen closed variables and sec ref
  ;This Routine Displays Lookup for BMCREF Global

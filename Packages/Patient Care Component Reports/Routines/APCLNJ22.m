@@ -1,5 +1,5 @@
 APCLNJ22 ; IHS/CMI/LAB - PRINT VISITS WITH INJURIES ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
 INIT ;initialize variables
  S Y=APCLBD D DD^%DT S APCLBDD=Y S Y=APCLED D DD^%DT S APCLEDD=Y
@@ -29,11 +29,11 @@ HEAD1 ;
  W !
  S X=$P(^DIC(4,DUZ(2),0),"^")
  W !,$P(^VA(200,DUZ,0),"^",2),?(80-$L(X)/2),X,?72,"Page ",APCLPAGE,!
- W !,?22,"INJURY SURVEILLANCE SUMMARY REPORT",!,?32,"(E-CODES)",!
+ W !,?22,"INJURY SURVEILLANCE SUMMARY REPORT",!,?27,"(EXTERNAL CAUSE CODES)",!
  W ?24,"Visits with Injury Diagnosis",!
  W ?32,"Visit Dates:  ",!,?24,APCLBDD," to ",APCLEDD
  W !,?63,"CAUSE OF DX",!
- W ?5,"E-CODE CATEGORY SUMMARY",?38,"COUNT",?48,"% TOTAL",?60,"(ALCOHOL RELATED)"
+ W ?5,"EXTERNAL CAUSE CATEGORY SUMMARY",?38,"COUNT",?48,"% TOTAL",?60,"(ALCOHOL RELATED)"
  W !,"--------------------------------------------------------------------------------"
  Q
 TIME NEW Y,%A,%B,%C S Y="" Q:'$D(X)  Q:X<0!(X>86400)

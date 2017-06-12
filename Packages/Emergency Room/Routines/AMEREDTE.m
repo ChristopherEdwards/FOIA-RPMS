@@ -1,5 +1,5 @@
 AMEREDTE ; IHS/OIT/SCR - SUB-ROUTINE FOR ER VISIT EDIT of ER CONSULTANTS
- ;;3.0;ER VISIT SYSTEM;**1**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,6**;MAR 03, 2009;Build 30
  ;
  ; VARIABLES: The following variables are passed to multiple editing routines
  ;  AMERDA  : the IEN of the ER VISIT that is selected for editing
@@ -36,7 +36,7 @@ EDTCNSLT(AMERDA,AMEREDNO,AMERAIEN) ;EP from AMEREDIT
  .Q
  I $P($G(^AMERVSIT(AMERDA,19,0)),U,4)=""  D
  .D EN^DDIOL("There are currently no ER CONSULTANTS associated to this visit","","!!")
- .S DIR(0)="Y",DIR("A")="Do you want to add an ER CONSUTLANT",DIR("B")="NO"
+ .S DIR(0)="Y",DIR("A")="Do you want to add an ER CONSULTANT",DIR("B")="NO"
  .D ^DIR K DIR
  .I Y=0 D
  ..I $P($G(^AMERVSIT(AMERDA,0)),U,22)=1 D SYNCH ;BUT first be sure flag is correct

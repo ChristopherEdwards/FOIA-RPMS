@@ -1,11 +1,10 @@
-USRUMMBR ; SLC/JER,MA - User Class Membership by User actions ;6/28/00  13:49
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,5,6,7,8,14,16**;Jun 20, 1997
+USRUMMBR ; SLC/JER,MA - User Class Membership by User actions ;2/2/10
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**2,3,5,6,7,8,14,16,33**;Jun 20, 1997;Build 5
  ; 14 Feb 00 MA - Added check for 0 USRDA in DELETE
  ; 19 Jun 00 MA - Added check for inactive class when adding user.
- ;IHS/ITSC/LJF 02/21/2003 added title to user edit
- ;
 EDIT ; Edit user's class membership
- N USRDA,USRDATA,USREXPND,USRI,USRSTAT,DIROUT,USRCHNG,USRLST
+ ;N USRDA,USRDATA,USREXPND,USRI,USRSTAT,DIROUT,USRCHNG,USRLST
+ N USRDA,USRDATA,USRI,DIROUT,USRCHNG,USRLST
  I '$D(VALMY) D EN^VALM2(XQORNOD(0))
  S (USRCHNG,USRI)=0
  F  S USRI=$O(VALMY(USRI)) Q:+USRI'>0  D  Q:$D(DIROUT)
@@ -28,9 +27,10 @@ EDIT1 ; Single record edit
 ADD ; Add a membership to selected classes for current user
  N CLASSADD,DIC,DLAYGO,FDA,MSG,X,Y
  N I2N,FDA,FDAIEN,MSG
- N USRCLASS,USRCREAT,USRUSER,USRCNT,USRQUIT
+ ;N USRCLASS,USRCREAT,USRUSER,USRCNT,USRQUIT
+ N USRCLASS,USRUSER,USRCNT,USRQUIT
  D FULL^VALM1
- I $$ISTERM^USRLM(USRDUZ) D  Q
+ I $$ISTERM^USRLM(USRDUZ) D  Q  ;USRDUZ is newed and set in USRULST
  . W !,"You cannot add class memberships, this user is terminated!"
  . H 2
  S USRCNT=0
@@ -40,7 +40,6 @@ ADD ; Add a membership to selected classes for current user
  . S DIC("A")="Select "_$S(USRCNT'>0:"",1:"Another ")_"USER CLASS: "
  . D ^DIC I +Y'>0 S USRQUIT=1 Q
  . ;
- . ; Mike Antry added the check for inactive CLASS 19 June 2000
  . I $P(^USR(8930,+Y,0),"^",3)=0 D  Q
  .. W !,"You may not add a user to a inactive USER CLASS !!!"
  .. I $$READ^USRU("FAO","Press return to continue")
@@ -58,13 +57,12 @@ ADD ; Add a membership to selected classes for current user
  . I +$G(FDAIEN(1))>0 D
  .. S CLASSADD=1
  .. S DA=+FDAIEN(1),DIE=8930.3,DIE("NO^")="BACK"
- .. ;S DR=".03;.04" D ^DIE                ;IHS/ITSC/LJF 02/21/2003
- .. S DR=".03;.04;9999999.01" D ^DIE      ;IHS/ITSC/LJF 02/21/2003
+ .. S DR=".03;.04" D ^DIE
  .. I $D(Y) D
  ... S DIK=DIC D ^DIK K DIK
  ... S CLASSADD=0
  . I 'CLASSADD D  Q
- .. W !,"Error adding ",$$CLNAME^USRLM(+$P($G(^USR(8930.3,+DA,0)),U,2))
+ .. W !,"Error adding ",$$CLNAME^USRLM(+$P($G(^USR(8930.3,+DA,0)),U,2),1)
  . E  S USRCNT=USRCNT+1
  W !,"Rebuilding membership list."
  D BUILD^USRULST(USRDUZ)
@@ -95,17 +93,20 @@ DELETE ; Delete a member of the class
  S VALMSG="** "_$S($L($G(USRLST)):"Item"_$S($L($G(USRLST),",")>1:"s ",1:" ")_$G(USRLST),1:"Nothing")_" removed **"
  Q
 DELETE1(DA) ; Delete one member from a class
- N DIE,DR,USER,CLASS,USRMEM S USRMEM=$G(^USR(8930.3,+DA,0))
- I USRMEM']"" W !,"Record #",DA," NOT FOUND!" H 2 D MAILMSG Q
- S USER=$P($G(^VA(200,+USRMEM,0)),U)
- S CLASS=$P($G(^USR(8930,+$P(USRMEM,U,2),0)),U)
+ N DIE,DR,USER,CLASS,USRMEM0 S USRMEM0=$G(^USR(8930.3,+DA,0))
+ I USRMEM0']"" W !,"Record #",DA," NOT FOUND!" H 2 D MAILMSG Q
+ ;S USER=$P($G(^VA(200,+USRMEM0,0)),U)
+ ;S USER=$$GET1^DIQ(200,+USRMEM0,.01) ; ICR 10060
+ S USER=$$PERSNAME^USRLM1(+USRMEM0)
+ S CLASS=$P($G(^USR(8930,+$P(USRMEM0,U,2),0)),U)
  W !,"Removing ",USER," from ",CLASS
  I '$$READ^USRU("Y","Are you SURE","NO") S USRCHNG=0 W !,USER," NOT Removed from ",CLASS,"." H 2 Q
  S USRCHNG=1
  S DIK="^USR(8930.3," D ^DIK W "."
  Q
 MAILMSG ; This section will mail an error message to DUZ
- W "  A mail message is being sent to ",$P($G(^VA(200,DUZ,0)),"^",1) H 1
+ ;W "  A mail message is being sent to ",$P($G(^VA(200,DUZ,0)),"^",1) H 1
+ W "  A mail message is being sent to ",$$GET1^DIQ(200,USER,.01) H 1
  N XMY,XMSUB,USRTEXT,XMTEXT,XMDUZ
  S XMDUZ=0.5
  S XMY(DUZ)=""

@@ -1,5 +1,5 @@
-TIUEDI1 ; SLC/MAM - Additional Edit Code ;14-MAR-2001 09:30:02
- ;;1.0;TEXT INTEGRATION UTILITIES;**7,22,66,61,100**;Jun 20, 1997
+TIUEDI1 ; SLC/MAM - Additional Edit Code ;March 25, 2004
+ ;;1.0;TEXT INTEGRATION UTILITIES;**7,22,66,61,100,166**;Jun 20, 1997
 GETREC(DFN,TIU,TIUCREAT,TIUNEW,TIUDPRM,TIUINQ,TIUPERSN) ;Returns
  ;new or existing document DA.
  ; Receives TIUPERSN (optional) = person asking to edit/create docmt,
@@ -62,6 +62,7 @@ DELAUDIT(TIUDA) ; Cleans up all AUDIT TRAIL entries for a document
  F  S TIUADA=$O(^TIU(8925.5,"B",TIUDA,TIUADA)) Q:+TIUADA'>0  D
  . ; W !," Audit trail record #",TIUADA," Deleted"
  . S DA=TIUADA D ^DIK ; W "."
+ I $L($T(DEL^PXRMGECU)) D DEL^PXRMGECU(+TIUDA)
  Q
 ISCOMP(TIUTYP,X) ; Is the text provided a component tag
  N DIC,TIULEVEL,TIUY,Y,TIUFPRIV S TIULEVEL=0,TIUFPRIV=1

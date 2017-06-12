@@ -1,0 +1,52 @@
+BPHRSSL ;GDHD/HCS/ALA-Update SSL ; 07 Sep 2016  11:24 AM
+ ;;2.1;IHS PERSONAL HEALTH RECORD;**1**;Apr 01, 2014;Build 23
+ Q
+ ;
+EN ;EP - Look for the PHR SSL servers
+ NEW SYSXREF,SYSGL,SSLFND,SSLNAME,SSLFNDT,SSLFNDP
+ S SYSXREF="^[""%SYS""]SYS",SYSGL=$NA(@SYSXREF)
+ S (SSLFNDP,SSLFNDT,SSLNAME)="" F  S SSLNAME=$O(@SYSGL@("Security","SSLConfigsD",SSLNAME)) Q:SSLNAME=""  D
+ . NEW UPNAME
+ . S UPNAME=$$UP^XLFSTR(SSLNAME)
+ . I UPNAME="PHRSRVC" S SSLFNDT=SSLNAME
+ . I UPNAME="PHRPSRV" S SSLFNDP=SSLNAME
+ ;
+ ;If no test entry, create one
+ I SSLFNDT="" D
+ . NEW EXEC,SOBJ,STS,ONAMESPC
+ . S EXEC="S ONAMESPC=$"_"ZNSPACE" X EXEC
+ . S EXEC="ZN ""%SYS""" X EXEC
+ . S EXEC="S SOBJ=##CLASS(Security.SSLConfigs).%New()" X EXEC
+ . S EXEC="S SOBJ.Description=""PHR Test Server""" X EXEC
+ . S EXEC="S SOBJ.Name=""PHRSRVC""" X EXEC
+ . S EXEC="S SOBJ.CipherList=""TLSv1:SSLv3:!ADH:!LOW:!EXP:@STRENGTH""" X EXEC
+ . S EXEC="S SOBJ.PrivateKeyType=2" X EXEC
+ . S EXEC="S SOBJ.Protocols=6" X EXEC
+ . S EXEC="S SOBJ.Type=0" X EXEC
+ . S EXEC="S SOBJ.VerifyDepth=9" X EXEC
+ . S EXEC="S SOBJ.VerifyPeer=0" X EXEC
+ . S EXEC="S SOBJ.Enabled=1" X EXEC
+ . S EXEC="S STS=SOBJ.%Save()" X EXEC
+ . S SSLNAME="PHRSRVC"
+ . S EXEC="ZN ONAMESPC" X EXEC
+ ;
+ ;If no production entry, create one
+ I SSLFNDP="" D
+ . NEW EXEC,SOBJ,STS,ONAMESPC
+ . S EXEC="S ONAMESPC=$"_"ZNSPACE" X EXEC
+ . S EXEC="ZN ""%SYS""" X EXEC
+ . S EXEC="S SOBJ=##CLASS(Security.SSLConfigs).%New()" X EXEC
+ . S EXEC="S SOBJ.Description=""PHR Production Server""" X EXEC
+ . S EXEC="S SOBJ.Name=""PHRPSRV""" X EXEC
+ . S EXEC="S SOBJ.CipherList=""TLSv1:SSLv3:!ADH:!LOW:!EXP:@STRENGTH""" X EXEC
+ . S EXEC="S SOBJ.PrivateKeyType=2" X EXEC
+ . S EXEC="S SOBJ.Protocols=6" X EXEC
+ . S EXEC="S SOBJ.Type=0" X EXEC
+ . S EXEC="S SOBJ.VerifyDepth=9" X EXEC
+ . S EXEC="S SOBJ.VerifyPeer=0" X EXEC
+ . S EXEC="S SOBJ.Enabled=1" X EXEC
+ . S EXEC="S STS=SOBJ.%Save()" X EXEC
+ . S SSLNAME="PHRPSRV"
+ . S EXEC="ZN ONAMESPC" X EXEC
+ ;
+ Q

@@ -1,11 +1,17 @@
-RABWORD1 ;HOIFO/MM-Radiology Billing Awareness ;10/26/04 1:36pm
- ;;5.0;Radiology/Nuclear Medicine;**41,57,70,97**;Mar 16, 1998;Build 6
+RABWORD1 ;HOIFO/MM-Radiology Billing Awareness ; 04 Apr 2014  6:53 AM
+ ;;5.0;Radiology/Nuclear Medicine;**41,57,70,97,1006**;Mar 16, 1998;Build 2
  ;
  ; This routine invokes IA #10082
  ; ICDDX^ICDCODE        IA # 3990
  Q
  ;
 BADISP(RABWDX) ; Display ICD DX & SC/EI/MST/HNC answers from the Order.
+ ;
+ ;IHS/BJI/DAY - Patch 1006 ICD-10
+ ;Do not ask or display Diagnosis
+ Q
+ ;End Patch
+ ;
  ; Called from BADISP^RAORDU1
  I '$D(RABWDX) Q
  N I1,RACNT,RAIND

@@ -1,4 +1,4 @@
-TIUXRC6 ; COMPILED XREF FOR FILE #8925 ; 02/28/13
+TIUXRC6 ; COMPILED XREF FOR FILE #8925 ; 09/22/15
  ; 
  I X'="" I +$P(^TIU(8925,+DA,0),U),+$P($G(^TIU(8925,+DA,0)),U,2) S ^TIU(8925,"APTCL",+$P(^TIU(8925,+DA,0),U,2),+$$CLINDOC^TIULC1(+$P(^TIU(8925,+DA,0),U),+DA),(9999999-X),DA)=""
  S X=$P($G(DIKZ(13)),U,1)
@@ -82,5 +82,15 @@ CR2 S DIXR=307
  I $G(X(1))]"",$G(X(2))]"",$G(X(3))]"",$G(X(4))]"" D
  . K X1,X2 M X1=X,X2=X
  . S ^TIU(8925,"ADIV",X(1),X(2),X(3),X(4),DA)=""
-CR3 K X
+CR3 S DIXR=578
+ K X
+ S DIKZ(12)=$G(^TIU(8925,DA,12))
+ S X(1)=$P(DIKZ(12),U,1)
+ S DIKZ(18)=$G(^TIU(8925,DA,18))
+ S X(2)=$P(DIKZ(18),U,1)
+ S X=$G(X(1))
+ I $G(X(1))]"",$G(X(2))]"" D
+ . K X1,X2 M X1=X,X2=X
+ . S ^TIU(8925,"VBC",$E(X(1),1,14),$E(X(2),1,6),DA)=""
+CR4 K X
 END Q

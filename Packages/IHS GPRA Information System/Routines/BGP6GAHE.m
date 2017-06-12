@@ -1,23 +1,23 @@
 BGP6GAHE ; IHS/CMI/LAB - AREA NATIONAL GPRA REPORT ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
 TESTNTL ;
  S ERR=""
- S LORISUL(1)=""
- S LORISUL(2)=""
- D EP(.ERR,1,2522,"BGP 06 AREA HEDIS","A",.LORISUL,1,3030000,3000000,1,"B",$$NOW^XLFDT)
+ S BGPSUL(1)=""
+ S BGPSUL(2)=""
+ D EP(.ERR,1,2522,"BGP 16 AREA HEDIS","A",.LORISUL,1,3030000,3000000,1,"B",$$NOW^XLFDT)
  W !,ERR
  Q
-EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPRPTT,BGPSUL,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPROT,BGPRTIME) ;EP - called from GUI to produce national gpra report (AO-AGP)
+EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPRPTT,BGPSUL,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGPROT,BGPRTIME,BGPFILE) ;EP - called from GUI to produce national gpra report (AO-AGP)
  ;SEE ROUTINE BGP6DAR for more info
  ;  BGPUSER - DUZ
  ;  BGPDUZ2 - DUZ(2)
  ;  BGPOPTN - OPTION NAME
  ;  BGPRPTT - A or F depending on whether site wants area or facility report, either way you need to display the entries to the user
- ;            from BGP 06 HEDIS DATA CURRENT that match the following:
+ ;            from BGP 16 HEDIS DATA CURRENT that match the following:
  ;            (SEE BGP6ASL or CALL ME)
- ;  BGPSUL  - array containing Iens from BGP 06 DATA CURRENT that the user selected
+ ;  BGPSUL  - array containing Iens from BGP 16 DATA CURRENT that the user selected
  ;  BGPSUL - ARRAY OF IENS FROM THE D GET^BGP6ASL(.BGPSUL,.BGPFILE,3,....... call that the user selected
  ;  ;  BGPQTR - this is equal to 1,2,3,4 or 5 depending on how the user answers the following
  ;           DIR call:
@@ -31,7 +31,7 @@ EP(BGPRET,BGPUSER,BGPDUZ2,BGPOPTN,BGPRPTT,BGPSUL,BGPQTR,BGPPER,BGPVDT,BGPBEN,BGP
  ;       Enter the date range for your report:
  ;
  ;  BGPPER - this is the year they select if they answered the above question
- ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2006)
+ ;           with a 1 through 4  e.g  305000 (fileman imprecise date for 2010)
  ;           if they chose 5 then this will be the end date the enter
  ;
  ;  BGPVDT - baseline year entered by user in internal fileman format, year only
@@ -70,10 +70,11 @@ EP1 ;
  I '$D(BGPSUL) S BGPRET=0_"^FACILITY ARRAY NOT PASSED" Q
  S X=0,C=0 F  S X=$O(BGPSUL(X)) Q:X'=+X  S C=C+1
  I 0 S BGPRET=0_"^FACILITY ARRAY NOT PASSED" Q
+ S BGPSUCNT=0
  S BGPSUCNT=C
- I BGPSUCNT=1 S Y=$O(BGPSUL(0)),X=$P(^BGPGPDCS(Y,0),U,9),X=$O(^AUTTLOC("C",X,0)) I X S BGPSUNM=$P(^DIC(4,X,0),U)
+ I BGPSUCNT=1 S Y=$O(BGPSUL(0)),X=$P(^BGPHEDCB(Y,0),U,9),X=$O(^AUTTLOC("C",X,0)) I X S BGPSUNM=$P(^DIC(4,X,0),U)
  S BGPRTIME=$G(BGPRTIME)
- S DUZ=BGPUSER
+ ;S DUZ=BGPUSER
  S DUZ(2)=BGPDUZ2
  S:'$D(DT) DT=$$DT^XLFDT
  D ^XBKVAR
@@ -82,8 +83,8 @@ EP1 ;
  S BGPAREAA=1
  S BGPRTYPE=3
  S BGPHOME=$P($G(^BGPSITE(DUZ(2),0)),U,2)
- S X=0 F  S X=$O(^BGPHEIS(X)) Q:X'=+X  S BGPIND(X)=""
- S BGPINDT="H"
+ S X=0 F  S X=$O(^BGPHEIB(X)) Q:X'=+X  S BGPIND(X)=""
+ S BGPINDM="H"
  I BGPQTR=1 S BGPBD=$E(BGPPER,1,3)_"0101",BGPED=$E(BGPPER,1,3)_"1231"
  I BGPQTR=2 S BGPBD=($E(BGPPER,1,3)-1)_"0401",BGPED=$E(BGPPER,1,3)_"0331"
  I BGPQTR=3 S BGPBD=($E(BGPPER,1,3)-1)_"0701",BGPED=$E(BGPPER,1,3)_"0630"
@@ -99,8 +100,8 @@ EP1 ;
  S BGPDELT="",BGPEXCEL=""
  ;create entry in GUI file
  D ^XBFMK
- S X=BGPUSER_$$NOW^XLFDT
- S DIC="^BGPGUIS(",DIC(0)="L",DIADD=1,DLAYGO=90375.08,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
+ S X=BGPFILE
+ S DIC="^BGPGUIM(",DIC(0)="L",DIADD=1,DLAYGO=90556.19,DIC("DR")=".02////"_BGPUSER_";.03////"_$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT)_";.05///"_BGPOPTN_";.06///R;.07///"_$G(BGPROT)
  K DD,D0,DO D FILE^DICN K DLAYGO,DIADD,DD,D0,DO
  I Y=-1 S BGPRET=0_"^UNABLE TO CREATE ENTRY IN GUI OUTPUT FILE" Q
  S BGPGIEN=+Y
@@ -112,20 +113,21 @@ EP1 ;
 TSKMN ;
  S ZTIO=""
  K ZTSAVE S ZTSAVE("*")=""
- S ZTCPU=$G(IOCPU),ZTRTN="AOHED^BGP6GAHE",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI AREA HEDIS REPORT 06" D ^%ZTLOAD Q
+ S ZTCPU=$G(IOCPU),ZTRTN="AOHED^BGP6GAHE",ZTDTH=$S(BGPRTIME]"":BGPRTIME,1:$$NOW^XLFDT),ZTDESC="GUI AREA HEDIS REPORT 06" D ^%ZTLOAD
+ D UPLOG^BGP6GUA(BGPGIEN,ZTSK)
  Q
 AOHED ;
  K ^TMP($J,"BGPGUI")
  S IOM=80,BGPIOSL=55
- D GUIR^XBLM("PRINT^BGP6PHEP","^TMP($J,""BGPGUI"",")
- ;cmi/anch/maw added 5/12/2006 for word output
+ D GUIR^BGPXBLM("PRINT^BGP6PHEP","^TMP($J,""BGPGUI"",")
+ ;cmi/anch/maw added 5/12/2009 for word output
  S X=0,C=0 F  S X=$O(^TMP($J,"BGPGUI",X)) Q:X'=+X  D
  . S C=C+1
  . N BGPDATA
  . S BGPDATA=$G(^TMP($J,"BGPGUI",X))
  . I BGPDATA="ZZZZZZZ" S BGPDATA=$C(12)
- . S ^BGPGUIS(BGPGIEN,11,C,0)=BGPDATA
- S ^BGPGUIS(BGPGIEN,11,0)="^90375.0811^"_C_"^"_C_"^"_DT
+ . S ^BGPGUIM(BGPGIEN,11,C,0)=BGPDATA
+ S ^BGPGUIM(BGPGIEN,11,0)="^90556.1911^"_C_"^"_C_"^"_DT
  K ^TMP($J,"BGPGUI")
  ;cmi/anch/maw end of mods
  D ENDLOG
@@ -148,7 +150,7 @@ XIT ;
  Q
  ;
 ENDLOG ;-- UPDATE LOG AT END
- S DIE="^BGPGUIS(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
+ S DIE="^BGPGUIM(",DA=BGPGIEN,DR=".04////"_$$NOW^XLFDT_";.06///C"
  D ^DIE
  K DIE,DR,DA
  Q

@@ -1,7 +1,7 @@
 PXRMVAL ; SLC/KER - Validate Codes (ICD/ICP/CPT main)    ; 05/16/2000
- ;;1.5;CLINICAL REMINDERS;;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;   
- ; This routine checks the both format of a classification code
+ ; This routine checks both the format of a classification code
  ; (pattern matching) and the value of a classification code
  ; provided by a user. Both the format and the value of the
  ; users input must be valid for this routine to return a "true"
@@ -118,10 +118,10 @@ FD ; File and file root based on DIC
  I $E(DIC,1)="^",$L($P(DIC,"^",2)),$P(DIC,"^",2)["(",$L(DIC,"^")=2,$D(@(DIC_"0)")) D  Q
  . S FI=+($P($G(@(DIC_"0)")),"^",2)) S:FI'=80&(FI'=80.1)&(FI'=81) (FI,DIC)=""
  S (FI,DIC)="" Q
-DD(X) ; DD Exist?  (DBIA 2052)
+DD(X) ; DD Exist?  (DBIA #2052)
  N PXRMF S X=+($G(X)) Q:X=0 ""
  D FIELD^DID(X,.01,"N","LABEL","PXRMF") S X=$S($L($G(PXRMF("LABEL"))):1,1:0) Q X
-GL(X) ; Global Location (DBIA 2052)
+GL(X) ; Global Location (DBIA #2052)
  N PXRMF S X=+($G(X)) Q:X=0 "" D FILE^DID(X,"N","GLOBAL NAME","PXRMF") S X=$G(PXRMF("GLOBAL NAME")) Q X
-FN(X) ; File Name (DBIA 2052)
+FN(X) ; File Name (DBIA #2052)
  N PXRMF S X=+($G(X)) Q:X=0 "" D FILE^DID(X,"N","NAME","PXRMF") S X=$G(PXRMF("NAME")) Q X

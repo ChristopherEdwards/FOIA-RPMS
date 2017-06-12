@@ -1,5 +1,5 @@
 BQIUTB2 ;PRXM/HC/ALA-Get Reminders List and Help ; 15 Feb 2007  5:35 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -24,13 +24,14 @@ DONE ;
  ;
 VFL(DATA,FTYP) ;EP - Get list of Vfiles
  S II=0
- S @DATA@(II)="I00010IEN^T00030^T00100SORT_ORDER^T00100SORT_DIR^T00001FILTER"_$C(30)
+ S @DATA@(II)="I00010IEN^T00030^T00100SORT_ORDER^T00100SORT_DIR^T00001FILTER^T00001VIEW_ONLY"_$C(30)
  NEW IEN,IACT,SORT,SN,SIEN,COLMN,SDIR,DIR
  S IEN=0
  F  S IEN=$O(^BQI(90506.3,"D",FTYP,IEN)) Q:'IEN  D
+ . NEW DNDSP
  . ; If vfile entry is flagged 'Do not display or extract', quit
- . I +$$GET1^DIQ(90506.3,IEN_",",.05,"I") Q
- . S II=II+1
+ . I $$GET1^DIQ(90506.3,IEN_",",.05,"I")=1 Q
+ . S DNDSP="N" I +$$GET1^DIQ(90506.3,IEN_",",.05,"I") S DNDSP="Y"
  . S IACT=$$GET1^DIQ(90506.3,IEN_",",.03,"I")
  . S NAME=$$GET1^DIQ(90506.3,IEN_",",.01,"E")
  . ; If a sub-definition, do not pull
@@ -52,7 +53,7 @@ VFL(DATA,FTYP) ;EP - Get list of Vfiles
  ... S SDIR=SDIR_DIR_$C(29)
  . S SORT=$$TKO^BQIUL1(SORT,$C(29))
  . S SDIR=$$TKO^BQIUL1(SDIR,$C(29))
- . S @DATA@(II)=IEN_U_$S(IACT=1:"*",1:"")_NAME_U_SORT_U_SDIR_U_FILTER_$C(30)
+ . S II=II+1,@DATA@(II)=IEN_U_$S(IACT=1:"*",1:"")_NAME_U_SORT_U_SDIR_U_FILTER_U_DNDSP_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
@@ -64,6 +65,19 @@ APST(DATA) ;EP - Get appointment statuses
  S II=II+1,@DATA@(II)="AC^ACTIVE"_$C(30)
  F BI=1:1:$L(SDATA,";")-1 D
  . S II=II+1,@DATA@(II)=$P($P(SDATA,";",BI),":",1)_"^"_$P($P(SDATA,";",BI),":",2)_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+PRST(DATA) ;EP - Get problem list statuses
+ NEW SDATA,II,BI,CODE,DESC,ACT
+ S II=0
+ S @DATA@(II)="T00003IEN^T00045^T00001ACTIVE"_$C(30)
+ S SDATA=$P($G(^DD(9000011,.12,0)),U,3) I SDATA="" Q
+ F BI=1:1:$L(SDATA,";")-1 D
+ . S CODE=$P($P(SDATA,";",BI),":",1),DESC=$P($P(SDATA,";",BI),":",2)
+ . S ACT="Y"
+ . I DESC="DELETED"!(DESC="INACTIVE") S ACT="N"
+ . S II=II+1,@DATA@(II)=CODE_"^"_DESC_"^"_ACT_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;
@@ -159,5 +173,13 @@ DPCP(DATA) ;EP - Get DPCPs
  F  S IEN=$O(^AUPNPAT("AK",IEN)) Q:IEN=""  D
  . S TEXT=$P(^VA(200,IEN,0),U,1)
  . S II=II+1,@DATA@(II)=IEN_"^"_TEXT_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+MUT(DATA) ;EP - Get MU Tabs
+ S II=0
+ S @DATA@(II)="T00001CHOICE_TAB^T00030CHOICE_TEXT"_$C(30)
+ S II=II+1,@DATA@(II)="P^Performance Measures"_$C(30)
+ S II=II+1,@DATA@(II)="C^Clinical Quality Measures"_$C(30)
  S II=II+1,@DATA@(II)=$C(31)
  Q

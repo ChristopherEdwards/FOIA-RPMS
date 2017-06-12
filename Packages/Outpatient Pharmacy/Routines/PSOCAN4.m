@@ -1,5 +1,5 @@
-PSOCAN4 ;BIR/SAB-rx speed dc listman ;29-May-2012 14:40;PLS
- ;;7.0;OUTPATIENT PHARMACY;**20,24,27,63,88,117,131,1005,259,268,225,1015**;DEC 1997;Build 62
+PSOCAN4 ;BIR/SAB-rx speed dc listman ;05-Jun-2013 15:40;DU
+ ;;7.0;OUTPATIENT PHARMACY;**20,24,27,63,88,117,131,1005,259,268,225,1015,1017**;DEC 1997;Build 40
  ;External reference to File #200 supported by DBIA 224
  ;External reference NA^ORX1 supported by DBIA 2186
  ;External references to L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
@@ -7,6 +7,7 @@ PSOCAN4 ;BIR/SAB-rx speed dc listman ;29-May-2012 14:40;PLS
  ;External reference to PS(50.7 supported by DBIA 2223
  ;External reference to PS(50.606 supported by DBIA 2174
  ; Modified - IHS/MSC/PLS - 11/27/06 - Line PEN+1 Added NEW statement for ORD
+ ;                          06/05/13 - Line NOOR+3
 SEL I '$D(^XUSEC("PSORPH",DUZ)) S VALMSG="Unauthorized Action Selection.",VALMBCK="" Q
  N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!" S VALMBCK="" Q
  S DFNHLD=PSODFN
@@ -56,7 +57,9 @@ OK ;S ORD=SAVORD,ORN=SAVORN  ;IHS/MSC/PLS - 11/27/06
 NOOR ;ask nature of order
  D FULL^VALM1
  K DIR,DTOUT,DTOUT,DIRUT I $T(NA^ORX1)]"" D  Q:$D(DIRUT)  G NOORXP
- .S PSONOOR=$$NA^ORX1("S",0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
+ .;IHS/MSC/PLS - 06/05/2013
+ .;S PSONOOR=$$NA^ORX1("S",0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
+ .S PSONOOR=$$NA^ORX1("S",0,"B","Nature of Order",0,"WPSDIV"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
  .I +PSONOOR S PSONOOR=$P(PSONOOR,"^",3) Q
  .S DIRUT=1 K PSONOOR
  S DIR("A")="Nature of Order: ",DIR("B")=$S($G(DODR):"SERVICE CORRECTED",1:"WRITTEN")

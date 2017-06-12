@@ -1,5 +1,5 @@
 BQIPLCR ;PRXM/HC/ALA-Create Panel Functions ; 18 Oct 2005  3:45 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -23,6 +23,28 @@ APTM(DFN) ;EP - Add patient record manually
  D FILE^DIE("","BQIPTUP","ERROR")
  I $D(ERROR) S RESULT=-1 Q
  S RESULT=1
+ Q
+ ;
+APMTC(CDATA,CTYP,CDFN) ;EP - Add a patient's matched criteria
+ NEW DIC,DIE,DA,MTC
+ S DA(3)=OWNR,DA(2)=PLIEN,DA(1)=CDFN,X=CTYP
+ I $G(^BQICARE(DA(3),1,DA(2),40,DA(1),0))="" Q
+ S DIC="^BQICARE("_DA(3)_",1,"_DA(2)_",40,"_DA(1)_",5,",DIC(0)="LN"
+ S DLAYGO=90505.18,DIC(0)="LN"
+ I '$D(^BQICARE(DA(3),1,DA(2),40,DA(1),5,0)) S ^BQICARE(DA(3),1,DA(2),40,DA(1),5,0)="^90505.18^^"
+ D ^DIC
+ I +Y=-1 Q
+ S MTC=+Y
+ ; update the records
+ K DA
+ S DA(4)=OWNR,DA(3)=PLIEN,DA(2)=CDFN,DA(1)=MTC
+ S DIC="^BQICARE("_DA(4)_",1,"_DA(3)_",40,"_DA(2)_",5,"_DA(1)_",1,",DIC(0)="LN"
+ S DLAYGO=90505.181,DIC(0)="LN"
+ I '$D(^BQICARE(DA(4),1,DA(3),40,DA(2),5,DA(1),1,0)) S ^BQICARE(DA(4),1,DA(3),40,DA(2),5,DA(1),1,0)="^90505.181^^"
+ S CDA="" F  S CDA=$O(@CDATA@(CTYP,CDFN,CDA)) Q:CDA=""  D
+ . S X=CDA
+ . D ^DIC S DA=+Y I DA=-1 Q
+ . ;M ^BQICARE(DA(4),1,DA(3),40,DA(2),5,DA(1),1,DA)=@CDATA@(CTYP,CDFN,CDA)
  Q
  ;
 RPTM(DFN) ;EP - Remove patient record manually

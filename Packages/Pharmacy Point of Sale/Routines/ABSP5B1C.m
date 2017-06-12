@@ -1,5 +1,5 @@
 ABSP5B1C ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for 5.1 (COB and WORKERS COMP Segments)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
 COB ;EP CALLED FROM ABSP5B1 to set up PRICING SEGMENT -- Segment not yet implemented We'll probably have to do something very similar to DURR and CLINIC segments
  Q:$D(SUPRESSG("COB"))
  N FIELD

@@ -1,5 +1,5 @@
 BKMQQCR9 ;PRXM/HC/BWF - BKMV Quality of Care Report; [ 1/19/2005  7:16 PM ]
- ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.2;HIV MANAGEMENT SYSTEM;;Apr 01, 2015;Build 40
  ; Quality of Care Audit Report
  Q
 ARVCALC ; EP - ARV (HAART) Calculation
@@ -112,12 +112,12 @@ TOBCALC ; EP - Tobacco use Calculation
  I TOBTOT<1 Q
  S BKMDFN=0,(CNT1,CNT2,CNT3,CNT4)=0
  F  S BKMDFN=$O(@GLOB@("HIVCHK",BKMDFN)) Q:'BKMDFN  D
+ .I $D(@GLOB@("HIVCHK",BKMDFN,"TOBNONUSER")) S CNT3=CNT3+1 Q  ; Non-Current Tobacco User
  .I '$D(@GLOB@("HIVCHK",BKMDFN,"TOB")) Q  ; Only sub-total those who have been screened
  .I $D(@GLOB@("HIVCHK",BKMDFN,"TOBUSER")) S CNT1=CNT1+1 D  Q  ; Current Tobacco User
  ..;Only count tobacco counseling on current tobacco users
  ..I $D(@GLOB@("HIVCHK",BKMDFN,"TOBED")) S CNT2=CNT2+1
  ..Q
- .I $D(@GLOB@("HIVCHK",BKMDFN,"TOBNONUSER")) S CNT3=CNT3+1 Q  ; Non-Current Tobacco User
  .S CNT4=CNT4+1 ; Screened, but not documented as to Current or Non-Current Tobacco User
  S @GLOB@("TOBT","SCREEN","CNT")=TOBTOT
  S @GLOB@("TOBT","SCREEN","PERC")=TOBTOT/PTOTAL*100

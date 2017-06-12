@@ -1,5 +1,5 @@
 ABSPOSM2 ; IHS/FCS/DRS - Report Master (.61) ;    [ 09/12/2002  10:12 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,11,20,29,37,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,11,20,29,37,40**;JUN 21, 2001;Build 15
  ;
  ; ABSPOSM2 - headers called from some Fileman reports
  ;  D0 points to 9002313.61

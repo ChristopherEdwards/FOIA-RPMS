@@ -1,5 +1,5 @@
-GMPLCODE ; SLC/MKB/AJB -- Problem List ICD Code Utilities ;5/27/94  08:23
- ;;2.0;Problem List;**28**;Aug 25, 1994
+GMPLCODE ; SLC/MKB/AJB/TC -- Problem List ICD Code Utilities ;09/20/12  13:22
+ ;;2.0;Problem List;**28,43**;Aug 25, 1994;Build 4
 EN ; -- main entry point for GMPL CODE LIST
  K GMPLUSER
  D EN^VALM("GMPL CODE LIST")
@@ -30,7 +30,7 @@ HELP ; -- help code
  Q
  ;
 EDIT ; -- edit field .01
- N GMPLSEL,GMPLNO,GMPI,GMPIFN,GMPLNUM,GMPSAVED
+ N GMPLSEL,GMPLNO,GMPI,GMPIFN,GMPLNUM,GMPSAVED,GMPQUIT
  S VALMBCK=$S(VALMCC:"",1:"R")
  S GMPLSEL=$$SEL^GMPLX("code") G:GMPLSEL="^" EDQ
  S GMPLNO=$L(GMPLSEL,",")
@@ -43,10 +43,11 @@ EDQ D KILL^GMPLX S VALMSG=$$MSG^GMPLX
  Q
  ;
 ICD(NUM,IFN) ; -- search ICD Diagnosis file #80
- N X,Y,DIC,DIR,OLD,NEW,DA,DR,DIE,LCNT,CHNGE
+ N X,Y,DIC,DIR,DTOUT,DUOUT,OLD,NEW,DA,DR,DIE,LCNT,CHNGE,GMPQUIT,GMPSAVED
  W !,IFN,!
  D FULL^VALM1 S VALMBCK="R" W !!
- S OLD=+$G(^AUPNPROB(IFN,0)),OLD=OLD_U_$P($G(^ICD9(OLD,0)),U)
+ ;S OLD=+$G(^AUPNPROB(IFN,0)),OLD=OLD_U_$P($G(^ICD9(OLD,0)),U)
+ S OLD=+$G(^AUPNPROB(IFN,0)),OLD=OLD_U_$$CODEC^ICDCODE(OLD) ; Replacing direct global read to ^ICD9
  S DIR(0)="PAO^ICD9(:QEM",DIR("A")="Enter ICD CODE or DESCRIPTION: "
  S DIR("A",1)="Problem #"_NUM_": "_$$PROBTEXT^GMPLX(IFN)
  S DIR("?")="Enter a new code number or a brief free text description on which to search",DIR("B")=$P(OLD,U,2)

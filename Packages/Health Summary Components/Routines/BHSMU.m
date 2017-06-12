@@ -1,10 +1,11 @@
-BHSMU ;IHS/CIA/MGH - Health Summary Utilities ;06-May-2010 10:37;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**2,4**;March 17, 2006;Build 13
+BHSMU ;IHS/CIA/MGH - Health Summary Utilities ;30-Nov-2015 10:26;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**2,4,9,12**;March 17, 2006;Build 3
  ;===================================================================
  ;Taken from APCHSMU
  ; IHS/CMI/LAB - utilities for hmr ;  [ 09/08/04  10:39 AM ]
  ;;2.0;IHS RPMS/PCC Health Summary;**8,10,11,12**;JUN 24, 1997
  ;Patch 2 changed for Code set versioning
+ ;Patch 12 changed to use new API
  ;
 D1(D) ;EP - DATE WITH 4 YR
  I $G(D)="" Q ""
@@ -59,11 +60,12 @@ PLTAX(P,A,S) ;EP - is DM on problem list 1 or 0
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  S S=$G(S)
- N T S T=$O(^ATXAX("B",A,0))
+ N T,TAXARR
+ S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
  N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^ATXAPI(Y,T,9)
  .S I=1
  Q I
 PLCODE(P,A,F) ;EP
@@ -71,9 +73,10 @@ PLCODE(P,A,F) ;EP
  I $G(A)="" Q ""
  I $G(F)="" S F=1
  N T
- S T=+$$CODEN^ICDCODE(A,80)
+ I $$AICD^BHSUTL S T=+$$CODEN^ICDEX(A,80)
+ E  S T=+$$CODEN^ICDCODE(A,80)
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=X
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=X
  I F=1 Q I
  I F=2 Q X
  Q ""
@@ -210,7 +213,6 @@ LASTCOLO(P) ;EP
  S T=$O(^ATXAX("B","BGP COLO CPTS",0))
  S X=$$CPT^APCHSMU2(P,$P(^DPT(P,0),U,3),DT,T,3)
  I X D
- .Q $G(LCOLO)
  .S LCOLO=X
  Q $G(LCOLO)
 LASTSIG(P) ;EP

@@ -1,5 +1,5 @@
 APCHHMRD ; IHS/CMI/LAB - DISPLAY HEALTH MAINTENANCE REMINDER ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;; ;
 EP ;EP - called from option to select and display a hmr
  W:$D(IOF) @IOF
@@ -20,14 +20,14 @@ INIT ; -- init variables and list array
  S X="Currently Defined Criteria in Use at this Facility" D S(X,1)
  I '$O(^APCHSURV(APCHHMR,11,0)) S X="<<< No local criteria defined. >>>" D S(X)
  S Y=0 F  S Y=$O(^APCHSURV(APCHHMR,11,Y)) Q:Y'=+Y  D
- .S Z="",$E(Z,5)="Sex:  "_$S($P(^APCHSURV(APCHHMR,11,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHHMR,11,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHHMR,11,Y,0),U)="B":"BOTH",1:"")
+ .S Z="",$E(Z,2)="Sex:  "_$S($P(^APCHSURV(APCHHMR,11,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHHMR,11,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHHMR,11,Y,0),U)="B":"ALL GENDERS",$P(^APCHSURV(APCHHMR,11,Y,0),U)="U":"UNKNOWN",1:"")
  .S J=0 F  S J=$O(^APCHSURV(APCHHMR,11,Y,11,J)) Q:J'=+J  D
  ..S X=Z,$E(X,21)="Mininum Age: "_$P(^APCHSURV(APCHHMR,11,Y,11,J,0),U),$E(X,40)="Maximum Age: "_$P(^APCHSURV(APCHHMR,11,Y,11,J,0),U,2),$E(X,60)="Frequency: "_$P(^APCHSURV(APCHHMR,11,Y,11,J,0),U,3) D S(X)
  ..Q
  .Q
  ;S X="Standard IHS Default Criteria" D S(X,2)
  ;S Y=0 F  S Y=$O(^APCHSURV(APCHHMR,81,Y)) Q:Y'=+Y  D
- ;.S Z="",$E(Z,5)="Sex:  "_$S($P(^APCHSURV(APCHHMR,81,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHHMR,81,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHHMR,81,Y,0),U)="B":"BOTH",1:"")
+ ;.S Z="",$E(Z,2)="Sex:  "_$S($P(^APCHSURV(APCHHMR,81,Y,0),U)="F":"FEMALE",$P(^APCHSURV(APCHHMR,81,Y,0),U)="M":"MALE",$P(^APCHSURV(APCHHMR,81,Y,0),U)="B":"BOTH",1:"")
  ;.S J=0 F  S J=$O(^APCHSURV(APCHHMR,81,Y,11,J)) Q:J'=+J  D
  ;..S X=Z,$E(X,21)="Mininum Age: "_$P(^APCHSURV(APCHHMR,81,Y,11,J,0),U),$E(X,40)="Maximum Age: "_$P(^APCHSURV(APCHHMR,81,Y,11,J,0),U,2),$E(X,60)="Frequency: "_$P(^APCHSURV(APCHHMR,81,Y,11,J,0),U,3) D S(X)
  ;..Q

@@ -1,0 +1,169 @@
+BLRLABIR ; IHS/MSC/MKK - Lab Install Reports ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 01, 1997
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+EP ; EP
+PEP ; EP
+ ; New everything but Default variables
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D MAKEMENU
+ ;
+ ; Main Menu driver
+ D MENUDRVR^BLRGMENU("IHS Laboratory User Support","Lab Patch Install Reports")
+ Q
+ ;
+MAKEMENU ; EP -- Lab Install Reports Menu
+ S BLRVERN=$P($P($T(+1),";")," ")
+ ;
+ D ADDTMENU^BLRGMENU("IHSONLY^BLRLABIR","IHS Lab Patches Only")
+ D ADDTMENU^BLRGMENU("VAONLY^BLRLABIR","VA Lab Patches Only")
+ D ADDTMENU^BLRGMENU("BOTH^BLRLABIR","IHS & VA Lab Patches")
+ Q
+ ;
+IHSONLY ; EP - IHS Lab Patches Only Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$INITVARS("IHS Lab Package Patch Installs")="Q"
+ ;
+ F SEED="BLR*5.2*1099","LR*5.2*1099"  D
+ . S SEEDBEG=$P(SEED,"*")
+ . S SEEDBEGL=$L(SEEDBEG)
+ . S PATCH=SEED
+ . F  S PATCH=$O(^XPD(9.7,"B",PATCH),-1)  Q:PATCH=""!($E(PATCH,1,SEEDBEGL)'=SEEDBEG)!(QFLG="Q")  D
+ .. S IEN="A"
+ .. F  S IEN=$O(^XPD(9.7,"B",PATCH,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ ... D LINEDATA
+ ;
+ D ^%ZISC
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+VAONLY ; EP - VA Lab Patches Only Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$INITVARS("VA Lab Package Patch Installs")="Q"
+ ;
+ F  S PATCH=$O(^XPD(9.7,"B",PATCH),-1)  Q:PATCH=""!($E(PATCH,1,2)'="LR")!($L($P(PATCH,"*",3))>3)!(QFLG="Q")  D
+ . S IEN="A"
+ . F  S IEN=$O(^XPD(9.7,"B",PATCH,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ .. D LINEDATA
+ ;
+ D ^%ZISC
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+BOTH ; EP - Both VA and RPMS Lab Patches Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D BOTHCOMP
+ ;
+ Q:$$INITVARS("RPMS Lab Package Patch Installs")="Q"
+ ;
+ S WHNSTART=.9999999
+ F  S WHNSTART=$O(^TMP("BLRLABIR",$J,WHNSTART))  Q:WHNSTART<1!(QFLG="Q")  D
+ . S PATCH=""
+ . F  S PATCH=$O(^TMP("BLRLABIR",$J,WHNSTART,PATCH))  Q:PATCH=""!(QFLG="Q")  D
+ .. S IEN=.9999999
+ .. F  S IEN=$O(^TMP("BLRLABIR",$J,WHNSTART,PATCH,IEN))  Q:IEN<1!(QFLG="Q")  D
+ ... D LINEDATA
+ ;
+ D ^%ZISC
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+BOTHCOMP ; EP - Compile Data for Combined Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S BLRVERN=$P($P($T(+1),";")," ")
+ S HEADER(1)="RPMS Lab Package Patch Installs"
+ S HEADER(2)="Compilation of Data"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ K ^TMP("BLRLABIR")
+ ;
+ W ?5,"Compiling"
+ S PATCH="LR*5.2*A"
+ ;
+ F SEED="BLR*5.2*1099","LR*5.2*A"  D
+ . S SEEDBEG=$P(SEED,"*")
+ . S SEEDBEGL=$L(SEEDBEG)
+ . S PATCH=SEED
+ . F  S PATCH=$O(^XPD(9.7,"B",PATCH),-1)  Q:PATCH=""!($E(PATCH,1,SEEDBEGL)'=SEEDBEG)  D
+ .. S IEN="A"
+ .. F  S IEN=$O(^XPD(9.7,"B",PATCH,IEN),-1)  Q:IEN<1  D
+ ... W "."  W:$X>74 !,?5
+ ... ;
+ ... S STARTDTT=$P($G(^XPD(9.7,IEN,1)),"^")
+ ... S ^TMP("BLRLABIR",$J,STARTDTT,PATCH,IEN)=""
+ ;
+ W !!,?5,"Compilation Complete."
+ D PRESSKEY^BLRGMENU(10)
+ Q
+ ;
+INITVARS(HEADL1) ; EP - Initialization of variables
+ S BLRVERN=$P($P($T(+1),";")," ")
+ ;
+ S HEADER(1)=HEADL1
+ S HEADER(2)="Reverse Patch Sort"
+ S HEADER(3)=" "
+ S HEADER(4)="Patch #"
+ S $E(HEADER(4),14)="Package Name"
+ S $E(HEADER(4),29)="Started Date/Time"
+ S $E(HEADER(4),51)="Completed Date/Time"
+ S $E(HEADER(4),73)="File 200"
+ ;
+ S:HEADL1["IHS" PATCH="LR*5.2*1099"
+ S:HEADL1["VA" PATCH="LR*5.2*A"
+ S:HEADL1["RPMS" HEADER(2)="Start Date/Time Sort"
+ ;
+ D ^%ZIS
+ I POP D  Q "Q"
+ . W !,?4,"Could not open output Device.  Routine Ends.",!
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S QFLG="NO"
+ S MAXLINES=$S(IOT["VT":(IOSL-4),1:IOSL)
+ S LINES=MAXLINES+10,PG=0
+ ;
+ U IO
+ ;
+ Q "OK"
+ ;
+LINEDATA ; EP - Write a line of Data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,"NO")  I QFLG="Q" Q
+ ;
+ D INSTLLFB
+ ;
+ W $E(PATCH,1,12)
+ W ?13,$E(NAME,1,13)
+ W ?28,STARTDTT
+ W ?50,COMPDTT
+ W ?72,WHOINSTALL
+ W !
+ S LINES=LINES+1
+ Q
+ ;
+INSTLLFB ; EP - INSTALL File Breakout of Variables
+ S STR=$G(^XPD(9.7,IEN,0))
+ S WHOINSTALL=$P(STR,"^",11)
+ ;
+ S PKGFLINK=$P(STR,"^",2)
+ S NAME=$P($G(^DIC(9.4,+PKGFLINK,0)),"^")
+ ;
+ S STR=$G(^XPD(9.7,IEN,1))
+ ;
+ S STARTDTT=$P(STR,"^")
+ S:$L(STARTDTT) STARTDTT=$$FMTE^XLFDT(STARTDTT,"5Z")
+ ;
+ S COMPDTT=$P(STR,"^",3)
+ S:$L(COMPDTT) COMPDTT=$$FMTE^XLFDT(COMPDTT,"5Z")
+ Q

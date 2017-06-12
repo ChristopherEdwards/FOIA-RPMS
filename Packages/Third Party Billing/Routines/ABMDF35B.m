@@ -1,5 +1,9 @@
 ABMDF35B ; IHS/SD/SDR - Set HCFA1500 (02/12) Print Array PART 2 ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**13,14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR - 2.6*14 - HEAT156735 - Populated box 19 with:
+ ;  1. VA CONTRACT NUMBER (existing code)
+ ;  2. claim attachments from page 9G (new code)
+ ;  3. what it did before (existing code)
  ;
  ; *********************************************************************
 BNODES S ABM("B5")=$G(^ABMDBILL(DUZ(2),ABMP("BDFN"),5)),ABM("B6")=$G(^(6)),ABM("B7")=$G(^(7)),ABM("B8")=$G(^(8)),ABM("B9")=$G(^(9)),ABM("B10")=$G(^(10))
@@ -45,15 +49,15 @@ SIML ;
  ;S $P(ABMF(25),U,2)=$P(ABM("B8"),U,9)  ;abm*2.6*13 box 15
  ;start new abm*2.6*13 box 15
  S ABMBOX15=""
- I $P(ABM("B8"),U,23)'="" S ABMBOX15="454   "_$$SDT^ABMDUTL($P(ABM("B8"),U,23))  ;Initial Treatment
- I ABMBOX15="",$P(ABM("B9"),U,11)'="" S ABMBOX15="304   "_$$SDT^ABMDUTL($P(ABM("B9"),U,11))  ;Latest Visit or Consultation/Date Last Seen
- I ABMBOX15="",$P(ABM("B7"),U,27)'="" S ABMBOX15="453   "_$$SDT^ABMDUTL($P(ABM("B7"),U,27))  ;Acute Manifestation of a Chronic Condition
- I ABMBOX15="",$P(ABM("B8"),U,2)'="" S ABMBOX15="439   "_$$SDT^ABMDUTL($P(ABM("B8"),U,2))  ;Accident
- I ABMBOX15="",$P(ABM("B9"),U,13)'="" S ABMBOX15="455   "_$$SDT^ABMDUTL($P(ABM("B9"),U,13))  ;Last X-Ray
- I ABMBOX15="",$P(ABM("B7"),U,14)'="" S ABMBOX15="471   "_$$SDT^ABMDUTL($P(ABM("B7"),U,14))  ;Prescription
- I ABMBOX15="",$P(ABM("B7"),U,19)'="" S ABMBOX15="090   "_$$SDT^ABMDUTL($P(ABM("B7"),U,19))  ;Assumed Care Date
- I ABMBOX15="",$P(ABM("B7"),U,21)'="" S ABMBOX15="091   "_$$SDT^ABMDUTL($P(ABM("B7"),U,21))  ;Relinquished Care Date
- I ABMBOX15="",$P(ABM("B7"),U,22)'="" S ABMBOX15="444   "_$$SDT^ABMDUTL($P(ABM("B7"),U,22))  ;First Visit or Consultation
+ I $P(ABM("B8"),U,23)'="" S ABMBOX15="454    "_$$SDT^ABMDUTL($P(ABM("B8"),U,23))  ;Initial Treatment
+ I ABMBOX15="",$P(ABM("B9"),U,11)'="" S ABMBOX15="304    "_$$SDT^ABMDUTL($P(ABM("B9"),U,11))  ;Latest Visit or Consultation/Date Last Seen
+ I ABMBOX15="",$P(ABM("B7"),U,27)'="" S ABMBOX15="453    "_$$SDT^ABMDUTL($P(ABM("B7"),U,27))  ;Acute Manifestation of a Chronic Condition
+ I ABMBOX15="",$P(ABM("B8"),U,2)'="" S ABMBOX15="439    "_$$SDT^ABMDUTL($P(ABM("B8"),U,2))  ;Accident
+ I ABMBOX15="",$P(ABM("B9"),U,13)'="" S ABMBOX15="455    "_$$SDT^ABMDUTL($P(ABM("B9"),U,13))  ;Last X-Ray
+ I ABMBOX15="",$P(ABM("B7"),U,14)'="" S ABMBOX15="471    "_$$SDT^ABMDUTL($P(ABM("B7"),U,14))  ;Prescription
+ I ABMBOX15="",$P(ABM("B7"),U,19)'="" S ABMBOX15="090    "_$$SDT^ABMDUTL($P(ABM("B7"),U,19))  ;Assumed Care Date
+ I ABMBOX15="",$P(ABM("B7"),U,21)'="" S ABMBOX15="091    "_$$SDT^ABMDUTL($P(ABM("B7"),U,21))  ;Relinquished Care Date
+ I ABMBOX15="",$P(ABM("B7"),U,22)'="" S ABMBOX15="444    "_$$SDT^ABMDUTL($P(ABM("B7"),U,22))  ;First Visit or Consultation
  S $P(ABMF(25),U,2)=ABMBOX15
  ;end new box 15
 BLK17 ;
@@ -68,6 +72,12 @@ BLK19 ;
  S ABMBLK19=ABMBLK19_" "_$S($P(ABM("B9"),U,15)="Y":"HOSPICE EMP. PROV",1:"")
  S ABMBLK19=ABMBLK19_" "_$P(ABM("B10"),U,1)
  S $P(ABMF(29),U)=$E(ABMBLK19,1,48)
+ ;start new code abm*2.6*14 HEAT156735
+ I $D(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,0)) D
+ .S ABMI=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,0))
+ .S ABMBLK19="PWK"_$$GET1^DIQ(9002274.03,$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,ABMI,0)),U),".01","E")_$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,ABMI,0)),U,2)_$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),71,ABMI,0)),U,3)
+ .S $P(ABMF(29),U)=$E(ABMBLK19,1,48)
+ ;end new code HEAT156735
  I ((ABMP("ITYPE")="V")!($$GET1^DIQ(9999999.18,ABMP("INS"),".01","E")["VMBP"))&($P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)'="") S $P(ABMF(29),U)=$P($G(^ABMDPARM(ABMP("LDFN"),1,3)),U,13)  ;abm*2.6*11 VMBP RQMT_108  ;abm*2.6*12 VMBP
  K ABMBLK19
 LAB I '$P(ABM("B8"),U) S $P(ABMF(29),U,3)="X"

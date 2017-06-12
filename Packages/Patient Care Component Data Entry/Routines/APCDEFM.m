@@ -1,5 +1,5 @@
 APCDEFM ; IHS/CMI/LAB - prcess visit in list man ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,17**;MAY 14, 2009;Build 18
  ;
  ;
  ;This routine in the driver routine for data entry option
@@ -62,7 +62,7 @@ GETVISIT ;
  S APCDNOXV="" D ^APCDALV K APCDNOXV
  I $D(APCDAFLG)#2,APCDAFLG=2 W $C(7),!,"VISIT date not valid for current patient!",! S APCDFLG=1 Q
  I APCDVSIT="" W !!,"No visit selected." Q
- I $D(APCDVSIT("NEW")),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")'<$P(^APCCCTRL(DUZ(2),0),U,12) S DA=APCDVSIT,DIE="^AUPNVSIT(",DR="1111///R" D ^DIE K DIE,DA,DR
+ ;I $D(APCDVSIT("NEW")),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")'<$P(^APCCCTRL(DUZ(2),0),U,12) S DA=APCDVSIT,DIE="^AUPNVSIT(",DR="1111///R" D ^DIE K DIE,DA,DR
  ;above added for EHR and auditing of visits, d/e created
  S APCDLVST=APCDVSIT
  S DIE="^AUPNPAT(",DR=".16///TODAY",DA=APCDPAT D ^DIE

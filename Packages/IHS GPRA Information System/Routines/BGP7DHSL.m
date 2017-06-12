@@ -1,5 +1,5 @@
-BGP7DHSL ; IHS/CMI/LAB - FY 07 DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7DHSL ; IHS/CMI/LAB - IHS 2017 DISPLAY IND LISTS ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;; ;
 RT ;EP
  ;for each measure list, choose report type
@@ -23,7 +23,7 @@ EOJ1 ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for GPRA LIST DISPLAY
- D EN^VALM("BGP 07 HEDIS LIST SELECTION")
+ D EN^VALM("BGP 17 HEDIS LIST SELECTION")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -31,17 +31,17 @@ EN ;EP -- main entry point for GPRA LIST DISPLAY
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="IHS FY 07 HEDIS Performance Measure Lists of Patients"
+ S VALMHDR(1)="IHS 2017 HEDIS Performance Measure Lists of Patients"
  S VALMHDR(2)="* indicates the list has been selected"
  Q
  ;
 INIT ; -- init variables and list array
  K BGPGLIST,BGPNOLI S BGPHIGH=""
  S (X,C,I)=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- .I $P(^BGPHEIA(X,0),U,5)]"" S C=C+1 D  Q
- ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPHEIA(X,0),U,5),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
- .I $P(^BGPHEIA(X,0),U,5)="" S C=C+1 D
- ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPHEIA(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPHEIB(X,0),U,5)]"" S C=C+1 D  Q
+ ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPHEIB(X,0),U,5),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPHEIB(X,0),U,5)="" S C=C+1 D
+ ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPHEIB(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
  S (VALMCNT,BGPHIGH)=C
  Q
  ;

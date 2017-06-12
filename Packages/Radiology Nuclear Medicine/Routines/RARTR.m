@@ -1,5 +1,5 @@
-RARTR ;HISC/CAH COLUMBIA/REB AISC/MJK,RMO-Queue/print Reports ;06/10/09  06:30
- ;;5.0;Radiology/Nuclear Medicine;**5,13,16,27,43,55,75,92,99**;Mar 16, 1998;Build 5
+RARTR ;HISC/CAH COLUMBIA/REB AISC/MJK,RMO-Queue/print Reports ; 06 Oct 2013  11:06 AM
+ ;;5.0;Radiology/Nuclear Medicine;**5,13,16,27,43,55,75,92,99,1005**;Mar 16, 1998;Build 13
  ;Supported IA #2056 reference to GET1^DIQ
 PRT ; Begin print/build of e-mail message
  ;
@@ -27,7 +27,11 @@ PRT ; Begin print/build of e-mail message
  ;S RAFFLF=$S('$D(ORACTION):RAFFLF,ORACTION'=8:RAFFLF,1:"!")
  D INIT ; setup exam/report variables
  ;start p99
- I $$PTSEX^RAUTL8(RADFN)="F",'$D(RAUTOE) D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F",'$D(RAUTOE) D
+ I $$PTSEX^RAUTL8(RADFN)'="M",'$D(RAUTOE) D
+ .;
  .N RA700332,RA700380 S RA700332=$$GET1^DIQ(70.03,$G(RACNI)_","_$G(RADTI)_","_$G(RADFN),32)
  .W:RA700332'="" !,"Pregnancy Screen: ",RA700332
  .S RA700380=$$GET1^DIQ(70.03,$G(RACNI)_","_$G(RADTI)_","_$G(RADFN),80)

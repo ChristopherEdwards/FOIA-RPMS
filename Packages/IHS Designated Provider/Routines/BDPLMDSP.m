@@ -1,5 +1,5 @@
 BDPLMDSP ; IHS/CMI/TMJ - UPDATE USING LISTMAN ;  
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ;
 START ;
@@ -30,7 +30,7 @@ EN ; -- main entry point for BDP UPDATE PATIENT CASE DATA
  ;
 HDR ; -- header code
  S VALMHDR(1)=$TR($J(" ",80)," ","-")
- S VALMHDR(2)="Designated Provider List for: "_IORVON_$P(^DPT(BDPPAT,0),U)_IOINORM_"    HRN: "_$$HRN^AUPNPAT(BDPPAT,DUZ(2),2)
+ S VALMHDR(2)="Designated Provider List for: "_IORVON_$P(^DPT(BDPPAT,0),U)_IORVOFF_"    HRN: "_$$HRN^AUPNPAT(BDPPAT,DUZ(2),2)
  S VALMHDR(3)=$TR($J(" ",80)," ","-")
  S VALMHDR(4)="Category",$E(VALMHDR(4),32)="Current Provider",$E(VALMHDR(4),57)="Updated",$E(VALMHDR(4),66)="Updated by"
  Q

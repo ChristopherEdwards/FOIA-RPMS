@@ -1,0 +1,516 @@
+BLRRLMU2 ; IHS/MSC/MKK - Reference Lab Meaningful use Utilities, Part 2  ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 1, 1997
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+PEP ; EP
+DEBUGIT ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ D ADDTMENU^BLRGMENU("LAHMMENU^BLRRLMU2","LA7 MESSAGE QUEUE Reports ...")
+ D ADDTMENU^BLRGMENU("LAHMENU^BLRRLMU3","^LAH Global Reports ...")
+ D ADDTMENU^BLRGMENU("UNIVMENU^BLRRLMU4","UNIVERSAL INTERFACE Reports ...")
+ ;
+ ; Main Menu driver
+ D MENUDRVR^BLRGMENU("RPMS Lab MU Stage 2","Miscellaneous Debug Utilities")
+ Q
+ ;
+LAHMMENU ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D SETBLRVS("LAHMMENU")
+ ;
+ D ADDTMENU^BLRGMENU("LAHMUIDS^BLRRLMU2","Incoming Matching UIDs in 62.49")
+ D ADDTMENU^BLRGMENU("SPECSEGS^BLRRLMU2","User Chosen Segments in 62.49")
+ D ADDTMENU^BLRGMENU("LAHMAUID^BLRRLMU2","All Matching UIDs in ^LAHM(62.49")
+ ; D ADDTMENU^BLRGMENU("MU2TEST^BLRRLMUA","Enter UID & Display HL7 Segs")
+ D ADDTMENU^BLRGMENU("PIDUIDSR^BLRRLMU2","ALL 62.49 Incoming PIDs")
+ D ADDTMENU^BLRGMENU("UIDPALL^BLRRLMU2","Enter UID & Display 62.49 Data")
+ ;
+ ; Main Menu driver
+ D MENUDRVR^BLRGMENU("RPMS Lab MU Stage 2","Miscellaneous Debug Utilities",$$CJ^XLFSTR("LA7 MESSAGE QUEUE (#62.49) Reports",IOM))
+ Q
+ ;
+SHOWDATE(HL7DT) ; EP - Take HL7 Date and display FM & External Date
+ NEW FMDT
+ ;
+ S TAB=$G(TAB,9)
+ S FMDT=$$HL7TFM^XLFDT(HL7DT)
+ W ?39,FMDT
+ W ?59,$$FMTE^XLFDT(FMDT,"5MZ")
+ Q
+ ;
+LAHTESTS ; EP - ^LAH 62.49 Tests Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHTESTI()="Q"
+ ;
+ F  S LAHIEN=$O(^LAH(LRLL,1,LAHIEN))  Q:LAHIEN<1  D
+ . S UID=$G(^LAH(LRLL,1,LAHIEN,.3))
+ . Q:$L(UID)<1
+ . Q:$D(^TMP("BLRRLMUU",$J,"UID",UID))<1
+ . ;
+ . W ?4,LAHIEN,?19,UID,?34,$G(^TMP("BLRRLMUU",$J,"UID",UID)),!
+ . S LINES=LINES+1
+ . S CNT=CNT+1
+ ;
+ W !!
+ ;
+ W:CNT<1 ?4,"No UIDs in ^LAH match 62.49",!
+ W:CNT ?4,"Number of UIDs in ^LAH that Match 62.49 = ",CNT,!
+ ;
+ W !,?9,"Number of UIDs in 62.49 = ",UID6249,!
+ ;
+ D PRESSKEY^BLRGMENU
+ Q
+ ;
+LAHTESTI() ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ Q:$$GETLWLID(.LRLL)<1 "Q"
+ ;
+ S HEADER(1)="^LAH NIST Entries with 62.49 Data"
+ ;
+ S HEADER(2)=" "
+ S $E(HEADER(3),5)="IEN"
+ S $E(HEADER(3),20)="UID"
+ S $E(HEADER(3),35)="IHSSPM"
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,PG,UID6249)=0
+ S (HDRONE,QFLG)="NO"
+ ;
+ D LAHTESTU(.UID6249)
+ ;
+ S LAHIEN=.9999999
+ D HEADERDT^BLRGMENU
+ ;
+ Q "OK"
+ ;
+LAHTESTU(UID6249) ; EP - Create UID index into 62.49
+ NEW IEN,INST,UID
+ ;
+ K ^TMP("BLRRLMUU",$J,"UID")
+ ;
+ S INST=""
+ F  S INST=$O(^LAHM(62.49,"C",INST))  Q:INST=""  D
+ . S UID=$P(INST,"-",3)
+ . Q:$L(UID)<1
+ . ;
+ . S IEN=$O(^LAHM(62.49,"C",INST,"A"),-1)
+ . S ^TMP("BLRRLMUU",$J,"UID",UID)=IEN
+ . S UID6249=UID6249+1
+ Q
+ ;
+LAHSPMS ; EP - ^LAH IHSSPM Values
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHSPMSI()="Q"
+ ;
+ F  S IEN=$O(^LAH(LOADWORK,1,IEN),-1)  Q:IEN<1  D
+ . Q:$D(^LAH(LOADWORK,1,IEN,"IHSSPM"))<1
+ . W IEN
+ . W ?9,$G(^LAH(LOADWORK,1,IEN,.3))
+ . W ?24,$E($G(^LAH(LOADWORK,1,IEN,"IHSSPM")),1,60)
+ . W !
+ ;
+ D PRESSKEY^BLRGMENU(4)
+ Q
+ ;
+LAHSPMSI() ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="^LAH IHSSPM Entries"
+ S HEADER(2)=" "
+ S HEADER(3)="IEN"
+ S $E(HEADER(3),10)="UID"
+ S $E(HEADER(3),25)="IHSSPM"
+ ;
+ S LA7INST=$$GET1^DIQ(9009029,DUZ(2),3001)
+ I $G(LA7INST)=""
+ Q:$G(LA7INST)="" "Q"                              ; Quit with zero if no Reference Lab
+ ;
+ S AUTOIEN=+$O(^LAB(62.4,"B",LA7INST,""))          ; Auto Instrument IEN
+ Q:AUTOIEN<1 "Q"                                   ; Quit with zero if No Auto Instrument
+ ;
+ S LOADWORK=$$GET1^DIQ(62.4,AUTOIEN,"LOAD/WORK LIST","I")
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,PG)=0
+ S (HDRONE,QFLG)="NO"
+ S IEN="AA"
+ D HEADERDT^BLRGMENU
+ Q "OK"
+ ;
+LAHLRASR ; EP - LAH LRAS Report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHLRASI()="Q"
+ ;
+ F  S LAHIEN=$O(^LAH(LRLL,1,LAHIEN))  Q:LAHIEN<1  D
+ . S UID=$G(^LAH(LRLL,1,LAHIEN,.3))
+ . Q:$L(UID)<1
+ . ;
+ . ; Try to get LRAS
+ . S X=$Q(^LRO(68,"C",UID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6),LRAS=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ . ;
+ . W ?4,LAHIEN,?19,UID,?34,$G(^TMP("BLRRLMUU",$J,"UID",UID)),?54,LRAS,!
+ . S LINES=LINES+1
+ . S CNT=CNT+1
+ ;
+ W !!
+ ;
+ W:CNT<1 ?4,"No UIDs in ^LAH",!
+ W:CNT ?4,"Number of UIDs in ^LAH = ",CNT,!
+ ;
+ D PRESSKEY^BLRGMENU	
+ Q
+ ;
+LAHLRASI ; EP - Initialization
+ Q:$$GETLWLID(.LRLL)<1 "Q"
+ ;
+ D LAHTESTI
+ K HEADER(1)
+ S HEADER(1)="^LAH NIST Entries"
+ S $E(HEADER(3),55)="LRAS"
+ ;
+ S LAHIEN=.9999999
+ D HEADERDT^BLRGMENU
+ Q "OK"
+ ;
+PIDUIDSR ; EP - PID Segments with UIDS report
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$PIDUIDSI()="Q"
+ ;
+ F  S IEN=$O(^LAHM(62.49,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ . Q:$P($G(^LAHM(62.49,IEN,0)),"^",2)'="I"    ; Only INCOMING messages
+ . ;
+ . S ENTERDTT=$$GET1^DIQ(62.49,IEN,4,"I")
+ . S:$L(ENTERDTT) ENTERDTT=$$FMTE^XLFDT(ENTERDTT,"2DZ")
+ . ;
+ . S IENCNT=IENCNT+1
+ . S TYPEMSG=$P($G(^LAHM(62.49,IEN,0)),"^",2)
+ . S SEGCNT=0
+ . F  S SEGCNT=$O(^LAHM(62.49,IEN,150,SEGCNT))  Q:SEGCNT<1!(QFLG="Q")  D
+ .. S STR=$G(^LAHM(62.49,IEN,150,SEGCNT,0))
+ .. Q:$P(STR,"|")'="OBR"
+ .. Q:$P($P(STR,"|",3),"^")=""
+ .. ;
+ .. ; Only list IEN once
+ .. Q:$D(UNIQUE(IEN))
+ .. S UNIQUE(IEN)=""
+ .. ;
+ .. S UID=$P($P(STR,"|",3),"^")
+ .. Q:$D(UID(UID))             ; Skip if already listed
+ .. ;
+ .. W ?TAB(TAB,1),IEN
+ .. W ?TAB(TAB,2),UID
+ .. W ?TAB(TAB,3),ENTERDTT
+ .. S TAB=TAB+1
+ .. I TAB>2 S TAB=1  W !
+ .. S CNT=CNT+1
+ .. S UID(UID)=""
+ ;
+ W !!!
+ W ?4,"Number of Incoming Messages = ",IENCNT,!!
+ W:CNT<1 ?9,"No UIDs Found."
+ W:CNT ?9,"Number of UIDs = ",CNT
+ D PRESSKEY^BLRGMENU(14)
+ Q
+ ;
+PIDUIDSI() ; EP - Initializatioin
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="LA7 MESSAGE QUEUE (#62.49) File"
+ S HEADER(2)="ALL INCOMING MESSAGES"
+ S HEADER(3)=$$CJ^XLFSTR("Reverse Date Sort",IOM)
+ S HEADER(4)=" "
+ S HEADER(5)="IEN"
+ S $E(HEADER(5),10)="UID"
+ S $E(HEADER(5),25)="Enter Dt"
+ S $E(HEADER(5),40)="IEN"
+ S $E(HEADER(5),50)="UID"
+ S $E(HEADER(5),63)="Entr Dt"
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,IENCNT,PG)=0
+ S QFLG="NO"
+ S IEN="AAA"
+ ;
+ S TAB(1,1)=0,TAB(1,2)=9,TAB(1,3)=24
+ S TAB(2,1)=39,TAB(2,2)=49,TAB(2,3)=62
+ S TAB=1
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ Q "OK"
+ ;
+LAHMUIDS ; EP - List the UIDs found in the ^LAHM(62.49 global
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,LRPARAM,IOXY,TESTDESC,U,UID,XPARSYS,XQXFLG)
+ ;
+ Q:$$LAHMUIDI()="Q"
+ ;
+ F  S IEN=$O(^LAHM(62.49,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ . Q:$P($G(^LAHM(62.49,IEN,0)),"^",2)'="I"    ; Only INCOMING messages
+ . ;
+ . S TYPEMSG=$P($G(^LAHM(62.49,IEN,0)),"^",2)
+ . S SEGCNT=0
+ . F  S SEGCNT=$O(^LAHM(62.49,IEN,150,SEGCNT))  Q:SEGCNT<1!(QFLG="Q")  D LAHMUIDL
+ ;
+ W !!,?4,"Number of UIDs = ",CNT
+ D PRESSKEY^BLRGMENU(9)
+ K ^TMP("BLRRLMUU",$J,"LAHMUIDL")
+ Q
+ ;
+LAHMUIDI(TYPEFLAG) ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="LA7 MESSAGE QUEUE (#62.49) File"
+ D HEADERDT^BLRGMENU
+ D HEADONE^BLRGMENU(.HDRONE)
+ ;
+ S STR=$S($L($G(TYPEFLAG)):"ALL INCOMING MESSAGES",1:"INCOMING MESSAGES ONLY")
+ S HEADER(2)=STR
+ S HEADER(3)=$$CJ^XLFSTR("Reverse Order Sort",IOM)
+ S HEADER(4)=" "
+ S HEADER(5)="IEN"
+ S $E(HEADER(5),15)="UID"
+ S $E(HEADER(5),30)="Accession"
+ S $E(HEADER(5),50)="Entry Date/Time"
+ S $E(HEADER(5),68)="DFN"
+ S:+$G(TYPEFLAG) $E(HEADER(5),78)="Typ"
+ ;
+ S MAXLINES=IOSL-4
+ S LINES=MAXLINES+10
+ S (CNT,PG)=0
+ S QFLG="NO"
+ S IEN="AAA"
+ ;
+ K ^TMP("BLRRLMUU",$J,"LAHMUIDL")
+ Q "OK"
+ ;
+LAHMUIDL ; EP - Line of Data
+ S STR=$G(^LAHM(62.49,IEN,150,SEGCNT,0))
+ Q:$P(STR,"|")'="OBR"
+ Q:$P($P(STR,"|",3),"^")=""
+ ;
+ S UID=$P($P(STR,"|",3),"^")
+ Q:$D(^LRO(68,"C",UID))<1      ; Skip if no UID data
+ ;
+ S X=$Q(^LRO(68,"C",UID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6),LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),LRDONEDT=$P($G(^(3)),"^",4),DFN=$P($G(^LR(LRDFN,0)),"^",3)
+ ;
+ ; Q:$D(^TMP("BLRRLMUU",$J,"LAHMUIDL",UID))     ; Only list UID once
+ ; S ^TMP("BLRRLMUU",$J,"LAHMUIDL",UID)=""
+ ;
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,HDRONE)  Q:QFLG="Q"
+ ;
+ S ENTRYDT=+$P($G(^LAHM(62.49,IEN,0)),"^",5)
+ S ENTRYDT=$$FMTE^XLFDT(ENTRYDT,"5MZ")
+ ;
+ S LRAS=$$LAHMUIDA(UID)
+ ;
+ W IEN,?14,UID,?27,$S(+LRDONEDT:"C",1:" "),?29,LRAS,?49,ENTRYDT,?67,$G(DFN)
+ W:+$G(TYPEFLAG) ?77,$$CJ^XLFSTR(TYPEMSG,3)
+ W !
+ S CNT=CNT+1
+ S LINES=LINES+1
+ Q
+ ;
+LAHMUIDA(UID) ; EP - Get Accession Number
+ Q:UID["ORD" " "
+ ;
+ S UID=$P(UID,"A")
+ Q:$D(^LRO(68,"C",UID))<1 "<>"      ; Skip if no UID data
+ ;
+ S X=$Q(^LRO(68,"C",UID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ Q $G(^LRO(68,LRAA,1,LRAD,1,LRAN,.2))
+ ;
+SPECSEGS ; EP - List the User chosen Segments in 62.49
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,LRPARAM,IOXY,TESTDESC,U,UID,XPARSYS,XQXFLG)
+ ;
+ D ^XBFMK
+ S DIR(0)="FO"
+ S DIR("A")="SEGMENT"
+ D ^DIR
+ I +$G(DIRUT) D  Q
+ . W !,?4,"Invalid/No Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S SEGMENT=$$UP^XLFSTR(X)
+ ;
+ S IEN="AAA",QFLG="NO",PUTCNT=0,LINES=0
+ F  S IEN=$O(^LAHM(62.49,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ . Q:$P($G(^LAHM(62.49,IEN,0)),"^",2)'="I"    ; Only INCOMING messages
+ . ;
+ . S SEGCNT=0
+ . F  S SEGCNT=$O(^LAHM(62.49,IEN,150,SEGCNT))  Q:SEGCNT<1!(QFLG="Q")  D
+ .. S STR=$G(^LAHM(62.49,IEN,150,SEGCNT,0))
+ .. Q:$P(STR,"|")'=SEGMENT
+ .. ;
+ .. W:PUTCNT=0 !!,"IEN",?14,"CNT",?24,"Segment",!,$TR($J("",IOM)," ","-"),!
+ .. W IEN,?14,SEGCNT
+ .. D LINEWRAP^BZHHUTLM(24,STR,56)
+ .. W !!
+ .. S PUTCNT=PUTCNT+1
+ . D:PUTCNT PRESSKEY^BLRGMENU(4)  W !!
+ Q
+ ;
+LAHMAUID ; EP - All UIDs in ^LAHM(62.49
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,LRPARAM,IOXY,TESTDESC,U,UID,XPARSYS,XQXFLG)
+ ;
+ S TYPEFLAG=1
+ Q:$$LAHMUIDI(TYPEFLAG)="Q"
+ K HEADER(2)
+ S HEADER(2)="All Matching UIDs"
+ ;
+ F  S IEN=$O(^LAHM(62.49,IEN),-1)  Q:IEN<1!(QFLG="Q")  D
+ . S TYPEMSG=$$GET1^DIQ(62.49,IEN,"TYPE","I")
+ . S:$L(TYPEMSG)<1 TYPEMSG="<"_$$GET1^DIQ(62.49,IEN,"STATUS","I")_">"
+ . S SEGCNT=0
+ . F  S SEGCNT=$O(^LAHM(62.49,IEN,150,SEGCNT))  Q:SEGCNT<1!(QFLG="Q")  D LAHMUIDL
+ ;
+ W:CNT<1 !!,?4,"No Matching UIDs entries found in the LA7 MESSAGE QUEUE (#62.49) file."
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+GETLWLID(LRLL) ; EP - Return LOAD/WORK LIST IEN
+ NEW LA7INST,AUTINSP
+ ;
+ S LA7INST=$$GET1^DIQ(9009029,DUZ(2),3001)    ; Reference Lab
+ S AUTOINSP=$S($L(LA7INST):+$O(^LAB(62.4,"B",LA7INST,"")),1:0)    ; Auto Instrument IEN
+ ;
+ S LRLL=+$$GET1^DIQ(62.4,AUTOINSP,3,"I")      ; LOAD/WORK List
+ ;
+ I LRLL<1 D ENDMESG("Could not Determine Load/Work List.  Routine Ends.")  Q
+ ;
+ Q LRLL
+ ;
+UIDPALL ; EP - Select UID & Display All 62.49 Data using EN^DIQ
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOST,IOT,IOXY,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ S HEADER(1)="File 62.49 Data Display"
+ D HEADERDT^BLRGMENU
+ ;
+ S STR=$$F6249UID
+ S IEN6249=$P(STR,U,6)
+ Q:IEN6249<1
+ ;
+ S LRUID=+STR,LRAS=$P(STR,U,5)
+ ;
+ S HEADER(2)="UID:"_LRUID_"  ["_LRAS_"]"
+ D HEADERDT^BLRGMENU
+ ;
+ D HEAD6249(IEN6249)
+ ;
+ S SEQ=0,QFLG="NO"
+ F  S SEQ=$O(^LAHM(62.49,IEN6249,150,SEQ))  Q:SEQ<1!(QFLG="Q")  D
+ . S STR=$G(^LAHM(62.49,IEN6249,150,SEQ,0))
+ . Q:$L(STR)<1
+ . W !!,$P(STR,"|"),!     ; Segment Identifier
+ . F SEG=2:1:$L(STR,"|") D
+ .. S SUBSEG=$$TRIM^XLFSTR($P(STR,"|",SEG),"LR"," ")
+ .. Q:$L(SUBSEG)<1
+ .. W ?4,$J((SEG-1),2),")"
+ .. W:$L(SUBSEG)<60 ?14,SUBSEG,!
+ .. I $L(SUBSEG)>59 D LINEWRAP^BLRGMENU(14,SUBSEG,60)  W !
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ I QFLG'="Q" D
+ . W !!,?4,"All sequences have been displayed."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+HEAD6249(IEN) ; EP - Display variables in header of File 62.49
+ D ^XBFMK
+ S DIC="^LAHM(62.49,",DA=IEN,DIQ(0)="CR",DR="0:100"
+ D EN^DIQ
+ ;
+ Q
+ ;
+ENDMESG(TEXT) ; EP - Ending Message
+ W !,?4,TEXT
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+F6249UID() ; EP - Get UIDs from 62.49 & setup DIR call for user to select one
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S DIRZERO="SO^"
+ S (CNT,ENTRY)=0
+ ;
+ S IEN="A"
+ F  S IEN=$O(^LAHM(62.49,IEN),-1)  Q:IEN<1  D
+ . S TYPEMSG=$P($G(^LAHM(62.49,IEN,0)),"^",2)
+ . ;
+ . S SEG=0,STR=""
+ . F  S SEG=$O(^LAHM(62.49,IEN,150,SEG))  Q:SEG<1  D
+ .. S STR=$G(^LAHM(62.49,IEN,150,SEG,0))
+ .. Q:$P(STR,"|")'="OBR"
+ .. ;
+ .. S LRUID=$P($P(STR,"|",3),"^")
+ .. Q:$L(LRUID)<1
+ .. ;
+ .. ; Make certain entry only shows once
+ .. Q:$D(UNIQUE(IEN))
+ .. S UNIQUE(IEN)=""
+ .. ;
+ .. S X=$Q(^LRO(68,"C",LRUID,0)),LRAA=+$QS(X,4),LRAD=+$QS(X,5),LRAN=+$QS(X,6)
+ .. Q:LRAA<1!(LRAD<1)!(LRAN<1)  ; If no Accession, skip
+ .. ;
+ .. S IENSTR=LRAN_","_LRAD_","_LRAA_","
+ .. S LRAS=$$GET1^DIQ(68.02,IENSTR,"ACCESSION")
+ .. S CNT=CNT+1
+ .. S DIRZERO=DIRZERO_CNT_":"_LRUID_";"
+ .. S DIRZERO(CNT)=$$LJ^XLFSTR($J(CNT,2)_") "_$$LJ^XLFSTR(LRUID,11)_LRAS,27)
+ .. S LUIDINDX(CNT)=LRUID_U_LRAA_U_LRAD_U_LRAN_U_LRAS_U_IEN
+ S CNT=CNT+1
+ S DIRZERO=DIRZERO_(CNT)_":AL"
+ ;
+ I $D(LUIDINDX)<1 D  Q 0
+ . W !!,?4,"No matching UID Entries found in the LA7 MESSAGE QUEUE (#62.49) file."
+ . D PRESSKEY^BLRGMENU(9)
+ . S LREND=1
+ ;
+ S NUMCOL=3
+ K LRUID
+ D ^XBFMK
+ S DIR(0)=DIRZERO
+ S DIR("L",1)="    UID        Accession       UID        Accession       UID        Accession"
+ S DIR("L",2)="    ---------- -----------     ---------- -----------     ---------- ----------"
+ S BELOW=3
+ S CNT=0
+ F  S CNT=$O(DIRZERO(CNT))  Q:CNT<1  D
+ . S:(CNT#NUMCOL)=1 DIR("L",BELOW)=""
+ . S DIR("L",BELOW)=$G(DIR("L",BELOW))_$S((CNT#NUMCOL)=0:$$TRIM^XLFSTR(DIRZERO(CNT),"R"," "),1:DIRZERO(CNT))
+ . S:(CNT#NUMCOL)=0 BELOW=BELOW+1
+ ;
+ S DIR("L")=""
+ S DIR("A")="Select number"    ; Change default prompt
+ ;
+ S HEADER(1)="LA7 MESSAGE QUEUE (#62.49) File"
+ S HEADER(2)="UID Selection"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ D ^DIR
+ I +Y<1!(+$G(DIRUT)) D  Q 0
+ . W !,?4,"No/Invalid Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ . S LREND=1
+ ;
+ Q $G(LUIDINDX(+$G(Y)))
+ ;
+SETBLRVS(TWO) ; EP - Set BLRVERN variable(s)
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S:$L($G(TWO)) BLRVERN2=TWO
+ Q

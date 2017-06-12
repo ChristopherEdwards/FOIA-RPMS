@@ -1,10 +1,10 @@
 APCDVCH2 ; IHS/CMI/LAB - CONT. HOSP REVIEW ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11,13**;MAY 14, 2009;Build 9
 START ;
  D CHKADM
  D CHKTS
- D CHKAGE
- D DATES
+ ;D CHKAGE
+ ;D DATES
  ;
 XIT ;
  Q
@@ -27,14 +27,16 @@ CHKTS ;
 CHKAGE ;
  ;Q:$D(APCDACC)
  Q:AUPNDAYS>5
- I $E($P(APCDVCPV("P"),U),1,2)'="V3" W !,$C(7),$C(7),"WARNING:  The Admission Date is within 5 days of the DOB, Please Review.",!
+ ;LORI NEED CODES BELOW ICD10**
+ I $$IMP^AUPNSICD($$VD^APCLV(APCDVSIT))=1,$E($P(APCDVCPV("P"),U),1,2)'="V3" W !,$C(7),$C(7),"WARNING:  The Admission Date is within 5 days of the DOB, Please Review.",!
  Q
 CHKADM ;check admission date
  S APCDDIS=$P($P(APCDVINR,U),"."),APCDADM=$P($P(APCDVREC,U),".")
  I APCDDIS<APCDADM W !!,"Admission Date is less than Discharge Date!!",! Q
- Q:APCDADM'=AUPNDOB
+ ;Q:APCDADM'=AUPNDOB
  ;Q:$D(APCDACC)
- I $E($P(APCDVCPV("P"),U),1,2)'="V3" W !,$C(7),$C(7),"WARNING:  DOB is equal to Admission Date and 1st DX is NOT V30-V39.  PLEASE REVIEW.",!
+ ;LORI - NEED CODES BELOW ICD10**
+ ;I $$IMP^AUPNSICD($$VD^APCLV(APCDVSIT))=1,$E($P(APCDVCPV("P"),U),1,2)'="V3" W !,$C(7),$C(7),"WARNING:  DOB is equal to Admission Date and 1st DX is NOT V30-V39.  PLEASE REVIEW.",!
  Q
  ;
 DATES ;

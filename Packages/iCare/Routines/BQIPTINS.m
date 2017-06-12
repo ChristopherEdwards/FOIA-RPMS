@@ -1,5 +1,5 @@
 BQIPTINS ;GDIT/HS/ALA-Patient Insurance ; 05 Jul 2006  3:31 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**1,3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -117,7 +117,10 @@ LYO(DFN) ;EP - Layout display
  ;  Check for Private Insurance
  S IEN=""
  F  S IEN=$O(^AUPN3PPH("C",DFN,IEN)) Q:IEN=""  D
- . I $$GET1^DIQ(9000003.1,IEN_",",.18,"I")'="" Q
+ . ;I $$GET1^DIQ(9000003.1,IEN_",",.18,"I")'="" Q
+ . S EFF=$$GET1^DIQ(9000003.1,IEN,.17,"I")
+ . S EXP=$$GET1^DIQ(9000003.1,IEN,.18,"I")
+ . I '$$ISACTIVE(EFF,EXP) Q
  . S INSCO=$$GET1^DIQ(9000003.1,IEN_",",.03,"E")
  . S RESULT=RESULT_INSCO_" "_$$GET1^DIQ(9000003.1,IEN_",",.05,"E")_"; "_$C(13)_$C(10)
  S RESULT=$$TKO^BQIUL1(RESULT,"; "_$C(13)_$C(10))

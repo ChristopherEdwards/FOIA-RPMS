@@ -1,0 +1,134 @@
+BQIDCAH6 ;GDIT/HS/ALA-Ad Hoc Logic ; 26 Apr 2013  11:00 AM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
+ ;
+ALGY(FGLOB,TGLOB,BEN,MPARMS) ;EP - Allergy search
+ NEW ALGPT,AIEN,ACT,AL,CT,LIEN
+ I $G(TGLOB)="" Q
+ I $G(ALNAS)'="" D ANAS Q
+ I $G(ALNKN)'="" D NKNN Q
+ I $G(ALLERGY)]"" D ALGY1
+ I $D(MPARMS("ALLERGY")) D
+ . I ALLOP="!" D  Q
+ .. S ALLERGY="" F  S ALLERGY=$O(MPARMS("ALLERGY",ALLERGY)) Q:ALLERGY=""  D ALGY1
+ . I ALLOP="&" D
+ .. S ALLERGY="",CT=0
+ .. F  S ALLERGY=$O(MPARMS("ALLERGY",ALLERGY)) Q:ALLERGY=""  S CT=CT+1
+ .. F  S ALLERGY=$O(MPARMS("ALLERGY",ALLERGY)) Q:ALLERGY=""  D ALGY1
+ .. I ALLOP="&" D
+ ... S IEN=""
+ ... F  S IEN=$O(ALGPT(IEN)) Q:IEN=""  D
+ .... S ACT=0,AL=""
+ .... F  S AL=$O(ALGPT(IEN,AL)) Q:AL=""  S ACT=ACT+1
+ .... I ACT'=CT K @CRIT@("ALGY",IEN) Q
+ .... S AL="" F  S AL=$O(ALGPT(IEN,AL)) Q:AL=""  S @TGLOB@(IEN)="",LIEN=ALGPT(IEN,AL),@CRIT@("ALGY",IEN,LIEN)=""
+ K ALGPT
+ Q
+ ;
+ALGY1 ;EP
+ NEW IEN,ALGTX,AN,DFN,TALLG
+ I $G(FGLOB)'="" D  Q
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. S AN=""
+ .. F  S AN=$O(^GMR(120.8,"B",IEN,AN)) Q:AN=""  D
+ ... ; If ENTERED IN ERROR, ignore
+ ... I $$GET1^DIQ(120.8,AN_",",22,"I")=1 Q
+ ... S ALGTX=$$GET1^DIQ(120.8,AN_",",.02,"E")
+ ... I $E(ALGTX,$L(ALGTX),$L(ALGTX))=" " S ALGTX=$$STRIP^BQIUL1(ALGTX," ")
+ ... I ALGTX=ALLERGY D
+ .... I ALLOP="!" S @TGLOB@(IEN)="",@CRIT@("ALGY",IEN,AN)=AN Q
+ .... S ALGPT(IEN,AN)=AN
+ ;
+ I $L(ALLERGY)'>30 D
+ . NEW ALGTX,TXT
+ . S IEN=""
+ . F  S IEN=$O(^GMR(120.8,"C",ALLERGY,IEN)) Q:IEN=""  D ALCK
+ . S ALGTX=$O(^GMR(120.8,"C",ALLERGY)),TXT=ALLERGY_" "
+ . I ALGTX=TXT D
+ .. F  S IEN=$O(^GMR(120.8,"C",ALGTX,IEN)) Q:IEN=""  D ALCK
+ ;
+ I $L(ALLERGY)>30 D
+ . S TALLG=ALLERGY
+ . F  S TALLG=$O(^GMR(120.8,"C",TALLG)) Q:TALLG=""!($E(ALLERGY,1,30)'=$E(TALLG,1,30))  D
+ .. S IEN=""
+ .. F  S IEN=$O(^GMR(120.8,"C",TALLG,IEN)) Q:IEN=""  D ALCK
+ Q
+ ;
+ALCK ;EP
+ I $$GET1^DIQ(120.8,IEN_",",22,"I")=1 Q
+ S DFN=$$GET1^DIQ(120.8,IEN_",",.01,"I")
+ I ALLOP="!" S @TGLOB@(DFN)="",@CRIT@("ALGY",DFN,IEN)=IEN Q
+ S ALGPT(DFN,IEN)=IEN
+ Q
+ ;
+ANAS ;EP - No allergy assessment
+ NEW ADATA,IEN
+ I $G(FGLOB)'="" D  Q
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. D DETAIL^BEHOCACV(.ADATA,IEN)
+ .. I $G(@ADATA@(1))="No allergy assessment." S @TGLOB@(IEN)=""
+ I $G(FGLOB)="" D  Q
+ . S IEN=0
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D
+ .. I $D(^AUPNPAT(IEN,-9)) Q
+ .. D DETAIL^BEHOCACV(.ADATA,IEN)
+ .. I $G(@ADATA@(1))="No allergy assessment." S @TGLOB@(IEN)=""
+ Q
+ ;
+NKNN ;EP - No known allergy
+ NEW ADATA,IEN
+ I $G(FGLOB)'="" D  Q
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D
+ .. D DETAIL^BEHOCACV(.ADATA,IEN)
+ .. I $G(@ADATA@(1))="No known allergies." S @TGLOB@(IEN)=""
+ I $G(FGLOB)="" D  Q
+ . S IEN=0
+ . F  S IEN=$O(^AUPNPAT(IEN)) Q:'IEN  D
+ .. I $D(^AUPNPAT(IEN,-9)) Q
+ .. D DETAIL^BEHOCACV(.ADATA,IEN)
+ .. I $G(@ADATA@(1))="No known allergies." S @TGLOB@(IEN)=""
+ Q
+ ;
+REM(FGLOB,TGLOB,REMCODE,RMFROM,RMTHRU,OVD,FUT,MPARMS) ;EP
+ I $G(TGLOB)="" Q
+ I $G(REMCODE)'="" D RMD
+ I $D(MPARMS("REMCODE")) D
+ . S REMCODE=""
+ . F  S REMCODE=$O(MPARMS("REMCODE",REMCODE)) Q:REMCODE=""  D RMD
+ Q
+ ;
+RMD ;EP
+ NEW IEN
+ I $G(FGLOB)'="" D  Q
+ . S IEN=""
+ . F  S IEN=$O(@FGLOB@(IEN)) Q:'IEN  D RMF(IEN)
+ ;
+ I $G(FGLOB)="" D
+ . S IEN=0
+ . F  S IEN=$O(^BQIPAT(IEN)) Q:'IEN  D RMF(IEN)
+ Q
+ ;
+RMF(DFN) ;EP - Find reminder
+ NEW RIEN,RDATA
+ S RIEN=$O(^BQIPAT(DFN,40,"B",REMCODE,""))
+ I RIEN="" Q
+ S RDATA=$G(^BQIPAT(DFN,40,RIEN,0)) I RDATA="" Q
+ I $P(RDATA,U,3)=""!($P(RDATA,U,3)="N/A")&($P(RDATA,U,4)="") Q
+ ;
+ I FUT'=0 D  Q
+ . I $P(RDATA,U,3)="DUE NOW" Q
+ . ;I $P(RDATA,U,3)="RESOLVED" S @DATA@(DFN)="" Q
+ . I $P(RDATA,U,3)="RESOLVED" Q
+ . I $P(RDATA,U,4)'="" D
+ .. I $G(RMFROM)'="" D
+ ... I $P(RDATA,U,4)<RMFROM!($P(RDATA,U,4)>RMTHRU) Q
+ ... S @TGLOB@(DFN)="",@CRIT@("REM",DFN,REMCODE)=""
+ .. I $G(RMFROM)="",$P(RDATA,U,4)>DT S @TGLOB@(DFN)="",@CRIT@("REM",DFN,REMCODE)="" Q
+ ;
+ I OVD'=0 D  Q
+ . I $P(RDATA,U,3)="RESOLVED" Q
+ . I $P(RDATA,U,4)>DT Q
+ . S @TGLOB@(DFN)="",@CRIT@("REM",DFN,REMCODE)=""
+ Q

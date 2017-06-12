@@ -1,5 +1,5 @@
 ABSPOSIO ; IHS/FCS/DRS - NCPDP Overrides form ;   [ 06/03/2002  4:40 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1**;JUN 21, 2001;Build 15
  ; Property of Indian Health Service
  ;
  ; IHS/OKCAO/POS  IHS/ASDST/lwj  1/9/02  added logic for overrides

@@ -1,5 +1,6 @@
 ABMDF28V ; IHS/SD/SDR - PRINT UB-04 ;    
- ;;2.6;IHS Third Party Billing;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**11,14,19**;NOV 12, 2009;Build 300
+ ;IHS/SD/SDR - 2.6*19 - HEAT116949 - updated check for Medi-Cal to contain (not equal) 61044
  ;
 13 ;
  W !
@@ -72,10 +73,12 @@ ABMDF28V ; IHS/SD/SDR - PRINT UB-04 ;
  ..S ABMREC(31,I)=$G(ABMREC(31,(I+1)))
  F I=1:1:3 D
  .W !
- .Q:'$D(ABMREC(30,I))
+ .;Q:'$D(ABMREC(30,I))  ;HEAT144755
+ .Q:$TR(ABMREC(30,I),"")=""  ;HEAT144755
  .;Ins name_" "_Payor Sub ID
  .S ABMDE=$S($E(ABMREC(30,I),54,78)["RAILROAD":"RAILROAD MEDICARE",1:$E(ABMREC(30,I),54,78))_" "_$E(ABMREC(30,I),31,34)_"^^22"
- .I $$RCID^ABMERUTL(+$G(ABMP("INS",I)))=61044 S ABMDE="O/P MEDI-CAL^^22"
+ .;I $$RCID^ABMERUTL(+$G(ABMP("INS",I)))=61044 S ABMDE="O/P MEDI-CAL^^22"  ;abm*2.6*19 IHS/SD/SDR HEAT116949
+ .I $$RCID^ABMERUTL(+$G(ABMP("INS",I)))["61044" S ABMDE="O/P MEDI-CAL^^22"  ;abm*2.6*19 IHS/SD/SDR HEAT116949
  .D WRT^ABMDF28W  ;FL #50
  .S ABMDE=$E(ABMREC(30,I),160,172)_"^23^15"  ; Provider ID (blank)
  .I $P($G(^AUTNINS(ABMP("INS"),0)),U)="IOWA MEDICAID" S ABMDE="^23^15"

@@ -1,5 +1,5 @@
-BLRSHPML ;cmi/anch/maw - BLR Reference Lab Shipping Manifest Others 11:46 ;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027,1028,1031**;NOV 01, 1997;Build 185
+BLRSHPML ;cmi/anch/maw - BLR Reference Lab Shipping Manifest: Others ; 10-Dec-2014 10:23 ; MKK
+ ;;5.2;IHS LABORATORY;**1027,1028,1031,1034**;NOV 01, 1997;Build 88
  ;
  ;
  ;
@@ -124,9 +124,18 @@ DX(BDA) ;-- if insurance info print DX
  W !,"DIAGNOSIS"
  ;W !,"Diagnosis: "_$G(^TMP("BLRRL",$J,BDA,"DX")),?25,"DX Description: "_$G(^TMP("BLRRL",$J,BDA,"DXE"))
  W !,"Diagnosis: ",?25,"DX Description: "
- N DXDA
- S DXDA=0 F  S DXDA=$O(^TMP("BLRRL",$J,BDA,"DX",DXDA)) Q:'DXDA  D
- . W !,$G(^TMP("BLRRL",$J,BDA,"DX",DXDA)),?25,$G(^TMP("BLRRL",$J,BDA,"DXE",DXDA))
+ ;N DXDA
+ ;S DXDA=0 F  S DXDA=$O(^TMP("BLRRL",$J,BDA,"DX",DXDA)) Q:'DXDA  D
+ ;. W !,$G(^TMP("BLRRL",$J,BDA,"DX",DXDA)),?25,$G(^TMP("BLRRL",$J,BDA,"DXE",DXDA))
+ ;ihs/cmi/maw 12/10/2014 patch 1034 for new dx storage
+ N DXDA,ORD,ORDI,DXDATA,DXSTR,UID
+ S UID=^TMP("BLRRL",$J,BLRDA,"UID")
+ I '$G(UID) S UID=LRUID
+ S ORD=$O(^BLRRLO("ACC",UID,0))
+ S ORDI=0 F  S ORDI=$O(^BLRRLO(ORD,1,ORDI)) Q:'ORDI  D
+ . S DXDATA=$P($G(^BLRRLO(ORD,1,ORDI,0)),U)
+ . S DXSTR=$S($D(^ICDS(0)):$$ICDDX^ICDEX(DXDATA,DT),1:$$ICDDX^ICDCODE(DXDATA,DT))
+ . W !,$P(DXSTR,U,2),?25,$P(DXSTR,U,4)
  Q
  ;
 INS(BDA) ;-- if insurance info print insurance

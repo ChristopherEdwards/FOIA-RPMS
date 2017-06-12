@@ -1,29 +1,44 @@
-BGP6XTCH ; IHS/CMI/LAB - TAXONOMY CHECK FOR FY04 CRS REPORT ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP6XTCH ; IHS/CMI/LAB - TAXONOMY CHECK FOR FY04 CRS REPORT 16 Jan 2009 4:02 PM 09 Feb 2016 1:35 PM ; 
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
  D HOME^%ZIS
  W:$D(IOF) @IOF
- W !!,"Checking for Taxonomies to support the 2006 CRS Report. ",!,"Please enter the device for printing.",!
+ W !!,"Checking for Taxonomies to support the 2016 CRS Report. ",!,"Please enter the device for printing.",!
 ZIS ;
- S XBRC="",XBRP="TAXCHK^BGP6XTCH",XBNS="",XBRX="XIT^BGP6XTCH"
- D ^XBDBQUE
+ K IOP,%ZIS
+ W !! S %ZIS="PQM" D ^%ZIS
+ I POP D XIT Q
+ZIS1 ;
+ I $D(IO("Q")) G TSKMN
+DRIVER ;
+ U IO
+ D TAXCHK^BGP6XTCH
+ D ^%ZISC
  D XIT
  Q
+ ;
+TSKMN ;EP ENTRY POINT FROM TASKMAN
+ S ZTIO=$S($D(ION):ION,1:IO) I $D(IOST)#2,IOST]"" S ZTIO=ZTIO_";"_IOST
+ I $G(IO("DOC"))]"" S ZTIO=ZTIO_";"_$G(IO("DOC"))
+ I $D(IOM)#2,IOM S ZTIO=ZTIO_";"_IOM I $D(IOSL)#2,IOSL S ZTIO=ZTIO_";"_IOSL
+ K ZTSAVE S ZTSAVE("BGP*")=""
+ S ZTCPU=$G(IOCPU),ZTRTN="TAXCHK^BGP6XTCH",ZTDTH="",ZTDESC="CRS 15 TAX REPORT" D ^%ZTLOAD D XIT Q
+ Q
 TAXCHK ;EP
- D HOME^%ZIS
+ ;D HOME^%ZIS
  K BGPQUIT
 GUICHK ;EP
- W !,"Checking for Taxonomies to support the CRS Report...",!
+ W !,"Checking for Taxonomies to support the Selected Measures Report",!
  NEW A,BGPX,I,Y,Z,J,BGPY,BGPT
  K A
  ;S T="TAXS" F J=1:1 S Z=$T(@T+J),BGPX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BGPX=""  D
- S BGPT="" F  S BGPT=$O(^BGPTAXS("B",BGPT)) Q:BGPT=""  D
- .S BGPY=$O(^BGPTAXS("B",BGPT,0))
- .Q:'$D(^BGPTAXS(BGPY,12,"B",2))
- .;I $P(^BGPTAXS(BGPY,0),U,2)'="L" S BGPX=$O(^ATXAX("B",BGPT,0))
- .;I $P(^BGPTAXS(BGPY,0),U,2)="L" S BGPX=$O(^ATXLAB("B",BGPT,0))
- .S BGPTYPE=$P(^BGPTAXS(BGPY,0),U,2),Y=$G(^BGPTAXS(BGPY,11,1,0))
+ S BGPT="" F  S BGPT=$O(^BGPTAXM("B",BGPT)) Q:BGPT=""  D
+ .S BGPY=$O(^BGPTAXM("B",BGPT,0))
+ .Q:'$D(^BGPTAXM(BGPY,12,"B",2))
+ .;I $P(^BGPTAXM(BGPY,0),U,2)'="L" S BGPX=$O(^ATXAX("B",BGPT,0))
+ .;I $P(^BGPTAXM(BGPY,0),U,2)="L" S BGPX=$O(^ATXLAB("B",BGPT,0))
+ .S BGPTYPE=$P(^BGPTAXM(BGPY,0),U,2),Y=$G(^BGPTAXM(BGPY,11,1,0))
  .I BGPTYPE'="L" D
  ..I '$D(^ATXAX("B",BGPT)) S A(BGPT)=Y_"^is Missing" Q
  ..S I=$O(^ATXAX("B",BGPT,0))
@@ -40,11 +55,13 @@ GUICHK ;EP
  .Q
 DONE ;
  K BGPQUIT
+ Q:$D(ZTQUEUED)
  I $E(IOST)="C",IO=IO(0) S DIR(0)="EO",DIR("A")="End of taxonomy check.  PRESS ENTER" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  Q
 XIT ;EP
  K BGP,BGPX,BGPQUIT,BGPLINE,BGPJ,BGPX,BGPTEXT,BGP
  K X,Y,J
+ I $D(ZTQUEUED) S ZTREQ="@"
  Q
 PAGE ;
  I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT="" Q

@@ -1,5 +1,6 @@
-TIUHSOLM ;;SLC/AJB,AGP Display Health Summary Object for TIU Objects;22-OCT-2002
- ;;1.0;TEXT INTEGRATION UTILITIES;**135**;Jun 20, 1997
+TIUHSOLM ;;SLC/AJB,AGP Display Health Summary Object for TIU Objects;27-MAR-2009
+ ;;1.0;TEXT INTEGRATION UTILITIES;**135,249**;Jun 20, 1997;Build 48
+ ;
 EN(IEN,TIUIEN) ; -- main entry point for TIUHS OBJ DISPLAY
  D EN^VALM("TIUHS OBJ DISPLAY")
  Q
@@ -67,6 +68,9 @@ INIT ; -- init variables and list array
  S VALUE=$$RJ^XLFSTR("Blank Line After Header",68)_": "_$G(OBJ(IEN,.15,"E"))
  S LINE=LINE+1
  D SET^VALM10(LINE,VALUE)
+ S VALUE=$$RJ^XLFSTR("Overwrite No Data",19)_": "_$G(OBJ(IEN,2,"E"))
+ S LINE=LINE+1
+ D SET^VALM10(LINE,VALUE)
  S VALMCNT=LINE
  Q
  ;
@@ -74,7 +78,7 @@ EHSO ;
  N HSOBNAM,VALUE
  D FULL^VALM1
  I $P($G(^GMT(142.5,HSOBJ,0)),U,20)=1 W !,"Can't edit this HS Object:  Only the owner can edit this HS Object" H 2 Q
- I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ W !,"Can't edit this HS Object:  Only the owner can edit this HS Object" H 2 Q
+ I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ,'$D(^XUSEC("GMTSMGR",DUZ)) W !,"Can't edit this HS Object:  Only the owner or the HS Manager can edit this HS Object" H 2 Q
  S HSOBNAM=$P($G(^GMT(142.5,IEN,0)),U)
  S VALUE=$$CRE^GMTSOBJ(HSOBNAM)
  D CLEAN^VALM10
@@ -85,7 +89,7 @@ CHST ;
  N DA,DIC,DIE,DIR,DIROUT,DR,DTOUT,DUOUT,HSIEN,POP,TEXT,X,Y,YESNO
  D FULL^VALM1
  I $P($G(^GMT(142.5,HSOBJ,0)),U,20)=1 W !,"Can't edit this National Object" H 2 Q
- I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ W !,"Can't edit this HS Object:  Only the owner can edit this HS Object" H 2 Q
+ I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ,'$D(^XUSEC("GMTSMGR",DUZ)) W !,"Can't edit this HS Object:  Only the owner or the HS Manager can edit this HS Object" H 2 Q
  W !,"***WARNING*** By changing the HS Type this will change the output data."
  S DIR(0)="YA0"
  S DIR("A")="Continue? "

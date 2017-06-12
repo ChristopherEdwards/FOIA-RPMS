@@ -1,5 +1,5 @@
-PXRMDEDT ; SLC/PJH - Edit PXRM reminder dialog. ;12/21/2001
- ;;1.5;CLINICAL REMINDERS;**2,5,7**;Jun 19, 2000
+PXRMDEDT ; SLC/PJH - Edit PXRM reminder dialog. ;01/28/2013
+ ;;2.0;CLINICAL REMINDERS;**4,6,12,17,16,24,26**;Feb 04, 2005;Build 404
  ;
  ;Used by protocol PXRM SELECTION ADD/PXRM GENERAL ADD
  ;
@@ -30,26 +30,19 @@ ADD N DA,DIC,Y,DTOUT,DUOUT,DTYP,DLAYGO,HED
  ..D ^DIE
  .;
  .;Edit Dialog
- .D EDIT(DTYP,DA)
- Q
- ;
- ;Delete a line from the reminder dialog
- ;--------------------------------------
-DEL(DIEN,PXRMDIEN) ;
- N DA,DIK
- S DA(1)=PXRMDIEN,DA=$O(^PXRMD(801.41,PXRMDIEN,10,"D",DIEN,"")) Q:'DA
- S DIK="^PXRMD(801.41,"_DA(1)_",10,"
- D ^DIK
+ .D EDIT(DTYP,DA,0)
  Q
  ;
  ;called by protocol PXRM DIALOG EDIT
  ;-----------------------------------
-EDIT(TYP,DA) ;
+EDIT(TYP,DA,OIEN) ;
  Q:'$$LOCK(DA)
  W IORESET
- N CS1,CS2,DIC,DIDEL,DIE,DR,DTOUT,DUOUT,DINUSE,TYP,ODA,Y
+ N CS1,CS2,D1,DIC,DIDEL,DIE,DIK,DR,DTOUT,DUOUT,DINUSE,TYP,ODA,Y
  ;Save checksum
+ S VALMBCK=""
  S CS1=$$FILE^PXRMEXCS(801.41,DA)
+ ;
  ;Check dialog type
  S TYP=$P($G(^PXRMD(801.41,DA,0)),U,4)
  S DIE="^PXRMD(801.41,",DIDEL=801.41,DINUSE=0,ODA=DA
@@ -58,22 +51,23 @@ EDIT(TYP,DA) ;
  ;Dialog Element
  I TYP="E" S DR="[PXRM EDIT ELEMENT]"
  ;Additional Prompt
- I TYP="P" S DR="[PXRM EDIT PROMPT]"
+ ;I TYP="P" S DR="[PXRM EDIT PROMPT]"
  ;Forced Value
  I TYP="F" S DR="[PXRM EDIT FORCED VALUE]"
  ;Dialog Group (Finding item dialog)
- I TYP="G" S DR="[PXRM EDIT GROUP]"
+ I TYP="G" S DR="[PXRM EDIT GROUP]" ;S VALMBCK="R"
  ;Result Group
  I TYP="S" S DR="[PXRM RESULT GROUP]"
  ;Result Element
  I TYP="T" S DR="[PXRM RESULT ELEMENT]"
  ;Allows limited edit of national dialogs
  I $P($G(^PXRMD(801.41,DA,100)),U)="N" D
+ .I TYP="T",+$P($G(^PXMRD(801.41,DA,100)),U,4)=0 Q
  .I $G(PXRMINST)=1,DUZ(0)="@" Q
  .S DR="[PXRM EDIT NATIONAL DIALOG]",DINUSE=1
  ;
- I "GEPF"[TYP D
- .I '$D(^PXRMD(801.41,"AD",DA)) W !,"Not used by any other dialog",! Q
+ I "GEPFS"[TYP D
+ .I '$D(^PXRMD(801.41,"AD",DA)),'$D(^PXRMD(801.41,"R",DA)),'$D(^PXRMD(801.41,"RG",DA)) W !,"Not used by any other dialog",! Q
  .I PXRMGTYP'="DLG" S DINUSE=1 Q
  .I PXRMGTYP="DLG" D  Q
  ..N SUB
@@ -81,27 +75,42 @@ EDIT(TYP,DA) ;
  ..F  S SUB=$O(^PXRMD(801.41,"AD",DA,SUB)) Q:'SUB  Q:DINUSE  D
  ...I SUB'=PXRMDIEN S DINUSE=1
  I DINUSE D
- .W !,"CURRENT DIALOG ELEMENT/GROUP NAME: "_$P($G(^PXRMD(801.41,DA,0)),U)
- .I TYP="S" Q
- .I PXRMGTYP="DLGE" W !,"Used by:" D USE^PXRMDLST(DA,10,"")
- .I PXRMGTYP'="DLGE" W !,"Used by:" D USE^PXRMDLST(DA,10,PXRMDIEN)
+ .W !,"Current dialog "_$S(TYP="S":"result group",1:"element/group")_" name: "_$P($G(^PXRMD(801.41,DA,0)),U)
+ .I TYP="S" W !,"Used by:" D USE^PXRMDLST(DA,10,PXRMDIEN,"RG") Q
+ .I PXRMGTYP="DLGE" D
+ ..W !,"Used by:" D USE^PXRMDLST(DA,10,"","AD")
+ ..I $D(^PXRMD(801.41,"R",DA))'>0 Q
+ ..W !,"Used as a Replacement Element/Group for: " D USE^PXRMDLST(DA,10,"","R")
+ .I PXRMGTYP'="DLGE" D
+ ..W !,"Used by:" D USE^PXRMDLST(DA,10,PXRMDIEN,"AD")
+ ..I $D(^PXRMD(801.41,"R",DA))'>0 Q
+ ..W !,"Used as a Replacement Element/Group for: " D USE^PXRMDLST(DA,10,PXRMDIEN,"R")
  ;
  ;Save list of components
  N COMP D COMP^PXRMDEDX(DA,.COMP)
- ;
  ;Edit dialog then unlock
- D ^DIE,UNLOCK(ODA)
- ;Deleted ???
+ I TYP'="P" D ^DIE D UNLOCK(ODA) I $G(DA)="",$G(OIEN)>0 D
+ .S DA=OIEN,DR="118////@" D ^DIE K DA
+ I TYP="P" D PROMPT(DA) D UNLOCK(ODA)
+ ;I '$D(DUOUT)&($G(D1)'="") D  Q
+ I $G(D1)'="" D
+ . I $P($G(^PXRMD(801.41,DA,10,D1,0)),U,2)="" D  Q
+ . . S DA(1)=DA,DA=D1 Q:'DA
+ . . S DIK="^PXRMD(801.41,"_DA(1)_",10,"
+ . . D ^DIK
+ . . ;S VALMBG=1
+ I $D(DUOUT) S VALMBG=1 Q
  I '$D(DA) D  Q
  .;Clear any pointers from #811.9
  .I $D(PXRMDIEN) D PURGE(PXRMDIEN)
  .;Option to delete components
  .I $D(COMP) D DELETE^PXRMDEDX(.COMP)
- .S VALMBCK="Q"
+ .S VALMBCK="R"
  ;
  ;Update edit history
  I (TYP'="R") D
  .S CS2=$$FILE^PXRMEXCS(801.41,DA) Q:CS2=CS1  Q:+CS2=0
+ .S DIC="^PXRMD(801.41,"
  .D SEHIST^PXRMUTIL(801.41,DIC,DA)
  ;
  ;Redisplay changes (reminder dialog option only)
@@ -113,7 +122,7 @@ EDIT(TYP,DA) ;
  .;Check if the set is disable and add to header if disabled
  .I $P(^PXRMD(801.41,DA,0),U,3)]"" S PXRMHD=PXRMHD_" (DISABLED)"
  .;Reset header in case name has changed
- .S HEADER=PXRMHD,VALMHDR(1)=HEADER
+ .S VALMHDR(1)=PXRMHD
  Q
  ;
  ;Add SINGLE dialog element (protocol PXRM DIALOG SELECTION ITEM)
@@ -127,7 +136,7 @@ ESEL(PXRMDIEN,SEL) ;
  D SETSTART^PXRMCOPY(DIC)
  S DIC(0)="AEMQL"
  S DIC("A")="Select new DIALOG ELEMENT: "
- S DIC("S")="I ""EG""[$P(^PXRMD(801.41,Y,0),U,4)&(Y'=PXRMDIEN)"
+ S DIC("S")="I ""EGPF""[$P(^PXRMD(801.41,Y,0),U,4)"
  S DIC("DR")="4///E"
  W !
  D ^DIC
@@ -136,6 +145,8 @@ ESEL(PXRMDIEN,SEL) ;
  I Y=-1 K DIC S DTOUT=1 Q
  S DA=$P(Y,U,1) Q:'DA
  S DNEW=$P(Y,U,3)
+ ;Group points to itself
+ I 'DNEW,$$VGROUP(DA,PXRMDIEN) Q
  ;Add to dialog
  D EADD(SEL,DA,PXRMDIEN)
  ;Determine dialog type
@@ -148,54 +159,12 @@ ESEL(PXRMDIEN,SEL) ;
  ;Update dialog component multiple
  ;--------------------------------
 EADD(SEL,NSUB,PXRMDIEN) ;
- N DA,DATA,NEXT
- S DATA=$G(^PXRMD(801.41,PXRMDIEN,10,0)),NEXT=$P(DATA,U,3)+1
- I DATA="" S DATA="^801.412IA"
- S DA=NSUB,DA(1)=PXRMDIEN
- S ^PXRMD(801.41,PXRMDIEN,10,NEXT,0)=SEL_U_DA_"^^^^^^^"
- ;Update next slot
- S $P(DATA,U,4)=$P(DATA,U,4)+1,$P(DATA,U,3)=NEXT
- S ^PXRMD(801.41,PXRMDIEN,10,0)=DATA
- ;Re-index
- N DIK,DA S DIK="^PXRMD(801.41,",DA=PXRMDIEN
- D IX^DIK
- Q
- ;
- ;Edit individual element (protocol PXRM DIALOG SELECTION ITEM)
- ;-----------------------
-IND(DIEN) ;
- W IORESET
- N DIC,DIDEL,DR,DTOUT,DUOUT,DINUSE,HED,NATIONAL,Y
- ;
- S NATIONAL=0
- ;Limited edit of National dialogs
- I $P($G(^PXRMD(801.41,PXRMDIEN,100)),U)="N" D
- .I $G(PXRMINST)=1,DUZ(0)="@" Q
- .S NATIONAL=1
- ;
- W !,"CURRENT DIALOG ELEMENT NAME: "_$P($G(^PXRMD(801.41,DIEN,0)),U)
- ;Ask what to do with it
- N ANS
- I 'NATIONAL D PROMPT(.ANS) Q:$D(DTOUT)!$D(DUOUT)
- ;National can only be edited
- I NATIONAL S ANS="E"
- ;Delete line
- I ANS="D" D DEL(DIEN,PXRMDIEN) Q
- ;Copy and Replace option
- I ANS="C" D SEL^PXRMDCPY(.DIEN,PXRMDIEN) Q:$D(DTOUT)!$D(DUOUT)
- ;Determine if a taxonomy dialog
- N FIND
- S FIND=$P($G(^PXRMD(801.41,IEN,1)),U,5),VALMBCK="R"
- ;Edit taxomomy dialog
- I $P(FIND,";",2)="PXD(811.2," D EDIT^PXRMGEDT("DTAX",$P(FIND,";"),0) Q
- ;Determine dialog type
- S DTYP=$P($G(^PXRMD(801.41,DIEN,0)),U,4) Q:DTYP=""
- ;Option to change an element to a group
- I DTYP="E",'NATIONAL D NTYP(.DTYP) Q:$D(DUOUT)!$D(DTOUT)  D:DTYP="G"
- .S $P(^PXRMD(801.41,DIEN,0),U,4)=DTYP
- .W !,"Dialog element changed to a dialog group"
- ;Edit Element
- D EDIT(DTYP,DIEN)
+ N ERRMSG,FDAIEN,FDA,IENS
+ S IENS="+2,"_PXRMDIEN_","
+ S FDA(801.412,IENS,.01)=SEL
+ S FDA(801.412,IENS,2)=NSUB
+ D UPDATE^DIE("","FDA","FDAIEN","ERRMSG")
+ I $D(MSG) D AWRITE^PXRMUTIL("ERRMSG")
  Q
  ;
  ;Change Dialog Element Type
@@ -214,23 +183,6 @@ NTYP(TYP) ;
  S TYP=Y
  Q
  ;
- ;Select Dialog Element Action
- ;----------------------------
-PROMPT(ANS) ;
- N X,Y,DIR K DIROUT,DIRUT,DTOUT,DUOUT
- S DIR(0)="S"_U_"E:Edit;"
- S DIR(0)=DIR(0)_"C:Copy and Replace current element;"
- S DIR(0)=DIR(0)_"D:Delete element from this dialog;"
- S DIR("A")="Select Dialog Element Action"
- S DIR("B")="E"
- S DIR("?")="Select from the codes displayed. For detailed help type ??"
- S DIR("??")=U_"D HELP^PXRMDEDT(1)"
- D ^DIR K DIR
- I $D(DIROUT) S DTOUT=1
- I $D(DTOUT)!($D(DUOUT)) Q
- S ANS=Y
- Q
- ;
  ;Clear pointers from the reminder file and process ID file
  ;---------------------------------------------------------
 PURGE(DIEN) ;
@@ -242,8 +194,43 @@ PURGE(DIEN) ;
  ;
  Q
  ;
- ;General help text routine. Write out the text in the HTEXT array.
-HELP(CALL) ;
+VGROUP(DA,IEN) ;Check dialog index to see if group will point to itself 
+ N FOUND
+ S FOUND=0
+ ;
+ ;Only do check if dialog is a group
+ I $P($G(^PXRMD(801.41,DA,0)),U,4)'="G" Q FOUND
+ ;
+ ;Group cannot be added to itself
+ I DA=IEN D  Q FOUND
+ .S FOUND=1
+ .W !,"A group cannot be added to itself" H 2
+ ;
+ ;IEN is the dialog group being added to 
+ D VGROUP1(DA,IEN)
+ Q FOUND
+ ;
+VGROUP1(DA,DIEN) ;Examine all parent dialogs
+ ;
+ ;End search if already found
+ Q:FOUND
+ ;
+ ;Check if dialog being added is a parent at this level
+ I $D(^PXRMD(801.41,"AD",DIEN,DA)) D  Q
+ .S FOUND=1
+ .W !,"A group cannot be added as it's own descendant" H 2
+ ;
+ ;If not look at other parents
+ N SUB
+ S SUB=0
+ F  S SUB=$O(^PXRMD(801.41,"AD",DIEN,SUB)) Q:'SUB  D  Q:FOUND
+ .;Ignore reminder dialogs
+ .I $P($G(^PXRMD(801.41,SUB,0)),U,4)'="G" Q
+ .;Repeat check on other parents
+ .D VGROUP1(DA,SUB)
+ Q
+ ;
+HELP(CALL) ;General help text routine
  N HTEXT
  N DIWF,DIWL,DIWR,IC
  S DIWF="C70",DIWL=0,DIWR=70
@@ -285,17 +272,29 @@ LOCK(DA) ;Lock the record
  I '$$VEDIT^PXRMUTIL("^PXRMD(801.41,",DA) D
  .N DTYP
  .S DTYP=$P($G(^PXRMD(801.41,DA,0)),U,4)
+ .;Allow limit edit of Result Elements that are not lock
+ .I DTYP="T",+$P($G(^PXRMD(801.41,DA,100)),U,4)=0 Q
  .;Allow edit of findings but not component multiple on groups 
  .I DTYP="G",$G(PXRMDIEN),DA'=PXRMDIEN Q
+ .I DTYP="G",$G(PXRMGTYP)="DLGE" Q
  .;Allow edit of element findings
  .I DTYP="E" Q
  .S OK=0
  .W !!,?5,"VA- and national class reminder dialogs may not be edited" H 2
  I 'OK Q 0
  ;
- L +^PXRMD(801.41,DA):0 I  Q 1
- E  W !!,?5,"Another user is editing this file, try later" H 2 Q 0
+ L +^PXRMD(801.41,DA):DILOCKTM I  Q 1
+ E  W !!,?5,"Another user is editing this entry, try later." H 2 Q 0
  ;
+PROMPT(IEN) ;
+ N DIE,DR
+ S DIE="^PXRMD(801.41,",DA=IEN
+ S DR=".01;3;100;101;102;24;23;21"
+ S IEN=$G(^PXRMD(801.41,IEN,46)) I $G(IEN)="" G EX
+ I $P($G(^PXRMD(801.42,IEN,0)),U)="COM" S DR=DR_";45"
+EX ;
+ D ^DIE
+ Q
  ;
 UNLOCK(DA) ;Unlock the record
  L -^PXRMD(801.41,DA)

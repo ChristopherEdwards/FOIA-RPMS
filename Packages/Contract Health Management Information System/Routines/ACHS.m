@@ -1,28 +1,26 @@
 ACHS ;IHS/ITSC/PMF - CHS SUB-ROUTINES ; [ 01/18/2005  1:14 PM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,4,5,7,12,17,18,22**;JUNE 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**2,4,5,7,12,17,18,22**;JUNE 11,2001;Build 37
  ;
-AD(P) ;EP - Pth piece of AREA DIR info
+AD(P) ;EP -P=piece of AO DIR
  Q $P($G(^ACHSDENR(DUZ(2),200)),U,P)
-C(X,Y) ;EP - Center X in field len Y
+C(X,Y) ;EP -Center X in field len Y
  Q $J("",$S($D(Y):Y,$D(IOM):IOM,1:80)-$L(X)\2)_X
 AOP(N,P) ;EP -N=node, P=piece, ret AO Par
  Q $P($G(^ACHSAOP(DUZ(2),N)),U,P)
-SUD(P) ;EP - Pth piece of SU DIR info
+SUD(P) ;EP -P=piece of SU DIR info
  Q $P($G(^ACHSDENR(DUZ(2),100)),U,P)
-ASF(F) ;EP - Ret ASUFAC given DUZ(2)
+ASF(F) ;EP -Ret ASUFAC given DUZ(2) ;allows alpha in aufac
  Q:'$D(F) -1
  Q:'F -1
  S F=$P($G(^AUTTLOC(F,0)),U,10)
  Q:'($L(F)=6) -1
- ;ACHS*3.1*4 3/27/02 pmf alpha in ASUFAC
- ;Q:'(F?6N) -1  ;ACHS*3.1*4
- I F'?6NA Q -1  ;ACHS*3.1*4
+ I F'?6NA Q -1
  Q F
 BM ;EP -Set bot mar to ACHSBM
  S ACHSBM=IOSL-10
  I '$D(IO("S")),'$D(ZTQUEUED),IO=IO(0) S ACHSBM=IOSL-4
  Q
-BRPT ;EP -Std beg of rpt
+BRPT ;EP -Stand beg of rpt
  I $D(ACHSQIO) F  S IOP=ACHSQIO D ^%ZIS Q:'POP  H 30
  D BM,NOW
  S ACHSTIME=$$C^XBFUNC($G(ACHSTIME),80)
@@ -31,13 +29,13 @@ BRPT ;EP -Std beg of rpt
  S ACHSUSR=$$USR
  U IO
  Q
-CLEAN(FROM) ;EP fr ACHSAVAR-clean err glb > 90 days
+CLEAN(FROM) ;EP fr ACHSAVAR-clean err glb>90 days
  S:FROM="" FROM=$H-90_",00000"
  F  S FROM=$O(^ACHSERR(FROM),-1) Q:FROM=""  D
  .K ^ACHSERR(FROM)
  Q
- ;IF USER-MGR-WARN ERR MESS IN ^ACHSERR-CALLED AT ENT ACT FOR OPT
-ISMGR(TMPDUZ) ;EP fr opt ACHSMENU
+ ;IF USER-Manager-WARN THEM OF ERR MESS IN ^ACHSERR-CALLED AT THE ENTRY ACT FOR OPT
+ISMGR(TMPDUZ) ;EP-opt ACHSMENU
  Q:'$D(^ACHSERR)
  D VIDEO
  S $P(LINE,"-",IOM+1)=""
@@ -48,7 +46,7 @@ ISMGR(TMPDUZ) ;EP fr opt ACHSMENU
  W !!,"Please take a look at global ^ACHSERR"
  W !!!,"Press return to continue..."
  D READ^ACHSFU
- D ISMGRHD      ;ERR MESS HEADER
+ D ISMGRHD      ;HDR FOR ERR MESS FILE
  S %H=""
  F  S %H=$O(^ACHSERR(%H)) Q:%H=""  D
  .D YX^%DTC S NOW=Y
@@ -68,7 +66,7 @@ CLOSEALL ;EP -Close all HFS dev
  S ACHS=""
  F  S ACHS=$O(IO(1,ACHS)) Q:'ACHS  S IO=ACHS D ^%ZISC
  Q
-DIR(O,A,B,Q,H,R) ;EP - ^DIR interface
+DIR(O,A,B,Q,H,R) ;EP -^DIR interface
  I '$L($G(O)) Q -1
  N DIR
  S DIR(0)=O
@@ -93,14 +91,14 @@ DATE(A,N,M) ;EP - prmpt for dt
  K N,M
  F  W !! S Y=$$DIR^XBDIR("DO^::E",A) Q:'(Y>DT)  D FUDT
  Q Y
-DIC(D,O,A,B,S) ;EP - DIC Lookup
+DIC(D,O,A,B,S) ;EP -DIC Lookup
  N DIC
  S DIC=D,DIC(0)=$G(O)
  I $L($G(A)) S DIC("A")=A
  I $L($G(B)) S DIC("B")=B
  D ^DIC
  Q Y
-DIE(DR,Z) ;EP - Ed Doc fld
+DIE(DR,Z) ;EP -Ed Doc fld
  I $G(Z) F %=1:1:Z W !
  S DA=ACHSDIEN,DA(1)=DUZ(2),DIE="^ACHSF("_DUZ(2)_",""D"","
  I '$$LOCK("^ACHSF(DUZ(2),""D"",ACHSDIEN)","+") S DUOUT="" Q 0
@@ -121,9 +119,6 @@ DF(S,P) ;EP - Ret Def Svc fr node S, piece P
  S Y=$G(ACHSA)
  I Y="" S Y=$G(ACHSDA)
  I Y="" Q 0
- ;End New Code;IHS/SET/GTH ACHS*3.1*5 12/06/2002
- ;1/3/02  pmf mod nxt ln to get the rght var ACHS*3.1*2
- ;Q $P($G(^ACHSDEF(DUZ(2),"D",ACHSDA,S)),U,P)
  Q $P($G(^ACHSDEF(DUZ(2),"D",Y,S)),U,P)
 DN(S,P) ;EP - Ret Denial data from node S, piece P
  Q $P($G(^ACHSDEN(DUZ(2),"D",ACHSA,S)),U,P)
@@ -136,14 +131,13 @@ EBB(B,E) ;EP - Compare Beg and End dates for a rep
 ERPT ;EP - Stand end of a rep
  D ^%ZISC
  K ACHS,ACHSBDT,ACHSBM,ACHSEDT,ACHSIO,ACHSLOC,ACHSPG,ACHSQIO,ACHSRPT,ACHST1,ACHST2,ACHST3,ACHSTIME,ACHSUSR,ACHSX,ACHSY,DTOUT,DUOUT,X2,X3,Y
- K ACHD,ACHDBDT,ACHDBM,ACHDEDT,ACHDHAT,ACHDIO,ACHDLOC,ACHDPG,ACHDQIO,ACHDRPT,ACHDT1,ACHDT2,ACHDT3,ACHDTIME,ACHDUSR,ACHDX,ACHDY,DTOUT,DUOUT,X2,X3,Y
+ K ACHD,ACHDBDT,ACHDBM,ACHDEDT,ACHDHAT,ACHDIO,ACHDLOC,ACHDPG,ACHDQIO,ACHDRPT,ACHDT1,ACHDT2,ACHDT3,ACHDTIME,ACHDUSR,ACHDX,ACHDY
  Q
 EX() ;EP - Ret file Exp dir
- ;I $$OS=1 Q "/usr/spool/uucppublic/" ;ACHS*3.1*17 2/4/2010 IHS.OIT.FCJ CHG NXT LINE
  I $$OS=1,$L($P($G(^AUTTSITE(1,1)),U,2)) Q $P($G(^AUTTSITE(1,1)),U,2) ;unx
  I $$OS=2,$L($P($G(^AUTTSITE(1,1)),U,2)) Q $P($G(^AUTTSITE(1,1)),U,2)
  Q "C:\EXPORT\"
-FC(Y) ;EP - Ret Fin Code of site Y (DUZ(2))
+FC(Y) ;EP -Ret Fin Code-site Y=DUZ(2)
  N X
  I Y="" Q "UNDEFINED"
  S X=$P($G(^AUTTLOC(Y,0)),U,4)
@@ -168,19 +162,19 @@ FYSEL(X) ;EP
  S O="N^"_MIN_":"_MAX_":0",B=MAX
  K MIN,MAX
  Q $$DIR^XBDIR(O,"ENTER FISCAL YEAR",B,"","Invalid FY, Enter FY with all 4 digits","^D SB1^ACHSFU",1)
-GDT(JDT) ;EP - Given Julian Date, ret Gregorian Date-Ext format.
+GDT(JDT) ;EP -JDT-Julian Date, ret Gregorian Date-Ext format
  Q:'$G(JDT) -1
  Q:JDT<0 -1
  Q:JDT>366 -1
  Q $$HTE^XLFDT($P($$FMTH^XLFDT($S(JDT>$$JDT(DT):($E(DT,1,3)-1),1:$E(DT,1,3))_"0101"),",")+JDT-1)
  ;
  Q "NOT FOUND"
-H ;EP - menu header
+H ;EP -menu header
  ;D VIDEO
  W @IOF
  D STATUSLN
  D VIDEO
- ;ACHS*3.1*18 6.30.2010 IHS.OIT.FCJ ADDED NXT 4 LINES
+ ;ACHS*3.1*18 6.30.2010 IHS.OIT.FCJ NXT 4 LINES
  S X=$O(^DIC(9.4,"C","ACHS",0))  ;ACHS*3.1*18
  S V=$G(^DIC(9.4,X,"VERSION"))   ;ACHS*3.1*18
  S A=$O(^DIC(9.4,X,22,"B",V,0))  ;ACHS*3.1*18
@@ -191,17 +185,15 @@ H ;EP - menu header
  Q
 STATUSLN ;
  I $$VERSION^%ZOSV(1)["NT" Q
- ;S DX=0,DY=IOSL-1
  S JOB=$J
  X ^%ZOSF("UCI")   ;GET CURRENT UCI,VOL
- ;S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  Unix Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y ;ACHS*3.1*22
- S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  "_$S($$OS^ACHS=2:"Windows",1:"Unix")_" Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y  ;ACHS*3.1*22
+ S MYLINE="Device: "_$G(IO)_" Job no.: "_JOB_"  "_$S($$OS^ACHS=2:"Windows",1:"Unix")_" Device: "_$G(IO("ZIO"))_"  [UCI,VOL]: "_Y
  D PREP^XGF
  D SAY^XGF(1,1,MYLINE,"R1")
  D CLEAN^XGF
  Q
  ;
-HELP(L,R) ;EP - Dis at label L, routine R.
+HELP(L,R) ;EP -Dis at label L, RTN R
  N X
  W !
  F %=1:1 S X=$T(@L+%^@R) Q:($P(X,";",3)="###")!(X="")  D
@@ -210,13 +202,12 @@ HELP(L,R) ;EP - Dis at label L, routine R.
  .Q
  Q
  ;
-HRN(P,L) ;EP - Ret HRN for DFN P, DUZ(2) L.
+HRN(P,L) ;EP -Ret HRN for DFN-P DUZ(2)-L
  ;ITSC/SET/JVK ACHS*3.1*12 ADD BELOW COMMENT FOR IHS/OKCAO/POC PAWNEE BEN. PKG.
  ;I +$P($G(^AUTTLOC(DUZ(2),0)),U,1)=505613 Q $$GET1^DIQ(1808000,P_",",1
  Q $P($G(^AUPNPAT(P,41,L,0)),U,2)
  ;
 IM() ;EP - ReT file Imp dir
- ;I $$OS=1 Q "/usr/spool/uucppublic/" ;ACHS*3.1*17 2/4/2010 IHS.OIT.FCJ CHG TO NXT LN
  I $$OS=1,$L($P($G(^AUTTSITE(1,1)),U)) Q $P($G(^AUTTSITE(1,1)),U) ;UNIX IMPORT PATH
  I $$OS=2,$L($P($G(^AUTTSITE(1,1)),U)) Q $P($G(^AUTTSITE(1,1)),U) ;DOS IMPORT PATH
  Q "C:\IMPORT\"
@@ -294,7 +285,6 @@ NOW ;EP - Set cur time into ACHSTIME
 OS() ;EP - Ret OS fr ^%ZOSF("OS") or RPMS Site file.
  I $G(^%ZOSF("OS"))["MSM-UNIX" Q 1
  I $G(^%ZOSF("OS"))["MSM-PC" Q 2
- ;IHS/SET/JVK ACHS*3.1*7 ADDED FOR CACHE SITES
  I $G(^%ZOSF("OS"))["OpenM-NT",($P($G(^AUTTSITE(1,0)),U,21)) Q $P($G(^AUTTSITE(1,0)),U,21)
  I $P($G(^AUTTSITE(1,0)),U,21) Q $P($G(^AUTTSITE(1,0)),U,21)
  Q 1 ; Default is UNIX if "OS" and RPMS SITE can't determine.
@@ -305,16 +295,10 @@ PB() ;EP - Print/Browse.
 PTLK ;EP  Stand pt lookup using DIC.
  N ACHSDUZ2
  I $$PARM(2,5)="Y" S ACHSDUZ2=DUZ(2),DUZ(2)=0
- ;ITSC/SET/JVK ACHS*3.1*12 ADD BELOW FOR IHS/OKCAO/POC PAWNEE BEN
+ ;IHS/OKCAO/POC PAWNEE BEN
  I +$P($G(^AUTTLOC(DUZ(2),0)),U,10)=505613 D
  .D PAWNEE
  .Q
- ;Below REDONE IN THE ELSE D LOOP
- ;S DIC="^AUPNPAT(",DIC(0)="AEMQ",AUPNLK("INAC")=""
- ;I $G(DFN),$D(^DPT(DFN,0)) S DIC("B")=$P($G(^DPT(DFN,0)),U)
- ;D ^DIC
- ;K DFN,DIC,AUPNLK("INAC")
- ;I Y'<1 S DFN=+Y
  E  D
  .S DIC="^AUPNPAT(",DIC(0)="AEMQ",AUPNLK("INAC")=""
  .I $G(DFN),$D(^DPT(DFN,0)) S DIC("B")=$P($G(^DPT(DFN,0)),U)
@@ -330,7 +314,7 @@ RPL(X,Y,Z) ;EP - In X, Replace Y with Z.
  Q X
 RTRN ;EP - ask usr to press RET
  S ACHSQUIT=0
- I IOST["C-",'$D(IO("S")) S Y=$$DIR^XBDIR("E","Press RETURN To Continue or Escape or ^ to Cancel...","","","",1) X ^%ZOSF("TRMRD") I Y=0!(Y=27)!(X=U) S ACHSQUIT=1 ;IHS/SET/GTH ACHS*3.1*5 12/06/2002
+ I IOST["C-",'$D(IO("S")) S Y=$$DIR^XBDIR("E","Press RETURN To Continue or ^ to Exit or Cancel...","","","",1) X ^%ZOSF("TRMRD") I Y=0!(Y=27)!(X=U) S ACHSQUIT=1
  Q
 SB(X) ;EP - Strip leading & trailing blanks from X.
  X ^DD("FUNC",$O(^DD("FUNC","B","STRIPBLANKS",0)),1)
@@ -407,7 +391,7 @@ FY(%) ;EP - Given a FY, return beg/end dates.
  I $E(Y,4,5)="02",'((1700+$E(Y,1,3))#4) S Y=$E(Y,1,5)_"29"
  I $E(X,4,5)=$E(Y,4,5) S %=$E(X,6,7),%=%-1,%="0"_%,%=$E(%,$L(%)-1,$L(%)),Y=$E(Y,1,5)_%
  Q X_U_Y
-PAWNEE ;ITSC/SET/JVK ACHS*3.1*12 ADD FOR IHS/OKCAO/POC PAWNEE BEN PKG
+PAWNEE ;IHS/OKCAO/POC PAWNEE BEN PKG
  S DIC=1808000,DIC(0)="IQAZEM" S:+$G(DFN) DIC("B")=$P($G(^DPT(DFN,0)),U)
  D ^DIC K DIC
  I $D(DUOUT)!(+Y<0) K DFN Q

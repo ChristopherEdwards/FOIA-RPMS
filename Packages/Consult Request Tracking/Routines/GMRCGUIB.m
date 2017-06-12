@@ -1,6 +1,7 @@
-GMRCGUIB ;SLC/DCM,JFR,MA - GUI actions for consults ;8/19/03 07:31
- ;;3.0;CONSULT/REQUEST TRACKING;**4,12,18,20,17,22,29,30,35,45,53,55**;DEC 27, 1997;Build 4
+GMRCGUIB ;SLC/DCM,JFR,MA - GUI actions for consults ;19-Nov-2014 09:52;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**4,12,18,20,17,22,29,30,35,45,53,55,1005**;DEC 27, 1997;Build 2
  ; This routine invokes IA #2980
+ ; IHS/MSC/MGH added an unlock when exiting
  ;
 SETDA() ;set DA of where audit actions are to be filed
  S:'$D(^GMR(123,+GMRCO,40,0)) ^GMR(123,GMRCO,40,0)="^123.02DA^^"
@@ -29,7 +30,7 @@ SETCOM(COMMENT,WHO) ;Set comment array into tracking actions
  ;
  K GMRCND,GMRCND1
  Q
-CMT(GMRCO,GMRCOM,GMRCADUZ,GMRCWHN,GMRCWHO) ;add comment to consult 
+CMT(GMRCO,GMRCOM,GMRCADUZ,GMRCWHN,GMRCWHO) ;add comment to consult
  ; GMRCO = IEN from file 123
  ; GMRCOM = array of comments in format GMRCOM(1)="xxxx", GMRCOM(2)="xxx"
  ; GMRCADUZ = array of alert recipients as GMRCADUZ(DUZ)="" (optional)
@@ -87,7 +88,8 @@ SFILE(GMRCO,GMRCA,GMRCSF,GMRCORNP,GMRCDUZ,GMRCOM,GMRCALF,GMRCATO,GMRCAD) ;Proces
  I '$G(GMRCDUZ) S GMRCDUZ=DUZ
  I '$G(GMRCAD) S GMRCAD=GMRCNOW
  ;Insure comment array contains text for Complete action.
- I GMRCA=10 D  I GMRCERR=1 S GMRCERMS="Comment field must contain a text value!" Q GMRCERR_"^"_GMRCERMS
+ ;IHS/MSC/MGH Added an unlock before exiting
+ I GMRCA=10 D  I GMRCERR=1 L -^GMR(123,GMRCO) S GMRCERMS="Comment field must contain a text value!" Q GMRCERR_"^"_GMRCERMS
  . S GMRCERR=1
  . I '$D(GMRCOM) Q
  . N GMRCOM1 S GMRCOM1=""
@@ -127,10 +129,10 @@ SFILE(GMRCO,GMRCA,GMRCSF,GMRCORNP,GMRCDUZ,GMRCOM,GMRCALF,GMRCATO,GMRCAD) ;Proces
 SCH(GMRCO,GMRCORNP,GMRCAD,GMRCADUZ,GMRCMT) ;schedule a consult API
  ; Input variables:
  ;GMRCO - The internal file number of the consult from File 123
- ;GMRCORNP - Name of the person who actually 'Received' the consult 
+ ;GMRCORNP - Name of the person who actually 'Received' the consult
  ;GMRCAD - Actual date time that consult was received into the service.
  ;GMRCADUZ - array of alert recipients as chosen by user (by reference)
- ;   ARRAY(DUZ)="" 
+ ;   ARRAY(DUZ)=""
  ;GMRCMT - array of comments if entered (by reference)
  ;   ARRAY(1)="FIRST LINE OF COMMENT"
  ;   ARRAY(2)="SECOND LINE OF COMMENT"
@@ -139,7 +141,7 @@ SCH(GMRCO,GMRCORNP,GMRCAD,GMRCADUZ,GMRCMT) ;schedule a consult API
  ;GMRCERR - Error Condition Code: 0 = NO error, 1=error
  ;GMRCERMS - Error message or null
  ;  returned as GMRCERR^GMRCERMS
-        ;
+ ;
  N DFN,GMRCSTS,GMRCNOW,GMRCERR,GMRCERMS
  S GMRCERR=0,GMRCERMS="",GMRCNOW=$$NOW^XLFDT
  S:$G(GMRCAD)="" GMRCAD=GMRCNOW
@@ -161,7 +163,7 @@ SCH(GMRCO,GMRCORNP,GMRCAD,GMRCADUZ,GMRCMT) ;schedule a consult API
  . D MSG^GMRCP(DFN,TXT,GMRCO,63,.GMRCADUZ,0)
  D EXIT^GMRCGUIA
  Q GMRCERR_"^"_GMRCERMS
-DOCLIST(GMRCAR,GMRCDA,GMRCMED)  ;return list of linked results
+DOCLIST(GMRCAR,GMRCDA,GMRCMED) ;return list of linked results
  ; Input:
  ;  GMRCAR - array to return list, passed by reference
  ;  GMRCDA - ien from file 123

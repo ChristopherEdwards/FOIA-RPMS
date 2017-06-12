@@ -1,23 +1,27 @@
 ABMDFUTL ; IHS/SD/DMJ - Export Forms Utility ;     
- ;;2.6;IHS Third Party Billing System;**2,6,8,9,10,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing System;**2,6,8,9,10,13,14**;NOV 12, 2009;Build 238
  ;Original;TMD;
  ;
  ; IHS/ASDS/DMJ - 05/15/00 - V2.4 Patch 1 - NOIS HQW-0500-100032 - Modified to allow population of the PIN number for KIDSCARE
  ;     as well as visit type 999.
  ; IHS/ASDS/SDH - 08/14/01 - V2.4 Patch 9 - NOIS NDA-1199-180065 - Modified routine to get grouper allowance, non-covered, and penalties.
  ; IHS/ASDS/SDH - 11/20/01 - V2.4. Patch 10 - NOIS QXX-1101-130059 - Modified to get billed amount even if there are no payments
- ; IHS/SD/SDR - 10/10/02 V2.5 P2 - NGA-0902-180106 - Modified to put provider number in 24k if Medicare/Railroad insurer
  ;
- ; IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - utility to return provider for line item
- ; IHS/SD/SDR - v2.5 p11 - NPI
- ; IHS/SD/SDR - v2.5 p12 - IM24799 - Made change for <UNDEF>K24N+9^ABMDFUTL
- ; IHS/SD/SDR - v2.5 p12 - IM25017 - Made changes for 1st line of block 24J
- ; IHS/SD/SDR - v2.5 p13 - IM26203 - Print loc NPI in block 33A
- ; IHS/SD/SDR - v2.5 p13 - IM26299 - Fix if insurer type is <UNDEF>
- ; IHS/SD/SDR - v2.5 p13 - NO IM - Change to use LDFN instead of DUZ(2)
- ; IHS/SD/SDR - abm*2.6*2 - HEAT10900 - ck if Medicare and primary
- ; IHS/SD/SDR - 2.6*9 - HEAT46390 - fixed writeoff amount to include all bills
+ ; IHS/SD/SDR - 10/10/02 V2.5 P2 - NGA-0902-180106 - Modified to put provider number in 24k if Medicare/Railroad insurer
+ ;IHS/SD/SDR - V2.5 P8 - IM10618/IM11164 - utility to return provider for line item
+ ;IHS/SD/SDR - v2.5 p11 - NPI
+ ;IHS/SD/SDR - v2.5 p12 - IM24799 - Made change for <UNDEF>K24N+9^ABMDFUTL
+ ;IHS/SD/SDR - v2.5 p12 - IM25017 - Made changes for 1st line of block 24J
+ ;IHS/SD/SDR - v2.5 p13 - IM26203 - Print loc NPI in block 33A
+ ;IHS/SD/SDR - v2.5 p13 - IM26299 - Fix if insurer type is <UNDEF>
+ ;IHS/SD/SDR - v2.5 p13 - NO IM - Change to use LDFN instead of DUZ(2)
+ ;
+ ;IHS/SD/SDR - abm*2.6*2 - HEAT10900 - ck if Medicare and primary
+ ;IHS/SD/SDR - 2.6*9 - HEAT46390 - fixed writeoff amount to include all bills
  ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35; Also added lookup for provider
+ ;IHS/SD/SDR - 2.6*14 - HEAT163697 - changed message in provider lookup if provider is not in New Person file; Also updated lookup so it wouldn't allow special characters if name
+ ;  is not in New Person file.
+ ;IHS/SD/SDR - 2.6*14 - HEAT165324 - Fixed NPI for PRVLKUP so it will force NPI to be numeric; displays message and prompts again if not
  ;
  ; *********************************************************************
  ;
@@ -177,14 +181,24 @@ PRVLKUP(ABMX,ABMY) ;EP
  I Y>0  D  Q ABM("PROVIDER")
  .S $P(ABM("PROVIDER"),U)=$P(Y,U,2)
  .S $P(ABM("PROVIDER"),U,2)=$S($P($$NPI^XUSNPI("Individual_ID",+Y),U)>0:$P($$NPI^XUSNPI("Individual_ID",+Y),U),1:"")
- I Y<0 D
- .W " Name not in New Person file"
+NPI ;
+ ;I Y<0 D  ;abm*2.6*14 HEAT165324
+ I +$G(Y)<1 D  ;abm*2.6*14 HEAT165324
+ .;W " Name not in New Person file"  ;abm*2.6*14 HEAT163697
+ .W " Entry NOT found"  ;abm*2.6*14 HEAT163697
  .N DIC,DIE,DIR,X,Y,DR,DA
- .S DIR(0)="FA^10:10"
- .S DIR("A")="Enter Provider NPI: "
+ .;S DIR(0)="FA^10:10"  ;abm*2.6*14 HEAT163697
+ .S DIR(0)="FO^10:10"  ;abm*2.6*14 HEAT163697
+ .;S DIR("A")="Enter Provider NPI: "  ;abm*2.6*14 HEAT163697
+ .S DIR("A")="Enter Provider NPI"  ;abm*2.6*14 HEAT163697
  .I ABM("PROVIDER")=ABMX,ABMY'="" S DIR("B")=ABMY
- .S DIR("S")="I $$CHKDPT^XUSNPI(X))"
+ .;S DIR("S")="I $$CHKDGT^XUSNPI(X))"  ;abm*2.6*14 HEAT165324
  .D ^DIR
+ .;start new abm*2.6*14 HEAT165324
+ .I +$$CHKDGT^XUSNPI(Y)'=1 D  G NPI
+ ..W !,"NPI must be 10 numeric characters"
+ ..K Y
+ .;end new HEAT165324
  .S $P(ABM("PROVIDER"),U,2)=Y
  Q ABM("PROVIDER")
  ;end new code export mode 35

@@ -1,5 +1,5 @@
-RAHLQ1 ;HISC/CAH AISC/SAW-Compiles HL7 'ORF' Message Type ;10/7/97  16:02
- ;;5.0;Radiology/Nuclear Medicine;;Mar 16, 1998
+RAHLQ1 ;HISC/CAH AISC/SAW-Compiles HL7 'ORF' Message Type ; 06 Oct 2013  11:07 AM
+ ;;5.0;Radiology/Nuclear Medicine;**1005**;Mar 16, 1998;Build 13
  ; Set the ^TMP("RARPT-QBAK",$J,RARECNT,... global to the following:
  ; ^TMP("RARPT-QBAK",$J,RARECNT,"PID3")=Patient ID & checksum
  ; "PID5"          Patient name
@@ -34,7 +34,11 @@ EN1 S RADTE0=$S($D(^RADPT(RADFN,"DT",RADTI,0)):+^(0),1:"")
  S ^TMP("RARPT-QBAK",$J,RARECNT,"RADFN")=RADFN
  S ^TMP("RARPT-QBAK",$J,RARECNT,"VADM(1)")=VADM(1)
  S ^TMP("RARPT-QBAK",$J,RARECNT,"VADM(3)")=VADM(3)
- S ^TMP("RARPT-QBAK",$J,RARECNT,"PID8")=$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;S ^TMP("RARPT-QBAK",$J,RARECNT,"PID8")=$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ S ^TMP("RARPT-QBAK",$J,RARECNT,"PID8")=$S(VADM(5)]"":$S("MFU"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ ;
  S:$P(VADM(2),"^")]"" ^TMP("RARPT-QBAK",$J,RARECNT,"PID19")=$P(VADM(2),"^")
  ;
  ;Compile 'OBR' Segment

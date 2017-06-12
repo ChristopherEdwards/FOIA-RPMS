@@ -1,5 +1,5 @@
 ABSPOS6H ; IHS/FCS/DRS - Data Entry & Status Disp ; 
- ;;1.0;PHARMACY POINT OF SALE;**10**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**10**;JUN 21, 2001;Build 15
  ; continuation of ABSPOS6A:
  ;   SETLINE, INFOCT, COMMENTS
  ;-----------------------------------------------------------------

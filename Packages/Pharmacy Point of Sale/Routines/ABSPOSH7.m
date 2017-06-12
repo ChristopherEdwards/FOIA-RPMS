@@ -1,5 +1,5 @@
 ABSPOSH7  ;IHS/SD/lwj - NCPDP 5.1 Post 5.1 response [ 09/04/2002  10:54 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;-------------------------------------------------------------
  ; Originally, the entire response was processed in the 
  ; ABSPOSH5 routine - but it exceed SAC limitations on 

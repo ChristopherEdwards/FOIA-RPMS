@@ -1,5 +1,5 @@
-BGP 04 INDICATORS
-ZWR
+OSEHRA ZGO Export: BGP 04 INDICATORS
+12-JUN-2017 09:47:25 ZWR
 ^BGPINDF(0)="BGP 04 INDICATORS^90244.01I^40^32"
 ^BGPINDF(1,0)="1^1^Diabetes Prevalence^Diabetes Prevalence/Incidence^DM Prevalence: All Diabetic Patients with most recent Diagnosis^1^1^1^0^^1"
 ^BGPINDF(1,1)="D I1^BGP4D2"

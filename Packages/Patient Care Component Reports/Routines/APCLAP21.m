@@ -1,5 +1,5 @@
 APCLAP21 ; IHS/CMI/LAB - All visit report process ; 08 Dec 2010  12:01 PM
- ;;2.0;IHS PCC SUITE;**7,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**7,8,16**;MAY 14, 2009;Build 9
  ;FIX UNDEF PER ROSS
 START ;
  S APCLBT=$H
@@ -22,7 +22,7 @@ PROC ;
  Q:$$DEMO^APCLUTL($P(APCLVREC,U,5),$G(APCLDEMO))
  Q:'$P(APCLVREC,U,9)
  Q:$P(APCLVREC,U,11)
- Q:"EDXIOH"[$P(APCLVREC,U,7)
+ Q:"EDXIH"[$P(APCLVREC,U,7)
  I 'APCLCRYN,$P(APCLVREC,U,7)="C" Q  ;don't want chart reviews and this is a chart review
  Q:$D(^APCLCNTL(4,11,"B",$P(APCLVREC,U,3)))  ;lab/ohprd changed CV to C for VA use
  S APCLVLOC=$P(APCLVREC,U,6) Q:APCLVLOC=""

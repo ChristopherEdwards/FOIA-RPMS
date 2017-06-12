@@ -1,0 +1,86 @@
+BQIPTCON ;GDHS/HSD/ALA-Consults by Patient ; 16 Feb 2016  1:15 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
+ ;
+ ;
+CON(DATA,DFN,TMFRAME) ;EP -- BQI PATIENT CONSULTS
+ ;
+ ;Description - all the consults that a patient has
+ ;
+ ;Input
+ ;  DFN     - Patient internal entry number
+ ;  TMFRAME - Timeframe
+ ;
+ NEW UID,II,HEADER,ENDT
+ S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
+ S DATA=$NA(^TMP("BQIPTCON",UID))
+ K @DATA
+ ;
+ S TMFRAME=$G(TMFRAME,""),ENDT=""
+ I TMFRAME'="" S ENDT=$$DATE^BQIUL1(TMFRAME)
+ ;
+ S II=0
+ NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BQIPTRF D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ NEW GMRCDAT,GMRCDA,GMRCYR,IFLDS,EFLDS
+ I $G(IFLDS)="" D
+ . D CNN Q
+ . S ORD=17,IEN=$O(^BQI(90506.1,"AD","CN",ORD,"")),HDR=$P(^BQI(90506.1,IEN,0),"^",8)
+ . S HEADER=HEADER_"^"_HDR
+ ;
+ S @DATA@(II)="I00010CON_IEN^"_HEADER_$C(30)
+ ;
+ S TMP=$NA(^TMP("BQICONSLT",$J)) K @TMP
+ S GMRCYR=$S($G(ENDT)'="":9999999-ENDT,1:"")
+ I GMRCYR="" D
+ . S GMRCDAT=""
+ . F  S GMRCDAT=$O(^GMR(123,"AD",DFN,GMRCDAT)) Q:GMRCDAT=""  D LD
+ ;
+ I GMRCYR'="" D
+ . S GMRCDAT=""
+ . F  S GMRCDAT=$O(^GMR(123,"AD",DFN,GMRCDAT)) Q:GMRCDAT=""!(GMRCDAT\1>GMRCYR)  D LD
+ ;
+ S GIEN=""
+ F  S GIEN=$O(@TMP@(123,GIEN)) Q:GIEN=""  D
+ . D DA^DILF(GIEN,.DA)
+ . S VALUE=""
+ . S FLD="" F  S FLD=$O(@TMP@(123,GIEN,FLD)) Q:FLD=""  D
+ .. S PO=$G(PORD(FLD))
+ .. S VAL=$G(@TMP@(123,GIEN,FLD,"I")) I VAL'="",FLD=".01" S VAL=$$FMTE^BQIUL1(VAL)
+ .. I VAL="" S VAL=$G(@TMP@(123,GIEN,FLD,"E"))
+ .. I FLD=20 D
+ ... S VAL=$G(@TMP@(123,GIEN,FLD,1))
+ ... ;NEW CNN
+ ... ;S CNN=GIEN,VAL=$$PURP^BQICONPL()
+ .. I FLD=5 S VAL=$P(VAL," - ",2)
+ .. S $P(VALUE,"^",PO)=VAL
+ . S VALUE=DA_"^"_VALUE
+ . S II=II+1,@DATA@(II)=VALUE_$C(30)
+ S II=II+1,@DATA@(II)=$C(31)
+ Q
+ ;
+LD ;EP - Load data
+ S GMRCDA=""
+ F  S GMRCDA=$O(^GMR(123,"AD",DFN,GMRCDAT,GMRCDA)) Q:GMRCDA=""  D
+ . D GETS^DIQ(123,GMRCDA_",",IFLDS,"I",TMP)
+ . D GETS^DIQ(123,GMRCDA_",",EFLDS,"E",TMP)
+ Q
+ ;
+CNN ;EP
+ NEW ORD,IEN,FLD,FIE
+ S PFLDS=".01;1;8;10;13;14;.03;.04;.05;2;5;6;9;30;20;7"
+ F I=1:1:$L(PFLDS,";") S FLD=$P(PFLDS,";",I),PDIS(I)=FLD,PORD(FLD)=I
+ ;set up fields by display order
+ S ORD="",EFLDS="",IFLDS="",HEADER="",ORDER=""
+ F  S ORD=$O(^BQI(90506.1,"AD","CN",ORD)) Q:ORD=""  D
+ . S IEN=""
+ . F  S IEN=$O(^BQI(90506.1,"AD","CN",ORD,IEN)) Q:IEN=""  D
+ .. S FLD=$$GET1^DIQ(90506.1,IEN_",",.06,"E"),FIE=$$GET1^DIQ(90506.1,IEN_",",.2,"I")
+ .. I FLD="" Q
+ .. I $P(^BQI(90506.1,IEN,0),"^",10)=1 K PORD(FLD) Q
+ .. S PO=$G(PORD(FLD)) I PO="" Q
+ .. S HDR=$P(^BQI(90506.1,IEN,0),"^",8),$P(HEADER,"^",PO)=HDR
+ .. I FIE="" S FIE="E"
+ .. I FIE="E" S EFLDS=EFLDS_FLD_";"
+ .. I FIE="I" S IFLDS=IFLDS_FLD_";"
+ S EFLDS=$$TKO^BQIUL1(EFLDS,";"),IFLDS=$$TKO^BQIUL1(IFLDS,";")
+ Q

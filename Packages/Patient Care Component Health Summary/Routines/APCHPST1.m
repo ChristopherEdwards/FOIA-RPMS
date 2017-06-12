@@ -1,5 +1,5 @@
 APCHPST1 ; IHS/CMI/LAB - Patient Health Summary - Post Visit ;
- ;;2.0;IHS PCC SUITE;**5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**5,7,11**;MAY 14, 2009;Build 58
  ;
  ;
  ;
@@ -143,7 +143,7 @@ DMDX(P) ;
   ;check problem list OR must have 3 diagnoses
  N T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW APCHX
  S APCHX=""

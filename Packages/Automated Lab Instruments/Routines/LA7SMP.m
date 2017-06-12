@@ -1,5 +1,6 @@
-LA7SMP ;VA/DALOI/JMC - Shipping Manifest Print ;11/25/96  14:39
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,45,46,64**;NOV 01, 1997;Build 9
+LA7SMP ;VA/DALOI/JMC - Shipping Manifest Print ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,45,46,1018,64,1027,1033**;NOV 01, 1997
+ ;
 EN ;
  D EN^DDIOL("Print Shipping Manifest","","!!")
  D KILL^LA7SMP0

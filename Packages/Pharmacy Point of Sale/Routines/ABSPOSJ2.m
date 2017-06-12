@@ -1,5 +1,5 @@
 ABSPOSJ2 ;IHS/OIT/SCR - pre and post init for V1.0 patch 28 [ 10/31/2002  10:58 AM ]
- ;;1.0;Pharmacy Point of Sale;**29,39,43,44,45,46**;Jun 21,2001
+ ;;1.0;Pharmacy Point of Sale;**29,39,43,44,45,46,47**;Jun 1,2001;Build 15
  ;
  ; Pre and Post init routine use in absp0100.29k
  ;------------------------------------------------------------------
@@ -169,6 +169,12 @@ DEF ;IHS/OIT/RCS 11/28/2012 patch 45 Add ICD10 General POS Default date
  S ^ABSP(9002313.99,1,"ICD10")=3141001 ;SET ICD10 DEFAULT DATE TO '10/1/2014'
  Q
  ;
+DEF2 ;IHS/OIT/RCS 04/08/2014 patch 47 Change to new ICD10 General POS Default date
+ N DEF
+ S DEF=$G(^ABSP(9002313.99,1,"ICD10")) I DEF'="" Q:DEF'=3141001  ;Date was changed by user
+ S ^ABSP(9002313.99,1,"ICD10")=3151001 ;SET ICD10 DEFAULT DATE TO '10/1/2015'
+ Q
+ ;
 DOL ;IHS/OIT/RCS 11/28/2012 patch 46 Add default Maximum Dollar limit
  N DOL
  S DOL=$G(^ABSP(9002313.99,1,"DOLLMT")) I DOL'="" Q  ;ALREADY DATA IS FIELD
@@ -228,6 +234,13 @@ RESTORE ;EP - Post init routine for absp0100.03k.
  . F  S MEDIEN=$O(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN)) Q:MEDIEN=""  D
  .. S REC=$G(^ABSPOSXX(RTN,CLMIEN,400,MEDIEN,400))
  .. Q:REC=""
- .. F I=31:1:43  D MOVFLD(I+400,$P(REC,U,I))
+ .. F I=31:1:43  D MOVFLD^ABSPOSJ1(I+400,$P(REC,U,I))
  .. S ^ABSPOSXX(RTN,"LAST PROCESSED")=CLMIEN_"^"_MEDIEN
+ Q
+RST320 ; this will restore the 320 value onto the 320 node, piece 20
+ N FDA,MSG,VALUE
+ S VALUE=$P($G(^ABSPOSXX(RTN,CLMIEN,320)),U)
+ Q:VALUE=""
+ S FDA(9002313.02,CLMIEN_",",320)=VALUE
+ D FILE^DIE(,"FDA","MSG")
  Q

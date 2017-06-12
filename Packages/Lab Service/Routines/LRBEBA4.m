@@ -1,7 +1,6 @@
-LRBEBA4 ;DALOI/JAH/FHS - ORDERING AND RESULTING OUTPATIENT ;8/10/04
- ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
+LRBEBA4 ;DALOI/JAH/FHS - ORDERING AND RESULTING OUTPATIENT ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**291,359,352,1031,1034**;NOV 1, 1997;Build 88
  ;
- ;;VA LR Patche(s): 291,359,352
  ;
 GPRO(LRBEDN,LRBECDT,LRBESPC,LRBETST) ; Get the Procedure (CPT)
  ; A qualified coder will setup the CPTs in #60. The routine look for 
@@ -186,6 +185,8 @@ CHKINP(LRDFN,LRBEDAT) ; Check for Inpatient Status)
  Q $G(VAIN(1))
  ;
 RFLX() ; Ask the Reflex Question
+ Q 0     ; IHS/MSC/MKK - LR*5.2*1034 -- IHS Federal Task Leads don't want the question asked.  Return No (0).
+ ;
  N DIR,DUOUT,DTOUT,DIRUT,Y
  S DIR("A")="Is this a Reflex Test? (Y/N): "
  S DIR(0)="YA" D ^DIR

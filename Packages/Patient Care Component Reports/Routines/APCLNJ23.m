@@ -1,5 +1,5 @@
 APCLNJ23 ; IHS/CMI/LAB - INJURY REPORT COVER PAGE ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
 TOP ;ENTRY POINT
  S APCLPAGE=0
  D HEAD
@@ -23,7 +23,7 @@ CLN ;
 AGE ;
  W !!,"6.  ",$S($D(APCLAGET):"The following ",1:"All")," Ages",$S($D(APCLAGET):": "_APCLAGET,1:".")
 ICD ;
- W !!,"7.  All vists with an ICD9 Diagnosis between 800 and 999 (injury codes)."
+ W !!,"7.  All vists with an ICD9 Diagnosis between 800 and 999 or ICD10 codes",!?5,"S00-T88 (injury codes)."
  I $E(IOST)="C",IO=IO(0) W !! S DIR("A")="End of cover page - Hit return",DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S APCLQUIT="" Q
  Q
 HEAD ;

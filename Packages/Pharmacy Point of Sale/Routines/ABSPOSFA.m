@@ -1,5 +1,5 @@
 ABSPOSFA ; IHS/FCS/DRS - Print NCPDP claim ;   [ 09/12/2002  10:08 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;
  ; This is the main routine for printing NCPDP forms.

@@ -1,13 +1,14 @@
 BDMS9B2 ; IHS/CMI/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6,7,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,5,6,7,8,9**;JUN 14, 2007;Build 78
  ;
  ;
 MORE ;EP
  S X="Immunizations:" D S(X,1)
- S X="   Flu vaccine (since August 1st): ",$E(X,41)=$$FLU^BDMS9B3(BDMSDFN) D S(X)
- S X="   Pneumovax (ever):",$E(X,41)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
- S X="   Hepatitis B series complete (ever): ",$E(X,41)=$P($$HEP^BDMDC13(BDMSDFN,DT),"  ",2,99) D S(X)
+ S X="   Influenza vaccine (since August 1st): ",$E(X,41)=$$FLU^BDMS9B3(BDMSDFN) D S(X)
+ S X="   Pneumococcal vaccine (ever):",$E(X,41)=$$PNEU^BDMS9B4(BDMSDFN) D S(X)
  S X="   Td/Tdap (in past 10 yrs):",$E(X,41)=$$TD^BDMS9B3(BDMSDFN,(DT-100000),DT) D S(X)
+ S X="   Tdap (ever):",$E(X,41)=$P($$TDAP^BDMDD1B(BDMSDFN,DT,"H"),"  ",2,99) D S(X)
+ S X="   Hepatitis B series complete (ever): ",$E(X,41)=$P($$HEP^BDMDD13(BDMSDFN,DT),"  ",2,99) D S(X)
  S Y=$$PPDS^BDMS9B4(BDMSDFN) S J=1 I Y]"" S X="TB - Status:",$E(X,30)=Y D S(X,1) S J=0
  S Y=$$PPD^BDMS9B4(BDMSDFN) S X="TB - Last Documented Test:",$E(X,30)=$P(Y,"  ",4)_"  "_$P(Y,"  ",1) D S(X,J)
  S X="",$E(X,6)="TB Test Result:",$E(X,30)=$P(Y,"  ",2)_"  "_$P(Y,"  ",3) D S(X)
@@ -23,7 +24,7 @@ L ;
  S Y=$$ACRATIO(BDMSDFN)
  S X=" UACR (Quant A/C Ratio):",$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X=" Total Cholesterol:" S Y=$$TCHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X,1)
- S X="  Non-HDL Cholesterol:" S Y=$$NONHDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
+ ;S X="  Non-HDL Cholesterol:" S Y=$$NONHDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  LDL Cholesterol:" S Y=$$CHOL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  HDL Cholesterol:" S Y=$$HDL(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
  S X="  Triglycerides:" S Y=$$TRIG(BDMSDFN),$E(X,25)=$P(Y,"|||"),$E(X,44)=$$DATE^BDMS9B1($P(Y,"|||",2)),$E(X,55)=$P(Y,"|||",3) D S(X)
@@ -75,7 +76,7 @@ EDUCREF ;EP - gather up all education provided in past year in BDMR
  Q
 EDT(E) ;
  ;is this ien in any taxonomy
- NEW T
+ NEW T,S
  S T=$O(^ATXAX("B","DM AUDIT DIABETES EDUC TOPICS",0))
  I T,$D(^ATXAX(T,21,"B",E)) Q 1
  S T=$O(^ATXAX("B","DM AUDIT DIET EDUC TOPICS",0))
@@ -87,6 +88,10 @@ EDT(E) ;
  S T=$P(^AUTTEDT(E,0),U,2)
  I $P(T,"-")="DM" Q 1
  I $P(T,"-")="DMC" Q 1
+ I $P(T,"-")="MNT" Q 1
+ I $P(T,"-")="DMCN" Q 1
+ ;SNOMED
+ I $P(T,"-",1)]"",$$SNOMED^BDMUTL(2016,"DIABETES DIAGNOSES",$P(T,"-",1)) Q 1
  NEW CODE
  S G=""
  S CODE=$P($$CODEN^BDMUTL($P(T,"-",1),80),"~")

@@ -1,5 +1,5 @@
-BEXRX ; cmi/anch/maw - BEX Audiocare Refill Driver ; [ 03/02/2010  11:10 AM ]
- ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4**;DEC 01, 2009
+BEXRX ; cmi/anch/maw - BEX Audiocare Refill Driver ; 04 Dec 2015  8:04 AM
+ ;;1.0;BEX TELEPHONE REFILL SYSTEM;**1,2,4,6**;DEC 01, 2009;Build 7
  ;
  ;cmi/anch/maw 9/17/2004 added PIMS53 and ADDCR subroutines for PIMS 5.3
  ;
@@ -74,6 +74,13 @@ CUT() ;check cutoff time and now
  Q 0
  ;
 CR(BEXVIEN) ;EP - add a chart request
+ ;
+ ;IHS/BJI/DAY - Patch 6
+ ;This is called from the AC Xref on the BEX Transaction File
+ ;Re-Direct this from BEXRX to the newer BEXRX7
+ D CR^BEXRX7(BEXVIEN)
+ Q BEXVIEN
+ ;
  I $G(U)="" S U="^"
  S BEXPAT=$P($G(^VEXHRX0(19080.1,BEXVIEN,0)),U)
  I '$G(BEXPAT) Q ""

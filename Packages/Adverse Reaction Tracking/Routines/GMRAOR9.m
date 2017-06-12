@@ -1,5 +1,5 @@
-GMRAOR9 ;HIRMFO/RM,WAA,FPT-Stuff Drug Ingredients/Classes ; 1/9/08 5:18am
- ;;4.0;Adverse Reaction Tracking;**4,13,41**;Mar 29, 1996;Build 8
+GMRAOR9 ;HIRMFO/RM,WAA,FPT-Stuff Drug Ingredients/Classes ;22-Aug-2013 08:37;DU
+ ;;4.0;Adverse Reaction Tracking;**4,13,41,1007**;Mar 29, 1996;Build 18
  ; <Copied from GMRAPES1>
 EN1 ; Auto stuff Ingredients and VA Drug Classes
  ; GMRAING() will have all the ingredients for the reaction
@@ -11,6 +11,7 @@ EN1 ; Auto stuff Ingredients and VA Drug Classes
  ;If the Reactant is a Drug Class
  I GMRAAR[50.605 S GMRADRCL(+GMRAAR)=""
  ;If the Reactant is an entry in the GMR ALLERGY file
+ N Y
  I GMRAAR[120.82 D
  .S Y=0 F  S Y=$O(^GMRD(120.82,+GMRAAR,"ING",Y)) Q:Y'>0  I $D(^GMRD(120.82,+GMRAAR,"ING",Y,0)),+^(0)>0 S GMRAING(+^(0))=""
  .S Y=0 F  S Y=$O(^GMRD(120.82,+GMRAAR,"CLASS",Y)) Q:Y'>0  I $D(^GMRD(120.82,+GMRAAR,"CLASS",Y,0)),+^(0)>0 S GMRADRCL(+^(0))=""
@@ -34,6 +35,7 @@ EN1 ; Auto stuff Ingredients and VA Drug Classes
  .S CLASS=$$CLIST^PSNAPIS(+GMRAAR,.GMRADRCL)
  K ^TMP("PSO",$J),^TMP("PSN",$J),PSODA,PSNID
 STING ;Stuffing Drug Ing & VA Drug Classes into file 120.8
+ N N
  I $D(GMRAING) D
  .S DA(1)=+GMRAPA,DIC="^GMR(120.8,"_+GMRAPA_",2,",DLAYGO=120.8,DIC(0)="L",DIC("P")="120.802PA"
  .F X=0:0 S X=$O(GMRAING(X)) Q:X'>0  I '$D(^GMR(120.8,GMRAPA,2,"B",X)) K DD,DO,DINUM D FILE^DICN

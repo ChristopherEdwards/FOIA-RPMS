@@ -1,5 +1,5 @@
 ABSPOSI1 ; IHS/FCS/DRS - support for the prescrip. field on the form ;    [ 09/12/2002  10:10 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,10,44**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,10,44**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;IHS/SD/lwj 03/10/04 patch 10
  ; Routine adjusted to call ABSPFUNC to retrieve
@@ -43,7 +43,7 @@ VAL1 I 0 ; ELSE each possibility:
  . S X="`"_+X
  . S X=$$RXLOOKUP(X,"NOX")
  . I X<0 S DDSERROR=2
- E  I X?1"`"1N.N D  ; internal RX number input ; 10/26/2000
+ E  I X?1"`"1N.N  D  ; internal RX number input ; 10/26/2000
  . S TYPE="RX",X=$$RXLOOKUP(X,"NOX") I X<0 S DDSERROR=6
 VAL2 ;
  E  I X?1N.N0.1A!($$UPPER(X)?1"RX".P1N.N0.1A) D  ;external RX # input

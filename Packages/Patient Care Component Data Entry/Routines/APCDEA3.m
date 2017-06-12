@@ -1,5 +1,5 @@
 APCDEA3 ; IHS/CMI/LAB - PROCESS MNEMONICS ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11,16**;MAY 14, 2009;Build 9
  ;  Process MNEMONIC [ 07/01/86  12:45 PM ]
  ;
  ; *** WARNING *** This routine is called by non APCD routines.
@@ -20,7 +20,9 @@ DIE ; ADD/MODIFY FIELDS IN ENTRY
  S APCDX=$P(^APCDTKW(APCDMNE,0),U,5) I APCDX]"" S APCDX="S APCDLOOK="_APCDX X APCDX
  K APCDX,DIV,DIU
  S (DA,D0)=+Y,DIE=DIC,DR=$P(^APCDTKW(APCDMNE,0),U,4),DR=$P(DR,"]")_" "_$S(APCDTMOD="A":"(ADD)",APCDTMOD="M":"(MOD)",1:"("_APCDMNE("NAME")_")")_"]"
- S:APCDMODE="A" DIE("NO^")=1 D ^DIE K APCDCLN,APCDLOOK,DIE("NO^"),DIV,DIU,DIC,DIE,DIK
+ S:APCDMODE="A" DIE("NO^")=1
+ S:DR["PV " DIE("NO^")=1
+ D ^DIE K APCDCLN,APCDLOOK,DIE("NO^"),DIV,DIU,DIC,DIE,DIK
  I $G(APCDVSIT) S AUPNVSIT=APCDVSIT D MOD^AUPNVSIT K AUPNVSIT
  I $D(Y) W APCDBEEP,!,"An error has occurred, I think!",!
 DELETE ; DELETE ENTRY IF ^DIE FAILED IN ADD MODE
@@ -29,4 +31,29 @@ DELETE ; DELETE ENTRY IF ^DIE FAILED IN ADD MODE
  ;***** THIS SUCKER IS DANGEROUS *****
  ;I $D(Y),APCDTMOD="A",DIE'="^AUPNPAT(",DIE'="^AUPNVSIT(" S DIK=DIE D ^DIK
  K APCDTMOD,APCDX,APCDLOOK
+ Q
+GETNARR(APCDT,APCDDEFV) ;PEP - called to get a narrative
+ ;because I have absolutely no idea where this call is coming from
+ ;I am going to do an exclusive new to preserve the callers
+ ;symbol table
+ NEW APCDNQV
+ S APCDNQV=""
+ S APCDDEFV=$G(APCDDEFV)
+ S APCDT=$G(APCDT)
+ D EN^XBNEW("GETNARR1^APCDEA3","APCDT;APCDNQV;APCDDEFV")
+ Q APCDNQV
+GETNARR1 ;EP
+ ;if user enters "=" use T IF T is not null
+ ;do not allow "|"
+ ;do not allow "@"
+ NEW DA,DIR
+ S T=$G(T)
+ S DIR(0)="F^1:160",DIR("A")="  PROVIDER NARRATIVE" S:APCDDEFV]"" DIR("B")=APCDDEFV KILL DA D ^DIR KILL DIR
+ I $D(DIRUT),X="^" W !!," ^ is Not Allowed.  Response is required.",! G GETNARR1
+ I $D(DIRUT) Q ""
+ I X="=",APCDT="" W "  ????" G GETNARR1
+ I X="=",APCDT]"" S X=APCDT
+ I $L(X)>160!($L(X)<2)!'((X'?1P.E)!(X?1"|".E))!(X'?.ANP)  W "  ????" G GETNARR1
+ I X["|" W !!,"You cannot enter a narrative that contains a '|' (vertical bar).",! K X G GETNARR1
+ S APCDNQV=X
  Q

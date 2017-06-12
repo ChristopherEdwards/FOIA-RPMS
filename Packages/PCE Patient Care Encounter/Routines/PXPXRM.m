@@ -1,5 +1,7 @@
-PXPXRM ;SLC/PKR - APIs for Clinical Reminder indexes. ;29-Oct-2012 14:23;DU
- ;;1.0;PCE PATIENT CARE ENCOUNTER;**119,1009**;Aug 12, 1996;Build 24
+PXPXRM ;SLC/PKR - APIs for Clinical Reminder indexes. ;01-Jun-2015 12:25;DU
+ ;;1.0;PCE PATIENT CARE ENCOUNTER;**119,1002,1003**;Aug 12, 1996;Build 3
+ ;Patch 1002 added $G around the calls
+ ;Patch 1003 allow return of nulls for graphing calls
  Q
  ;===============================================================
 KVFILE(FILENUM,X,DA) ;Delete indexes for a regular V File.
@@ -79,7 +81,9 @@ SVFILEC(FILENUM,X,DA) ;Set indexes for V Files with coded entries. These
  ;===============================================================
 VCPT(DA,DATA) ;Return data for a specified V CPT entry.
  N TEMP
- S TEMP=^AUPNVCPT(DA,0)
+ ;S TEMP=^AUPNVCPT(DA,0)
+ S TEMP=$G(^AUPNVCPT(DA,0))        ;IHS/MSC/MGH added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S DATA("PROVIDER NARRATIVE")=$P(TEMP,U,4)
  S DATA("DIAGNOSIS")=$P(TEMP,U,5)
@@ -91,7 +95,9 @@ VCPT(DA,DATA) ;Return data for a specified V CPT entry.
  ;===============================================================
 VHF(DA,DATA) ;Return data for a specified V Health Factor entry.
  N TEMP
- S TEMP=^AUPNVHF(DA,0)
+ ;S TEMP=^AUPNVHF(DA,0)
+ S TEMP=$G(^AUPNVHF(DA,0))        ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S (DATA("LEVEL/SEVERITY"),DATA("VALUE"))=$P(TEMP,U,4)
  S DATA("COMMENTS")=$G(^AUPNVHF(DA,811))
@@ -100,7 +106,9 @@ VHF(DA,DATA) ;Return data for a specified V Health Factor entry.
  ;===============================================================
 VIMM(DA,DATA) ;Return data, for a specified V Immunization entry.
  N TEMP
- S TEMP=^AUPNVIMM(DA,0)
+ ;S TEMP=^AUPNVIMM(DA,0)
+ S TEMP=$G(^AUPNVIMM(DA,0))     ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S (DATA("SERIES"),DATA("VALUE"))=$P(TEMP,U,4)
  S DATA("REACTION")=$P(TEMP,U,6)
@@ -111,7 +119,9 @@ VIMM(DA,DATA) ;Return data, for a specified V Immunization entry.
  ;===============================================================
 VPEDU(DA,DATA) ;Return data, for a specified V Patient ED entry.
  N TEMP
- S TEMP=^AUPNVPED(DA,0)
+ ;S TEMP=^AUPNVPED(DA,0)
+ S TEMP=$G(^AUPNVPED(DA,0))      ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S (DATA("LEVEL OF UNDERSTANDING"),DATA("VALUE"))=$P(TEMP,U,6)
  S DATA("COMMENTS")=$G(^AUPNVPED(DA,811))
@@ -119,14 +129,19 @@ VPEDU(DA,DATA) ;Return data, for a specified V Patient ED entry.
  ;
  ;===============================================================
 VPOV(DA,DATA) ;Return data for a specified V POV entry.
- N TEMP
- S TEMP=^AUPNVPOV(DA,0)
+ N TEMP,IEN,ICD,CDT
+ ;S TEMP=^AUPNVPOV(DA,0)
+ S TEMP=$G(^AUPNVPOV(DA,0))         ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S DATA("PROVIDER NARRATIVE")=$P(TEMP,U,4)
  S DATA("MODIFIER")=$P(TEMP,U,6)
  S DATA("PRIMARY/SECONDARY")=$P(TEMP,U,12)
  S DATA("DATE OF INJURY")=$P(TEMP,U,13)
  S DATA("CLINICAL TERM")=$P(TEMP,U,15)
+ ;S ICD=$P(TEMP,U),CDT=$$NOW^XLFDT
+ ;S IEN=$P($$ICDDX^ICDEX(ICD,CDT,"","I"),U,2)
+ ;S DATA("CLINICAL TERM")=IEN
  S DATA("PROBLEM LIST ENTRY")=$P(TEMP,U,16)
  S DATA("COMMENTS")=$G(^AUPNVPOV(DA,811))
  Q
@@ -134,7 +149,9 @@ VPOV(DA,DATA) ;Return data for a specified V POV entry.
  ;===============================================================
 VSKIN(DA,DATA) ;Return data for a specified V Skin Test entry.
  N TEMP
- S TEMP=^AUPNVSK(DA,0)
+ ;S TEMP=^AUPNVSK(DA,0)
+ S TEMP=$G(^AUPNVSK(DA,0))        ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S (DATA("RESULTS"),DATA("VALUE"))=$P(TEMP,U,4)
  S DATA("READING")=$P(TEMP,U,5)
@@ -145,7 +162,9 @@ VSKIN(DA,DATA) ;Return data for a specified V Skin Test entry.
  ;===============================================================
 VXAM(DA,DATA) ;Return data, for a specified V Exam entry.
  N TEMP
- S TEMP=^AUPNVXAM(DA,0)
+ ;S TEMP=^AUPNVXAM(DA,0)
+ S TEMP=$G(^AUPNVXAM(DA,0))        ;IHS/MSC/MGH Added $G
+ ;Q:$P(TEMP,U,3)=""
  S DATA("VISIT")=$P(TEMP,U,3)
  S (DATA("RESULT"),DATA("VALUE"))=$P(TEMP,U,4)
  S DATA("COMMENTS")=$G(^AUPNVXAM(DA,811))

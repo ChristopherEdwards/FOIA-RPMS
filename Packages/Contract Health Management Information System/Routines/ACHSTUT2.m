@@ -1,5 +1,5 @@
 ACHSTUT2 ; IHS/ITSC/TPF/PMF - CHECK/COPY/PURGE 3780.LOG UNIX FILE ;  
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11, 2001;Build 37
  ;ACHS*3.1*22 OS test when writing to a directory
  ;
  S ACHSHCMD="cd /usr/bin/3780;ls -l 3780.LOG | awk '{print $5}' > /usr/spool/3780/3780.logsize"

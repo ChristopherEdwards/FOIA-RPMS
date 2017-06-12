@@ -1,6 +1,5 @@
-LR7OF3 ;slc/dcm - Process OBR messages from OE/RR ;8/11/97
- ;;5.2;LR;**1018,1021,1022**;September 20, 2007
- ;;5.2;LAB SERVICE;**121,187,223,256**;Sep 27, 1994
+LR7OF3 ;slc/va/dcm - Process OBR messages from OE/RR ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LR;**121,187,223,1018,1021,256,1022,1033**;NOV 1, 1997
  ;
 OBR ;EP Process OBR part of MSG array
  ;TEST= Ptr to test in file 60
@@ -18,7 +17,8 @@ OBR ;EP Process OBR part of MSG array
  . S SPEC=$S($P($P($P(LRXMSG,"|",5),"^",4),"~",2):$P($P($P(LRXMSG,"|",5),"^",4),"~",2),1:$$LRSPEC^LR7OU0($P(LRXMSG,"|",16)))
  . S URG=$$LRURG^LR7OU0($P($P(LRXMSG,"|",28),"^",6)),SAMP=$$LRSAMP^LR7OU0($P(LRXMSG,"|",16))
  . ; ------ BEGIN IHS/OIT/MKK -- Lab Patch 1022
- . S INDIC=$P($P(LRXMSG,"|",32),"^",2) ;IHS/CIA/DKM
+ . ; S INDIC=$P($P(LRXMSG,"|",32),"^",2) ; IHS/CIA/DKM
+ . S INDIC=$P(LRXMSG,"|",32)             ; IHS/MSC/MKK - LR*5.2*1033
  . ;  ----- END IHS/OIT/MKK -- Lab Patch 1022
  I $O(LRXMSG(0)) D
  . N I,J,X1,CTR
@@ -30,7 +30,8 @@ OBR ;EP Process OBR part of MSG array
  . S SPEC=$S($P($P(X1(5),"^",4),"~",2):$P($P(X1(5),"^",4),"~",2),1:$$LRSPEC^LR7OU0(X1(16)))
  . S URG=$$LRURG^LR7OU0($P(X1(28),"^",6)),SAMP=$$LRSAMP^LR7OU0(X1(16))
  . ; ------ BEGIN IHS/OIT/MKK -- Lab Patch 1022
- . S INDIC=$P($G(X1(32)),"^",2) ;IHS/CIA/DKM
+ . ; S INDIC=$P($G(X1(32)),"^",2) ; IHS/CIA/DKM
+ . S INDIC=$G(X1(32))             ; IHS/MSC/MKK - LR*5.2*1033
  . ;  ----- END IHS/OIT/MKK -- Lab Patch 1022
  I '$L(TEST) D ACK^LR7OF0("DE",LRXORC,"TEST pointer not sent in message") S LREND=1 Q
  I '$L($G(^LAB(60,+TEST,0))) D ACK^LR7OF0("DE",LRXORC,"Invalid Lab test pointer sent from CPRS: "_TEST) S LREND=1 Q

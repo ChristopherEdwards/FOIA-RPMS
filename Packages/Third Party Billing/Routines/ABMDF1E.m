@@ -1,5 +1,5 @@
-ABMDF1E ; IHS/ASDST/DMJ - Set UB82 Print Array - Part 5 ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ABMDF1E ; IHS/SD/SDR - Set UB82 Print Array - Part 5 ;
+ ;;2.6;IHS 3P BILLING SYSTEM;**10,14**;NOV 12, 2009;Build 238
  ;Original;TMD;
  ;
  ;IHS/DSD/DMJ - 5/14/1999 - NOIS HQW-0599-100027 Patch 2
@@ -7,14 +7,17 @@ ABMDF1E ; IHS/ASDST/DMJ - Set UB82 Print Array - Part 5 ;
  ;                    in lines: 55+5,CPT55+4,MED+4
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - Updated DX^ABMCVAPI call to be numeric
  ;
 53 ; Diagnosis Info
  S (ABMU("TXT"),ABMF(53),ABM)="" F ABM("I")=1:1:5 S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM)) Q:'ABM  D
  .S ABM("X")=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,"C",ABM,""))
- .S ABMF(53)=ABMF(53)_U_$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ;CSV-c
+ .;S ABMF(53)=ABMF(53)_U_$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 update API call
+ .S ABMF(53)=ABMF(53)_U_$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 update API call
  .S ABM("PRVN")=$P(^ABMDBILL(DUZ(2),ABMP("BDFN"),17,ABM("X"),0),U,3)
  .S ABM(9)=$P($G(^AUTNPOV(+ABM("PRVN"),0)),U)
- .I ABM(9)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2) S ABM(9)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,4)  ;CSV-c
+ .;I ABM(9)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,2) S ABM(9)=$P($$DX^ABMCVAPI(ABM("X"),ABMP("VDT")),U,4)  ;CSV-c  ;abm*2.6*14 update API call
+ .I ABM(9)=$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,2) S ABM(9)=$P($$DX^ABMCVAPI(+ABM("X"),ABMP("VDT")),U,4)  ;CSV-c  ;abm*2.6*14 update API call
  .S ABMU("TXT")=ABMU("TXT")_", "_$S(ABM(9)["*ICD*":$P(ABM(9),"  "),1:ABM(9))
  S ABMU("TXT")=$P(ABMU("TXT"),", ",2,99)
  I $L(ABMU("TXT"))>45 S ABMU("LNG")=26,ABMU("TAB")=19,ABMU=2 D LNG^ABMDWRAP S $P(ABMF(52),U)=ABMU(1),$P(ABMF(53),U)=ABMU(2) K ABMU I 1
@@ -60,7 +63,9 @@ MED S ABM=0 F  S ABM=$O(^ABMDBILL(DUZ(2),ABMP("BDFN"),27,ABM)) Q:'ABM  D
  .S $P(ABMF(56),U,ABM("I")-5)=ABM("PNUM")
  ;
 RACE ;BLOCK #27     
- S ABM("INSTYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U) I ABM("INSTYP")]"","RD"[ABM("INSTYP") D
+ ;S ABM("INSTYP")=$P($G(^AUTNINS(ABMP("INS"),2)),U) I ABM("INSTYP")]"","RD"[ABM("INSTYP") D  ;abm*2.6*10 HEAT73780
+ S ABM("INSTYP")=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMP("INS"),".211","I"),1,"I")  ;abm*2.6*10 HEAT73780
+ I ABM("INSTYP")]"","RD"[ABM("INSTYP") D  ;abm*2.6*10 HEAT73780
  .S ABM("RACE")=$S($P(^AUPNPAT(ABMP("PDFN"),11),U,11)=1:"I",1:"U")
  .S (ABM("COM"),ABM("RES"))=0 F  S ABM("RES")=$O(^AUPNPAT(ABMP("PDFN"),51,ABM("RES"))) Q:'ABM("RES")  S ABM("COM")=$P(^(ABM("RES"),0),U,3)
  .G XIT:'ABM("COM") S ABM("COM")=$P($G(^AUTTCOM(ABM("COM"),0)),U,2) G XIT:'ABM("COM") S ABM("COM")=$P(^AUTTCTY(ABM("COM"),0),U,3)

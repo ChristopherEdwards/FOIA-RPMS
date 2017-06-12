@@ -1,5 +1,5 @@
 ABSPOSE2 ; IHS/SD/lwj - E1 generation routine ; [ 10/24/2005 10:09:07 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**21,24,40,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**21,24,40,42**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/RLT - 05/22/07 - Patch 21
  ;  Enhanced E1 - modified version of ABSPOSE1

@@ -1,5 +1,5 @@
 ABSPOSQQ ; IHS/FCS/DRS - VTL 05:51 PM 20 Jan 1997 ;   
- ;;1.0;PHARMACY POINT OF SALE;**17,18,40,41**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**17,18,40,41**;JUN 21, 2001;Build 15
  Q
  ; billable/unbillable drugs  ; called from ABSPOSQA from ABSPOSQ1
  ;  $$BILLABLE() to determine if the drug is billable

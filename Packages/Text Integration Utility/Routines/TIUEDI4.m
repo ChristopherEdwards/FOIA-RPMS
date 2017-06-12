@@ -1,9 +1,10 @@
-TIUEDI4 ; SLC/JER - Enter/Edit a Document ; 7-FEB-2001 08:01:51
- ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,1001**;Jun 20, 1997
+TIUEDI4 ; SLC/JER - Enter/Edit a Document ;31-Dec-2012 14:43;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,1001,216,1011**;Jun 20, 1997;Build 13
  ;new rtn in TSC, created feb 2 from TIUEDIT
  ; 2/2: Moved LOADDFLT, BOIL, CANXEC, REPLACE, INSMULT to TIUEDI4
  ; 2/3 moved DIE, TEXTEDIT from TIUEDIT to TIUEDI4
  ; 3/2 moved SETTL, GETVST, ASKOK from TIUEDIT to TIUEDI4
+ ;
  ;IHS/ITSC/LJF 02/26/2003  add call to edit visit
  ;                         removed space at end of global ref
  ;                         fix incremental lock code in DIE subroutine
@@ -67,7 +68,6 @@ ASKOK(TIUTYP,TIU,TIUBY,TIUASK) ; X Validation method.
  ; -- If finish without a visit, then quit: --
  I '$D(TIU("VSTR")) D
  . W !,$C(7),"Patient & Visit required." H 2
- ;
  I $G(TIU("VISIT")) D VEDIT^BTIUED("")  ;IHS/ITSC/LJF 02/26/2003 add visit edit call
  Q
  ;
@@ -80,11 +80,10 @@ DIE(DA,TIUQUIT,TIUCHNG) ; Invoke ^DIE
  . I $$READ^TIUU("FOA","Press RETURN to continue...") W ""
  S ^TIU(8925,"ASAVE",DUZ,DA)=""
  S DR=$$GETTMPL^TIUEDI1(+$P(^TIU(8925,+DA,0),U))
- ;I DR']"" W !?5,$C(7),"No Edit template defined for ",$$PNAME^TIULC1(+$P(^TIU(8925,+DA,0),U)),! S TIUQUIT=2 Q        ;IHS/ITSC/LJF 02/26/2003
- I DR']"" W !?5,$C(7),"No Edit template defined for ",$$PNAME^TIULC1(+$P(^TIU(8925,+DA,0),U)),! S TIUQUIT=2 D DIEQ Q  ;IHS/ITSC/LJF 02/26/2003
+ I DR']"" W !?5,$C(7),"No Edit template defined for ",$$PNAME^TIULC1(+$P(^TIU(8925,+DA,0),U)),! S TIUQUIT=2 Q
  S DIE=8925 D ^DIE
  I $D(Y)!($D(DTOUT)) S TIUQUIT=1
- ;I +$G(TIUQUIT)>0,+$G(TIUNEW)>0 Q         ;IHS/ITSC/LJF 02/26/2003
+ ;I +$G(TIUQUIT)>0,+$G(TIUNEW)>0 Q                  ;IHS/ITSC/LJF 02/26/2003
  I +$G(TIUQUIT)>0,+$G(TIUNEW)>0 D DIEQ Q   ;IHS/ITSC/LJF 02/26/2003
  D:+$G(TIUQUIT) UPDTIRT^TIUDIRT(.TIU,DA),SEND^TIUALRT(DA)
  ;Q:+$G(TIUQUIT)            ;IHS/ITSC/LJF 02/26/2003
@@ -148,14 +147,24 @@ LOADDFLT(DA,TIUTYP) ; Load bp text
 BOIL(LINE,COUNT) ; execute objects
  N TIUI,DIC,X,Y,TIUFPRIV S TIUFPRIV=1
  NEW DA   ;IHS/ITSC/LJF 01/12/2005 can kill DA which INSMULT needs
+ N TIUOLDR,TIUNEWR,TIUOLDG,TIUNEWG
  S DIC=8925.1,DIC(0)="FMXZ"
  S DIC("S")="I $P($G(^TIU(8925.1,+Y,0)),U,4)=""O"""
  F TIUI=2:2:$L(LINE,"|") S X=$P(LINE,"|",TIUI) D
  . D ^DIC
  . I +Y'>0 S X="The OBJECT "_X_" was NOT found...Contact IRM."
  . I +Y>0 D
- . . I $D(^TIU(8925.1,+Y,9)),+$$CANXEC(+Y) X ^(9) S:$E(X,1,2)="~@" X=X_"~@" I 1
+ . . I $D(^TIU(8925.1,+Y,9)),+$$CANXEC(+Y) X ^(9) S:X["~@" X=$$APPEND(X) I 1
  . . E  S X="The OBJECT "_X_" is INACTIVE...Contact IRM."
+ . . I X["~@" D
+ . . . I X'["^" D
+ . . . . S TIUOLDR=$P(X,"~@",2),TIUNEWR=TIUOLDR_TIUI
+ . . . . M @TIUNEWR=@TIUOLDR K @TIUOLDR
+ . . . . S $P(X,"~@",2)=TIUNEWR
+ . . . I X["^" D
+ . . . . S TIUOLDG=$P(X,"~@",2),TIUNEWG="^TMP("_"""TIU201"""_","_$J_","_TIUI_")"
+ . . . . M @TIUNEWG=@TIUOLDG
+ . . . . S $P(X,"~@",2)=TIUNEWG
  . S LINE=$$REPLACE(LINE,X,TIUI)
  Q $TR(LINE,"|","")
 CANXEC(TIUODA) ; Eval Obj Status
@@ -191,3 +200,7 @@ INSMULT(LINE,TARGET,TIULCNT) ; Mult-valued results
  . . S @TARGET@(TIULCNT,0)=$G(TIUSLINE)
  . K @TIUSRC
  Q
+APPEND(X) ;
+ N TIUXL S TIUXL=$L(X)
+ I $E(X,TIUXL-1,TIUXL)'="~@" S X=X_"~@"
+ Q X

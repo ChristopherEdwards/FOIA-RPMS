@@ -1,5 +1,5 @@
 ABSPOSC2 ; IHS/FCS/DRS - certification testing ;     [ 06/22/2001  2:14 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
  ; see remarks in ABSPOSC1 too
  Q
  ; ^ABSP(9002313.31, has data for test claims

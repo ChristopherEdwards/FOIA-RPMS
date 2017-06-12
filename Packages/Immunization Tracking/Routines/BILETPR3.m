@@ -1,7 +1,9 @@
 BILETPR3 ;IHS/CMI/MWR - PRINT PATIENT LETTERS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;;SEP 01,2011
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  BUILD ^TMP WP ARRAY FOR PRINTING LETTERS.
+ ;;  PATCH 10: If no skin tests on record, display explicitly. HISTORY2+106
+ ;;            Display only the most recent three dates of Skin Tests. HISTORY2+152
  ;
  ;
  ;----------
@@ -110,10 +112,21 @@ HISTORY2(BILINE,BIHX,BIDFN,BIFORM,BINVAL,BIPDSS) ;EP
  ;---> 12 = Date of Visit Fileman format (YYYMMDD).
  ;
  ;---> Do not print Skin Test headers if patient has no Skin Tests.
- I $G(BIDFN) Q:'$D(^AUPNVSK("AC",BIDFN))
  ;
- D WRITE(.BILINE),WRITE(.BILINE)
- S X="       Skin Test      Date Received     Location"
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> If no skin tests on record, display that explicitly.
+ ;I $G(BIDFN) Q:'$D(^AUPNVSK("AC",BIDFN))
+ Q:'$G(BIDFN)
+ I '$D(^AUPNVSK("AC",BIDFN)) D  Q
+ .D WRITE(.BILINE)
+ .S X="       Skin Tests/PPD: None on record"
+ .D WRITE(.BILINE,X)
+ ;
+ ;---> Add "Recent".
+ ;D WRITE(.BILINE),WRITE(.BILINE)
+ D WRITE(.BILINE),WRITE(.BILINE,"       Recent")
+ ;**********
+ S X="       Skin Tests     Date Received     Location"
  S X=X_"            Result"
  D WRITE(.BILINE,X)
  S X="       ------------   -------------     ---------------"
@@ -121,6 +134,12 @@ HISTORY2(BILINE,BIHX,BIDFN,BIFORM,BINVAL,BIPDSS) ;EP
  D WRITE(.BILINE,X)
  ;
  ;---> Loop through "^"-pieces of Imm History, displaying Skin Tests.
+ ;
+ ;
+ ;Display only the most recent 3.
+ ;
+ N BIZTEMP
+ ;
  F I=1:1 S Y=$P(BIHX,U,I) Q:Y=""  D
  .;
  .;---> Quit if this is not a Skin Test.
@@ -139,18 +158,32 @@ HISTORY2(BILINE,BIHX,BIDFN,BIFORM,BINVAL,BIPDSS) ;EP
  ..I $P(Y,V,8)]"" S X=X_$P(Y,V,8) Q
  ..I $P(Y,V,9) S X=X_$P(Y,V,9)_" mm" Q
  ..S X=X_"Not recorded"
- .D WRITE(.BILINE,X)
+ ..;
+ .;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ .;---> Display only the most recent three dates of Skin Tests.
+ .S BIZTEMP($P(Y,V,12),$P(Y,V,10))=X
+ .;D WRITE(.BILINE,X)
  ;
+ N N S N=9999999
+ F I=1:1:4 S N=+$O(BIZTEMP(N),-1) Q:'N
+ F  S N=$O(BIZTEMP(N)) Q:'N  D
+ .N M S M=""
+ .F  S M=$O(BIZTEMP(N,M)) Q:(M="")  D
+ ..D WRITE(.BILINE,BIZTEMP(N,M))
+ ;**********
  Q
  ;
  ;
  ;----------
-WRITE(BILINE,BIVAL) ;EP
+WRITE(BILINE,BIVAL,BIGBL) ;EP
  ;---> Write a line to the ^TMP global for WP or Listman.
+ ;---> NOTE: DUPLICATE CODE IN ^BILETPR3 FOR SPEED.
  ;---> Parameters:
  ;     1 - BILINE (ret) Last line# in the WP ^TMP global.
  ;     2 - BIVAL  (opt) Value/text of line (Null=blank line).
+ ;     3 - BIGBL  (opt) ^TMP global node to write to (def="BILET").
  ;
  Q:'$D(BILINE)
- D WRITE^BILETPR1(.BILINE,$G(BIVAL))
+ S:$G(BIGBL)="" BIGBL="BILET"
+ D WL^BIW(.BILINE,BIGBL,$G(BIVAL))
  Q

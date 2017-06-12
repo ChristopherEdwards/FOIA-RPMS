@@ -1,12 +1,13 @@
-USRL ; SLC/JER - User class library ;05/11/1998
- ;;1.0;AUTHORIZATION/SUBSCRIPTION;**3,7**;Jun 20, 1997
+USRL ; SLC/JER - User class library ;11/12/09
+ ;;1.0;AUTHORIZATION/SUBSCRIPTION;**3,7,33**;Jun 20, 1997;Build 5
  ;======================================================================
 UPDATE(ITEM) ; Updates list following edit
  N DA,USRREC,USRABB,USRCLNM,USRACT,USRITM
  N USRLREC,USREREC
  S DA=+$P(ITEM,U,2),USRREC=$G(^USR(8930,+DA,0))
  S USRITM=+ITEM
- S USRCLNM=$S(USRREC']"":"<Class DELETED>",$P(USRREC,U,4)]"":$P(USRREC,U,4),1:$$MIXED^USRLS($P(USRREC,U)))
+ ;S USRCLNM=$S(USRREC']"":"<Class DELETED>",$P(USRREC,U,4)]"":$P(USRREC,U,4),1:$$MIXED^USRLS($P(USRREC,U)))
+ S USRCLNM=$S(USRREC']"":"<Class DELETED>",1:$P(USRREC,U))
  I +$D(^USR(8930,DA,1))>9 S USRCLNM="+"_USRCLNM
  S USRABB=$P(USRREC,U,2),USRACT=$S(+$P(USRREC,U,3):"Active",1:"Inactive")
  S USRLREC=$$SETFLD^VALM1(USRITM,$G(USRLREC),"NUMBER")

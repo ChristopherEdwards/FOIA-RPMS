@@ -1,5 +1,5 @@
 APCLAL3 ; IHS/CMI/LAB - list ALCOHOL screenings ; 
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,10,11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -12,7 +12,7 @@ INFORM ;
  W !?5,"- Alcohol Screening Exam (Exam code 35)"
  W !?5,"- Measurements: AUDC, AUDT, CRFT"
  W !?5,"- Health Factor with Alcohol/Drug Category (CAGE)"
- W !?5,"- Diagnoses V79.1, 29.1 (Behavioral Health Problem Code)"
+ W !?5,"- Diagnoses V79.1 (there are no ICD10 codes), 29.1 (Behavioral Hlth Code)"
  W !?5,"- Education Topics: AOD-SCR, CD-SCR"
  W !?5,"- CPT Codes: 99408, 99409, G0396, G0397, H0049"
  W !?5,"- refusal of exam code 35"
@@ -56,10 +56,10 @@ EXCL ;
  S APCREXPC=1
 SEX ;
  S APCRSEX=""
- S DIR(0)="S^F:FEMALES Only;M:MALES Only;B:Both MALE and FEMALES",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^F:FEMALES Only;M:MALES Only;U:UNKNOWN GENDER Only;B:ALL GENDERS",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G EXCL
  S APCRSEX=Y
- I APCRSEX="B" S APCRSEX="MF"
+ I APCRSEX="B" S APCRSEX="MFU"
 AGE ;Age Screening
  K APCRAGE,APCRAGET
  W ! S DIR(0)="YO",DIR("A")="Would you like to restrict the report by Patient age range",DIR("B")="YES"

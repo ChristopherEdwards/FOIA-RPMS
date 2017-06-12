@@ -1,0 +1,46 @@
+BQIIPDXC ;GDIT/HS/ALA-Search for diagnosis ; 20 Nov 2014  3:52 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**5**;Apr 18, 2012;Build 17
+ ;
+DX(TMFRAME,BQDFN,DXC,START,END) ;EP
+ ; Find visits for a diagnostic code
+ ; Input
+ ;   TMFRAME - Time frame to search data for
+ ;   BQDFN   - Patient internal entry number
+ ;   DXC     - Diagnostic code
+ ;   START   - Starting Date
+ ;   END     - Ending Date
+ ; 
+ NEW DXN,FREF,GREF,ENDT,IEN,QFL,RESULT,VISIT,VSDTM
+ S TMFRAME=$G(TMFRAME,""),START=$G(START,""),END=$G(END,"")
+ S FREF=9000010.07,GREF=$$ROOT^DILFD(FREF,"",1)
+ I $G(TMFRAME)'="" S ENDT=$$DATE^BQIUL1(TMFRAME),BDT=""
+ I $G(START)'="" S ENDT=START,BDT=(9999999-END)-.001
+ I $$VERSION^XPDUTL("AICD")<4.0 D
+ . S DXN=$$FIND1^DIC(80,"","Q",DXC,"BA","","ERROR")
+ I $$VERSION^XPDUTL("AICD")>3.51 D
+ . S DXN=$P($$CODEN^ICDEX(DXC,80),"~",1)
+ ;
+ S IEN="",QFL=0,RESULT=0
+ ;
+ D
+ . I $G(TMFRAME)="",$G(START)="",$G(END)="" Q
+ . S EDT=9999999-ENDT
+ . F  S BDT=$O(@GREF@("AA",BQDFN,BDT)) Q:BDT=""!(BDT>EDT)  D
+ .. S IEN=""
+ .. F  S IEN=$O(@GREF@("AA",BQDFN,BDT,IEN)) Q:IEN=""  D
+ ... S TIEN=$$GET1^DIQ(FREF,IEN,.01,"I") I TIEN="" Q
+ ... I TIEN'=DXN Q
+ ... S VISIT=$$GET1^DIQ(FREF,IEN,.03,"I") I VISIT="" Q
+ ... I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ ... S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:VSDTM=0
+ ... S RESULT=1_U_VSDTM_U_U_VISIT_U_IEN,QFL=1
+ ;
+ I $G(TMFRAME)="" D
+ . F  S IEN=$O(@GREF@("AC",BQDFN,IEN),-1) Q:'IEN  D  Q:QFL
+ .. S TIEN=$$GET1^DIQ(FREF,IEN,.01,"I") I TIEN="" Q
+ .. I TIEN'=DXN Q
+ .. S VISIT=$$GET1^DIQ(FREF,IEN,.03,"I") I VISIT="" Q
+ .. I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ .. S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:VSDTM=0
+ .. S RESULT=1_U_VSDTM_U_U_VISIT_U_IEN,QFL=1
+ Q RESULT

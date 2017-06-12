@@ -1,5 +1,5 @@
-BGOPFUTL ; MSC/IND/DKM - Preference Management ;20-Jul-2007 09:59;DKM
- ;;1.1;BGO COMPONENTS;**3**;Mar 20, 2007
+BGOPFUTL ; MSC/IND/DKM - Preference Management ;14-Jul-2014 11:05;du
+ ;;1.1;BGO COMPONENTS;**3,13,14**;Mar 20, 2007;Build 1
  ; Add or remove a manager from a category
  ;  INP = Category IEN [1] ^ Manager IEN [2] ^ Add [3]
  ;  SFN = Item subfile #
@@ -50,7 +50,9 @@ SETFREQ(RET,INP,SFN) ;EP
  E  D SF1
  S:'RET RET=$$UPDATE^BGOUTL(.FDA)
  Q
-SF1 S DA=$O(@GBL@("B",ITM,0))
+SF1 ;Set up frequence
+ I SFN=90362.342 S DA=ITM
+ E  S DA=$O(@GBL@("B",ITM,0))
  I 'DA S RET=$$ERR^BGOUTL(1035) Q
  I $L(VAL) S CNT=+VAL
  E  S CNT=$P(@GBL@(DA,0),U,3)+INC
@@ -62,9 +64,11 @@ SF1 S DA=$O(@GBL@("B",ITM,0))
  ; .SFN  = Returned item subfile #
  ;  Return value is null if success, or -1^error text
 GBLROOT(FNUM,GBL,SFN) ;
+ N FIELD
  S GBL=$$ROOT^DILFD(FNUM,,1)
  Q:GBL="" $$ERR^BGOUTL(1036)
- D FIELD^DID(FNUM,1,,"SPECIFIER","SFN")
+ S FIELD=$S(FNUM=90362.34:2,1:1)
+ D FIELD^DID(FNUM,FIELD,,"SPECIFIER","SFN")
  S SFN=+$G(SFN("SPECIFIER"))
  K SFN("SPECIFIER")
  Q:'SFN $$ERR^BGOUTL(1037)
@@ -94,6 +98,7 @@ CLONE(RET,INP,FNUM) ;EP
  S TO=$P(INP,U,2)
  I 'TO S RET=$$ERR^BGOUTL(1040) Q
  I '$D(@GBL@(TO,0)) S RET=$$ERR^BGOUTL(1041) Q
+ I FROM=TO S RET="-1^You cannot clone this item to itself" Q
  S ITM=0
  F  S ITM=$O(@GBL@(FROM,1,ITM)) Q:'ITM  D  Q:RET
  .N FDA,X
@@ -110,7 +115,7 @@ CLONE(RET,INP,FNUM) ;EP
  ;  CLS  = Provider Class IEN (optional)
  ;  Returns true if visit contains a matching provider or provider class
 VISPRCL(VIEN,PRV,CLS) ;EP
- N X,RET
+ N X,RET,PRV2
  S (X,RET)=0
  F  S X=$O(^AUPNVPRV("AD",VIEN,X)) Q:'X  D  Q:RET
  .S PRV2=$P($G(^AUPNVPRV(X,0)),U)
@@ -132,6 +137,7 @@ UPDITEM(FNUM,CAT,PTR,CNT,TXT,NEW,ITM) ;EP
  N FDA,IEN,GBL,SFN,RET
  S RET=$$GBLROOT(FNUM,.GBL,.SFN)
  Q:RET RET
+ I FNUM=90362.34 S RET=$$UPDITEM^BGOSNOP2(FNUM,CAT,PTR,CNT,TXT,.NEW,.ITM) Q RET
  S ITM=$S($G(NEW):0,1:$O(@GBL@(CAT,1,"B",PTR,0)))
  S:$E($G(CNT))="+" CNT=$S(ITM:$P(@GBL@(CAT,1,ITM,0),U,3),1:0)+CNT
  S FDA=$NA(FDA(SFN,$S(ITM:ITM,1:"+1")_","_CAT_","))
@@ -149,6 +155,7 @@ UPDITEM(FNUM,CAT,PTR,CNT,TXT,NEW,ITM) ;EP
  ;   Category Name [1] ^ Category IEN [2] ^ Hosp Loc Name [3] ^ Hosp Loc IEN [4] ^
  ;   Clinic Stop Name [5] ^ Clinic Stop IEN [6] ^ Provider Name [7] ^ Provider IEN [8] ^
  ;   Owner Name [9] ^ Owner IEN [10] ^ Provider Class Name [11] ^ Provider Class IEN [12]
+ ;   ^ SNOMED Subfile [13]
 GETCATS(RET,INP,FNUM) ;EP
  N CATIEN,CATNAME,PRVIEN,MGRIEN,SHOWALL,CAT,DISCIEN
  N CLNIEN,HLIEN,PRVIEN,HIST,PRI,CNT,GBL,X0,X
@@ -190,9 +197,14 @@ GETCATS(RET,INP,FNUM) ;EP
  .I MGRIEN,'$D(@GBL@(CATIEN,2,MGRIEN)),$P(X0,U,5)'=MGRIEN Q
  .D GC1
  Q
-GC1 N X0,CAT,HL,CL,PRV,OWN,DISC
+GC1 N X0,CAT,HL,CL,PRV,OWN,DISC,SUBSET,PIP,POV
+ S SUBSET=""
  S X0=$G(@GBL@(CATIEN,0))
  Q:'$L(X0)
+ Q:+$P(X0,U,10)  ;Quit if this list should be hidden
+ ;Q:+$P(X0,U,9)   ;Quit if its a prenatal list
+ S PIP=$P(X0,U,9)
+ S POV=$P(X0,U,11)
  S CAT=$P(X0,U)_U_CATIEN
  S HL=$P(X0,U,2)
  S HL=$P($G(^SC(+HL,0)),U)_U_HL
@@ -204,8 +216,9 @@ GC1 N X0,CAT,HL,CL,PRV,OWN,DISC
  S OWN=$P($G(^VA(200,+OWN,0)),U)_U_OWN
  S DISC=$P(X0,U,6)
  S DISC=$P($G(^DIC(7,+DISC,0)),U)_U_DISC
+ I FNUM=90362.34 S SUBSET=$P(X0,U,8)
  S CNT=CNT+1
- S @RET@(PRI*1000000+CNT)=CAT_U_HL_U_CL_U_PRV_U_OWN_U_DISC
+ S @RET@(PRI*1000000+CNT)=CAT_U_HL_U_CL_U_PRV_U_OWN_U_DISC_U_SUBSET_U_PIP_U_POV
  Q
  ; Return list of managers associated with a specified category
  ;  CAT  = Category IEN
@@ -227,9 +240,11 @@ GETMGRS(RET,CAT,FNUM) ;EP
  Q
  ; Set category fields
  ;  INP  = Name [1] ^ Hosp Loc [2] ^ Clinic [3] ^ Provider [4] ^ User [5] ^ Category IEN [6] ^ Delete [7] ^ Discipline [8]
+ ;         ^ Subset [10] ^ PIP [11] ^ Hide [12] ^ Use as POV [13]
  ;  FNUM = Preference file IEN
+ ;Patch 13 add fields for additions to SNOMED file
 SETCAT(RET,INP,FNUM) ;EP
- N NAME,HLOC,CLN,PRV,USR,IEN,DEL,DDG,DIC,DA,DIE,DR,Y,X,DISC,GBL
+ N NAME,HLOC,CLN,PRV,USR,IEN,DEL,DDG,DIC,DA,DIE,DR,Y,X,DISC,GBL,DESC,SUBSET,PIP,HIDE,POV
  K RET
  S RET=$$GBLROOT(FNUM,.GBL)
  Q:RET
@@ -241,6 +256,11 @@ SETCAT(RET,INP,FNUM) ;EP
  S IEN=$P(INP,U,6)
  S DEL=$P(INP,U,7)
  S DISC=$P(INP,U,8)
+ I FNUM=90362.34 D
+ .S SUBSET=$P(INP,U,10)
+ .S PIP=$P(INP,U,11)
+ .S HIDE=$P(INP,U,12)
+ .S POV=$P(INP,U,13)
  I DEL D  Q
  .S RET=$$DELETE^BGOUTL(FNUM,IEN)
  I NAME="" S RET=$$ERR^BGOUTL(1007) Q
@@ -253,8 +273,14 @@ SETCAT(RET,INP,FNUM) ;EP
  S @FDA@(.02)=HLOC
  S @FDA@(.03)=CLN
  S @FDA@(.04)=PRV
+ I USR="" S USR=DUZ
  S @FDA@(.05)=USR
  S @FDA@(.06)=DISC
+ I FNUM=90362.34 D
+ .S @FDA@(.08)=SUBSET
+ .S @FDA@(.09)=PIP
+ .S @FDA@(1)=HIDE
+ .S @FDA@(1.1)=POV
  S RET=$$UPDATE^BGOUTL(.FDA,"@",.X)
  I 'RET,'IEN S IEN=X(1)
  S:'RET RET=IEN

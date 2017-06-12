@@ -1,5 +1,5 @@
-LEXSET3 ; ISL Overwrite/Merge Appl/User Defaults   ; 10-15-97
- ;;2.0;LEXICON UTILITY;**6**;Sep 23, 1996;Build 15
+LEXSET3 ;ISL/KER - Overwrite/Merge Appl/User Defaults ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**6,80**;Sep 23, 1996;Build 10
  ;
 OVER ;
  N LEXT

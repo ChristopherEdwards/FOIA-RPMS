@@ -1,5 +1,5 @@
-RARTE6 ;HISC/SM Restore deleted report ;03/01/10 13:44 [ 12/05/2011  10:12 AM ]
- ;;5.0;Radiology/Nuclear Medicine;**56,95,99,47*1004**;Mar 16, 1998;Build 21
+RARTE6 ;HISC/SM Restore deleted report ; 06 Oct 2013  11:05 AM
+ ;;5.0;Radiology/Nuclear Medicine;**56,95,99,47,1004,1005**;Mar 16, 1998;Build 13
  ;Supported IA #10060 ^VA(200
  ;Supported IA #2053 FILE^DIE, UPDATE^DIE
  ;Supported IA #2052 GET1^DID
@@ -298,7 +298,11 @@ DISPLAY ; Display exam specific info, edit/enter the report
  W:RAIENSUB]"" $E($G(RAOUT(70.12,RAIENSUB,.01,"E")),1,25)
  ;p99 begins
  W !?1,"Req Phys : ",$E($G(RAOUT(70.03,RAIENS,14,"E")),1,25)
- I $$PTSEX^RAUTL8(RADFN)="F" D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .D GETS^DIQ(70.03,RAIENS,"32;80","I","RAOUT")
  .N RA3 S RA3=$G(RAOUT(70.03,RAIENS,32,"I"))
  .W:RA3'="" !?1,"Pregnancy Screen: ",$S(RA3="y":"Patient answered yes",RA3="n":"Patient answered no",RA3="u":"Patient is unable to answer or is unsure",1:"")

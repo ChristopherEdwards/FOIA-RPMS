@@ -1,5 +1,5 @@
 APCDEAPC ; IHS/CMI/LAB - ENTRY OF DATA FROM APC FORMS ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**17**;MAY 14, 2009;Build 18
  ;FILE 200 CONV
  ;
  ;
@@ -72,7 +72,7 @@ VISIT ; create visit
  D ^APCDALV
  I $D(APCDALVR("APCDAFLG")) W !!,$C(7),$C(7),"Visit creation failed!!",! Q
  I '$G(APCDVSIT) W !!,"No visit selected!!" Q
- I $D(APCDVSIT("NEW")),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")>$P(^APCCCTRL(DUZ(2),0),U,12) S DA=APCDVSIT,DIE="^AUPNVSIT(",DR="1111///R" D ^DIE K DIE,DA,DR
+ ;I $D(APCDVSIT("NEW")),$P(^APCCCTRL(DUZ(2),0),U,12)]"",$P($P(^AUPNVSIT(APCDVSIT,0),U),".")>$P(^APCCCTRL(DUZ(2),0),U,12) S DA=APCDVSIT,DIE="^AUPNVSIT(",DR="1111///R" D ^DIE K DIE,DA,DR
  ;above added for EHR and auditing of visits, d/e created
  K APCDALVR
  D PROVIDER
@@ -84,7 +84,7 @@ VISIT ; create visit
 MNEPROC ; PROCESS MNEMONICS UNTIL DONE
  W !!,"You may now enter any other information using the PCC mnemonics.",!
  S APCDMPQ=0
- F  D GETMNE Q:APCDMPQ
+ F  D GETMNE D:$D(APCDEQX) CHKEHR2^APCDVCHK I APCDMPQ Q
  D GETMNEK
  K APCDMPQ
  Q

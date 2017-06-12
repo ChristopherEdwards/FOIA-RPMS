@@ -1,21 +1,19 @@
 ABMDEMRG ; IHS/ASDST/DMJ - MERGE CLAIMS ; 
- ;;2.6;IHS 3P BILLING SYSTEM;**9,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,11,19**;NOV 12, 2009;Build 300
  ;
  ;IHS/DSD/DMJ - 9/14/1999 - NOIS NDA-1198-180003 Patch 3 #14
  ;       By-passed $$NXNM and allowed duplicate claim numbers
  ;
- ; IHS/SD/SDR v2.5 p10 - IM20059
- ;   Data was getting overwritten when merging; changed so
- ;   minimal data will be lost
- ; IHS/SD/SDR - v2.5 p12 - UFMS
- ;   If user isn't logged into cashiering session they can't do
- ;   this option; also added so if claims are deleted they will
- ;   be added to cashiering session
- ; IHS/SD/SDR - v2.5 p13 - IM26006
- ;   Fix for UNDEF error on page 9D of CE
- ; IHS/SD/SDR - v2.5 p13 - IM26259
- ;   Fix <UNDEF>DEL+16^ABMDEMRG when capturing deleted claims
+ ; IHS/SD/SDR v2.5 p10 - IM20059 - Data was getting overwritten when merging;
+ ;   changed so minimal data will be lost
+ ; IHS/SD/SDR - v2.5 p12 - UFMS - If user isn't logged into cashiering session they can't do
+ ;   this option; also added so if claims are deleted they will be added to cashiering session
+ ; IHS/SD/SDR - v2.5 p13 - IM26006 - Fix for UNDEF error on page 9D of CE
+ ; IHS/SD/SDR - v2.5 p13 - IM26259 - Fix <UNDEF>DEL+16^ABMDEMRG when capturing deleted claims
  ;   in cashiering session (variable was being overwritten)
+ ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT155799 - If user cancels claim it will now move into the 3P Cancelled Claim file with
+ ;   cancellation reason Cancelled due to Merged Claim automatically populated on claim.
  ;
 START ;START HERE
  ;start new code abm*2.6*9 NOHEAT - ensure UFMS is setup
@@ -310,12 +308,18 @@ DEL ;delete the claims merged from
  .;S DIK="^ABMDCLM(DUZ(2),"  ;abm*2.6*11 NOHEAT5
  .S ABMCLMI=0
  .F  S ABMCLMI=$O(ABMDL("CLM",ABMCLMI)) Q:'ABMCLMI  D
- ..K DA,DIC,DIE,DR
- ..D ADDBENTR^ABMUCUTL("CCLM",ABMDL("CLM",ABMCLMI))  ;add claim to UFMS Cash. Session
- ..S DIK="^ABMDCLM(DUZ(2),"  ;abm*2.6*11 NOHEAT5
- ..S DA=ABMDL("CLM",ABMCLMI)
- ..D ^DIK
- ..W !,"Claim # ",DA,$S($D(^ABMDCLM(DUZ(2),DA)):" NOT",1:"")," deleted."
+ ..;start old abm*2.6*19 IHS/SD/SDR HEAT155799
+ ..;K DA,DIC,DIE,DR
+ ..;D ADDBENTR^ABMUCUTL("CCLM",ABMDL("CLM",ABMCLMI))  ;add claim to UFMS Cash. Session
+ ..;S DIK="^ABMDCLM(DUZ(2),"  ;abm*2.6*11 NOHEAT5
+ ..;S DA=ABMDL("CLM",ABMCLMI)
+ ..;D ^DIK
+ ..;W !,"Claim # ",DA,$S($D(^ABMDCLM(DUZ(2),DA)):" NOT",1:"")," deleted."
+ ..;end old start new abm*2.6*19 IHS/SD/SDR HEAT155799
+ ..S ABMP("CDFN")=ABMDL("CLM",ABMCLMI)
+ ..S ABMREAS="CANCELLED DUE TO MERGED CLAIM"
+ ..D ENT3^ABMDECAN
+ ..;end new abm*2.6*19 IHS/SD/SDR HEAT155799
  W !
  K ABM
  Q

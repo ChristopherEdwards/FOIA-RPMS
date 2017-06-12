@@ -1,5 +1,5 @@
 ACHSACO ; IHS/ITSC/PMF - AREA CONSOLIDATION (1/3) ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19,21**;JUN 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,11,13,18,19,21,23**;JUN 11,2001;Build 37
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Clarified error message.
  ;IHS/SET/JVK ACHS*3.1*11 Add check for area to test ACHS version
  ; added a call to %ZISC in tag S15 - 10/5/00 - pmf
@@ -33,7 +33,8 @@ ACHSACO ; IHS/ITSC/PMF - AREA CONSOLIDATION (1/3) ;
  .I $$DIR^XBDIR("Y","Do you want to Continue to consolidation of files","Y","","","",1)
  ;ACHS*3.1*13 IHS/OIT/FCJ Added ufms workglobal to nxt line
  Q:Y'=1
- F ACHS="^ACHSPCC","^ACHSBCBS","^ACHSAOPD","^ACHSAOVU","^ACHSZOCT","^ACHSPIG","^ACHSSVR","^ACHSCORE","^ACHSUFMS" D
+ ;ACHS*3.1*23 ADD ACHSPG2 - NEW ICD10 FORMAT
+ F ACHS="^ACHSPCC","^ACHSBCBS","^ACHSAOPD","^ACHSAOVU","^ACHSZOCT","^ACHSPIG","^ACHSPG2","^ACHSSVR","^ACHSCORE","^ACHSUFMS" D
  . W !,"KILL'ing work global ",ACHS
  . I $$KILLOK^ZIBGCHAR($P(ACHS,U,2)) W !,$$ERR^ZIBGCHAR($$KILLOK^ZIBGCHAR($P(ACHS,U,2)))
  . K @ACHS ; Kill unsubscripted work globals.
@@ -207,6 +208,7 @@ RDHDR .; Read the header of the file being processed.
  .S ACHSFREC=$P(ACHSXD2,U,4)      ;DATE OF FIRST RECORD
  .S ACHSLREC=$P(ACHSXD2,U,5)      ;DATE OF LAST RECORD
  .S ACHSNRCD=$P(ACHSXD2,U,7)      ;NUMBER OF RECORDS
+ .S ACHSSTV=$P(ACHSXD2,U,12)      ;STAT RECORD VERSION  ;ACHS*3.1*23
  .;
  .W !,"FACILITY NAME",?20,":",?25,$P(ACHSXD2,U,2)
  .W !,"DATE EXPORT RUN",?20,":",?25,$$FMTE^XLFDT(ACHSDRUN)

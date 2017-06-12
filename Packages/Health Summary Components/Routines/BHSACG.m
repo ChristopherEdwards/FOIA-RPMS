@@ -1,5 +1,5 @@
-BHSACG ;IHS/CIA/MGH - Supplement for anti-coag  ;10-Dec-2010 16:54;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**4**;March 17, 2006;Build 13
+BHSACG ;IHS/CIA/MGH - Supplement for anti-coag  ;14-Jan-2014 15:03;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**4,9**;March 17, 2006;Build 16
  ;===================================================================
  ; IHS/CMI/LAB - ; ANTI-COAG SUPPLEMENT
  ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
@@ -60,7 +60,7 @@ SETARRAY ;set up array
  S X="Sex: "_$$SEX^AUPNPAT(DFN),$E(X,15)="DOB: "_$$DOB^AUPNPAT(DFN,"E")_"     Age: "_$$AGE^AUPNPAT(DFN) D S(X) ;S Y=$$VAL^XBDIQ1(90181.01,DFN,.02)
  S X="DESIGNATED PRIMARY CARE PROVIDER: "_$$VAL^XBDIQ1(9000001,DFN,.14) D S(X)
 INDIC ;get all dxs
- K BHSDX
+ K BHSDX,DIWL,DIWR
  S X="Indication for Anticoagulation Therapy: " D S(X,1)
  S X=DFN_"^ALL DX [BJPC AC THRPY INDIC DXS"_";DURING "_$$FMADD^XLFDT($$DOB^AUPNPAT(DFN))_"-"_DT S E=$$START1^APCLDF(X,"BHSDX(")
  S X=0 F  S X=$O(BHSDX(X)) Q:X'=+X  S D=$P(BHSDX(X),U),BHSDX("I",(9999999-D),+$P(BHSDX(X),U,4))=BHSDX(X)  ;reorder by date
@@ -79,6 +79,16 @@ INRGOAL ;most recent goal from V ANTICOAG
  S X="    Duration of Anticoagulation Therapy Start Date",$E(X,60)=$$D1^APCHSMU($P($$MRSTART(DFN),U,1)) D S(X)
  S X="    Duration of Anticoagulation Therapy End Date",$E(X,60)=$$D1^APCHSMU($P($$MREND(DFN),U,1)) D S(X)
 CLN ;
+ N BHSX
+ S BHSX=$$MRCOM(DFN)
+ I BHSX]"" D
+ .D S(" ")
+ .NEW P S P=$$VAL^XBDIQ1(9000010.51,$P(BHSX,U,3),1204)
+ .S X="PROVIDER COMMENTS ("_P_$S(P]"":", ",1:"")_$$D1^APCHSMU($P(BHSX,U))_")  "_$P(BHSX,U,2)
+ .K ^UTILITY($J,"W") S DIWL=0,DIWR=70 D ^DIWP
+ .S P=^UTILITY($J,"W",0,1,0) D S(P)
+ .I $G(^UTILITY($J,"W",0))>1 F F=2:1:$G(^UTILITY($J,"W",0)) S X="",$E(X,3)=^UTILITY($J,"W",0,F,0) D S(X)
+ .K ^UTILITY($J,"W")
  K BHV
  S BHV="BHV"
  D ALLV^APCLAPIU(DFN,$$FMADD^XLFDT(DT,-100),DT,.BHV)
@@ -229,6 +239,19 @@ MRGOAL(P) ;PEP - most recent INR goal and date
  ...I Z=3 S S=$P(^AUPNVACG(I,0),U,5)_" - "_$P(^AUPNVACG(I,0),U,6)
  ...I Z'=3 S S=$$VAL^XBDIQ1(9000010.51,I,.04)
  ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_S
+ Q R
+MRCOM(P) ;PEP - most recent INR goal and date
+ I $G(P)="" Q ""
+ I '$D(^AUPNVACG("AA",P)) Q ""
+ NEW X,Y,D,R,I,Z,S
+ S R=""
+ S D=0 F  S D=$O(^AUPNVACG("AA",P,D)) Q:D'=+D!(R]"")  D
+ .S X=0 F  S X=$O(^AUPNVACG("AA",P,D,X)) Q:X'=+X!(R]"")  D
+ ..S I=0 F  S I=$O(^AUPNVACG("AA",P,D,X,I)) Q:I'=+I  D
+ ...Q:$P($G(^AUPNVACG(I,1)),U,1)  ;entered in error
+ ...Q:$P($G(^AUPNVACG(I,11)),U,1)=""
+ ...S Z=$P(^AUPNVACG(I,11),U,1)
+ ...S R=$$VD^APCLV($P(^AUPNVACG(I,0),U,3))_"^"_Z_"^"_I
  Q R
 MRDUR(P) ;PEP - most recent duration and date
  I $G(P)="" Q ""

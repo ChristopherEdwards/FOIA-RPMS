@@ -1,5 +1,5 @@
 ABSPECX4 ; IHS/FCS/DRS - JWS ;  [ 09/12/2002  10:00 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Function which gets a claim or response record from the ^ABSPECX

@@ -1,5 +1,5 @@
-ORQQAL ; slc/CLA,JFR - Functions which return patient allergy data ;19-Jan-2013 09:43;DU
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,85,162,190,1007,216,232,243,1010,1011**;Dec 17, 1997;Build 29
+ORQQAL ; slc/CLA,JFR - Functions which return patient allergy data ;28-Jan-2016 08:49;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**9,85,162,190,1007,216,232,243,1010,1011,1015**;Dec 17, 1997;Build 29
  ;Modified - IHS/MSC/MGH Modified to remove inactive allergies
  ;              IHS/MSC/MGH - 04/06/2012 -  Patch 10 added data for reactions
  ;              IHS/MSC/MGH - 12/21/2012 -  Patch 12 for compound medications
@@ -66,9 +66,10 @@ RXN(ORAY,ORPT,SRC,NDF,PSDRUG) ; RETURN TRUE OR FALSE IF PATIENT IS ALLERGIC TO A
  ..S CNT=CNT+1
  ..S TEMP2=TEMP2_" "_CNT_") "_X
  .S ORAY=SAVE_U_TEMP2
- I +NDF D
- .S ORAY=$$ORCHK^GMRAOR(ORPT,SRC,NDF,"",1)
- .D SETARRY
+ ;IHS/MSC/MGH Removed requirement for a NDF match
+ ;I +NDF D
+ S ORAY=$$ORCHK^GMRAOR(ORPT,SRC,NDF,"",1)
+ D SETARRY
  Q
 SETARRY ; Get the data
  I SRC="DR",ORAY=1 D  ;drug ingredient allergy found

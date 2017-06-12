@@ -1,7 +1,5 @@
-LRPXAPIU ; VA/SLC/STAFF - Lab Extract API Utilities ;  1/29/04  14:32
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
- ;
- ;;VA LR Patch(s): 295,315
+LRPXAPIU ; VA/SLC/STAFF - Lab Extract API Utilities ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**295,315,1030,1031,1034**;NOV 1, 1997;Build 88
  ;
  ; lab APIs
  ; dbia 4246
@@ -125,7 +123,8 @@ PROCNM(PROC) ; API $$(procedure ien) -> procedure name
  ;
 ICD9(ICD9) ; API $$(icd9 ien) -> icd code^name
  N LRTMP
- S ICD9=$P($$ICDDX^ICDCODE(ICD9,,,1),U,2)
+ ; S ICD9=$P($$ICDDX^ICDCODE(ICD9,,,1),U,2)
+ S ICD9=$P($$ICDDX^ICDEX(ICD9,,,"I",1),U,2)    ; IHS/MSC/MKK - LR*5.2*1034
  S LRTMP=$$ICDD^ICDCODE(ICD9,"LRTMP")
  Q ICD9_U_$G(LRTMP(1))
  ;

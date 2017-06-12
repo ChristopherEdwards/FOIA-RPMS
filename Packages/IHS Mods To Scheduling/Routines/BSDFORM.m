@@ -1,5 +1,5 @@
 BSDFORM ; IHS/ANMC/LJF - PRINTS HS & OTHER FORMS ;  [ 04/08/2004  2:26 PM ]
- ;;5.3;PIMS;;APR 26, 2002
+ ;;5.3;PIMS;**1017,1019**;APR 26, 2002;Build 3
  ;
 HS(APCHSPAT,APCHSTYP) ;EP; prints health summary
  ; calls published entry point EN^APCHS
@@ -65,7 +65,8 @@ APRO(SC,DFN,CLDT)  ;EP; calls pharmacy to print action profile
  S BSDATTO=$G(^%ZIS(2,BSDATT,2))   ;IHS/ITSC/LJF 1/2/2004 added $G
  S BSDATTC=$G(^%ZIS(2,BSDATT,3))   ;IHS/ITSC/LJF 1/2/2004 added $G
  ;IHS/ITSC/WAR 7/22/03 added next line to identify which pharmacy in ^PS
- S PSOSITE=$O(^PS(59,"C",DUZ(2),0))
+ ;S PSOSITE=$O(^PS(59,"C",DUZ(2),0))
+ S PSOSITE=$O(^PS(59,"D",DUZ(2),0))  ;ihs/cmi/maw 03/01/2012 notified by Chris Saddler that this is now "D" for the station number
  X BSDATTO S BSDIOM=IOM,X=132 X ^%ZOSF("RM")
  D HD^PSOSD2,PAT^PSOSD,RXPAD^PSOSD1:PSTYPE
  W:'$G(PSTYPE)&('$D(^TMP("PSOD",$J))) @IOF

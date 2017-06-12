@@ -1,5 +1,5 @@
-RAHLRPTT ;HISC/CAH AISC/SAW-Compiles HL7 'ORU' Message Type ; 4/26/01 10:40am
- ;;5.0;Radiology/Nuclear Medicine;**84,94**;Mar 16, 1998;Build 9
+RAHLRPTT ;HISC/CAH AISC/SAW-Compiles HL7 'ORU' Message Type ; 06 Oct 2013  11:10 AM
+ ;;5.0;Radiology/Nuclear Medicine;**84,94,1005**;Mar 16, 1998;Build 13
 EN ; Continuation from RAHLRPT which has been split because the 10 k size problem
  ; & other inbound patch 84 utility
  ;
@@ -48,7 +48,11 @@ TELE ;Setting TELERAD info for RAHLTCPB
 PID ;Compile 'PID' Segment
  I HL("VER")']"2.2" D
  .S X1="",X1="PID"_HLFS_HLFS_$G(VA("PID"))_HLFS_Y_HLFS_HLFS S X=VADM(1),Y=$$HLNAME^HLFNC(X) S X1=X1_Y_HLFS_HLFS
- .S X=RAVADM(3),Y=$$HLDATE^HLFNC(X) S X1=X1_Y_HLFS_$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U") S:$P(VADM(2),"^")]"" $P(X1,HLFS,20)=$P(VADM(2),"^") S RAN=RAN+1,HLA("HLS",RAN)=X1
+ .;
+ .;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ .;S X=RAVADM(3),Y=$$HLDATE^HLFNC(X) S X1=X1_Y_HLFS_$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U") S:$P(VADM(2),"^")]"" $P(X1,HLFS,20)=$P(VADM(2),"^") S RAN=RAN+1,HLA("HLS",RAN)=X1
+ .S X=RAVADM(3),Y=$$HLDATE^HLFNC(X) S X1=X1_Y_HLFS_$S(VADM(5)]"":$S("MFU"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U") S:$P(VADM(2),"^")]"" $P(X1,HLFS,20)=$P(VADM(2),"^") S RAN=RAN+1,HLA("HLS",RAN)=X1
+ .;
  I HL("VER")]"2.2" S RAN=RAN+1,HLA("HLS",RAN)=$$EN^VAFHLPID(DFN,"2,3,5,7,8,19,20")
  Q
 RESEND(RADFN,RADTI,RACNI) ; re-send exam message(s) to HL7 subscribers

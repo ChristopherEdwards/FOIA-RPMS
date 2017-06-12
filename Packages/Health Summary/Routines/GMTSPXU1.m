@@ -1,5 +1,5 @@
-GMTSPXU1 ; SLC/SBW - PCE Utilities sub-routines ; 03/24/2004 [8/24/04 8:28am]
- ;;2.7;Health Summary;**10,37,71**;Oct 20, 1995
+GMTSPXU1 ; SLC/SBW - PCE Utilities sub-routines ;21-Jan-2014 14:19;MGH
+ ;;2.7;Health Summary;**10,37,71,1006**;Oct 20, 1995;Build 3
  ;
  ; External References
  ;   DBIA  3390  $$ICDDX^ICDCODE
@@ -8,15 +8,18 @@ GMTSPXU1 ; SLC/SBW - PCE Utilities sub-routines ; 03/24/2004 [8/24/04 8:28am]
  ;   DBIA  1995  $$CPT^ICPTCOD
  ;   DBIA 10026  ^DIR
  ;   DBIA 10011  ^DIWP
- ;                       
-GETICDDX(GMTSICD,GMTSICF,GMMOD) ; Entry point to get ICD9 data
+ ;Patch 1006 added new calls for ICD-10
+ ;
+GETICDDX(GMTSICD,GMTSICF,GMMOD) ; Entry point to get ICD data
  N REC,CODE,NAME,DESC,ICDX,ICDI,ICDA
  S GMTSICD=$G(GMTSICD),GMTSICF=$G(GMTSICF),GMMOD=$G(GMMOD)
- S ICDX=$$ICDDX^ICDCODE(+GMTSICD)
+ I $$AICD^BHSUTL S ICDX=$$ICDDX^ICDEX(+GMTSICD)
+ E  S ICDX=$$ICDDX^ICDCODE(+GMTSICD)
  S REC(80,GMTSICD,.01,"E")=$P(ICDX,"^",2)
  S REC(80,GMTSICD,.01,"I")=$P(ICDX,"^",2)
  S REC(80,GMTSICD,3,"E")=$P(ICDX,"^",4)
  S REC(80,GMTSICD,3,"I")=$P(ICDX,"^",4)
+ I $$AICD^BHSUTL S ICDI=$$ICDD^ICDEX($P(ICDX,"^",2),"ICDA")
  S ICDI=$$ICDD^ICDCODE($P(ICDX,"^",2),"ICDA")
  S REC(80,GMTSICD,10,"E")=$G(ICDA(1))
  S REC(80,GMTSICD,10,"I")=$G(ICDA(1))
@@ -34,12 +37,14 @@ GETICDDX(GMTSICD,GMTSICF,GMMOD) ; Entry point to get ICD9 data
 GETICDOP(GMTSICD,GMTSICF,GMMOD) ; Entry point to get ICD0 data
  S GMTSICD=$G(GMTSICD),GMTSICF=$G(GMTSICF),GMMOD=$G(GMMOD)
  N REC,CODE,NAME,DESC,ICDX,ICDI,ICDA
- S ICDX=$$ICDOP^ICDCODE(+GMTSICD)
+ I $$AICD^BHSUTL S ICDX=$$ICDOP^ICDEX(+GMTSICD)
+ E  S ICDX=$$ICDOP^ICDCODE(+GMTSICD)
  S REC(80.1,GMTSICD,.01,"E")=$P(ICDX,"^",2)
  S REC(80.1,GMTSICD,.01,"I")=$P(ICDX,"^",2)
  S REC(80.1,GMTSICD,4,"E")=$P(ICDX,"^",5)
  S REC(80.1,GMTSICD,4,"I")=$P(ICDX,"^",5)
- S ICDI=$$ICDD^ICDCODE($P(ICDX,"^",2),"ICDA")
+ I $$AICD^BHSUTL S ICDI=$$ICDD^ICDEX($P(ICDX,"^",2),"ICDA")
+ E  S ICDI=$$ICDD^ICDCODE($P(ICDX,"^",2),"ICDA")
  S REC(80.1,GMTSICD,10,"E")=$G(ICDA(1))
  S REC(80.1,GMTSICD,10,"I")=$G(ICDA(1))
  S CODE=REC(80.1,GMTSICD,.01,"I")
@@ -82,10 +87,10 @@ ORDERPRO(GMPROV,GMLEN) ; Re-order and format providers for visit
  . S GMCNT=GMCNT+1
  . S GMPROV(GMCNT)=$E($P(GMNODE,U),1,GMLEN-4)_$S(GMP="P"!(GMP="S"):" ("_GMP_")",1:"")
  Q
- ;                              
+ ;
  ; The following code segments are called from "ROUTINE" type
  ; Menu Options to display items in a file
- ;                           
+ ;
 LM ;   Entry Point - for GMTS Measurement Panel
  S GMTSLST="^GMT(142.7," G DSPLST
  ;

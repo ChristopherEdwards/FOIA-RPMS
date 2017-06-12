@@ -1,5 +1,5 @@
 ABSPICNV ; IHS/OIT/CASSevern/Pieran ran 2/24/2011 - Convert Insurance Profiles based on Formats
- ;;1.0;PHARMACY POINT OF SALE;**D.0**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**D.0**;JUN 21, 2001;Build 15
  ;
  ; This routine will go through each ABSP Insurer entry and get the information off the corresponding Format and populate the necessary entries in the insurer file
 EN ;EP

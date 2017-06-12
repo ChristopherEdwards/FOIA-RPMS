@@ -1,5 +1,5 @@
 BQIPTFHE ;VNGT/HS/BEE - Family History Data Entry ; 13 May 2009  10:35 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -88,8 +88,8 @@ COND(DATA,FHRIEN) ; EP - BQI GET FAM HIST CONDITIONS
  . ;DX Code (Condition) - With IEN
  . S DIEN=$$GET1^DIQ(9000014,FHCIEN_",",.01,"I") ;Using $$GET1^DIQ as GETS^DIQ sometimes omits .01 entry
  . I DIEN="" Q
- . I $T(ICDDX^ICDCODE)'="" S FHCDX=$$ICD9^BQIUL3(DIEN,DTNT,2)_"-"_$$ICD9^BQIUL3(DIEN,DTNT,4) ; csv
- . I $T(ICDDX^ICDCODE)="" S FHCDX=$$GET1^DIQ(80,DIEN_",",.01,"E")_"-"_$$GET1^DIQ(80,DIEN_",",3,"E")
+ . I $$VERSION^XPDUTL("BCSV") S FHCDX=$$ICD9^BQIUL3(DIEN,DTNT,2)_"-"_$$ICD9^BQIUL3(DIEN,DTNT,4) ; csv
+ . I '$$VERSION^XPDUTL("BCSV") S FHCDX=$$GET1^DIQ(80,DIEN_",",.01,"E")_"-"_$$GET1^DIQ(80,DIEN_",",3,"E")
  . S COND=DIEN_$C(28)_FHCDX S:$P(COND,$C(28))="-" COND=""
  . ;
  . ;Narrative
@@ -97,17 +97,17 @@ COND(DATA,FHRIEN) ; EP - BQI GET FAM HIST CONDITIONS
  . ;
  . ;Narrative - With IEN
  . S APCDTNQ=$G(BQICND(9000014,FHCIEN_",",".04","I"))_$C(28)_PNAR
-    . S:$P(APCDTNQ,$C(28))="" APCDTNQ=""
-    . ;
+ . S:$P(APCDTNQ,$C(28))="" APCDTNQ=""
+ . ;
  . ;Provider - With IEN
  . S PROV=$G(BQICND(9000014,FHCIEN_",",".08","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".08","E"))
-    . S:$P(PROV,$C(28))="" PROV=""
+ . S:$P(PROV,$C(28))="" PROV=""
  . ;
-    . ;Age at Onset
-    . S AGEO=$G(BQICND(9000014,FHCIEN_",",".11","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".11","E"))
-    . S:$P(AGEO,$C(28))="" AGEO=""
-    . ;
-    . ;Date last modified
+ . ;Age at Onset
+ . S AGEO=$G(BQICND(9000014,FHCIEN_",",".11","I"))_$C(28)_$G(BQICND(9000014,FHCIEN_",",".11","E"))
+ . S:$P(AGEO,$C(28))="" AGEO=""
+ . ;
+ . ;Date last modified
  . S DTMD=$G(BQICND(9000014,FHCIEN_",",".12","E"))
  . ;
  . S BQII=BQII+1,@DATA@(BQII)=FHCIEN_U_COND_U_DTNT_U_PNAR_U_PROV_U_AGEO_U_DTMD_U_APCDTNQ_$C(30)
@@ -278,7 +278,7 @@ UPDC(DATA,DFN,TYPE,FHRIEN,FHCIEN,PARMS) ; EP - BQI UPDATE FAM HIST CONDITIONS
  ;Special code to fill in Diagnosis Narrative (if blank)
  I $G(BQITMP(".04"))="",$G(BQITMP(".01"))]"" D
  . N TEXT
- . S TEXT=$P($$ICDDX^ICDCODE(BQITMP(".01"),DT),U,4)
+ . I $$VERSION^XPDUTL("BCSV") S TEXT=$P($$ICDDX^ICDCODE(BQITMP(".01"),DT),U,4)
  . I TEXT]"" D
  .. N DIC,DLAYGO,X,Y,IEN
  .. S DIC(0)="LX",DIC="^AUTNPOV(",DLAYGO=9999999.27,X=TEXT

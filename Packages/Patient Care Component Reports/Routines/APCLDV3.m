@@ -1,5 +1,5 @@
 APCLDV3 ; IHS/CMI/LAB - list IPV/DV screenings ;
- ;;2.0;IHS PCC SUITE;**8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**8,10**;MAY 14, 2009;Build 88
  ;
 INFORM ;
  W !,$$CTR($$USR)
@@ -57,10 +57,10 @@ EXCL ;
  S APCLEXBH=Y
 SEX ;
  S APCLSEX=""
- S DIR(0)="S^F:FEMALES Only;M:MALES Only;B:Both MALE and FEMALES",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
+ S DIR(0)="S^F:FEMALES Only;M:MALES Only;U:UNKNOWN GENDER Only;B:ALL GENDERS",DIR("A")="Include which patients in the list",DIR("B")="F" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G EXCL
  S APCLSEX=Y
- I APCLSEX="B" S APCLSEX="MF"
+ I APCLSEX="B" S APCLSEX="MFU"
 AGE ;Age Screening
  K APCLAGE,APCLAGET
  W ! S DIR(0)="YO",DIR("A")="Would you like to restrict the report by Patient age range",DIR("B")="YES"

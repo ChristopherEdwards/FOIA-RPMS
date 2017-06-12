@@ -1,11 +1,13 @@
-BHSDMPRE ;IHS/CIA/MGH - Health Summary for Pre-Diabetic Supplement ;04-Aug-2011 14:34;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,6**;March 17, 2006;Build 5
+BHSDMPRE ;IHS/CIA/MGH - Health Summary for Pre-Diabetic Supplement ;30-Nov-2015 10:25;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,6,8,12**;March 17, 2006;Build 3
  ;===================================================================
  ;VA version of IHS components for supplemental summaries
  ;Taken from APCHS9D1
  ; IHS/TUCSON/LAB - DIABETIC CARE SUMMARY SUPPLEMENT ;  [ 05/10/04  2:03 PM ]
  ;;2.0;IHS RPMS/PCC Health Summary;**3,5,6,8,9,10,11,12**;JUN 24, 1997
  ;Patch 4 skip vitals entered in error
+ ;Patch 8 BMI is now stored value
+ ;Patch 12 use new API for taxonomies
  ;====================================================================
  ;
 EP ;EP - called from component
@@ -145,9 +147,12 @@ IFG(P) ;
  I $D(APCHY(1)) Q 1_U_$P(APCHY(1),U)_U_"Date of first DX in PCC"
  Q ""
 HTN(P) ;
- N T S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
+ N T
+ S T=$O(^ATXAX("B","SURVEILLANCE HYPERTENSION",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+ .;IHS/MSC/MGH New API P11
+ .I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW APCHX
  S APCHX=""
@@ -198,18 +203,23 @@ LASTWC ;
  S APCHX(2,"WC")=$P($G(APCHY(2)),U,2),APCHX(2,"WCD")=$$FMTE^XLFDT($P($G(APCHY(2)),U))
  S APCHX(3,"WC")=$P($G(APCHY(3)),U,2),APCHX(3,"WCD")=$$FMTE^XLFDT($P($G(APCHY(3)),U))
 BMI ;
- F APCHY=1:1:3 D
- .I APCHX(APCHY,"WT")="" Q  ;no weight
- .S APCHHT=""
- .I $$AGE^AUPNPAT(P)<19 D  Q:APCHHT=""
- ..;Get weight on that date
- ..S Y=0 F  S Y=$O(APCHX(Y)) Q:Y'=+Y  I APCHX(Y,"HTD")=APCHX(APCHY,"WTD") S APCHHT=APCHX(Y,"HT")
- .I $$AGE^AUPNPAT(P)>18 D  Q:APCHHT=""
- ..S Y=0 F  S Y=$O(APCHX(Y)) Q:Y'=+Y  I APCHX(Y,"HTD")=APCHX(APCHY,"WTD") S APCHHT=APCHX(Y,"HT") Q
- ..S APCHHT=APCHX(1,"HT")
- .S %=""
- .S W=APCHX(APCHY,"WT")*.45359,H=(APCHHT*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
- .S APCHX(APCHY,"BMI")=%
+ K APCHY S %=P_"^LAST 3 MEAS BMI" NEW X S E=$$START1^APCLDF(%,"APCHY(")
+ S APCHX(1,"BMI")=$P($G(APCHY(1)),U,2),APCHX(1,"BMD")=$$FMTE^XLFDT($P($G(APCHY(1)),U))
+ S APCHX(2,"BMI")=$P($G(APCHY(2)),U,2),APCHX(2,"BMD")=$$FMTE^XLFDT($P($G(APCHY(2)),U))
+ S APCHX(3,"BMI")=$P($G(APCHY(3)),U,2),APCHX(3,"BMD")=$$FMTE^XLFDT($P($G(APCHY(3)),U))
+ ;Patch 8 added BMI
+ ;F APCHY=1:1:3 D
+ ;.I APCHX(APCHY,"WT")="" Q  ;no weight
+ ;.S APCHHT=""
+ ;.I $$AGE^AUPNPAT(P)<19 D  Q:APCHHT=""
+ ;..;Get weight on that date
+ ;..S Y=0 F  S Y=$O(APCHX(Y)) Q:Y'=+Y  I APCHX(Y,"HTD")=APCHX(APCHY,"WTD") S APCHHT=APCHX(Y,"HT")
+ ;.I $$AGE^AUPNPAT(P)>18 D  Q:APCHHT=""
+ ;..S Y=0 F  S Y=$O(APCHX(Y)) Q:Y'=+Y  I APCHX(Y,"HTD")=APCHX(APCHY,"WTD") S APCHHT=APCHX(Y,"HT") Q
+ ;..S APCHHT=APCHX(1,"HT")
+ ;.S %=""
+ ;.S W=APCHX(APCHY,"WT")*.45359,H=(APCHHT*0.0254),H=(H*H),%=(W/H),%=$J(%,4,1)
+ ;.S APCHX(APCHY,"BMI")=%
  Q
 ASPIRIN(P,D) ;
  I '$G(P) Q ""

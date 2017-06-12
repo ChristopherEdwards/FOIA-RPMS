@@ -1,5 +1,5 @@
 BGP6GT ; IHS/CMI/LAB - BGPG Gui CRS Tables 2/2/2005 10:24:22 AM ;
- ;;8.0;IHS CLINICAL REPORTING;;MAR 25, 2008
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
  ;
@@ -39,7 +39,7 @@ GETTAX(RETVAL,BGPSTR) ;-- get taxonomies based on user selection
  ;
 TAX(RETVAL,BGPSTR) ;-- generic taxonomy table
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXE,BGPTAX,BGPDA,BGPNONC,BGPXRF
+ N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXM,BGPTAX,BGPDA,BGPNONC,BGPXRF
  N BGPGL,BGPGRF,BGPP
  S P="|"
  I $P(BGPSTR,P)="Lab" D LABTAX(.RETVAL,.BGPSTR) Q
@@ -50,10 +50,10 @@ TAX(RETVAL,BGPSTR) ;-- generic taxonomy table
  S BGPERR=""
  S ^BGPTMP($J,BGPI)="T00080TAXONOMY"_$C(30)
  I $P(BGPSTR,P)="MED" D MEDBLD
- F BGPP=3:1 S BGPTAXE=$P(BGPSTR,P,BGPP) Q:$G(BGPTAXE)=""  D
- . Q:$G(BGPTAXE)=""
- . ;S BGPTAXE=$P(BGPSTR,P)
- . S BGPTAX=$O(^ATXAX("B",BGPTAXE,0))
+ F BGPP=3:1 S BGPTAXM=$P(BGPSTR,P,BGPP) Q:$G(BGPTAXM)=""  D
+ . Q:$G(BGPTAXM)=""
+ . ;S BGPTAXM=$P(BGPSTR,P)
+ . S BGPTAX=$O(^ATXAX("B",BGPTAXM,0))
  . Q:'$G(BGPTAX)
  . S BGPNONC=$P($G(^ATXAX(BGPTAX,0)),U,13)
  . S BGPXRF=$P($G(^ATXAX(BGPTAX,0)),U,14)
@@ -82,7 +82,7 @@ TAX(RETVAL,BGPSTR) ;-- generic taxonomy table
  ;
 LABTAX(RETVAL,BGPSTR) ;-- return the lab taxonomy
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXE,BGPTAX,BGPDA,BGPNONC,BGPXRF
+ N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXM,BGPTAX,BGPDA,BGPNONC,BGPXRF
  N BGPGL,BGPGRF,BGPP
  S P="|"
  K ^BGPTMP($J)
@@ -90,10 +90,10 @@ LABTAX(RETVAL,BGPSTR) ;-- return the lab taxonomy
  S BGPI=0
  S BGPERR=""
  S ^BGPTMP($J,BGPI)="T00080LABTAXONOMY"_$C(30)
- F BGPP=3:1 S BGPTAXE=$P(BGPSTR,P,BGPP) Q:$G(BGPTAXE)=""  D
- . Q:$G(BGPTAXE)=""
- . ;S BGPTAXE=$P(BGPSTR,P)
- . S BGPTAX=$O(^ATXLAB("B",BGPTAXE,0))
+ F BGPP=3:1 S BGPTAXM=$P(BGPSTR,P,BGPP) Q:$G(BGPTAXM)=""  D
+ . Q:$G(BGPTAXM)=""
+ . ;S BGPTAXM=$P(BGPSTR,P)
+ . S BGPTAX=$O(^ATXLAB("B",BGPTAXM,0))
  . Q:'$G(BGPTAX)
  . S BGPNONC=$P($G(^ATXLAB(BGPTAX,0)),U,13)
  . S BGPXRF=$P($G(^ATXLAB(BGPTAX,0)),U,14)
@@ -120,7 +120,7 @@ LABTAX(RETVAL,BGPSTR) ;-- return the lab taxonomy
  ;
 LTAX(RETVAL) ;-- generic lab taxonomy table
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXE,BGPTAX,BGPDA,BGPNONC,BGPXRF
+ N P,BGPRFL,BGPI,BGPERR,BGPIEN,BGPTAXM,BGPTAX,BGPDA,BGPNONC,BGPXRF
  N BGPGL,BGPGRF,BGPP,BGPPKG,BGPTDA,BGPPKGI
  S P="|"
  K ^BGPTMP($J)
@@ -134,8 +134,8 @@ LTAX(RETVAL) ;-- generic lab taxonomy table
  . ;S BGPTAX=0 F  S BGPTAX=$O(^ATXLAB(BGPTAX)) Q:'BGPTAX  D
  . ;S BGPTAX=$P($G(^ATXLAB(BGPP,0)),U)
  . ;Q:$E($P($G(^ATXLAB(BGPTAX,0)),U),1,2)'="DM"
- . ;S BGPTAXE=$P(BGPSTR,P)
- . ;S BGPTAX=$O(^ATXLAB("B",BGPTAXE,0))
+ . ;S BGPTAXM=$P(BGPSTR,P)
+ . ;S BGPTAX=$O(^ATXLAB("B",BGPTAXM,0))
  . ;Q:'$G(BGPTAX)
  . S BGPXRF=$P($G(^ATXLAB(BGPTAX,0)),U,8)
  . I $G(BGPXRF)="" S BGPXRF="B"
@@ -201,31 +201,44 @@ GETTAXN(RETVAL,BGPSTR) ;-- get taxonomies based on user selection
  ;
 GI(RETVAL,BGPSTR) ;-- get GPRA measures
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N BGPI,X,Y,Z
+ N BGPI,X,Y,Z,P,BGPNPL
+ S P="|"
+ S BGPRTYP=$P(BGPSTR,P)
+ I BGPRTYP=1 S BGPNPL=1
  K ^BGPTMP($J)
  S RETVAL="^BGPTMP("_$J_")"
  S BGPI=0
  S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
- S X=0 F  S X=$O(^BGPINDS("AO",X)) Q:X'=+X  D
- . S Y=0 F  S Y=$O(^BGPINDS("AO",X,Y)) Q:Y'=+Y  D
- .. Q:$P(^BGPINDS(Y,0),U,7)'=1
+ S X=0 F  S X=$O(^BGPINDM("AOI",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPINDM("AOI",X,Y)) Q:Y'=+Y  D
+ .. I BGPRTYP=1 Q:$P(^BGPINDM(Y,0),U,7)'=1
+ .. I BGPRTYP=7 Q:$P($G(^BGPINDM(Y,12)),U,1)'=1
+ .. I $G(BGPRTYP)=4,$P($G(^BGPINDM(Y,13)),U,1)=1 Q
+ .. I $G(BGPNPL),'$D(^BGPNPLM("AR",Y,$S(BGPRTYP=1:"N",1:"O"))) Q
  .. S BGPI=BGPI+1
- .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDS(Y,0)),U,4)_$C(30)
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDM(Y,0)),U,3)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
 GSI(RETVAL,BGPSTR) ;-- get sub measure based on passed in measure
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N P,BGPSIND,BGPIND,BGPI,X
+ N P,BGPSIND,BGPIND,BGPI,X,Y
  S P="|"
- S BGPIND=$P(BGPSTR,P)
+ S BGPIND=$P(BGPSTR,P,2)
+ S BGPTYP=$P(BGPSTR,P)
+ N BGPXR,BGPXLF
+ S BGPXLF="^BGPNPLM("
+ S BGPXR=BGPXLF_"""AN"")"
+ I BGPTYP=7 S BGPXR=BGPXLF_"""AON"")"
  K ^BGPTMP($J)
  S RETVAL="^BGPTMP("_$J_")"
+ N BGPGLB
  S BGPI=0
- S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Sub Measure"_$C(30)
- S X=0 F  S X=$O(^BGPSNPL("B",BGPIND,X)) Q:'X  D
- . S BGPI=BGPI+1
- . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPSNPL(X,0)),U,3)_$C(30)
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050 "_$C(30)
+ S X=0 F  S X=$O(@BGPXR@(BGPIND,X)) Q:'X  D
+ . S Y=0 F  S Y=$O(@BGPXR@(BGPIND,X,Y)) Q:'Y  D
+ .. S BGPI=BGPI+1
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPNPLM(Y,0)),U,3)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
@@ -236,11 +249,12 @@ GIALL(RETVAL) ;-- get all GPRA measures
  S RETVAL="^BGPTMP("_$J_")"
  S BGPI=0
  S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
- S X=0 F  S X=$O(^BGPINDS("AO",X)) Q:X'=+X  D
- . S Y=0 F  S Y=$O(^BGPINDS("AO",X,Y)) Q:Y'=+Y  D
- .. ;Q:$P(^BGPINDS(Y,0),U,7)'=1
+ S X=0 F  S X=$O(^BGPINDM("AO",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPINDM("AO",X,Y)) Q:Y'=+Y  D
+ .. ;Q:$P(^BGPINDM(Y,0),U,7)'=1
+ .. Q:$P($G(^BGPINDM(Y,13)),U,1)=1
  .. S BGPI=BGPI+1
- .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDS(Y,0)),U,4)_$C(30)
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDM(Y,0)),U,3)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
@@ -251,17 +265,46 @@ ECALL(RETVAL) ;-- get all elder care measures
  S RETVAL="^BGPTMP("_$J_")"
  S BGPI=0
  S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
- S X=0 F  S X=$O(^BGPELIS("AO",X)) Q:X'=+X  D
- . S Y=0 F  S Y=$O(^BGPELIS("AO",X,Y)) Q:Y'=+Y  D
- .. ;Q:$P(^BGPINDS(Y,0),U,7)'=1
+ S X=0 F  S X=$O(^BGPELIM("AO",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPELIM("AO",X,Y)) Q:Y'=+Y  D
+ .. ;Q:$P(^BGPINDM(Y,0),U,7)'=1
  .. S BGPI=BGPI+1
- .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPELIS(Y,0)),U,4)_$C(30)
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPELIM(Y,0)),U,4)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
+EOALL(RETVAL) ;-- get all eo measures
+ S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
+ N BGPI,X,Y,Z
+ K ^BGPTMP($J)
+ S RETVAL="^BGPTMP("_$J_")"
+ S BGPI=0
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
+ S X=0 F  S X=$O(^BGPEOMB("AO",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPEOMB("AO",X,Y)) Q:Y'=+Y  D
+ .. ;Q:$P(^BGPINDM(Y,0),U,7)'=1
+ .. S BGPI=BGPI+1
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPEOMB(Y,0)),U,2)_$C(30)
+ S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
+ Q
+ ;
+PCALL(RETVAL) ;-- get all patient education measures
+ S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
+ N BGPI,X,Y,Z
+ K ^BGPTMP($J)
+ S RETVAL="^BGPTMP("_$J_")"
+ S BGPI=0
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
+ S X=0 F  S X=$O(^BGPPEIM("AO",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPPEIM("AO",X,Y)) Q:Y'=+Y  D
+ ..;Q:$P(^BGPINDS(Y,0),U,7)'=1
+ .. S BGPI=BGPI+1
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPPEIM(Y,0)),U,2)_$C(30)
+ S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
+ Q
 PATLST(RETVAL,BGPSTR) ;-- get all GPRA measures
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
- N BGPI,X,Y,Z,P,BGPIND
+ N BGPI,X,Y,Z,P,BGPIND,O
  S P="|"
  K ^BGPTMP($J)
  S RETVAL="^BGPTMP("_$J_")"
@@ -271,11 +314,11 @@ PATLST(RETVAL,BGPSTR) ;-- get all GPRA measures
  F I=2:1 D  Q:$P(BGPSTR,P,I)=""
  . Q:$P(BGPSTR,P,I)=""
  . S BGPINDI=$P(BGPSTR,P,I)
- . S BGPIND(BGPINDI)=""
- S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- . Q:$P(^BGPINDS(X,0),U,5)=""
+ . S BGPIND($P(^BGPINDM(BGPINDI,0),U,2),BGPINDI)=""
+ S O=0 F  S O=$O(BGPIND(O)) Q:O'=+O  S X=$O(BGPIND(O,0)) D
+ . Q:$P(^BGPINDM(X,0),U,5)=""
  . S BGPI=BGPI+1
- . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPINDS(X,0)),U,4)_$C(30)
+ . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPINDM(X,0)),U,5)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
@@ -293,12 +336,51 @@ EPATLST(RETVAL,BGPSTR) ;-- get all GPRA measures
  . S BGPINDI=$P(BGPSTR,P,I)
  . S BGPIND(BGPINDI)=""
  S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- . Q:$P(^BGPELIS(X,0),U,5)=""
+ . Q:$P($G(^BGPELIM(X,13)),U,1)=""
  . S BGPI=BGPI+1
- . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPELIS(X,0)),U,5)_$C(30)
+ . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPELIM(X,13)),U,1)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
+EOPATLST(RETVAL,BGPSTR) ;-- get all GPRA measures
+ S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
+ N BGPI,X,Y,Z,P,BGPIND
+ S P="|"
+ K ^BGPTMP($J)
+ S RETVAL="^BGPTMP("_$J_")"
+ S BGPI=0
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
+ N I
+ F I=2:1 D  Q:$P(BGPSTR,P,I)=""
+ . Q:$P(BGPSTR,P,I)=""
+ . S BGPINDI=$P(BGPSTR,P,I)
+ . S BGPIND(BGPINDI)=""
+ S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
+ . Q:$P(^BGPEOMB(X,0),U,5)=""
+ . S BGPI=BGPI+1
+ . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPEOMB(X,0)),U,5)_$C(30)
+ S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
+ Q
+ ;
+PPATLST(RETVAL,BGPSTR) ;-- get all GPRA measures
+ S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
+ N BGPI,X,Y,Z,P,BGPIND
+ S P="|"
+ K ^BGPTMP($J)
+ S RETVAL="^BGPTMP("_$J_")"
+ S BGPI=0
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
+ N I
+ F I=2:1 D  Q:$P(BGPSTR,P,I)=""
+ . Q:$P(BGPSTR,P,I)=""
+ . S BGPINDI=$P(BGPSTR,P,I)
+ . S BGPIND(BGPINDI)=""
+ S X=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
+ . Q:$P(^BGPPEIM(X,0),U,4)=""
+ . S BGPI=BGPI+1
+ . S ^BGPTMP($J,BGPI)=X_U_$P($G(^BGPPEIM(X,0)),U,4)_$C(30)
+ S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
+ Q
 COM(RETVAL,BGPSTR) ;-- get measures based on user selection
  S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
  N BGPI,X,Y,Z,BGPLP,XREF
@@ -313,15 +395,21 @@ COM(RETVAL,BGPSTR) ;-- get measures based on user selection
  . S XREF="AWH"
  I BGPSTR="E" D
  . S XREF="AEL"
- S BGPLP="^BGPINDSC("""_XREF_""",1)"
- S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
+ I BGPSTR="I" D
+ . S XREF="AIPC"
+ I BGPSTR="P" D
+ . S XREF="APQA"
+ I BGPSTR="A" D
+ . S XREF="AAST"
+ S BGPLP="^BGPINDMC("""_XREF_""",1)"
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00100Measure"_$C(30)
  K ^TMP($J,"BGPG")
  S X=0 F  S X=$O(@BGPLP@(X)) Q:X'=+X  D
- . ;Q:$P(^BGPINDS(Y,0),U,7)'=1
- . S ^TMP($J,"BGPG",$P($G(^BGPINDSC(X,0)),U))=""
+ . ;Q:$P(^BGPINDM(Y,0),U,7)'=1
+ . S ^TMP($J,"BGPG",$P($G(^BGPINDMC(X,0)),U))=""
  S Y=0  F  S Y=$O(^TMP($J,"BGPG",Y)) Q:'Y  D
  . S BGPI=BGPI+1
- . S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDS(Y,0)),U,5)_$C(30)
+ . S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPINDM(Y,0)),U,5)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
@@ -332,11 +420,27 @@ CMSIND(RETVAL) ;-- get CMS measures
  S RETVAL="^BGPTMP("_$J_")"
  S BGPI=0
  S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Measure"_$C(30)
- S X=0 F  S X=$O(^BGPCMSIS("AO",X)) Q:X'=+X  D
- . S Y=0 F  S Y=$O(^BGPCMSIS("AO",X,Y)) Q:Y'=+Y  D
- .. ;Q:$P(^BGPINDS(Y,0),U,7)'=1
+ S X=0 F  S X=$O(^BGPCMSIB("AO",X)) Q:X'=+X  D
+ . S Y=0 F  S Y=$O(^BGPCMSIB("AO",X,Y)) Q:Y'=+Y  D
+ .. ;Q:$P(^BGPINDM(Y,0),U,7)'=1
  .. S BGPI=BGPI+1
- .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPCMSIS(Y,0)),U,4)_$C(30)
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPCMSIB(Y,0)),U,4)_$C(30)
  S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
  Q
  ;
+CMSSI(RETVAL,BGPSTR) ;-- get sub measure based on passed in measure
+ S X="MERR^BGP6GU",@^%ZOSF("TRAP") ; m error trap
+ N P,BGPSIND,BGPIND,BGPI,X
+ S P="|"
+ S BGPIND=$P(BGPSTR,P)
+ K ^BGPTMP($J)
+ S RETVAL="^BGPTMP("_$J_")"
+ S BGPI=0
+ S ^BGPTMP($J,BGPI)="T00007BMXIEN^T00050Sub Measure"_$C(30)
+ N X,Y
+ S X=0 F  S X=$O(^BGPCMSMB("AO",BGPIND,X)) Q:'X  D
+ . S Y=0 F  S Y=$O(^BGPCMSMB("AO",BGPIND,X,Y)) Q:'Y  D
+ .. S BGPI=BGPI+1
+ .. S ^BGPTMP($J,BGPI)=Y_U_$P($G(^BGPCMSMB(Y,0)),U,3)_$C(30)
+ S ^BGPTMP($J,BGPI+1)=$C(31)_$G(BGPERR)
+ Q

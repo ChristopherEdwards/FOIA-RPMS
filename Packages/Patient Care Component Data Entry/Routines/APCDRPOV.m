@@ -1,5 +1,5 @@
 APCDRPOV ; IHS/CMI/LAB - DISPLAY VISIT ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10,11**;MAY 14, 2009;Build 58
  ;
  W !!,"This option is used to resequence the purpose of visit (diagnoses)"
  W !,"on a visit.  This allows you to determine which will be the first diagnosis"
@@ -48,10 +48,12 @@ EOJ ; EP - EOJ HOUSE KEEPING - this ep called by the BVP package (View patient r
  Q
 POVDISP ;
  ;display current V POV information
+ S APCDPSN=""
  W !?3,"Current Sequence of POV's",!
  S APCDX=0,APCDC=0 K APCDPOV F  S APCDX=$O(^AUPNVPOV("AD",APCDVSIT,APCDX)) Q:APCDX'=+APCDX  D
  .S APCDC=APCDC+1,APCDPOV(APCDC)=APCDX
- .W !?5,APCDC,")",?10,$$VAL^XBDIQ1(9000010.07,APCDX,.01),?18,$$VAL^XBDIQ1(9000010.07,APCDX,.04)
+ .W !?5,APCDC,")",?10,$$VAL^XBDIQ1(9000010.07,APCDX,.01),?20,$$VAL^XBDIQ1(9000010.07,APCDX,.04)
+ .I $$GET1^DIQ(9000010.07,APCDX,1103)]"" S APCDPSN=1
  .Q
  W ! K DIR S DIR(0)="Y",DIR("A")="Do you want to resequence these POV's",DIR("B")="N" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) D EOJ Q
@@ -69,7 +71,7 @@ POVDISP ;
  K APCDNEWO
  S APCDC=0
  W !!,"The POV's will be resequenced to the following order:"
- F X=1:1 S J=$P(APCDJ,",",X) Q:J=""  W !?5,X,")" S APCDX=APCDPOV(J) W ?10,$$VAL^XBDIQ1(9000010.07,APCDX,.01),?18,$$VAL^XBDIQ1(9000010.07,APCDX,.04) S APCDC=APCDC+1,APCDNEWO(APCDC)=APCDX
+ F X=1:1 S J=$P(APCDJ,",",X) Q:J=""  W !?5,X,")" S APCDX=APCDPOV(J) W ?10,$$VAL^XBDIQ1(9000010.07,APCDX,.01),?20,$$VAL^XBDIQ1(9000010.07,APCDX,.04) S APCDC=APCDC+1,APCDNEWO(APCDC)=APCDX
  W ! K DIR S DIR(0)="Y",DIR("A")="Do you want to continue to resequence these POV's",DIR("B")="N" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G DSPLY
  I 'Y G DSPLY
@@ -84,7 +86,7 @@ POVDISP ;
  .K DIC,DIADD,DLAYGO
  .M ^AUPNVPOV(APCDNEW)=^AUPNVPOV(APCDX)
  .S DA=APCDNEW,DIK="^AUPNVPOV(" D IX1^DIK K DA,DIK
- .S DA=APCDNEW,DR=".12///"_$S(APCDC=1:"P",1:"S"),DIE="^AUPNVPOV(" D ^DIE K DA,DR,DIE
+ .S DA=APCDNEW,DR=".12///"_$S(APCDC=1:"P",1:"S") S:APCDPSN DR=DR_";1103///"_$S(APCDC=1:$$PRIMPOV^BCQMAPI(),1:"") S DIE="^AUPNVPOV(" D ^DIE K DA,DR,DIE
  .;now delete old one
  .S DA=APCDX,DIK="^AUPNVPOV(" D ^DIK K DA,DIK
  S AUPNVSIT=APCDVSIT D MOD^AUPNVSIT

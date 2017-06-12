@@ -1,5 +1,5 @@
 BQIGPPL ;VNGT/HS/ALA-GPRA by Panel ; 10 Jul 2009  1:30 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
  Q
  ;
@@ -47,7 +47,8 @@ PNL(DATA,OWNR,PLIEN,PLIST) ;EP - BQI GET GPRA RESULTS BY PANEL
  ;
 DONE ;
  ; If no data was found, generate the header
- I II=0,'$D(@DATA) D DEF S @DATA@(II)=$$TKO^BQIUL1(HEADR,"^")_$C(30)
+ ;I II=0,'$D(@DATA) D DEF S @DATA@(II)=$$TKO^BQIUL1(HEADR,"^")_$C(30)
+ I II=0,$G(@DATA@(II))="" D PAT(.DATA,OWNR,PLIEN,"")
  S II=II+1,@DATA@(II)=$C(31)
  Q
  ;

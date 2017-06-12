@@ -1,5 +1,5 @@
 APCLAL2 ; IHS/CMI/LAB - list refusals ; 
- ;;2.0;IHS PCC SUITE;**2,4**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,4,11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -12,7 +12,7 @@ INFORM ;
  W !?5,"- Alcohol Screening Exam (Exam code 35)"
  W !?5,"- Measurements: AUDC, AUDT, CRFT"
  W !?5,"- Health Factor with Alcohol/Drug Category (CAGE)"
- W !?5,"- Diagnoses V79.1, 29.1 (Behavioral Health Problem Code)"
+ W !?5,"- Diagnoses V79.1 (there are no ICD10 codes), 29.1 (Behavioral Hlth Code)"
  W !?5,"- Education Topics: AOD-SCR, CD-SCR"
  W !?5,"- CPT Codes: 99408, 99409, G0396, G0397, H0049"
  W !?5,"- refusal of exam code 35"
@@ -190,7 +190,7 @@ BHSCR(V) ;EP - is there a screening?  return in R
  ;get CPTs
  S X=0 F  S X=$O(^AMHRPROC("AD",V,X)) Q:X'=+X  D
  .S M=$$VALI^XBDIQ1(9002011.04,X,.01)
- .Q:'$$ICD^ATXCHK(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
+ .Q:'$$ICD^ATXAPI(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
  .S R=$$BHRT^APCLAL1(V,"CPT: "_$$VAL^XBDIQ1(9002011.04,X,.01),"",P,"")
  I R]"" Q R
  Q R
@@ -225,7 +225,7 @@ PCCSCR(V) ;EP - is there a screening?  return in R
  ;get pov
  S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9000010.07,X,.01)
- .I M="V79.1" D
+ .I M="V79.1" D    ;NO ICD10 CODES PER FRAN
  ..S T=D_U_M_U_U_V_U_9000010.07_U_X
  ..S R=$$PCCV^APCLAL1(T,P)
  I R]"" Q R
@@ -239,7 +239,7 @@ PCCSCR(V) ;EP - is there a screening?  return in R
  ;get CPTs
  S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
  .S M=$$VALI^XBDIQ1(9000010.18,X,.01)
- .Q:'$$ICD^ATXCHK(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
+ .Q:'$$ICD^ATXAPI(M,$O(^ATXAX("B","BGP ALCOHOL SCREENING CPTS",0)),1)
  .S T=D_U_"CPT: "_$$VAL^XBDIQ1(9000010.18,X,.01)_U_U_V_U_9000010.18_U_X
  .S R=$$PCCV^APCLAL1(T,P)
  I R]"" Q R

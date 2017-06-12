@@ -1,5 +1,5 @@
 APCHPWH3 ; IHS/CMI/LAB - PCC HEALTH SUMMARY - MAIN DRIVER PART 2 ;  
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**2,5,7,11**;MAY 14, 2009;Build 58
  ;
  ;
 MEDS ;EP - medications component
@@ -189,7 +189,7 @@ HIVDX(P,EDATE) ; any HIV dx ever or problem list HIV dx
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^ATXAPI(Y,T,9)
  .S G=1
  .Q
  I G Q G
@@ -236,7 +236,7 @@ HIVTEST(P,BDATE,EDATE) ;
  ...Q:'$D(^AUPNVSIT(V,0))
  ...Q:'$D(^AUPNVCPT("AD",V))
  ...S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X  D
- ....I $$ICD^ATXCHK($P(^AUPNVCPT(X,0),U),T,1) S G=1
+ ....I $$ICD^ATXAPI($P(^AUPNVCPT(X,0),U),T,1) S G=1
  ....Q
  ...Q
  ..Q

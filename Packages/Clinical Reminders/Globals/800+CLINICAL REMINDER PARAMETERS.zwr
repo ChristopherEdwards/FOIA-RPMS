@@ -1,5 +1,5 @@
-CLINICAL REMINDER PARAMETERS
-ZWR
+OSEHRA ZGO Export: CLINICAL REMINDER PARAMETERS
+12-JUN-2017 09:48:38 ZWR
 ^PXRM(800,0)="CLINICAL REMINDER PARAMETERS^800O^1^1"
 ^PXRM(800,1,0)="1"
 ^PXRM(800,1,1,0)="^800.04^1^1"
@@ -11,9 +11,14 @@ ZWR
 ^PXRM(800,1,"DISC1",3,0)="These are only recommendations, not practice standards.  The appropriate"
 ^PXRM(800,1,"DISC1",4,0)="utilization of these for your individual patient must be based on clinical"
 ^PXRM(800,1,"DISC1",5,0)="judgment and the patient's current status."
+^PXRM(800,1,"DISCF",1,0)="The following disease screening, immunization and patient education"
+^PXRM(800,1,"DISCF",2,0)="recommendations are offered as guidelines to assist in your practice."
+^PXRM(800,1,"DISCF",3,0)="These are only recommendations, not practice standards.  The"
+^PXRM(800,1,"DISCF",4,0)="appropriate utilization of these for your individual patient must be"
+^PXRM(800,1,"DISCF",5,0)="based on clinical judgment and the patient's current status."
 ^PXRM(800,1,"FULL SSN")="Y"
 ^PXRM(800,1,"MIERR")="200"
 ^PXRM(800,1,"MST")="3020226.13583^0^^^3020226.13583"
 ^PXRM(800,1,"TRUNCATE EMPLOYEE SSN")="Y"
-^PXRM(800,1,"VERSION")="1.5"
+^PXRM(800,1,"VERSION")="2.0P26"
 ^PXRM(800,"B",1,1)=""

@@ -1,5 +1,5 @@
 BWPATE ;IHS/ANMC/MWR/CIA/PLS -  PATIENT CASE DATA EDIT;23-Jan-2009 10:35;DU
- ;;2.0;WOMEN'S HEALTH;**8,9,11**;MAY 16, 1996
+ ;;2.0;WOMEN'S HEALTH;**8,9,11,13**;APR 19, 1996;Build 9
  ;;* MICHAEL REMILLARD, DDS * ALASKA NATIVE MEDICAL CENTER *
  ;;  CALLED BY OPTION: "BW EDIT PATIENT CASE DATA".
  ;
@@ -64,9 +64,9 @@ AUTOADD(DFN,SITE,Y,BWPRMT) ;EP
  N BWCMGR,DIC
  S BWCMGR=$S($D(SITE):$P(^BWSITE(SITE,0),U,2),1:"")
  S:'$G(BWPRMT) BWPRMT=0
- S DIC("DR")=".1////"_BWCMGR_";.11///Undetermined;.16///Undetermined"
- S DIC("DR")=DIC("DR")_";.18///Undetermined"
- S DIC("DR")=DIC("DR")_";.2////"_$$CDCID^BWUTL5(DFN,SITE)_";.21////"_DT
+ ;S DIC("DR")=".1////"_BWCMGR_";.11///Undetermined;.16///Undetermined"
+ ;S DIC("DR")=DIC("DR")_";.18///Undetermined"
+ ;S DIC("DR")=DIC("DR")_";.2////"_$$CDCID^BWUTL5(DFN,SITE)_";.21////"_DT
  K DD,DO S DIC="^BWP(",DIC(0)="ML",DLAYGO=9002086
  D FILE^DICN K DIC
  ;---> IF Y<0, CHECK PERMISSIONS.
@@ -75,6 +75,10 @@ AUTOADD(DFN,SITE,Y,BWPRMT) ;EP
  .W !?5,"  Please contact your site manager to check permissions."
  .D DIRZ^BWUTL3
  S Y=+Y
+ S BWUP(9002086,Y_",",.1)=BWCMGR,BWUP(9002086,Y_",",.11)="Undetermined"
+ S BWUP(9002086,Y_",",.16)="Undetermined",BWUP(9002086,Y_",",.18)="Undetermined"
+ S BWUP(9002086,Y_",",.2)=$$CDCID^BWUTL5(DFN,SITE),BWUP(9002086,Y_",",.21)=DT
+ D FILE^DIE("","BWUP","ERROR")
  D ADDRACE(DFN,Y)
  Q
  ;

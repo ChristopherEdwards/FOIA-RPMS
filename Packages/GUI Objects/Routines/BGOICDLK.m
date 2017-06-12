@@ -1,5 +1,5 @@
-BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;29-Oct-2013 13:00;DU
- ;;1.1;BGO COMPONENTS;**1,3,6,8,9,12**;Mar 20, 2007;Build 5
+BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;06-Mar-2014 20:24;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,8,9,12,14**;Mar 20, 2007;Build 5
  ;---------------------------------------------------------------
  ; Lookup ICD's matching input
  ;  INP = Lookup Value [1] ^ Use Lexicon [2] ^ Visit Date [3] ^
@@ -11,53 +11,52 @@ BGOICDLK ; IHS/BAO/TMD - FHL - PROGRAM TO GET LIST OF DIAGNOSES ;29-Oct-2013 13:
  ;  Patch 12 updated for new ICD lookup
 ICDLKUP(RET,INP) ;PEP - ICD lookup
  N LKUP,VDT,SEX,ECD,VCD,CNT,DIC,X,Y,I,ICD,LEX,RES,IEN
- N AICDRET,XTLKSAY,REC,DESC,CODE,NARR
+ N AICDRET,XTLKSAY,REC,DESC,CODE,NARR,SYS,INJ,APP,IMP
  S RET=$$TMPGBL^BGOUTL
  S LKUP=$P(INP,U)
  S LEX=$P(INP,U,2)
  S VDT=$$CVTDATE^BGOUTL($P(INP,U,3))
+ I VDT="" S VDT=DT
  S SEX=$P(INP,U,4)
  S ECD=$P(INP,U,5)
  S VCD=$P(INP,U,6)
  S CNT=0
+ ;Patch 14 find coding system
+ S SYS=$$IMP^AUPNSICD(VDT)
+ S IMP=$$IMP^ICDEX("10D",DT)
  I LEX D
  .N HITS
- .D LEXLKUP^BGOUTL(.HITS,LKUP_"^ICD")
+ .I $$AICD^BGOUTL2 D
+ ..S APP=$S(IMP<VDT:"10D",1:"ICD")
+ .D LEXLKUP^BGOUTL(.HITS,LKUP_U_APP_U_VDT)
  .S HITS=0
  .F  S HITS=$O(HITS(HITS)) Q:'HITS  D
  ..S LEX=+HITS(HITS)
- ..S X=$$ICDONE^LEXU(LEX)
+ ..;I APP="ICD" S X=$$ICDONE^LEXU(LEX.VDT,APP)
+ ..S X=$$ONE^LEXU(LEX,VDT,APP)
  ..Q:X=""
- ..S ICD=$O(^ICD9("BA",X,0))
- ..S:'ICD ICD=$O(^ICD9("BA",X_" ",0))
+ ..;S ICD=$O(^ICD9("BA",X,0))
+ ..;S:'ICD ICD=$O(^ICD9("BA",X_" ",0))
+ ..I $$AICD^BGOUTL2 S ICD=$P($$ICDDX^ICDEX(X,VDT),U,1)
+ ..E  S ICD=$P($$ICDDX^ICDCODE(X,VDT),U,1)
  ..D:ICD CHKHITS
  E  I $G(DUZ("AG"))="I"  D
- .I $$AICD^BGOUTL2 D          ;Patch 12
- ..N HITS
- ..S HITS=0
- ..K ^TMP("ICD9")
- ..S HITS=$$LKTX^ICDEX(LKUP,"ICD9(",VDT,1,1,2)
- ..I HITS>0 D
- ...S X=0 F  S X=$O(^TMP("ICD9",$J,"SEL",X)) Q:X=""  D
- ....S ICD=$P($G(^TMP("ICD9",$J,"SEL",X)),U,1)
- ....D CHKHITS
- .E  D
- ..S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
- ..K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
- ..D ^DIC
- ..I $P(Y,U,1)'=-1 D
- ...S ICD=+Y
- ...D CHKHITS
- ..E  I $G(^DD(80,0,"DIC"))="XTLKDICL" D
- ...D XTLKUP
- ..E  D AICDLKUP
- ..I 'CNT,$L(LKUP)>2 D
- ...N LK,LN
- ...S LK=LKUP,LN=$L(LKUP)
- ...F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
- ....S ICD=0
- ....F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
- ..K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
+ .S DIC="^ICD9(",DIC(0)="TM",X=LKUP,XTLKSAY=0
+ .K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
+ .D ^DIC
+ .I $P(Y,U,1)'=-1 D
+ ..S ICD=+Y
+ ..D CHKHITS
+ .E  I $G(^DD(80,0,"DIC"))="XTLKDICL" D
+ ..D XTLKUP
+ .E  D AICDLKUP
+ .I 'CNT,$L(LKUP)>2 D
+ ..N LK,LN
+ ..S LK=LKUP,LN=$L(LKUP)
+ ..F  D  S LK=$O(^ICD9("BA",LK)) Q:$E(LK,1,LN)'=LKUP
+ ...S ICD=0
+ ...F  S ICD=$O(^ICD9("BA",LK,ICD)) Q:'ICD  D CHKHITS
+ .K ^UTILITY("AICDHITS",$J),^TMP("XTLKHITS",$J)
  E  D
  .D FIND^DIC(80,,".01;10","M",LKUP,,,,,"RES")
  .I '$O(RES("DILIST",0)) Q
@@ -77,32 +76,37 @@ XTLKUP S I=0
  .D CHKHITS
  Q
 CHKHITS Q:$D(@RET@(0,ICD))  S ^(ICD)=""
- I $$CSVACT^BGOUTL2("ICDCODE") D
- .S IEN=$$ICDDX^ICDCODE(ICD,VDT)
- .I IEN>0&($P(IEN,U,10)=1) D     ;PATCH 8
- ..S CNT=CNT+1
- ..;Patch 12
- ..I $$AICD^BGOUTL2 S NARR=$$LD^ICDEX(80,IEN,VDT)
- ..E  D
- ...;Patch 9
- ...S NARR=$G(^ICD9(ICD,1))
- ...I NARR="" S NARR=$P(IEN,U,4)
- ..I 'ECD,$E($P(IEN,U,2))="E" Q
- ..I ECD=2,$E($P(IEN,U,2))'="E" Q
- ..S @RET@(CNT)=$P(IEN,U,4)_U_ICD_U_NARR_U_$P(IEN,U,2)
- E  D
- .S REC=$G(^ICD9(ICD,0))
- .Q:$P(REC,U,9)
- .I 'ECD,$E(REC)="E" Q
- .I ECD=2,$E(REC)'="E" Q
- .I VCD=1,$E(REC)="V" Q
- .I VCD=2,$E(REC)'="V" Q
- .I VDT,$P(REC,U,11),$$FMDIFF^XLFDT(VDT,$P(REC,U,11))>-1 Q
- .I $L(SEX),$P(REC,U,10)'="",SEX'=$P(REC,U,10) Q
- .S NARR=$G(^ICD9(ICD,1)),CODE=$P(REC,U),DESC=$P(REC,U,3)
+ I $$AICD^BGOUTL2 S IEN=$$ICDDX^ICDEX(ICD,VDT)
+ E  S IEN=$$ICDDX^ICDCODE(ICD,VDT)
+ ;I IEN>0&($P(IEN,U,10)=1) D     ;PATCH 8
+ I +IEN>0&($P(IEN,U,12)="") D
  .S CNT=CNT+1
- .S @RET@(CNT)=DESC_U_ICD_U_NARR_U_CODE
+ .;Patch 12
+ .I $$AICD^BGOUTL2 D
+ ..S NARR=$$LD^ICDEX(80,+IEN,VDT)
+ ..S INJ=$$CHKINJ(IEN,SYS)
+ .E  D
+ ..;Patch 9
+ ..S NARR=$G(^ICD9(ICD,1))
+ ..I NARR="" S NARR=$P(+IEN,U,4)
+ ..S INJ=$$CHKINJ(IEN,SYS)
+ .I 'ECD,INJ=1 Q
+ .I ECD=2,INJ=0 Q
+ .S @RET@(CNT)=$P(IEN,U,4)_U_ICD_U_NARR_U_$P(IEN,U,2)
  Q
+CHKINJ(IEN,SYS) ;Check for an injury code
+ N J
+ S J=0
+ ;Patch 14 changed injury code lookup
+ I SYS=30 D
+ .I $E($P(IEN,U,2),1)="V" S J=1  ;only codes V00-Y99 per Leslie Racine.
+ .I $E($P(IEN,U,2),1)="W" S J=1
+ .I $E($P(IEN,U,2),1)="X" S J=1
+ .I $E($P(IEN,U,2),1)="Y" S J=1 D
+ ..I $P(IEN,".",1)'="Y92" S J=1
+ E  D
+ .I $E($P(IEN,U,2))="E" S J=1
+ Q J
  ; Retrieve diagnosis list
 DXLIST(RET,INP) ;PEP - retrieve dx list
  N LKUP,VDT,SEX,ECD,VCD,MAX,MORE

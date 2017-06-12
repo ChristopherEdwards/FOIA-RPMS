@@ -1,5 +1,5 @@
 BQICASUI ;PRXM/HC/ALA-Find Community Suicides ; 11 Oct 2007  2:10 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
 FND ; EP - Find Suicides
  NEW DATA,ENDT,STDT,DATE,VC,VCIEN,VCODE,RIEN,IEN,CIEN,CM,COMM,DFN,DIEN
@@ -51,37 +51,45 @@ FND ; EP - Find Suicides
  .. S DFN=$P(^AMHPSUIC(RIEN,0),U,4),TYPE=$$GET1^DIQ(9002011.65,RIEN_",",.13,"I")
  .. I TYPE="" Q
  .. S STY=$S(TYPE=1:"Ideation",TYPE=2!(TYPE=4)!(TYPE=6)!(TYPE=7):"Attempt",1:"Completion")
- .. S ICD=$S(STY="Ideation":"V62.84",STY="Attempt":300.9,1:798.1)
+ .. D
+ ... I STY="Ideation" S ICD=$$SCD("BGP SUICIDAL IDEATION DXS",DTACT) Q
+ ... I STY="Attempt" S ICD=$$SCD("BQI SUICIDE ATTEMPT DXS",DTACT) Q
+ ... S ICD=$$SCD("BQI SUICIDE COMPLETION DXS",DTACT)
+ .. I $G(ICD)="" S ICD="Not specified"
  .. S COMM=$$GET1^DIQ(9000001,DFN_",",1117,"I")
  .. I COMM="" S COMM="Not identified"
  .. S @DATA@(COMM,DFN,STY,DTACT\1,ICD)=RIEN_U_U_FILE
  ; Check in PCC
- S TREF=$NA(^TMP("BQITAX",UID))
- K @TREF
- D BLDSV^BQITUTL(80,"V62.84 ",TREF)
- ;D BLDSV^BQITUTL(80,"798.1 ",TREF)
- S TIEN=0 F  S TIEN=$O(@TREF@(TIEN)) Q:'TIEN  D
- . S IEN=""
- . F  S IEN=$O(^AUPNVPOV("B",TIEN,IEN),-1) Q:IEN=""  D
- .. ;  if a bad record (no zero node), quit
- .. I $G(^AUPNVPOV(IEN,0))="" Q
- .. ;  get patient record
- .. S DFN=$$GET1^DIQ(9000010.07,IEN,.02,"I") Q:DFN=""
- .. S VISIT=$$GET1^DIQ(9000010.07,IEN,.03,"I") Q:VISIT=""
- .. ;  if the visit is deleted, quit
- .. I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
- .. S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:VSDTM=0
- .. S COMM=$$GET1^DIQ(9000001,DFN_",",1117,"I")
- .. S FILE=9000010
- .. I COMM="" S COMM="Not identified"
- .. I $G(TMFRAME)'="",VSDTM'>STDT Q
- .. ;I $G(TMFRAME)'="",VSDTM<STDT Q
- .. S DTY=$S(@TREF@(TIEN)["V62.84":"Ideation",1:"Completion")
- .. ;I '$D(@DATA@(COMM,DFN,DTY,VSDTM)) S @DATA@(COMM,DFN,DTY,VSDTM,@TREF@(TIEN))=VISIT_U_U_$S(@TREF@(TIEN)["V62.84":"Ideation",1:"Completion")_U_FILE Q
- .. I '$D(@DATA@(COMM,DFN,DTY,VSDTM)) S @DATA@(COMM,DFN,DTY,VSDTM,@TREF@(TIEN))=VISIT_U_U_FILE Q
+ F TAX="BGP SUICIDAL IDEATION DXS","BQI SUICIDE ATTEMPT DXS","BQI SUICIDE COMPLETION DXS" D
+ . NEW DIAC
+ . ;D BLDSV^BQITUTL(80,"V62.84 ",TREF)
+ . ;D BLDSV^BQITUTL(80,"798.1 ",TREF)
+ . S TREF=$NA(^TMP("BQITAX",UID))
+ . K @TREF
+ . D BLD^BQITUTL(TAX,.TREF)
+ . S TIEN=0 F  S TIEN=$O(@TREF@(TIEN)) Q:'TIEN  D
+ .. S IEN="",DIAC=$P(@TREF@(TIEN),U,1)
+ .. F  S IEN=$O(^AUPNVPOV("B",TIEN,IEN),-1) Q:IEN=""  D
+ ... ;  if a bad record (no zero node), quit
+ ... I $G(^AUPNVPOV(IEN,0))="" Q
+ ... ;  get patient record
+ ... S DFN=$$GET1^DIQ(9000010.07,IEN,.02,"I") Q:DFN=""
+ ... S VISIT=$$GET1^DIQ(9000010.07,IEN,.03,"I") Q:VISIT=""
+ ... ;  if the visit is deleted, quit
+ ... I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ ... S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:VSDTM=0
+ ... S COMM=$$GET1^DIQ(9000001,DFN_",",1117,"I")
+ ... S FILE=9000010
+ ... I COMM="" S COMM="Not identified"
+ ... I $G(TMFRAME)'="",VSDTM'>STDT Q
+ ... ;I $G(TMFRAME)'="",VSDTM<STDT Q
+ ... S DTY=$S(TAX["IDEATION":"Ideation",TAX["ATTEMPT":"Attempt",1:"Completion")
+ ... ;I '$D(@DATA@(COMM,DFN,DTY,VSDTM)) S @DATA@(COMM,DFN,DTY,VSDTM,@TREF@(TIEN))=VISIT_U_U_$S(@TREF@(TIEN)["V62.84":"Ideation",1:"Completion")_U_FILE Q
+ ... I '$D(@DATA@(COMM,DFN,DTY,VSDTM)) S @DATA@(COMM,DFN,DTY,VSDTM,DIAC)=VISIT_U_U_FILE Q
  ; Look for ECODES
  K @TREF
- S TAX="APCL INJ SUICIDE"
+ S TAX="BQI INJ SUICIDE CODES"
+ ;I '$D(^ATXAX("B",TAX)) S TAX="APCL INJ SUICIDE"
  D BLD^BQITUTL(TAX,TREF)
  ;S DATE=STDT
  S DATE=STDT_".24"
@@ -94,9 +102,9 @@ FND ; EP - Find Suicides
  ... S E2=$P(^AUPNVPOV(IEN,0),U,18)
  ... S E3=$P(^AUPNVPOV(IEN,0),U,19)
  ... I E1="",E2="",E3="" Q
- ... I E1'="",$D(@TREF@(E1)) D STOR(E1)
- ... I E2'="",$D(@TREF@(E2)) D STOR(E2)
- ... I E3'="",$D(@TREF@(E3)) D STOR(E3)
+ ... I E1'="",$D(@TREF@(E1)) D STOR(E1,(DATE\1))
+ ... I E2'="",$D(@TREF@(E2)) D STOR(E2,(DATE\1))
+ ... I E3'="",$D(@TREF@(E3)) D STOR(E3,(DATE\1))
  ;
  ; Check for duplicates
  NEW LDTE
@@ -183,11 +191,27 @@ NFILE(COMM,DCAT,DXC,DATE,VISIT,PT,FILE) ;
  . K DO,DD D FILE^DICN
  Q
  ;
-STOR(TIEN) ;
- NEW DFN,COMM,FILE
+STOR(TIEN,VSDTM) ;
+ NEW DFN,COMM,FILE,DIAG
  S DFN=$$GET1^DIQ(9000010.07,IEN,.02,"I") Q:DFN=""
  S COMM=$$GET1^DIQ(9000001,DFN_",",1117,"I")
+ S DIAG=$P(@TREF@(TIEN),U,1)
  S FILE=9000010
  I COMM="" S COMM="Not identified"
- I '$D(@DATA@(COMM,DFN,"Not Categorized",VSDTM)) S @DATA@(COMM,DFN,"Not Categorized",VSDTM,@TREF@(TIEN))=VISIT_U_U_FILE Q
+ I '$D(@DATA@(COMM,DFN,"Not Categorized",VSDTM)) S @DATA@(COMM,DFN,"Not Categorized",VSDTM,DIAG)=VISIT_U_U_FILE Q
  Q
+ ;
+SCD(TAX,ADT) ;EP - Find appropriate code
+ NEW TREF,BQN,BQCODE
+ S TREF="BQITAX" K @TREF
+ D BLD^BQITUTL(TAX,.TREF)
+ I '$D(@TREF) Q ""
+ S BQN=""
+ F  S BQN=$O(@TREF@(BQN)) Q:BQN=""  D
+ . I $$VERSION^XPDUTL("AICD")<4.0 D  Q
+ .. I $P(@TREF@(BQN),U,4)="ICD-9-CM" S BQCODE=$P(@TREF@(BQN),U,1)
+ . I $$VERSION^XPDUTL("AICD")>3.51 D
+ .. I ADT<$$IMP^ICDEXA(30) D  Q
+ ... I $P(@TREF@(BQN),U,4)="ICD-9-CM" S BQCODE=$P(@TREF@(BQN),U,1)
+ .. I $P(@TREF@(BQN),U,4)="ICD-10-CM" S BQCODE=$P(@TREF@(BQN),U,1)
+ Q BQCODE

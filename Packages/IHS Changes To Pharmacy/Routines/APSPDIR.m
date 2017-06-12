@@ -1,10 +1,11 @@
-APSPDIR ;IHS/CIA/PLS - ASKS DATA FOR RX ORDER ENTRY ;05-Mar-2013 11:50;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1008,1013,1015**;Sep 23, 2004;Build 62
+APSPDIR ;IHS/CIA/PLS - ASKS DATA FOR RX ORDER ENTRY ;15-May-2014 12:53;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1005,1006,1008,1013,1015,1017,1018**;Sep 23, 2004;Build 21
  ; This routine contains additional prompts for input of IHS specific data.
  ; Original Entry points courtesy of Patrick Cox.
  ; Patch 1006 adds new TRPDCLS entry point.
  ; Patch 1008 adds support for SUBSTITUTION and CASH DUE prompts and check for SANS default Chronic Med prompt
  ; Patch 1015 added PSODRUG("DAW") at SUBS+3
+ ; Patch 1017 adds support for Discharge Medication
 BST(PSODIR) ; EP - Bill Status
  N DIR,DIC,X,Y,B
  S DIR(0)="52,9999999.07"
@@ -222,6 +223,43 @@ CASHDUE(PSODIR) ; EP - Cash Due Enter/Edit
  D DIR^PSODIR1 G:PSODIR("DFLG")!PSODIR("FIELD") CASHDUEX
  S PSODIR("CASH DUE")=Y
 CASHDUEX Q
+ ; Prompts for Discharge Medication
+ ; IHS/MSC/PLS - 06/05/13
+DSCMED(PSODIR) ; EP - Discharge Medication Enter/Edit
+ Q:$$GET1^DIQ(9009033,PSOSITE,408,"I")  ;P1018
+ N DIR,DIC,Y,DA,OVAL,CFRM,DVAL
+ S CFRM(1)="This field should be marked YES for all discharge medications"
+ S CFRM(2)="from In-House Inpatient Unit or In-House Emergency Department."
+ S CFRM="Are you sure you want to edit"
+ S OVAL=$G(PSODIR("DSCMED"))
+ S DIR(0)="52,9999999.28"
+ S DIR("A")="DISCHARGE MEDICATION (In-House Inpatient/ER only)"
+ S DIR("B")=$S($L($G(PSODIR("DSCMED"))):$$EXTERNAL^DILFD(52,9999999.28,,PSODIR("DSCMED")),$$INP^SDAM2(PSODFN,DT)="I":"Yes",1:"")
+ S DIR("?")=" "
+ S DIR("?",1)="Enter YES if this is a discharge medication from the In-House"
+ S DIR("?",2)="Inpatient unit or In-House Emergency Department."
+ S DIR("?",3)="This should ONLY be entered for In-House discharge medications"
+ S DIR("?",4)="and not external discharge medications from other hospitals"
+ S DIR("?",5)="or emergency departments."
+ S DVAL=DIR("B")
+ D DIR^PSODIR1 G:PSODIR("DFLG")!PSODIR("FIELD") DSCMEDX
+ I DVAL="",Y="" D
+ .S PSODIR("DSCMED")=Y
+ E  I DVAL="NO",Y=0 D
+ .S PSODIR("DSCMED")=Y
+ E  I DVAL="YES",Y=1 D
+ .S PSODIR("DSCMED")=Y
+ E  I DVAL="Yes",Y=1 D
+ .S PSODIR("DSCMED")=Y
+ ;I OVAL="",+Y D
+ ;.I $$DIRYNR^APSPUTIL(.CFRM,"NO") D
+ ;..S PSODIR("DSCMED")=Y
+ ;.E  S PSODIR("DSCMED")=0
+ ;E  I OVAL="" S PSODIR("DSCMED")=Y
+ E  D  ;I (OVAL'=+Y) D
+ .I $$DIRYNR^APSPUTIL(.CFRM,"NO") D
+ ..S PSODIR("DSCMED")=Y
+DSCMEDX Q
  ; Allows editing of template
 EDIHSFLD(DA,IT,GLOBAL) ;EP
  ;N DA,DIR,DIRUT,DIROUT,DIE,DR
@@ -266,6 +304,9 @@ IHSFLDS(PSONEW,SETFLD) ;EP
  ;.S PSONEW("FLD")=10 D SUBS^APSPDIR(.PSONEW)
  ;.I SETFLD,$L($G(PSONEW("DAW"))) S PSONEW("FLD",9999999.25)=PSONEW("DAW")
 11 D  G:PSONEW("DFLG") END
- .S PSONEW("FLD")=11 D CASHDUE^APSPDIR(.PSONEW)
+ .S PSONEW("FLD")=11 D DSCMED^APSPDIR(.PSONEW)
+ .I SETFLD,$L($G(PSONEW("DSCMED"))) S PSONEW("FLD",9999999.28)=PSONEW("DSCMED")
+12 D  G:PSONEW("DFLG") END
+ .S PSONEW("FLD")=12 D CASHDUE^APSPDIR(.PSONEW)
  .I SETFLD,$L($G(PSONEW("CASH DUE"))) S PSONEW("FLD",9999999.26)=PSONEW("CASH DUE")
 END Q

@@ -1,8 +1,8 @@
-PXRMAPI0 ; SLC/PJH - Reminder Package API's;03/05/2001
- ;;1.5;CLINICAL REMINDERS;**4**;Jun 19, 2000
+PXRMAPI0 ; SLC/PJH - Reminder Package API's;08/28/2001
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;
- ;Store CATEGORY reminders in ARRAY ; DBIA 3333
+ ;Store CATEGORY reminders in ARRAY ; DBIA #3333
  ;---------------------------------
 CATREM(CIEN,ARRAY) ;
  D STORE(CIEN,.ARRAY,0)
@@ -40,3 +40,11 @@ STORE(CIEN,ARRAY,NREM) ;Add to output array
  .S SUB=TEMP(SEQ),IEN=$P($G(^PXRMD(811.7,CIEN,10,SUB,0)),U) Q:'IEN
  .D STORE(IEN,.ARRAY,.NREM)
  Q
+ ;
+OK(DIEN) ;Replaces DBA 3410 for TIU TEMPLATE REMINDER DIALOGS
+ ;Must be a reminder dialog type
+ I $P($G(^PXRMD(801.41,DIEN,0)),U,4)'="R" Q 0
+ ;And not disabled
+ I $P($G(^PXRMD(801.41,DIEN,0)),U,3)'="" Q 0
+ ;Otherwise its OK
+ Q 1

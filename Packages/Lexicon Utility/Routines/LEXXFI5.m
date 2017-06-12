@@ -1,5 +1,5 @@
 LEXXFI5 ; ISL/KER - File Info - Versions/Revisions     ; 07/28/2004
- ;;2.0;LEXICON UTILITY;**32**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**32**;Sep 23, 1996;Build 10
  Q
  ;                    
  ; Global Variables

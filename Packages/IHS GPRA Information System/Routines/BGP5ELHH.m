@@ -1,5 +1,5 @@
 BGP5ELHH ; IHS/CMI/LAB - cover page for ELDER 25 Jun 2010 10:20 AM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  S X="Cover Page" D S(X,1,1)
@@ -22,7 +22,7 @@ BGP5ELHH ; IHS/CMI/LAB - cover page for ELDER 25 Jun 2010 10:20 AM ;
  D ELDERHDR
  S X=" " D S(X,1,1)
  I $G(BGPEXPT) D
- .S X="A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT_"." D S(X,1,1) S X="It will reside in the public/export directory.  This file should be sent to your Area Office." D S(X,1,1)
+ .S X="A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT_"." D S(X,1,1) S X="It will reside in the public/export directory.  This file should be sent to your Area Office." D S(X,1,1)
  I BGPROT'="P",'$D(BGPGUI) D
  .S X="A delimited output file called "_BGPDELF D S(X,1,1) S X="has been placed in the "_$$GETDEDIR^BGP5UTL2()_" directory for your use in Excel or some other software package." D
  ..D S(X,1,1) S X="See your site manager to access this file." D S(X,1,1)
@@ -34,12 +34,6 @@ BGP5ELHH ; IHS/CMI/LAB - cover page for ELDER 25 Jun 2010 10:20 AM ;
  ..S X=$E($P(Y,";",BGPZZ),1,20),$P(X,U,2)=$E($P(Y,";",(BGPZZ+1)),1,20),$P(X,U,3)=$E($P(Y,";",(BGPZZ+2)),1,20) D S(X,1,1)
  ..Q
  S X=" " D S(X,1,1)
- I $G(BGPMFITI) S X="MFI Visit Location Taxonomy Name: "_$P(^ATXAX(BGPMFITI,0),U) D S(X,1,1)
- I $G(BGPMFITI) S X="The following locations are used for patient visits in this report:" D S(X,1,1) D
- .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(^ATXAX(BGPMFITI,21,"B",BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P($G(^DIC(4,BGPZZ,0)),U)
- .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
- ..S X=$E($P(Y,";",BGPZZ),1,20),$P(X,U,2)=$E($P(Y,";",(BGPZZ+1)),1,20),$P(X,U,3)=$E($P(Y,";",(BGPZZ+2)),1,20) D S(X,1,1)
- ..Q
  S X=" " D S(X,1,1)
  K BGPX,BGPQUIT
  Q
@@ -94,11 +88,6 @@ AREACP ;EP - area cover page
  .;W !?5,"Communities: " 
  .S X=0,N=0,Y="",Z="" F  S X=$O(^BGPELDCK(BGPX,9999,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPELDCK(BGPX,9999,X,0),U)
  .S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D S(Z,1,1)
- .I $O(^BGPELDCK(BGPX,1111,0))  D
- ..S X=" " D S(X,1,1)
- ..S X="MFI Site: Locations for visits: " D S(X,1,1) S X=0,N=0,Y="",Z="" F  S X=$O(^BGPELDCK(BGPX,1111,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPELDCK(BGPX,1111,X,0),U)
- ..S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D S(Z,1,1)
- ..Q
  .S X=" " D S(X,1,1)
  .Q
  S X=" " D S(X,1,1)

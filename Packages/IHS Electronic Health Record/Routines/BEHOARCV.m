@@ -1,5 +1,5 @@
-BEHOARCV ;MSC/IND/DKM - Cover Sheet: Adverse Reactions ;31-Mar-2011 09:07;DU
- ;;1.1;BEH COMPONENTS;**027002**;Mar 20, 2007;Build 1
+BEHOARCV ;MSC/IND/DKM - Cover Sheet: Adverse Reactions ;29-Apr-2014 18:44;PLS
+ ;;1.1;BEH COMPONENTS;**027002,027003**;Mar 20, 2007;Build 1
  ;=================================================================
  ; Return adverse reaction info for a patient
 LIST(DATA,DFN,UNRL,NOIN) ;
@@ -54,8 +54,9 @@ LIST(DATA,DFN,UNRL,NOIN) ;
  Q
  ; Detail view for adverse reaction
 DETAIL(DATA,DFN,ADR) ;
- N RXN,LP,LP2,LBL,CNT,Y,INIEN,REASON,X1
+ N RXN,LP,LP2,LBL,CNT,Y,INIEN,REASON,X1,CAUSE
  S DATA=$$TMPGBL^CIAVMRPC,CNT=0
+ I '$D(ADR)!(ADR="") S @DATA@(CNT)="No allergy defined" Q
  I ADR=-1 D  Q
  .S Y=$O(^GMR(120.86,DFN,9999999.11,$C(0)),-1) I +Y D
  ..I $P($G(^GMR(120.86,DFN,9999999.11,Y,0)),U,4)="" D
@@ -67,10 +68,10 @@ DETAIL(DATA,DFN,ADR) ;
  ...D ADD("Date: "_$$GET1^DIQ(120.869999911,INIEN,.01))
  ...D ADD("User: "_$$GET1^DIQ(120.869999911,INIEN,2))
  D EN1^GMRAOR2(ADR,"RXN")
- D ADD($P(RXN,U),"Causative agent:")
- I DUZ("AG")'="I" D
- .S RXNORM=$$RXNORM(ADR)  ;Get the RXNorm code for this agent
- .I +RXNORM D ADD(RXNORM,"RxNorm:")
+ S UNI=$$UNI(ADR)   ;Get the UNI code for this agent if its GMR type
+ I $L(UNI) S CAUSE=$P(RXN,U)_"; UNII: "_UNI
+ E  S CAUSE=$P(RXN,U)
+ D ADD($P(CAUSE,U),"Causative agent:")
  I $P(RXN,U,12)'="" D ADD($P(RXN,U,12),"Event:"),ADD()
  D:$D(RXN("S",1)) SYM,ADD()
  D:$D(RXN("V",1)) CLS,ADD()
@@ -91,6 +92,8 @@ DETAIL(DATA,DFN,ADR) ;
  D:$D(RXN("C",1)) COM,ADD()
  ;IHS/MSC/MGH Add last modified
  D LAST
+ ;IHS/MSC/MGH Reconciled
+ D RECON
  Q
 SYM S LP=0,LBL="Signs/symptoms:"
  F  S LP=$O(RXN("S",LP)) Q:'LP  D ADD(RXN("S",LP),.LBL)
@@ -124,6 +127,20 @@ LAST ;Get last modified
  .S X=X_" by "_Y
  .D ADD(X,"Last Modified:")
  Q
+RECON ;Get reconciliation data
+ N REC,IEN,AIEN,WHEN,BY
+ S REC=""
+ D ADD()
+ F  S REC=$O(^BEHOCIR("G","A",ADR,REC)) Q:REC=""  D
+ .S IEN="" F  S IEN=$O(^BEHOCIR("G","A",ADR,REC,IEN)) Q:IEN=""  D
+ ..S AIEN=IEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..S WHEN=WHEN_" by "_BY
+ ..S FROM=$$GET1^DIQ(90461.63,REC,.03)
+ ..D ADD(WHEN,"Reconciled:")
+ ..D ADD(FROM,"   Source:")
+ Q
 COM S LP=0,LBL="Comments:"
  D ADD()
  F  S LP=$O(RXN("C",LP)),LP2=0 Q:'LP  D
@@ -134,6 +151,13 @@ COM S LP=0,LBL="Comments:"
  .D ADD("   "_$$DT(+RXN("C",LP))_X)
  .F  S LP2=$O(RXN("C",LP,LP2)) Q:'LP2  D ADD("    "_RXN("C",LP,LP2,0))
  Q
+UNI(ADR) ;ADD UNI code if its a GMR allergy
+ N UNI,TYPE
+ S UNI=""
+ S TYPE=$P($G(^GMR(120.8,ADR,0)),U,3)
+ I $P(TYPE,";",2)="GMRD(120.82," D
+ .S UNI=$$GET1^DIQ(120.8,ADR,9999999.15)
+ Q UNI
 RXNORM(ADR) ;Find and add the RxNorm code
  N NDC,RXNORM,TYPE,GEN,DRUG
  S RXNORM=0

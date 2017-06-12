@@ -1,5 +1,5 @@
 BDGAD3 ; IHS/ANMC/LJF - A&D SERV TRANSFERS ;  [ 04/16/2004  4:39 PM ]
- ;;5.3;PIMS;**1013**;APR 26, 2002
+ ;;5.3;PIMS;**1013,1019**;APR 26, 2002;Build 3
  ;
 LOOP ;--loop service transfers
  NEW DGDT,DFN,IFN
@@ -30,6 +30,7 @@ GATHER ; gather info on service transfers and put counts into arrays
  S LOS=$$FMDIFF^XLFDT(DGDT,+$G(^DGPM(+$$PRIORTXN^BDGF1(DGDT,ADM,DFN),0)))
  ;  collect patient data for report
  S NAME=$$GET1^DIQ(2,DFN,.01)
+ Q:$$DEMO^APCLUTL(DFN,"E")  ;ihs/cmi/maw patch 1019
  S ^TMP("BDGAD",$J,"SERV",NAME,DFN,IFN)=OLDSV_U_NEWSV
  Q:$G(BDGREP)                              ;reprint, not recalculating
  ;

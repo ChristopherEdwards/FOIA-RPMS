@@ -1,7 +1,9 @@
-DIKC1 ;SFISC/MKO-LOAD XREF INFO ;8:19 AM  2 Aug 1999 [ 04/02/2003   8:25 AM ]
- ;;22.0;VA FileMan;**1001**;APR 1, 2003
- ;;22.0;VA FileMan;**11**;Mar 30, 1999
- ;Per VHA Directive 10-93-142, this routine should not be modified.
+DIKC1 ;SFISC/MKO-LOAD XREF INFO ;19DEC2010
+ ;;22.0;VA FileMan;**11,167,1019**;Mar 30, 1999;Build 2
+ ;Per VHA Directive 2004-038, this routine should not be modified.
+ ;IHS/OIT/FBD - DI*22.0*1019 - 12/4/2015 - ATTEMPT TO REDUCE DISK BLOCK
+ ;   COLLISIONS BY REPLACING GETTMP SURBROUTINE'S UNCONDITIONAL KILL
+ ;   WITH CONDITIONAL PRE-CHECK
  ;
  ;============================================
  ; LOADALL(File,Log,Activ,ValRt,Tmp,Flag,.MF)
@@ -20,6 +22,7 @@ DIKC1 ;SFISC/MKO-LOAD XREF INFO ;8:19 AM  2 Aug 1999 [ 04/02/2003   8:25 AM ]
  ;       [ i : don't load index-type xrefs (only load whole file xrefs)
  ;       [ f : don't load field-type xrefs
  ;       [ r : don't load record-type xrefs
+ ;       [ x : don't load "NOREINDEX" xrefs
  ;
  ;Out:
  ; MF(file#,mField#)   = multiple node
@@ -38,6 +41,7 @@ LOADALL(RFIL,LOG,ACT,VALRT,TMP,FLAG,MF) ;
  . I $G(FLAG)["i",$P(^DD("IX",XR,0),U,8)="I" Q
  . I $G(FLAG)["f",$P(^DD("IX",XR,0),U,6)="F" Q
  . I $G(FLAG)["r",$P(^DD("IX",XR,0),U,6)="R" Q
+NOREIN .I $G(FLAG)["x",$G(^DD("IX",XR,"NOREINDEX")) Q  ;PATCH 167
  . ;
  . ;Load xref
  . D CRV^DIKC2(XR,$G(VALRT),TMP)
@@ -147,6 +151,7 @@ LOADFLD(FIL,FLD,LOG,ACT,VALRT,TMPF,TMPR,FLIST,RLIST,FLAG) ;
  . I $G(FLAG)["i",$P(^DD("IX",XR,0),U,8)="I" Q
  . I $G(FLAG)["f",$P(^DD("IX",XR,0),U,6)="F" Q
  . I $G(FLAG)["r",$P(^DD("IX",XR,0),U,6)="R" Q
+ . I $G(FLAG)["x",$G(^DD("IX",XR,"NOREINDEX")) Q
  . ;
  . ;Set TMP, RLIST, and FLIST
  . K TMP
@@ -179,5 +184,6 @@ GETTMP(DIKC) ;Find next available root in ^TMP(DIKC)
  N DAY,FREE,J
  S FREE=0 F J=$J:.01 D  Q:FREE
  . S DAY=$G(^TMP(DIKC,J))
- . I DAY<($H-1) K ^TMP(DIKC,J) S ^TMP(DIKC,J)=$H,FREE=1
+ . ;I DAY<($H-1) K ^TMP(DIKC,J) S ^TMP(DIKC,J)=$H,FREE=1  ;DI*22.0*1019 - IHS/OIT/FBD - ORIGINAL LINE - COMMENTED OUT
+ . I DAY<($H-1) K:$D(^TMP(DIKC,J)) ^TMP(DIKC,J) S ^TMP(DIKC,J)=$H,FREE=1  ;DI*22.0*1019 - IHS/OIT/FBD - ADDED CONDITIONAL TO 'KILL'
  Q $NA(^TMP(DIKC,J))

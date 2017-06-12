@@ -1,0 +1,367 @@
+APCM2AEA ; IHS/CMI/LAB - IHS MU ; 29 Jun 2016  5:29 PM
+ ;;1.0;MU PERFORMANCE REPORTS;**7,8**;MAR 26, 2012;Build 22
+ ;
+ET ;
+ W ! S APCMZ=0 F  S APCMZ=$O(^APCM25OB(APCMY,N,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM25OB(APCMY,N,APCMZ,0)
+ W !
+ Q
+SS ;EP
+ Q
+SSH ;EP
+ Q
+IMMREG ;EP - ask additional exclusion questions for IMM REG
+ S APCMQ=0
+ S APCMY=$O(^APCM25OB("B",APCMX,0))
+ Q:'$D(APCMIND(APCMY))  ;measure not being run
+ ;display exclusion text/narrative
+ I $O(^APCM25OB(APCMY,APCMQU,0)) S N=APCMQU W !! D ET
+ I APCMPLTY="SEL"!(APCMPLTY="TAX") D  G:APCMIND=1 IMMIND Q
+ .W !!,"Do all selected providers included in this report meet this"
+ .S DIR(0)="Y",DIR("A")="exclusion",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .I 'Y S APCMIND=1 Q
+ .S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  S APCMATTE(APCMX,APCMP)="N/A"
+IMMIND ;ask individually
+ S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP!(APCMQ)  D
+ .S APCMZ=0 F  S APCMZ=$O(^APCM25OB(APCMY,24,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM25OB(APCMY,24,APCMZ,0)
+ .W ! S DIR(0)="Y",DIR("A")="Does "_$E($P(^VA(200,APCMP,0),U,1),1,25)_" meet this exclusion",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .S APCMATTE(APCMX,APCMP)=$S(Y:"N/A",1:"")
+IMM2 ;display exclusion text/narrative
+ S APCMP=0,E=0,T=0 F  S APCMP=$O(APCMATTE(APCMX,APCMP)) Q:APCMP=""!(APCMQ)  D
+ .S T=T+1
+ .I APCMATTE(APCMX,APCMP)="N/A" S E=E+1 ;excluded so don't ask
+ I E=T Q  ;all excluded
+ I $O(^APCM25OB(APCMY,31,0)) S N=31 W !! D ET
+ ;
+IMMIND2 ;ask individually
+ S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP!(APCMQ)  D
+ .Q:APCMATTE(APCMX,APCMP)="N/A"  ;excluded
+ .W ! S DIR(0)="Y",DIR("A")="Does "_$E($P(^VA(200,APCMP,0),U,1),1,25)_" attest to this",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .S APCMATTE(APCMX,APCMP)=$S(Y:"Yes",1:"No")
+ Q
+SPECREG ;EP
+ Q
+IMMREGH ;EP - ask additional exclusion questions for IMM REG
+ S APCMQ=0
+ S APCMY=$O(^APCM25OB("B",APCMX,0))
+ Q:'$D(APCMIND(APCMY))  ;measure not being run
+ ;display exclusion text/narrative
+ I $O(^APCM25OB(APCMY,19,0)) S N=19 W !! D ET
+ ;ask individually
+ S APCMP=APCMFAC  D
+ .S APCMZ=0 F  S APCMZ=$O(^APCM25OB(APCMY,24,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM25OB(APCMY,24,APCMZ,0)
+ .W ! S DIR(0)="Y",DIR("A")="Does "_$E($P(^DIC(4,APCMP,0),U,1),1,25)_" meet this exclusion"
+ .S DIR("B")="YES"
+ .I $P(^APCM25OB(APCMY,0),U,1)="S2.025.H.1" S DIR("B")="NO"
+ .KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .S APCMATTE(APCMX,APCMP)=$S(Y:"N/A",1:"")
+IMMH2 ;display exclusion text/narrative
+ S APCMP=0,E=0,T=0 F  S APCMP=$O(APCMATTE(APCMX,APCMP)) Q:APCMP=""!(APCMQ)  D
+ .S T=T+1
+ .I APCMATTE(APCMX,APCMP)="N/A" S E=E+1 ;excluded so don't ask
+ I E=T Q  ;all excluded
+ I $O(^APCM25OB(APCMY,31,0)) S N=31 W !! D ET
+ ;
+IMMINDH2 ;ask individually
+ S APCMP=APCMFAC  D
+ .Q:APCMATTE(APCMX,APCMP)="N/A"  ;excluded
+ .W ! S DIR(0)="Y",DIR("A")="Does "_$E($P(^DIC(4,APCMP,0),U,1),1,25)_" attest to this",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .S APCMATTE(APCMX,APCMP)=$S(Y:"Yes",1:"No")
+ Q
+ ;
+C(X,X2,X3) ;
+ S X3=""
+ I X'?.N Q $$LBLK^APCLUTL(X,7)
+ D COMMA^%DTC
+ S X=$$STRIP^XLFSTR(X," ")
+ Q $$LBLK^APCLUTL(X,7)
+MEDREC ;EP
+ I APCMPTYP="P" D
+ .F X=1,2 D
+ ..S M=APCMIC
+ ..I X=1 D W^APCM2AEH(" 7. Medication Rec 2015",0,2,APCMPTYP)
+ ..I X=2 D W^APCM2AEH("    Medication Rec 2016",0,1,APCMPTYP)
+ ..;TARGET
+ ..S T=">50%"
+ ..D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ ..;RATE
+ ..D SETND^APCM2AER
+ ..D WRATE^APCM2AER
+ ..;NUM/DEN
+ ..D WNUMDEN^APCM2AER
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$P(^APCM25OB(APCMIC,0),U,1)
+ ..I X=1 D W^APCM2AEH($G(APCMATTE(I,APCMPROV)),0,0,APCMPTYP,,77)
+ ..I X=2 D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ I APCMPTYP="D" D
+ .F X=1,2 D
+ ..S M=APCMIC
+ ..I X=1 S APCMX="Medication Rec 2015"
+ ..I X=2 S APCMX="Medication Rec 2016"
+ ..;TARGET
+ ..S T=">50%"
+ ..S $P(APCMX,U,2)=T
+ ..;RATE
+ ..D SETND^APCM2AER
+ ..D WRATE^APCM2AER
+ ..;NUM/DEN
+ ..D WNUMDEN^APCM2AER
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$P(^APCM25OB(APCMIC,0),U,1)
+ ..I X=1 S $P(APCMX,U,7)=$G(APCMATTE(I,APCMPROV))
+ ..I X=2 S $P(APCMX,U,7)="N/A"
+ ..I X=1 D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ ..I X=2 D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ Q
+PEA ;EP
+ I APCMPTYP="P" D
+ .S M=APCMIC
+ .D W^APCM2AEH(" 8. Patient Elec Access",0,2,APCMPTYP)
+ .;TARGET
+ .S T=">50%"
+ .D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ I APCMPTYP="D" D
+ .S M=APCMIC
+ .S APCMX="Patient Elec Access"
+ .;TARGET
+ .S T=">50%"
+ .S $P(APCMX,U,2)=T
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .S $P(APCMX,U,7)="N/A"
+ .D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ ;VDT
+ I APCMPTYP="P" D
+ .F X=1,2 D
+ ..S M=$O(^APCM25OB("B","S2.020.EP.1",0))
+ ..I X=1 D W^APCM2AEH("    VDT 2015",0,1,APCMPTYP)
+ ..I X=2 D W^APCM2AEH("    VDT 2016",0,1,APCMPTYP)
+ ..;TARGET
+ ..S T=">=1"
+ ..D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ ..;RATE
+ ..D SETND^APCM2AER
+ ..D W^APCM2AEH($$C^APCM2AER(APCMCYN,0,9),0,0,APCMPTYP,,40)
+ ..;NUM/DEN
+ ..D WNUMDEN^APCM2AER
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$O(^APCM25OB("B","S2.020.EP,1",0))
+ ..I X=1 D W^APCM2AEH($P($G(APCMATTE("S2.020.EP.1",APCMPROV)),U,2),0,0,APCMPTYP,,77)
+ ..I X=2 D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ .I $G(APCMVDTE) D
+ ..D W^APCM25EH("Note: PHR Server access failed during report generation "_$P(APCMSEME,U,2)_" which may",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("have affected the numerator results for this measure. Contact your IT staff to",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("resolve the error and then regenerate the report again to obtain accurate",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("results.",0,1,APCMPTYP,,0)
+ I APCMPTYP="D" D
+ .F X=1,2 D
+ ..S M=APCMIC
+ ..I X=1 S APCMX="VDT 2015"
+ ..I X=2 S APCMX="VDT 2016"
+ ..;TARGET
+ ..S T=">=1"
+ ..S $P(APCMX,U,2)=T
+ ..;RATE
+ ..D SETND^APCM2AER
+ ..S $P(APCMX,U,3)=APCMCYN
+ ..;NUM/DEN
+ ..D WNUMDEN^APCM2AER
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$P(^APCM25OB(APCMIC,0),U,1)
+ ..I X=1 S $P(APCMX,U,7)=$P($G(APCMATTE("S2.020.EP.1",APCMPROV)),U,2)
+ ..I X=2 S $P(APCMX,U,7)="N/A"
+ ..D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ .I $G(APCMVDTE) D
+ ..D W^APCM25EH("NOTE: Access to the PHR server to obtain VDT data failed "_$P(APCMVDTE,U,2),0,1,APCMPTYP,1)
+ ..D W^APCM25EH("for at least one patient. Generate the report for this measure again to ",0,1,APCMPTYP,1)
+ ..D W^APCM25EH("obtain accurate results.",0,1,APCMPTYP,1)
+ Q
+SEM ;EP
+ I APCMPTYP="P" D
+ .F X=1,2 D
+ ..S M=APCMIC
+ ..I X=1 D W^APCM2AEH(" 9. Secure Messaging 2015+",0,2,APCMPTYP)
+ ..I X=2 D W^APCM2AEH("    Secure Messaging 2016",0,1,APCMPTYP)
+ ..;TARGET
+ ..I X=2 S T=">=1"
+ ..I X=1 S T="Yes"
+ ..D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ ..;RATE
+ ..I X=1 D SETND^APCM2AER
+ ..I X=1 D WRATE^APCM2AER
+ ..I X=2 S (APCMCYN,APCMCYD,APCMCYP)=0
+ ..I X=2 D W^APCM2AEH($$C(APCMCYP,0,9),0,0,APCMPTYP,,40)
+ ..;NUM/DEN
+ ..I X=1 D WNUMDEN^APCM2AER
+ ..I X=2 D W^APCM2AEH($$C(APCMCYN,0,9),0,0,APCMPTYP,,51),W^APCM2AEH($$C(APCMCYD,0,9),0,0,APCMPTYP,,61)
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$P(^APCM25OB(APCMIC,0),U,1)
+ ..I X=1 D W^APCM2AEH($P($G(APCMATTE(I,APCMPROV)),U,3),0,0,APCMPTYP,,77)
+ ..I X=2 D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ .I $G(APCMSEME) D
+ ..D W^APCM25EH("Note: PHR Server access failed during report generation "_$P(APCMSEME,U,2)_" which may",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("have affected the numerator results for this measure. Contact your IT staff to",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("resolve the error and then regenerate the report again to obtain accurate",0,1,APCMPTYP,,0)
+ ..D W^APCM25EH("results.",0,1,APCMPTYP,,0)
+ I APCMPTYP="D" D
+ .F X=1,2 D
+ ..S M=APCMIC
+ ..I X=1 S APCMX="Secure Messaging 2015+"
+ ..I X=2 S APCMX="Secure Messaging 2016"
+ ..;TARGET
+ ..I X=2 S T=">=1"
+ ..I X=1 S T="Yes"
+ ..S $P(APCMX,U,2)=T
+ ..;RATE
+ ..I X=1 D SETND^APCM2AER
+ ..I X=1 D WRATE^APCM2AER
+ ..;NUM/DEN
+ ..I X=1 D WNUMDEN^APCM2AER
+ ..I X=2 S $P(APCMX,U,3)=0,$P(APCMX,U,4)=0,$P(APCMX,U,5)=0
+ ..;EXCL
+ ..D WEXCL^APCM2AER
+ ..;ALT EXCL
+ ..S I=$P(^APCM25OB(APCMIC,0),U,1)
+ ..I X=1 S $P(APCMX,U,7)=$P($G(APCMATTE(I,APCMPROV)),U,2)
+ ..I X=2 S $P(APCMX,U,7)="N/A"
+ ..I X=2 D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ ..I X=1 D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ .Q:'$G(APCMSEME)
+ .D W^APCM25EH("Note: PHR Server access failed during report generation "_$P(APCMSEME,U,2)_" which may",0,1,APCMPTYP,1)
+ .D W^APCM25EH("have affected the numerator results for this measure. Contact your IT staff to",0,1,APCMPTYP,1)
+ .D W^APCM25EH("resolve the error and then regenerate the report again to obtain accurate results.",0,1,APCMPTYP,1)
+ Q
+IMM ;EP
+ I APCMPTYP="P" D
+ .S M=APCMIC
+ .D W^APCM2AEH("10. Public Health",0,2,APCMPTYP)
+ .D W^APCM2AEH("    Immunization Regis*+",0,1,APCMPTYP)
+ .;TARGET
+ .S T="Yes"
+ .D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ I APCMPTYP="D" D
+ .S M=APCMIC
+ .S APCMX="Public Health" D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ .S APCMX="Immunization Regis*+"
+ .;TARGET
+ .S T="Yes"
+ .S $P(APCMX,U,2)=T
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .S $P(APCMX,U,7)="N/A"
+ .D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ Q
+SYN ;EP
+ I APCMPTYP="P" D
+ .S M=APCMIC
+ .;D W^APCM2AEH(" 9. Public Health",0,2,APCMPTYP)
+ .D W^APCM2AEH("    Syndromic Surveil*+",0,1,APCMPTYP)
+ .;TARGET
+ .S T="Yes"
+ .D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ I APCMPTYP="D" D
+ .S M=APCMIC
+ .;S APCMX="Public Health" D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ .S APCMX="Syndromic Surveil*+"
+ .;TARGET
+ .S T="Yes"
+ .S $P(APCMX,U,2)=T
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .S $P(APCMX,U,7)="N/A"
+ .D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ Q
+SR ;EP
+ I APCMPTYP="P" D
+ .S M=APCMIC
+ .;D W^APCM2AEH(" 9. Public Health",0,2,APCMPTYP)
+ .D W^APCM2AEH("    Rept to Special Reg*+",0,1,APCMPTYP)
+ .;TARGET
+ .S T="Yes"
+ .D W^APCM2AEH(T,0,0,APCMPTYP,,35)
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .D W^APCM2AEH("N/A",0,0,APCMPTYP,,77)
+ I APCMPTYP="D" D
+ .S M=APCMIC
+ .;S APCMX="Public Health" D W^APCM25EH(APCMX,0,2,APCMPTYP,1)
+ .S APCMX="Rept to Special Reg*+"
+ .;TARGET
+ .S T="Yes"
+ .S $P(APCMX,U,2)=T
+ .;RATE
+ .D SETND^APCM2AER
+ .D WRATE^APCM2AER
+ .;NUM/DEN
+ .D WNUMDEN^APCM2AER
+ .;EXCL
+ .D WEXCL^APCM2AER
+ .;ALT EXCL
+ .S $P(APCMX,U,7)="N/A"
+ .D W^APCM25EH(APCMX,0,1,APCMPTYP,1)
+ Q

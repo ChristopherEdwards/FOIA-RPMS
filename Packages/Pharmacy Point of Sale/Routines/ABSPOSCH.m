@@ -1,5 +1,5 @@
 ABSPOSCH ; IHS/FCS/DRS - Set up ABSP() ;      [ 05/09/2003  9:37 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,4,6,9,11,15,16,17,19,20,21,29,37,40,42**;JUN 01, 2001;Build 15
  ;---
  ;Moved over subroutines from ABSPOSCC due to SAC size standards
  ;

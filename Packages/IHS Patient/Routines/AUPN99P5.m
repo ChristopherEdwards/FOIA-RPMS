@@ -1,5 +1,5 @@
 AUPN99P5 ; IHS/CMI/LAB - AUPN 99.1 PATCH 5 [ 05/09/2003  7:57 AM ]
- ;;99.1;IHS DICTIONARIES (PATIENT);**5,9,10**;JUN 13, 2003
+ ;;99.1;IHS DICTIONARIES (PATIENT);**5,9,10**;JUN 13, 2003;Build 9
  ;
  ; The following line prevents the "Disable Options..." and "Move
  ; Routines..." questions from being asked during the install.

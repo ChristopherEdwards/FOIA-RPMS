@@ -1,8 +1,12 @@
-RAORD3 ;HISC/CAH - AISC/RMO-Detailed Request Display Cont. ;05/05/09  10:31
- ;;5.0;Radiology/Nuclear Medicine;**5,15,21,27,45,41,75,99**;Mar 16, 1998;Build 5
+RAORD3 ;HISC/CAH - AISC/RMO-Detailed Request Display Cont. ; 06 Oct 2013  11:04 AM
+ ;;5.0;Radiology/Nuclear Medicine;**5,15,21,27,45,41,75,99,1005**;Mar 16, 1998;Build 13
  ;Supported IA #2056 reference to ^DIQ
  ;Supported IA #10103 reference to ^XLFDT
- I $$PTSEX^RAUTL8(RADFN)="F" D  ;display pregnancy status for females ptch 45, P#99 changed Pregnancy title.'Pregnancy Screen:' field. This field shall be a display-only field
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D  ;display pregnancy status for females ptch 45, P#99 changed Pregnancy title.'Pregnancy Screen:' field. This field shall be a display-only field
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .W !,"Pregnant at time of order entry: ",?22,$S($P(RAORD0,"^",13)="y":"YES",$P(RAORD0,"^",13)="n":"NO",1:"UNKNOWN")
  .N RA700332,RA700380
  .S RA700332=$$GET1^DIQ(70.03,$G(RACNI)_","_$G(RADTI)_","_$G(RADFN),32)

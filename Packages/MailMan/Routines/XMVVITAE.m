@@ -1,5 +1,5 @@
 XMVVITAE ;ISC-SF/GMB-Initialize User's MailMan Variables ;04/19/2002  13:26
- ;;8.0;MailMan;;Jun 28, 2002
+ ;;8.0;MailMan;**36**;Jun 28, 2002;Build 1
  ; Replaces ^XMGAPI1,FWD^XMA21,FWD,BANNER^XMA6,EDIT^XMA7 (ISC-WASH/CAP)
  ; Entry points (DBIA 2728):
  ; INIT     Set up variables for DUZ or XMDUZ.
@@ -100,8 +100,10 @@ USER(XMDUZ,XMV,XMNOSEND,XMDUN) ;
  K XMV("ERROR"),XMV("WARNING")
  S XMREC=$G(^VA(200,XMDUZ,0))
  I XMREC="" S XMV("ERROR",2)=$$EZBLD^DIALOG(38107,XMDUZ) Q  ;There is no person with DUZ |1|.
- I $P(XMREC,U,3)="" S XMV("ERROR",3)=$$EZBLD^DIALOG(38108,XMDUZ) Q  ; There is no Access Code for DUZ XMDUZ
- I '$D(^XMB(3.7,XMDUZ,0)) S XMV("ERROR",4)=$$EZBLD^DIALOG(38109,XMDUZ) Q  ;There is no mailbox for DUZ |1|.
+ ;I $P(XMREC,U,3)="" S XMV("ERROR",3)=$$EZBLD^DIALOG(38108,XMDUZ) Q  ; There is no Access Code for DUZ XMDUZ
+ I $P(XMREC,U,3)="",'$$USERTYPE^XUSAP(XMDUZ,"APPLICATION PROXY") S XMV("ERROR",3)=$$EZBLD^DIALOG(38108,XMDUZ) Q  ; There is no Access Code for DUZ XMDUZ
+ ;I '$D(^XMB(3.7,XMDUZ,0)) S XMV("ERROR",4)=$$EZBLD^DIALOG(38109,XMDUZ) Q  ;There is no mailbox for DUZ |1|.
+ I '$D(^XMB(3.7,XMDUZ,0)),'$$USERTYPE^XUSAP(XMDUZ,"APPLICATION PROXY") S XMV("ERROR",4)=$$EZBLD^DIALOG(38109,XMDUZ) Q  ;There is no mailbox for DUZ |1|.
  S XMV("NOSEND")=0
  S (XMDUN,XMV("NAME"))=$$NAME^XMXUTIL(XMDUZ)
  D SETNET(XMDUZ,.XMV)
@@ -152,7 +154,8 @@ PREFER(XMDUZ,XMV,XMDISPI) ;
  ; XMDISPI
  N XMUREC,XMSREC
  S XMSREC=$G(^XMB(1,1,0)) ; Site's preferences
- S XMUREC=^XMB(3.7,DUZ,0) ; User's preferences
+ ;S XMUREC=^XMB(3.7,DUZ,0) ; User's preferences
+ S XMUREC=$G(^XMB(3.7,DUZ,0)) ; User's preferences
  S XMV("SHOW INST")=$S($P(XMSREC,U,5)["y":1,1:0)  ; Show Institution
  S XMV("SHOW TITL")=$S($P(XMUREC,U,10)=1:1,1:0)   ; Show Titles
  I XMV("SHOW TITL") S XMV("TITL SRC")=$S($P(XMSREC,U,11)'="":$P(XMSREC,U,11),1:"T") ; Title Source (Signature Block or Title)

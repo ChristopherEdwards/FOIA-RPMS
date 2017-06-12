@@ -1,5 +1,5 @@
 AMHRSU5 ; IHS/CMI/LAB - ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
 START ;
  D XIT
@@ -68,6 +68,8 @@ PROCESS ;
  ..I $$SUICC(AMHVIEN,40) D SETT(4,A,DFN)
  ..I $$SUICC(AMHVIEN,41) D SETT(5,A,DFN)
  ..I $$SUICC(AMHVIEN,"V62.84") D SETT(3,A,DFN)
+ ..I $$SUICC(AMHVIEN,"R45.851") D SETT(3,A,DFN)
+ ..I $$SUICC(AMHVIEN,"T14.91") D SETT(4,A,DFN)
  ..Q
  .Q
  S AMHET=$H
@@ -110,7 +112,7 @@ SUICPOV(V) ;
  .S Y=$P(^AMHRPRO(X,0),U)
  .Q:'$D(^AMHPROB(Y,0))
  .S Y=$P(^AMHPROB(Y,0),U)
- .I Y=39!(Y=40)!(Y=41)!(Y="V62.84") S G=1
+ .I Y=39!(Y=40)!(Y=41)!(Y="V62.84")!(Y="R45.851")!(Y="T14.91") S G=1
  .Q
  Q G
 SUICC(V,C) ;
@@ -338,10 +340,10 @@ HEAD1 ;
  W !,$$CTR($$REPEAT^XLFSTR("*",35),80)
  S X="VISIT Date Range: "_AMHBDD_" through "_AMHEDD W !,$$CTR(X,80)
  S X=AMHSUBH W !,$$CTR(X,80),!
- S X="39 & v62.84 - Suicide Ideation; 40 - Suicide Attempt/Gesture;" W !,$$CTR(X,80),!
+ S X="39, V62.84, R45.851 - Suicide Ideation; 40 & T14.91 - Suicide Attempt/Gesture;" W !,$$CTR(X,80),!
  S X="41 - Suicide Completed" W $$CTR(X,80),!
- W !,"AGE GROUP",?13,"# Encs",?27,"# w POV 39",?41,"w/ POV 40",?54,"w/ POV 41",?68,"w/ 39/40/41"
- W !?27,"& v62.84",?68," & v62.84"
+ W !,"AGE GROUP",?13,"# Encs",?27,"# w POV 39",?42,"w/ POV 40",?54,"w/ POV 41",?68,"w/ 39/40/41/"
+ W !?27,"V62.84/R45.851",?42,"& T14.91",?68,"V62.84/R45.851"
  W !?15,"#",?22,"%",?29,"#",?36,"%",?43,"#",?50,"%",?56,"#",?63,"%",?70,"#",?77,"%"
  W !,$$REPEAT^XLFSTR("-",80)
  Q
@@ -371,11 +373,13 @@ LOC() ;EP - Return location name from file 4 based on DUZ(2).
 INFORM ;inform user what this report is all about
  W !,$$CTR($$LOC)
  W !!,$$CTR("BEHAVIORAL HEALTH SUICIDE PURPOSE OF VISIT REPORT")
- W !!,"This report will display the Suicide POVs (39,40,41) as a"
- W !,"percentage of the total number of Behavioral Health encounter"
+ W !!,"This report will display the Suicide POVs (39,40,41,V62.84, R45.851, T14.91)"
+ W !," as a percentage of the total number of Behavioral Health encounter"
  W !,"records (Encs).  Any records containing the ICD-9 code v62.84,"
- W !,"Suicidal Ideation will be included in the tallies for Problem"
- W !,"code 39.  A display by age and gender is also included."
+ W !,"Suicidal Ideation or ICD-10 code R45.851 will be included in "
+ W !,"the tallies for Problem code 39.  Any records with ICD-10 Code T14.91"
+ W !,"will be included in the tallies for Problem code 40. A display by "
+ W !,"age and gender is also included."
  W !
  Q
 OPRV ;one PROVIDER

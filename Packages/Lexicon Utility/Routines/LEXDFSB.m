@@ -1,5 +1,5 @@
-LEXDFSB ; ISL Default Filter - Include/Exclude     ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
+LEXDFSB ;ISL/KER - Default Filter - Include/Exclude ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
  ;
  ; Entry:  S X=$$EN^LEXDFSB
  ;
@@ -35,10 +35,10 @@ SET ; Create Semantic Include and Exclude strings from the array
  N LEXC,LEXT,LEXI,LEXE S (LEXI,LEXE)=""
  F LEXC=1:1:LEXA(0) D
  . I LEXA(LEXC,2,0)<LEXA(LEXC,1,0)!(LEXA(LEXC,2,0)=0) S LEXI=LEXI_"/"_LEXA(LEXC,0)
- . I LEXA(LEXC,2,0)<LEXA(LEXC,1,0)&(LEXA(LEXC,2,0)'=0) D
+ . I LEXA(LEXC,2,0)<LEXA(LEXC,1,0)&(LEXA(LEXC,2,0)'=0) D 
  . . F LEXT=1:1:LEXA(LEXC,2,0) D
  . . . S LEXE=LEXE_"/"_LEXA(LEXC,2,LEXT,0)
- . I LEXA(LEXC,2,0)'<LEXA(LEXC,1,0)&(LEXA(LEXC,2,0)'=0) D
+ . I LEXA(LEXC,2,0)'<LEXA(LEXC,1,0)&(LEXA(LEXC,2,0)'=0) D 
  . . F LEXT=1:1:LEXA(LEXC,1,0) D
  . . . S LEXI=LEXI_"/"_LEXA(LEXC,1,LEXT,0)
  S:LEXI'["UNK" LEXI=LEXI_"/UNK" S:$E(LEXI,1)="/" LEXI=$E(LEXI,2,$L(LEXI))

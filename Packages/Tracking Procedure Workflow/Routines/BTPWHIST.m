@@ -1,5 +1,5 @@
 BTPWHIST ;VNGT/HS/BEE-CMET History ; 04 Feb 2009  2:55 PM
- ;;1.0;CARE MANAGEMENT EVENT TRACKING;;Feb 07, 2011
+ ;;1.1;CARE MANAGEMENT EVENT TRACKING;**2**;Apr 01, 2015;Build 17
  Q
  ;
 AUD(DATA,CMIEN) ;EP - BTPW EVENT AUDIT HISTORY
@@ -98,7 +98,9 @@ RLOG(VAR,USER,DTTM,DESC) ;EP -- Log Change to Tracked File - Regular fields
  ;Process each entry
  S FILE="" F  S FILE=$O(VAR(FILE)) Q:FILE=""  S IEN="" F  S IEN=$O(VAR(FILE,IEN)) Q:IEN=""  S FIELD="" F  S FIELD=$O(VAR(FILE,IEN,FIELD)) Q:FIELD=""  D
  . ;
- . N BHIST,CV,DA,DIC,DLAYGO,FILFLD,NV,X,Y
+ . N BHIST,CV,DA,DIC,DLAYGO,FILFLD,NV,X,Y,CMIEN
+ . I FILE=90629 S CMIEN=$G(VAR(FILE,IEN,.14)) S:CMIEN'["," CMIEN=CMIEN_","
+ . E  S CMIEN=IEN
  . ;
  . ;Get New Value
  . S NV=VAR(FILE,IEN,FIELD)
@@ -113,13 +115,13 @@ RLOG(VAR,USER,DTTM,DESC) ;EP -- Log Change to Tracked File - Regular fields
  . I NV=CV!((NV="@")&(CV="")) Q
  . ;
  . ;Pull Event IEN
- . S DA(1)=$P(IEN,",",$L(IEN,",")-1)
+ . S DA(1)=$P(CMIEN,",",$L(CMIEN,",")-1)
  . ;
  . ;Define new entry
  . S DIC="^BTPWP("_DA(1)_",5,"
  . S DIC(0)="L"
  . S X=DTTM S:X="" X=$$NOW^XLFDT()
- . S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ . S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  . I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  . K DO,DD D FILE^DICN
  . S DA=+Y
@@ -167,7 +169,7 @@ WLOG(NCOM,FILFLD,IEN,USER,DTTM,DESC) ;EP -- Log Change to Tracked File - Word Pr
  S DIC="^BTPWP("_DA(1)_",5,"
  S DIC(0)="L"
  S X=DTTM S:X="" X=$$NOW^XLFDT()
- S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  K DO,DD D FILE^DICN
  S DA=+Y
@@ -220,7 +222,7 @@ SLOG(RIEN,CMIEN,DTTM,USER,DESC) ;EP - Log Status Changes to History
  . S DIC="^BTPWP("_DA(1)_",5,"
  . S DIC(0)="L"
  . S X=LDTTM S:X="" X=$$NOW^XLFDT()
- . S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ . S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  . I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  . K DO,DD D FILE^DICN
  . S DA=+Y
@@ -252,7 +254,7 @@ SLOG(RIEN,CMIEN,DTTM,USER,DESC) ;EP - Log Status Changes to History
  S DIC="^BTPWP("_DA(1)_",5,"
  S DIC(0)="L"
  S X=DTTM S:X="" X=$$NOW^XLFDT()
- S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  K DO,DD D FILE^DICN
  S DA=+Y
@@ -295,7 +297,7 @@ SLOG(RIEN,CMIEN,DTTM,USER,DESC) ;EP - Log Status Changes to History
  S DIC="^BTPWP("_DA(1)_",5,"
  S DIC(0)="L"
  S X=DTTM S:X="" X=$$NOW^XLFDT()
- S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  K DO,DD D FILE^DICN
  S DA=+Y
@@ -344,7 +346,7 @@ SWLOG(RIEN,CMIEN,NIEN,PVIEN) ;Save Status Comment Field History
  S DIC="^BTPWP("_DA(1)_",5,"
  S DIC(0)="L"
  S X=LDTTM S:X="" X=$$NOW^XLFDT()
- S DLAYGO=90505.05,DIC(0)="L",DIC("P")=DLAYGO
+ S DLAYGO=90620.05,DIC(0)="L",DIC("P")=DLAYGO
  I '$D(^BTPWP(DA(1),5,0)) S ^BTPWP(DA(1),5,0)="^90620.05DA^^"
  K DO,DD D FILE^DICN
  S DA=+Y

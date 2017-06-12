@@ -1,5 +1,5 @@
 ABSPOSAN ; IHS/FCS/DRS - Cancellation ;   [ 09/12/2002  10:05 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ;
  ; CANCEL:  See any of CLAIMIEN's claims have been marked for

@@ -1,21 +1,8 @@
 BMXADOFS ; IHS/CIHA/GIS - RPC CALL FOR EXTENDED FUNCTIONALITY OF BMXNet UTILITIES ; 31 Jul 2009  12:42 PM
- ;;4.0;BMX;;JUN 28, 2010
+ ;;4.0;BMX;**4**;JUN 28, 2010;Build 4
  ; THIS IS THE ADO RECORDSET FILER: ADO -> FILEMAN
- ; CONTAINS SPECIAL CODE RELATED TO FILING PROPLEMS, POVS, FAMILY HX, PERSONAL HX AND NOTES.
- ; 
- ; 
+ ; CONTAINS SPECIAL CODE RELATED TO FILING PROPLEMS, POVS, FAMILY HX, PERSONAL HX AND NOTES 
  ;
-PAT ; TEST PROBLEM ADD
- S DATA=".01|`8257"_$C(30)_".02|`53"_$C(30)_".03|"_DT_$C(30)_".05|C-POX"_$C(30)_".06|`4585"_$C(30)_".12|I"_$C(30,31)
- D FILE^BMXADOF(.XXX,9000011,"",DATA) W !,XXX K XXX,DATA Q
- ; 
-PET ; TEST PROB EDIT
- S DATA=".01|250.00"_$C(30)_".03|"_DT_$C(30)_".05|HI MOM"_$C(30)_".12|I"_$C(30,31)
- D FILE^BMXADOF(.XXX,9000011,"1757",DATA) W !,XXX K XXX,DATA Q
- ; 
-TDP ; TEST PROBLEM DELETE
- S DATA=$C(31)
- D FILE^BMXADOF(.XXX,9000011,"-1757",DATA) W !,XXX K XXX,DATA Q
  ; 
 TPOV ; ADD POV TEST
  S DATA=".01|`8718"_$C(30)_".02|`53"_$C(30)_".03|`3909"_$C(30)_".04|DM---I"_$C(30)_".12|P"_$C(30,31)
@@ -62,8 +49,9 @@ HDT I DATA'[".03|" Q DATA
  Q DATA
  ; 
 POV(DATA) ; POV INPUT STRING TRANSFORM
- N NARR,NIEN,%
- I DATA[".01|`" G PVNARR
+ N NARR,NIEN,%,CIEN
+ S CIEN=$P($P(DATA,$C(30)),".01|",2)
+ I CIEN?1N.N G PVNARR
  S DATA=$$ICD(DATA,.01) I DATA="" Q ""
 PVNARR I DATA'[".04|'" Q DATA
  S DATA=$$NARR(DATA,.04)
@@ -107,18 +95,66 @@ NOTE(DATA,PIEN,FNIEN) ; GIVEN A DATA STRING CONTAINING THE NOTE, THE PROBLEM IEN
  . S DATA=".01|"_NUM_$C(30)_DATA
  Q DATA
  ;
+ ;Test ICD lookup
+TSTICD N XXICD,PIECE,PARM,DIR,DIRUT,DUOUT,DTOUT,DIROUT,X,Y,IEN
+ S DIR("A",1)="",DIR("A")="Enter the ICD Code: "
+ S DIR(0)="FA^1:98"
+ D ^DIR I +Y<1,+$E(Y,2,99)<1 Q
+ S XXICD=Y
+ ;
+ S DIR("A",1)="",DIR("A")="Enter the piece to check (1 or 2): "
+ S DIR(0)="FA^1:98"
+ D ^DIR I Y'=1,Y'=2 Q
+ S PIECE=Y
+ ;
+ I PIECE=1 S PARM=".01|"_XXICD_$C(30)_".02|"_$C(30)_".03|ABC"
+ I PIECE=2 S PARM=".01|"_$C(30)_".02|"_XXICD_$C(30)_".03|ABC"
+ S X=$$ICD(PARM,$S(PIECE="1":".01",1:".02"))
+ W !,$TR(X,$C(30),"{")
+ I PIECE=1 S IEN=$P(X,"|",2)
+ I PIECE=2 S IEN=$P(X,"|",3)
+ S IEN=$P($TR($TR(IEN,"`"),"{"),$C(30))
+ I IEN>0 W !,$$GET1^DIQ(80,IEN_",",.01,"E")
+ Q
+ ;
 TI N XXX S XXX=$$ICD(".01|250.00"_$C(30)_".02|123"_$C(30)_".03|ABC",.01) W !,$TR(XXX,$C(30),"{") Q
 ICD(DATA,FLD) ; VERIFY ICD CODE AND GET LOOKUP VALUE
  I '$G(FLD) Q ""
  I '$L($G(DATA)) Q ""
  N %,A,B
  S %=$P(DATA,"|")
+ ;
+ ;Process Piece .01
  I %=FLD D  Q DATA
- . S %=$P(DATA,"|",2)
- . S %=$P(%,$C(30))
- . I %?1"`"1.N Q
- . S %=$O(^ICD9("BA",%_" ",0))
- . I $L($T(CODEN^ICDCODE)) S %=+$$CODEN^ICDCODE(%,80) I %<0 S %=""
+ . NEW IEN,OVAL,CODE
+ . S IEN=""
+ . S CODE=$P(DATA,"|",2)
+ . S (CODE,OVAL)=$P(CODE,$C(30))
+ . I CODE?1"`"1.N Q
+ . ;
+ . ;Pull appropriate ICD-9/ICD-10 code
+ . ;
+ . ;ICD-9 Only (Pre-AICD build)
+ . I $$VERSION^XPDUTL("AICD")<4.0 D
+ .. S IEN=$O(^ICD9("BA",CODE_" ",0))
+ .. I $L($T(CODEN^ICDCODE)) S IEN=+$$CODEN^ICDCODE(IEN,80) I IEN<0 S IEN=""
+ . ;
+ . ;ICD-9 or ICD-10
+ . I $$VERSION^XPDUTL("AICD")>3.51 D
+ .. NEW STR
+ .. ;
+ .. ;Date has passed - First look for ICD-10
+ .. I $$IMP^ICDEXA(30)'>DT D  Q:IEN]""
+ ... S STR=$$ICDDATA^ICDXCODE(30,CODE,DT,"E")
+ ... S IEN=$P(STR,"^") S:IEN<0 IEN=""
+ .. ;
+ .. ;If not found - Look in ICD-9 - Might be lookup of historical info
+ .. I IEN="" D
+ ... S STR=$$ICDDATA^ICDXCODE(1,CODE,DT,"E")
+ ... S IEN=$P(STR,"^") S:IEN<0 IEN=""
+ . S %=IEN
+ . ; 
+ . I OVAL=% S DATA="" Q
  . I '% S DATA="" Q
  . S A=$P(DATA,"|")
  . S B=$P(DATA,"|",2,999)
@@ -126,11 +162,37 @@ ICD(DATA,FLD) ; VERIFY ICD CODE AND GET LOOKUP VALUE
  . S DATA=A_"|`"_%
  . I $L(B) S DATA=DATA_$C(30)_B
  . Q
+ ;
+ ;Process piece .02
  S %=$P(DATA,($C(30)_FLD_"|"),2) D
- . S %=$P(%,$C(30))
- . I %?1"`"1.N Q DATA
- . S %=$O(^ICD9("BA",%_" ",0))
- . I $L($T(CODEN^ICDCODE)) S %=+$$CODEN^ICDCODE(%,80) I %<0 S %=""
+ . NEW OVAL,CODE,IEN
+ . S IEN=""
+ . S (CODE,OVAL)=$P(%,$C(30))
+ . I CODE?1"`"1.N Q
+ . ;
+ . ;Pull appropriate ICD-9/ICD-10 code
+ . ;
+ . ;ICD-9 Only (Pre-AICD build)
+ . I $$VERSION^XPDUTL("AICD")<4.0 D
+ .. S IEN=$O(^ICD9("BA",CODE_" ",0))
+ .. I $L($T(CODEN^ICDCODE)) S IEN=+$$CODEN^ICDCODE(IEN,80) I IEN<0 S IEN=""
+ . ;
+ . ;ICD-9 or ICD-10
+ . I $$VERSION^XPDUTL("AICD")>3.51 D
+ .. NEW STR
+ .. ;
+ .. ;Date has passed - First look for ICD-10
+ .. I $$IMP^ICDEXA(30)'>DT D  Q:IEN]""
+ ... S STR=$$ICDDATA^ICDXCODE(30,CODE,DT,"E")
+ ... S IEN=$P(STR,"^") S:IEN<0 IEN=""
+ .. ;
+ .. ;If not found - Look in ICD-9 - Might be lookup of historical info
+ .. I IEN="" D
+ ... S STR=$$ICDDATA^ICDXCODE(1,CODE,DT,"E")
+ ... S IEN=$P(STR,"^") S:IEN<0 IEN=""
+ . S %=IEN
+ . ;
+ . I OVAL=% S DATA="" Q
  . I '% S DATA="" Q
  . S A=$P(DATA,($C(30)_FLD_"|"))
  . S B=$P(DATA,($C(30)_FLD_"|"),2,999)
@@ -173,7 +235,7 @@ NEXTPBN(DFN,FIEN) ; RETURN THE NEXT AVAILABLE PROBLEM NUMBER FOR A PATIENT AT TH
  N MAX,PIEN,X,Y
  S MAX=0,PIEN=0
  F  S PIEN=$O(^AUPNPROB("AC",DFN,PIEN)) Q:'PIEN  D  ; FIND ALL PROBLEMS FOR THIS PATIENT
- . S X=$G(^AUPNPROB(PIEN,0)) I '$L(X) Q ""
+ . S X=$G(^AUPNPROB(PIEN,0)) I '$L(X) Q
  . I $P(X,U,6)'=FIEN Q  ; ONLY CHECK NUMBERS AT THIS FACILITY
  . S Y=$P(X,U,7)
  . I Y>MAX S MAX=Y ; GET THE HIGHEST NUMBER THUS FAR
@@ -195,14 +257,55 @@ NEXTNOTE(PIEN,FNIEN) ; RETRUN THE NEXT NOTE NUMBER FOR A PROBLEM AND FACILITY-NO
  Q MAX
  ;
 PIENN(PIEN) ; GIVEN A PROBLEM IEN, RETURN PROBLEM NARRATIVE (ICD)
- N X,IIEN,NIEN,NARR,ICD
+ N X,IIEN,NARR,ICD,ENTRYDT
  S X=$G(^AUPNPROB(PIEN,0)) I '$L(X) Q ""
  S IIEN=$P(X,U) I 'IIEN Q ""
- S NIEN=$P(X,U,5) I 'NIEN Q ""
- I $L($T(ICDDX^ICDCODE)) S ICD=$P($$ICDDX^ICDCODE(IIEN),U,2) I 1
- E  S ICD=$P($G(^ICD9(IIEN,0)),U)
+ S ENTRYDT=$P(X,U,8)
+ S ICD=""
+ ;
+ ;Pull appropriate ICD-9/ICD-10 code
+ ;
+ D
+ . NEW STR
+ . ;
+ . ;First try to locate ICD-10
+ . S STR=$$ICDDATA^ICDXCODE(30,IIEN,ENTRYDT,"I")
+ . S ICD=$S($P(STR,"^")<0:"",1:$P(STR,"^",2)) Q:ICD]""
+ . ;
+ . ;If not an ICD-10 code try ICD-9 (could be before date or a historical entry)
+ . S STR=$$ICDDATA^ICDXCODE(1,IIEN,ENTRYDT,"I")
+ . S ICD=$S($P(STR,"^")<0:"",1:$P(STR,"^",2))
+ ;  
  I '$L(ICD) Q ""
- S NARR=$P($G(^AUTNPOV(NIEN,0)),U) I '$L(NARR) Q ""
+ S NARR=$$GET1^DIQ(9000011,PIEN,".05") I '$L(NARR) Q ""
+ S:$E(NARR,1)="*" NARR=$E(NARR,2,9999)
  S X=NARR_" ("_ICD_")"
  Q X
  ;
+DESC(CODE) ;EP - Return the description for the specified code
+ ;
+ N DESC
+ S DESC=""
+ ;
+ ;Pull appropriate ICD-9/ICD-10 code
+ ;
+ ;ICD-9
+ I $$VERSION^XPDUTL("AICD")<4.0 D
+ . S CODE=$O(^ICD9("BA",CODE_" ",0))
+ . S DESC=$$GET1^DIQ(80,CODE_",",3,"E")
+ ;
+ ;ICD-9 or ICD-10
+ I $$VERSION^XPDUTL("AICD")>3.51 D
+ . NEW STR
+ . ;
+ . ;First try to locate ICD-10
+ . I $$IMP^ICDEXA(30)'>DT D  Q:DESC]""
+ .. S STR=$$ICDDATA^ICDXCODE(30,CODE,DT,"E")
+ .. S DESC=$P(STR,"^",4)
+ . ;
+ . ;If not an ICD-10 code try ICD-9 (could be before date or a historical entry)
+ . I DESC="" D
+ .. S STR=$$ICDDATA^ICDXCODE(1,CODE,DT,"E")
+ .. S DESC=$P(STR,"^",4)
+ ;
+ Q DESC

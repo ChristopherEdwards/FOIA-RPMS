@@ -1,5 +1,5 @@
 APCHPRE1 ; IHS/CMI/GRL - PATIENT HEALTH SUMMARY ;  
- ;;1.0;IHS PCC SUITE;**1**;MAR 14, 2008
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
 EP(APCHSDFN) ;PEP - PASS DFN get back array of patient care summary
  K ^TMP("APCHPHS",$J,"PHS")
@@ -163,7 +163,7 @@ DMDX(P) ;
  ;check problem list OR must have 3 diagnoses
  N T S T=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'T Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,T,9) S I=1
  I I Q "Yes"
  NEW APCHX
  S APCHX=""

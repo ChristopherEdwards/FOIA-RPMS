@@ -1,21 +1,26 @@
-LR7OR2 ;VA/DALOI/dcm - Get Lab results (cont.) ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**121,187,219,285,286,372,1027**;NOV 01, 1997;Build 11
+LR7OR2 ;VA/DALOI/dcm - Get Lab results (cont.) ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**121,187,219,285,286,372,1027,1034**;NOV 01, 1997;Build 88
  ;
+ ; IHS/MSC/MKK - LR*5.2*1034 - Naked References removed
  ;
 CH(SDATE,EDATE,TEST,COUNT,SPEC,UNVER) ;Get CH subscript data
  Q:'$D(SDATE)  Q:'$D(EDATE)  Q:'$D(COUNT)  Q:'$D(CT1)
  N GOTIT,IVDT,ITST,IST,TSTY,X,X0,ORD,Y6,Y12,Y16,Y19
- I $G(TEST) Q:'$D(^LAB(60,TEST,0))  S X=^(0) Q:$P(X,"^",4)'="CH"  D
+ ; I $G(TEST) Q:'$D(^LAB(60,TEST,0))  S X=^(0) Q:$P(X,"^",4)'="CH"  D
+ I $G(TEST) Q:'$D(^LAB(60,TEST,0))  S X=$G(^(0)) Q:$P(X,"^",4)'="CH"  D   ; IHS/MSC/MKK - LR*5.2*1034
  . I $L($P(X,"^",5)) S TSTY($P($P(X,"^",5),";",2))=TEST
  . I '$L($P(X,"^",5)) D EN^LR7OU1(TEST)
  S IVDT=SDATE
  F  S IVDT=$O(^LR(LRDFN,"CH",IVDT)) Q:IVDT<1!(IVDT>EDATE)!(CT1>COUNT)  D
- . S X0=^LR(LRDFN,"CH",IVDT,0),Y6=$S($P(X0,"^",3):"F",1:"P"),Y12=$P(X0,"^",4),Y19=$P(X0,"^",5),Y16=$P(X0,"^",6),ORD=$$ORD(LRDFN,IVDT)
+ . ; S X0=^LR(LRDFN,"CH",IVDT,0),Y6=$S($P(X0,"^",3):"F",1:"P"),Y12=$P(X0,"^",4),Y19=$P(X0,"^",5),Y16=$P(X0,"^",6),ORD=$$ORD(LRDFN,IVDT)
+ . S X0=$G(^LR(LRDFN,"CH",IVDT,0)),Y6=$S($P(X0,"^",3):"F",1:"P"),Y12=$P(X0,"^",4),Y19=$P(X0,"^",5),Y16=$P(X0,"^",6),ORD=$$ORD(LRDFN,IVDT)  ; IHS/MSC/MKK - LR*5.2*1034
  . S GOTIT=0
- . I '$G(UNVER),Y6="P" Q  ;Unverified data not requested
- . I $G(SPEC),Y19'=SPEC Q  ;Specimen specified
- . I '$D(TSTY) S ITST=1 F  S ITST=$O(^LR(LRDFN,"CH",IVDT,ITST)) Q:ITST<1  S X=^(ITST) D SETTST(ITST,X)
- . S IST=0 F  S IST=$O(TSTY(IST)) Q:IST<1  I $D(^LR(LRDFN,"CH",IVDT,IST)) S X=^(IST) D SETTST(IST,X)
+ . I '$G(UNVER),Y6="P" Q     ; Unverified data not requested
+ . I $G(SPEC),Y19'=SPEC Q    ; Specimen specified
+ . ; I '$D(TSTY) S ITST=1 F  S ITST=$O(^LR(LRDFN,"CH",IVDT,ITST)) Q:ITST<1  S X=^(ITST) D SETTST(ITST,X)
+ . I '$D(TSTY) S ITST=1 F  S ITST=$O(^LR(LRDFN,"CH",IVDT,ITST)) Q:ITST<1  S X=$G(^(ITST)) D SETTST(ITST,X)   ; IHS/MSC/MKK - LR*5.2*1034
+ . ; S IST=0 F  S IST=$O(TSTY(IST)) Q:IST<1  I $D(^LR(LRDFN,"CH",IVDT,IST)) S X=^(IST) D SETTST(IST,X)
+ . S IST=0 F  S IST=$O(TSTY(IST)) Q:IST<1  I $D(^LR(LRDFN,"CH",IVDT,IST)) S X=$G(^(IST)) D SETTST(IST,X)     ; IHS/MSC/MKK - LR*5.2*1034
  . I $O(^TMP("LRRR",$J,DFN,"CH",IVDT,0)) D NOTE(LRDFN,IVDT)
  . I GOTIT S CT1=CT1+1
  Q
@@ -28,7 +33,8 @@ SETTST(ISUB,ZERO) ;Set test data in ^TMP
  S X=ZERO,Y1=ISUB,Y1=$O(^LAB(60,"C","CH;"_Y1_";1",0)),Y2=$P(X,"^"),Y3=$P(X,"^",2)
  Q:'Y1  Q:"IN"[$P(^LAB(60,Y1,0),"^",3)  S Y15=$P($G(^LAB(60,Y1,.1)),"^")
  S (Y9,Y10,Y11,Y14)=""
- I $P($G(^LAB(60,Y1,64)),"^") S Y9=$P(^(64),"^"),Y9=$P(^LAM(Y9,0),"^",2),Y10=$P(^(0),"^"),Y11="99NLT"
+ ; I $P($G(^LAB(60,Y1,64)),"^") S Y9=$P(^(64),"^"),Y9=$P(^LAM(Y9,0),"^",2),Y10=$P(^(0),"^"),Y11="99NLT"
+ I $P($G(^LAB(60,Y1,64)),"^") S Y9=$P($G(^(64)),"^"),Y9=$P($G(^LAM(Y9,0)),"^",2),Y10=$P($G(^(0)),"^"),Y11="99NLT" ; IHS/MSC/MKK - LR*5.2*1034
  ;D UNIT^LR7OB63(Y1,$P(X0,"^",5),SEX,DOB,AGE)
  S LRX=$$TSTRES^LRRPU(LRDFN,"CH",IVDT,ISUB,Y1)
  S Y2=$P(LRX,"^"),Y3=$P(LRX,"^",2),Y4=$P(LRX,"^",5),Y5=$$EN^LRLRRVF($P(LRX,"^",3),$P(LRX,"^",4))
@@ -41,7 +47,8 @@ SETTST(ISUB,ZERO) ;Set test data in ^TMP
  ;
 NOTE(LRDFN,IVDT) ;Get comments
  N IFN
- S IFN=0 F  S IFN=$O(^LR(LRDFN,"CH",IVDT,1,IFN)) Q:IFN<1  S X=^(IFN,0),^TMP("LRRR",$J,DFN,"CH",IVDT,"N",IFN)=X
+ ; S IFN=0 F  S IFN=$O(^LR(LRDFN,"CH",IVDT,1,IFN)) Q:IFN<1  S X=^(IFN,0),^TMP("LRRR",$J,DFN,"CH",IVDT,"N",IFN)=X
+ S IFN=0 F  S IFN=$O(^LR(LRDFN,"CH",IVDT,1,IFN)) Q:IFN<1  S X=$G(^(IFN,0)),^TMP("LRRR",$J,DFN,"CH",IVDT,"N",IFN)=X     ; IHS/MSC/MKK - LR*5.2*1034
  Q
  ;
  ;

@@ -1,11 +1,13 @@
 ABMDRHD ; IHS/ASDST/DMJ - Report Header Generator ; 
- ;;2.6;IHS Third Party Billing;**1,3,4,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing;**1,3,4,11,14**;NOV 12, 2009;Build 238
  ;Original;TMD;03/25/96 11:34 AM
  ;
- ; IHS/SD/SDR - v2.5 p8 - Added code for cancellation dates
- ; IHS/SD/SDR - abm*2.6*1 - NO HEAT - Added time to report headers
- ; IHS/SD/SDR - abm*2.6*3 - HEAT12210 - fix header if 132 (was wrapping)
- ; IHS/SD/SDR - abm*2.6*4 - NO HEAT - Fixed header for closed/exported dates
+ ;IHS/SD/SDR - v2.5 p8 - Added code for cancellation dates
+ ;IHS/SD/SDR - abm*2.6*1 - NO HEAT - Added time to report headers
+ ;IHS/SD/SDR - abm*2.6*3 - HEAT12210 - fix header if 132 (was wrapping)
+ ;IHS/SD/SDR - abm*2.6*4 - NO HEAT - Fixed header for closed/exported dates
+ ;IHS/SD/SDR - 2.6*14 - ICD10 009 - Updated to print ICD10 header
+ ;IHS/SD/SDR - 2.6*14 - HEAT165197 (CR3109) - Updated DX tag to display codes using new variables
  ;
 HD ;EP for setting Report Header
  S ABM("LVL")=0,ABM("CONJ")="for ",ABM("TXT")="ALL BILLING SOURCES"
@@ -34,9 +36,19 @@ DT I '$D(ABMY("DT")) G APPR
 APPR I '$D(ABM("APPR")),$D(ABMY("APPR")) S ABM("CONJ")="by ",ABM("TXT")=$P(^VA(200,ABMY("APPR"),0),U) D CHK
 PRV I $D(ABMY("PRV")) S ABM("CONJ")="provided by ",ABM("TXT")=$P(^VA(200,ABMY("PRV"),0),U) D CHK
 DX I '$D(ABMY("DX")) G PX
- S ABM("CONJ")="with ",ABM("TXT")="DIAGNOSIS RANGE" D CHK
- S ABM("CONJ")="from ",ABM("TXT")=ABMY("DX",1) D CHK
- S ABM("CONJ")="to ",ABM("TXT")=ABMY("DX",2) D CHK
+ ;start old code abm*2.6*14 ICD10 009
+ ;S ABM("CONJ")="with ",ABM("TXT")="DIAGNOSIS RANGE" D CHK
+ ;S ABM("CONJ")="from ",ABM("TXT")=ABMY("DX",1) D CHK
+ ;S ABM("CONJ")="to ",ABM("TXT")=ABMY("DX",2) D CHK
+ ;end old code start new code ICD10 009 and HEAT165197 (CR3109)
+ S ABM("CONJ")="with ",ABM("TXT")=$S($G(ABMY("DXANS"))=9:"ICD-9 ",$D(ABMY("DXANS"))=10:"ICD-10 ",1:"")_"DIAGNOSIS RANGE" D CHK
+ I $D(ABMY("DX",1)) D
+ .S ABM("CONJ")=$S($G(ABMY("DXANS"))="B":"ICD-9s ",1:"from "),ABM("TXT")=ABM("DX",1) D CHK
+ .S ABM("CONJ")="to ",ABM("TXT")=ABM("DX",2) D CHK
+ I $D(ABMY("DX",3)) D
+ .S ABM("CONJ")=$S($G(ABMY("DXANS"))="B":"and ICD-10s ",1:"from "),ABM("TXT")=ABM("DX",3) D CHK
+ .S ABM("CONJ")="to ",ABM("TXT")=ABM("DX",4) D CHK
+ ;end new code ICD10 009 and HEAT165197 (CR3109)
 PX I '$D(ABMY("PX")) G XIT
  S ABM("CONJ")="with ",ABM("TXT")="PROCEDURE RANGE" D CHK
  S ABM("CONJ")="from ",ABM("TXT")=ABMY("PX",1) D CHK

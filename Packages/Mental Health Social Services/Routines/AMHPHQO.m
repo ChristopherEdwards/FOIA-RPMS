@@ -1,12 +1,12 @@
 AMHPHQO ; IHS/CMI/LAB - BROWSE VISITS ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 START ;
  W:$D(IOF) @IOF
  D EN^XBVK("AMH")
- W !,$$CTR("PHQ2 and PHQ-9 Depression Outcomes - Scores for One Patient",80),!!
- W !,"This option is used to list PHQ2 and PHQ9 Scores for one patient within",!,"a date range specified by the user.",!
+ W !,$$CTR("PHQ-2, PHQ-9 and PHQ-9T Depression Outcomes - Scores for One Patient",80),!!
+ W !,"This option is used to list PHQ2/PHQ9/PHQT Scores for one patient within",!,"a date range specified by the user.",!
  D DBHUSR^AMHUTIL
 PAT ;
  S DFN=""
@@ -17,7 +17,7 @@ PAT ;
  I DFN,'$$ALLOWP^AMHUTIL(DUZ,DFN) D NALLOWP^AMHUTIL D PAUSE^AMHLEA G PAT
  I $G(AUPNDOD)]"" W !!?10,"***** PATIENT'S DATE OF DEATH IS ",$$FMTE^XLFDT(AUPNDOD),!! H 2
 WHICH ;
- W !!,"Please note:  Only visits with PHQ2 and PHQ9 scores recorded will display",!,"on this list.",!
+ W !!,"Please note:  Only visits with PHQ2, PHQ9 and PHQ9T scores recorded will",!,"display on this list.",!
  S AMHQUIT=0
  S AMHW=""
  S (AMHBD,AMHED,AMHNUM)=""
@@ -116,12 +116,12 @@ PROV ;
 HASPHQ(V) ;EP - does this visit have a phq measurement
  NEW X,Y,Z
  S (X,Z)=0
- F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9002011.12,X,.01) I Y="PHQ2"!(Y="PHQ9") S Z=1
+ F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9002011.12,X,.01) I Y="PHQ2"!(Y="PHQ9")!(Y="PHQT") S Z=1
  Q Z
 HASPHQV(V) ;EP
  NEW X,Y,Z
  S (X,Z)=0
- F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9000010.01,X,.01) I Y="PHQ2"!(Y="PHQ9") S Z=1
+ F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9000010.01,X,.01) I Y="PHQ2"!(Y="PHQ9")!(Y="PHQT") S Z=1
  Q Z
 PRINT ;EP - called from xbdbque
  S AMHQUIT=0
@@ -146,8 +146,8 @@ GATHER ;
  S X="Patient Name: "_$P(^DPT(DFN,0),U),$E(X,45)="DOB: "_$$FMTE^XLFDT($P(^DPT(DFN,0),U,3)) D S(X)
  S X="HRN: "_$$HRN^AUPNPAT(DFN,DUZ(2)) D S(X)
  S X=$TR($J("",80)," ","*") D S(X)
- S X=" Date",$E(X,12)="PHQ-2",$E(X,18)="PHQ-9",$E(X,24)="PROVIDER",$E(X,41)="CLINIC",$E(X,55)="Diagnosis/POV" D S(X)
- S X="",$E(X,2)=$$REPEAT^XLFSTR("-",77) D S(X)
+ S X="Date",$E(X,11)="PHQ2",$E(X,16)="PHQ9",$E(X,21)="PHQT",$E(X,26)="PROVIDER",$E(X,41)="CLINIC",$E(X,55)="Diagnosis/POV" D S(X)
+ S X="",$E(X,1)=$$REPEAT^XLFSTR("-",78) D S(X)
  S AMHV=0,AMHD=0,AMHRCNT=0
  F  S AMHV=$O(^AMHREC("C",DFN,AMHV)) Q:AMHV'=+AMHV  D
  .Q:'$$HASPHQ(AMHV)
@@ -185,32 +185,36 @@ GATHER ;
  ...Q:AMHCNT>AMHNUM
  ...I AMHT="BH" D
  ....S AMHR0=^AMHREC(AMHV,0)
- ....S AMHX=" "_$$D^AMHRPEC($P(AMHR0,U))
- ....S (X,Z)=0 S (Z,N)=""
+ ....S AMHX=$$D^AMHRPEC($P(AMHR0,U))
+ ....S (X,Z)=0 S (Z,N,J)=""
  ....F  S X=$O(^AMHRMSR("AD",AMHV,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9002011.12,X,.01) D
  .....I Y="PHQ2" S Z=Z_$P(^AMHRMSR(X,0),U,4)_" "
  .....I Y="PHQ9" S N=N_$P(^AMHRMSR(X,0),U,4)_" "
- ....S $E(AMHX,12)=Z
- ....S $E(AMHX,18)=N
- ....S $E(AMHX,24)=$E($$PPNAME^AMHUTIL(AMHV),1,15)
+ .....I Y="PHQT" S J=J_$P(^AMHRMSR(X,0),U,4)_" "
+ ....S $E(AMHX,11)=Z
+ ....S $E(AMHX,16)=N
+ ....S $E(AMHX,21)=J
+ ....S $E(AMHX,26)=$E($$PPNAME^AMHUTIL(AMHV),1,14)
  ....S $E(AMHX,41)=$E($$VAL^XBDIQ1(9002011,AMHV,.25),1,13)
  ....S X=$O(^AMHRPRO("AD",AMHV,0))
  ....I X S $E(AMHX,55)=$$VAL^XBDIQ1(9002011.01,X,.01)_" - "_$E($$VAL^XBDIQ1(9002011.01,X,.04),1,25)
  ....D S(AMHX)
  ...I AMHT="PCC" D
- ....S AMHX=" "_$$D^AMHRPEC($P(^AUPNVSIT(AMHV,0),U))
- ....S (X,Z)=0 S (Z,N)=""
+ ....S AMHX=$$D^AMHRPEC($P(^AUPNVSIT(AMHV,0),U))
+ ....S (X,Z)=0 S (Z,N,J)=""
  ....F  S X=$O(^AUPNVMSR("AD",AMHV,X)) Q:X'=+X  S Y=$$VAL^XBDIQ1(9000010.01,X,.01) D
  .....I Y="PHQ2" S Z=Z_$P(^AUPNVMSR(X,0),U,4)_" "
  .....I Y="PHQ9" S N=N_$P(^AUPNVMSR(X,0),U,4)_" "
- ....S $E(AMHX,12)=Z
- ....S $E(AMHX,18)=N
- ....S $E(AMHX,24)=$E($$PRIMPROV^APCLV(AMHV,"N"),1,15)
+ .....I Y="PHQT" S J=J_$P(^AUPNVMSR(X,0),U,4)_" "
+ ....S $E(AMHX,11)=Z
+ ....S $E(AMHX,16)=N
+ ....S $E(AMHX,21)=J
+ ....S $E(AMHX,26)=$E($$PRIMPROV^APCLV(AMHV,"N"),1,14)
  ....S $E(AMHX,41)=$E($$VAL^XBDIQ1(9000010,AMHV,.08),1,13)
  ....S X=$O(^AUPNVPOV("AD",AMHV,0))
  ....I X S $E(AMHX,55)=$$VAL^XBDIQ1(9000010.07,X,.01)_" - "_$E($$VAL^XBDIQ1(9000010.07,X,.04),1,25)
  ....D S(AMHX)
- I AMHCNT=0 S X="No Visits with PHQ2/PHQ9 measurements in the specified time frame." D S(X,1)
+ I AMHCNT=0 S X="No Visits with PHQ2/PHQ9/PHQ9T measurements in the specified time frame." D S(X,1)
  Q
 CTR(X,Y) ;EP - Center X in a field Y wide.
  Q $J("",$S($D(Y):Y,1:IOM)-$L(X)\2)_X

@@ -1,5 +1,5 @@
 BGP5C13 ; IHS/CMI/LAB - calc CMS measures 26 Sep 2004 11:28 AM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
 ARBALG1 ;EP does patient have an ARB allergy
  ;get all povs with 995.0-995.3 with ecode of e935.3 up to discharge date

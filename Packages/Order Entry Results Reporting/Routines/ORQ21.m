@@ -1,11 +1,13 @@
-ORQ21 ; SLC/MKB/GSS - Detailed Order Report cont ;11-Sep-2013 12:15;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,190,1005,1007,195,215,243,1010,1011**;Dec 17, 1997;Build 47
+ORQ21 ; SLC/MKB/GSS - Detailed Order Report cont ;13-Mar-2014 16:39;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**141,190,1005,1007,195,215,243,1010,1011,1012,1013**;Dec 17, 1997;Build 242
  ;
  ; DBIA 2400   OEL^PSOORRL   ^TMP("PS",$J)
  ; DBIA 2266   EN30^RAO7PC1  ^TMP($J,"RAE2")
  ; Modified - IHS/MSC/PLS - 03/15/2011 - Line M2+10
  ;                          04/15/2013 - Line ACTLOG+19
+ ;                          06/05/2013 - Line M2+13
  ;                          09/11/2013 - Line MED+3
+ ;                          03/12/2014 - New SSDSIG,SSDNTP EPs
 RAD(TCOM) ; -- add RA data for 2.5 orders
  N RAIFN,CASE,PROC,ORD,ORI,X,ORTTL,ORB
  S RAIFN=$G(^OR(100,ORIFN,4)) Q:RAIFN'>0
@@ -31,6 +33,8 @@ RAD1 I $L($G(^TMP($J,"RAE2",+ORVP,CASE,PROC,"TCOM",1))) S X=^(1) D
  ;
 MED ; -- Add Pharmacy order data
  Q:$G(^OR(100,ORIFN,4))["N"  ;non-VA med -- no refill history
+ D SSDSIG($$VALUE^ORCSAVE2(+ORIFN,"SSRREQIEN"))  ;IHS/MSC/PLS - 03/12/2014
+ D SSDNTP($$VALUE^ORCSAVE2(+ORIFN,"SSRREQIEN"))  ;IHS/MSC/PLS - 03/12/2014
  N TYPE,NODE,RXN,OR5,STAT S TYPE=$P(OR0,U,12)
  I TYPE="O",$G(^OR(100,ORIFN,4))["V" S TYPE="I"  ;IHS/MSC/PLS - 09/11/2013 Fix for Outpatient IV Orders
  I '$D(^TMP("PS",$J,0)) D  ;get PS data / DBIA 2400
@@ -64,6 +68,7 @@ M2 I TYPE="O" D  ;fill history
  . I $G(^TMP("PS",$J,"PAR",0)) S I=0,X="Partial Fills:      " F  S I=$O(^TMP("PS",$J,"PAR",I)) Q:I'>0  S FILLD=$G(^(I,0)) D FILLED("P")
  . S:RXN CNT=CNT+1,@ORY@(CNT)="Prescription#:                "_$P(RXN,U)
  .S:$L($$GETRXNRM^BEHORXFN(+ORIFN)) CNT=CNT+1,@ORY@(CNT)="RXNorm Code:                  "_$$GETRXNRM^BEHORXFN(+ORIFN)
+ .S CNT=CNT+1,@ORY@(CNT)="Discharge Medication:         "_$$EXTERNAL^DILFD(52,9999999.28,,$$VALUE^ORCSAVE2(ORIFN,"DSCMED"))  ;IHS/MSC/PLS - 06/05/13
 M3 S:$P(RXN,U,5) CNT=CNT+1,@ORY@(CNT)="Pharmacist:                   "_$P($G(^VA(200,+$P(RXN,U,5),0)),U)
  I $G(STAT)="ACTIVE/SUSP" S CNT=CNT+1,@ORY@(CNT)="Prescription Status:          "_STAT_" - Order is active. Fill or Refill has been requested."
  D ACTLOG($G(^OR(100,ORIFN,4))) ;IHS/MSC/PLS - Display activity log
@@ -136,6 +141,34 @@ SC(J) ; -- Returns name of SC field by piece number
  I J=7 Q "COMBAT VETERAN"
  I J=8 Q "SHIPBOARD HAZARD AND DEFENSE"
  Q ""
+ ; IHS/MSC/PLS - Display Dispense SIG in RXD
+ ; Input: RREQ - IEN to APSP REFILL REQUEST File
+SSDSIG(RREQ) ;EP-
+ Q:'$G(RREQ)!'$$TEST^CIAUOS("SSDSIG^APSPFNC1")
+ N DSIG
+ S DSIG=$$SSDSIG^APSPFNC1(RREQ)
+ I $L(DSIG) D
+ .S CNT=CNT+1
+ .S @ORY@(CNT)="Surescripts Dispense SIG for parent order("+$$GET1^DIQ(9009033.91,RREQ,".06:39.3")+"): "
+ .S CNT=CNT+1
+ .S @ORY@(CNT)="  "_DSIG
+ .S CNT=CNT+1
+ .S @ORY@(CNT)=" "
+ Q
+ ; IHS/MSC/PLS - Display Surescripts Notes to Pharmacist in RXD
+ ; Input: RREQ - IEN to APSP REFILL REQUEST File
+SSDNTP(RREQ) ;EP-
+ Q:'$G(RREQ)!'$$TEST^CIAUOS("SSDNTP^APSPFNC1")
+ N DNTP
+ S DNTP=$$SSDNTP^APSPFNC1(RREQ)
+ I $L(DNTP) D
+ .S CNT=CNT+1
+ .S @ORY@(CNT)="Surescripts Dispense Notes to Prescriber for parent order("+$$GET1^DIQ(9009033.91,RREQ,".06:39.3")+"): "
+ .S CNT=CNT+1
+ .S @ORY@(CNT)="  "_DNTP
+ .S CNT=CNT+1
+ .S @ORY@(CNT)=" "
+ Q
  ; IHS/MSC/PLS - Display activity log in order detail
 ACTLOG(RX) ;EP
  Q:'$G(RX)

@@ -1,5 +1,5 @@
 BGP5DH ; IHS/CMI/LAB - cover page for gpra 28 Apr 2010 11:30 AM 02 Jul 2010 9:25 AM ; 19 Feb 2015  11:07 AM
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  S BGPQHDR=0,BGPHPG=0
  D HDR
@@ -21,20 +21,20 @@ BGP5DH ; IHS/CMI/LAB - cover page for gpra 28 Apr 2010 11:30 AM 02 Jul 2010 9:25
 N1 I BGPPTYPE="P" Q:BGPQHDR
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I $G(BGPEXPT),BGPRTYPE=1 D   ;,'$G(BGPNGR09) D
- .D W^BGP5DP("A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT,0,2,BGPPTYPE)
+ .D W^BGP5DP("A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT,0,2,BGPPTYPE)
  .D W^BGP5DP("It will reside in the "_BGPUF_" directory.",0,1,BGPPTYPE)
  .D W^BGP5DP("This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP5DP("",0,1,BGPPTYPE)
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I $G(BGPEXPT),BGPRTYPE=7 D
- .D W^BGP5DP("A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT,0,2,BGPPTYPE)
+ .D W^BGP5DP("A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT,0,2,BGPPTYPE)
  .D W^BGP5DP("It will reside in the "_BGPUF_" directory.",0,1,BGPPTYPE)
  .D W^BGP5DP("This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP5DP("",0,1,BGPPTYPE)
  I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
  I BGPRTYPE=6,$G(BGPPEEXP) D  Q:BGPQHDR
  .I BGPPTYPE="P",$Y>(BGPIOSL-3) D HDR Q:BGPQHDR
- .D W^BGP5DP("A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_" and will reside",0,1,BGPPTYPE)
+ .D W^BGP5DP("A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_" and will reside",0,1,BGPPTYPE)
  .D W^BGP5DP("in the "_BGPUF_" directory.  This file should be sent to your Area Office.",0,1,BGPPTYPE)
  .D W^BGP5DP("",0,1,BGPPTYPE)
  I BGPROT'="P",'$D(BGPGUI) D  I BGPPTYPE="P" Q:BGPQHDR
@@ -56,14 +56,6 @@ N1 I BGPPTYPE="P" Q:BGPQHDR
  ...D W^BGP5DP($E($P(Y,";",(BGPZZ+2)),1,20),0,0,BGPPTYPE,3,60)
  ...Q
  D W^BGP5DP("",0,1,BGPPTYPE)
- I $G(BGPMFITI) D W^BGP5DP("MFI Visit Location Taxonomy Name: "_$P(^ATXAX(BGPMFITI,0),U),0,1,BGPPTYPE,1,10)
- I $G(BGPMFITI) D W^BGP5DP("The following locations are used for patient visits in this report:",0,2,BGPPTYPE,1,10) D
- .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(^ATXAX(BGPMFITI,21,"B",BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P($G(^DIC(4,BGPZZ,0)),U)
- .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
- ..D W^BGP5DP($E($P(Y,";",BGPZZ),1,20),0,1,BGPPTYPE,1,10)
- ..D W^BGP5DP($E($P(Y,";",(BGPZZ+1)),1,20),0,0,BGPPTYPE,2,30)
- ..D W^BGP5DP($E($P(Y,";",(BGPZZ+2)),1,20),0,0,BGPPTYPE,3,60)
- ..Q
  I BGPRTYPE'=6,BGPPTYPE="D" D W^BGP5DP("ENDCOVERPAGE",0,1,BGPPTYPE)
  K BGPX,BGPQUIT
  Q
@@ -203,13 +195,6 @@ PEDCP ;EP
  ..D W^BGP5DP($E($P(BGPXY,";",BGPX1),1,20),0,1,BGPPTYPE,1,10)
  ..D W^BGP5DP($E($P(BGPXY,";",(BGPX1+1)),1,20),0,0,BGPPTYPE,2,30)
  ..D W^BGP5DP($E($P(BGPXY,";",(BGPX1+2)),1,20),0,0,BGPPTYPE,3,60)
- ..Q
- .I $O(^BGPPEDCK(BGPX,1111,0)) D
- ..D W^BGP5DP("MFI Visit Locations: ",0,2,BGPPTYPE,1,5) S BGPXX=0,BGPXN=0,BGPXY="" F  S BGPXX=$O(^BGPPEDCK(BGPX,1111,BGPXX)) Q:BGPXX'=+BGPXX  S BGPXN=BGPXN+1,BGPXY=BGPXY_$S(BGPXN=1:"",1:";")_$P(^BGPPEDCK(BGPX,1111,BGPXX,0),U)
- ..S BGPX1=0,C=0 F BGPX1=1:3:BGPXN D
- ...D W^BGP5DP($E($P(BGPXY,";",BGPX1),1,20),0,1,BGPPTYPE,1,10)
- ...D W^BGP5DP($E($P(BGPXY,";",(BGPX1+1)),1,20),0,0,BGPPTYPE,2,30)
- ...D W^BGP5DP($E($P(BGPXY,";",(BGPX1+2)),1,20),0,0,BGPPTYPE,3,60)
  ..Q
  .Q
  D W^BGP5DP(" ",0,1,BGPPTYPE)

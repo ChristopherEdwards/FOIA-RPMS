@@ -1,5 +1,5 @@
 BQIRLB ;PRXM/HC/DLS - Patient Labs ; 18 Jan 2006  11:46 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -123,7 +123,7 @@ ERR ;
  Q
  ;
 LAB(LABIEN) ;EP - Get data for a specific lab
- S TEST=$$GET1^DIQ(9000010.09,LABIEN,".01","E")
+ S TEST=$$GET1^DIQ(9000010.09,LABIEN,".01","E") I TEST="" Q
  S TST=$$GET1^DIQ(9000010.09,LABIEN,".01","I")
  ;
  I $G(RGFL),'$D(@TREF@(TST)) S VISIT="" Q

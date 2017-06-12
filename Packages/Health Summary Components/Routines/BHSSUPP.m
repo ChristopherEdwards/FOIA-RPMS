@@ -1,5 +1,5 @@
-BHSSUPP ;IHS/CIA/MGH - Health Summary for Supplements ;10-Dec-2010 10:46;DU
- ;;1.0;HEALTH SUMMARY COMPONENTS;**2,4**;March 17, 2006;Build 13
+BHSSUPP ;IHS/CIA/MGH - Health Summary for Supplements ;22-Apr-2014 09:37;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**2,4,9**;March 17, 2006;Build 16
  ;===================================================================
  ;Taken from APCHS9A
  ; IHS/TUCSON/LAB - PART 9 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
@@ -20,7 +20,7 @@ SUPP ;EP - supplements
  .Q:'BHSFOK
  .X ^BHS(90471,BHSUPI,1)
 EOJ ;
- K BHSFOK,BHSFOR,BHSUPI
+ K BHSFOK,BHSFOR,BHSUPI,BHSCNT
  Q
 SUPPCHK ; <SCREEN>
  I '$O(^BHS(90471,BHSUPI,3,0)) S BHSFOK=1 Q
@@ -47,7 +47,11 @@ PVCH ;IHS/CMI/LAB - now check for dx in past year per Bill and Charlton by pcp
  .;code set versioning
  .N BHSVDT
  .S BHSVDT=$P(+V,".")
- .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($$ICDDX^ICDCODE(BHSCM,BHSVDT),U,2) I BHSCM]"" D CHKCODE
+ .;Patch 9 for ICD-10
+ .I $$AICD^BHSUTL D
+ ..S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($$ICDDX^ICDEX(BHSCM,BHSVDT,"","I"),U,2) I BHSCM]"" D CHKCODE
+ .E  D
+ ..S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($$ICDDX^ICDCODE(BHSCM,BHSVDT),U,2) I BHSCM]"" D CHKCODE
  .Q:'D
  .;S Y=$$PRIMPROV^APCLV(V,"F")
  .;Q:'Y
@@ -75,7 +79,9 @@ SUPPCP ;
  S BHSP=^AUPNPROB(BHSPI,0) Q:$P(BHSP,U,12)'="A"
  ;S BHSCM=$P(^ICD9(+$P(BHSP,U),0),U)
  ;code set versioning
- S BHSCM=$P($$ICDDX^ICDCODE(+$P(BHSP,U)),U,2)
+ ;Patch 9 added for ICD-10
+ I $$AICD^BHSUTL  S BHSCM=$P($$ICDDX^ICDEX(+$P(BHSP,U),"","","I"),U,2)
+ E  S BHSCM=$P($$ICDDX^ICDCODE(+$P(BHSP,U)),U,2)
  F BHSCI=0:0 S BHSCI=$O(^BHS(90471,BHSUPI,3,BHSCI)) Q:'BHSCI  D SUPPCR Q:BHSFOK
  Q
 SUPPCR S BHSC1=$P(^BHS(90471,BHSUPI,3,BHSCI,0),U)

@@ -1,5 +1,5 @@
 BQI1POJB ;PRXM/HC/ALA-Ver 1.0 Post Install Task Job ; 02 Mar 2006  9:52 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  Q
  ;
 ENT ;EP - Entry point for all tagging
@@ -221,6 +221,7 @@ FIL(BQGLBB) ;EP - File diagnosis category
  NEW DA,DIK
  S DA(2)=DFN,DA(1)=BQTN,DA=0,DIK="^BQIPAT("_DA(2)_",20,"_DA(1)_",1,"
  F  S DA=$O(^BQIPAT(DFN,20,BQTN,1,DA)) Q:'DA  D ^DIK
+ K ^BQIPAT(DFN,20,BQTN,1,"B")
  ;
  ;  Add the criteria on why patient met diagnosis category
  S TXT=""

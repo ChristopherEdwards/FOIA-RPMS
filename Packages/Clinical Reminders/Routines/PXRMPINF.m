@@ -1,115 +1,80 @@
-PXRMPINF ; SLC/PKR - Routines relating to patient information. ;13-Jan-2012 09:47;DU
- ;;1.5;CLINICAL REMINDERS;**2,10,1004,1006,1008**;Jun 19, 2000;Build 25
- ;IHS/CIA/MGH Modified to add variable for HRN
- ;IHS/CIA/MGH Modified to kill health factor cache
- ;IHS/MSC/MGH 1008 Modified to kill problem list cache
- ;=======================================================================
+PXRMPINF ;SLC/PKR - Routines relating to patient information. ;23-Mar-2015 10:39;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,12,17,24,1005**;Feb 04, 2005;Build 23
+ ;
+ ;IHS/MSC/MGH Patch 1001 IHS is not currently using military sexual trauma
+ ;======================================================
 DATACHG ;This entry point is called whenever patient data has changed.
  ;It is attached to the following event points:
- ;PXK VISIT DATA EVENT
+ ;PXK VISIT DATA EVENT via PXRM PATIENT DATA CHANGE
  ;
  I '$D(^TMP("PXKCO",$J)) Q
- N DATA,DFN,DGBL,NODE,PXRMDFN,VIEN,VISIT,VF,VFL,VGBL
- S DFN=""
- ;Look for PXK VISIT DATA EVENT data.
- S VISIT=$O(^TMP("PXKCO",$J,""))
- S VIEN=$O(^TMP("PXKCO",$J,VISIT,"VST",""))
- S NODE=$O(^TMP("PXKCO",$J,VISIT,"VST",VIEN,""))
- S DATA=$G(^TMP("PXKCO",$J,VISIT,"VST",VIEN,NODE,"AFTER"))
- I DATA="" S DATA=$G(^TMP("PXKCO",$J,VISIT,"VST",VIEN,NODE,"BEFORE"))
- S DFN=$P(DATA,U,5)
- S PXRMDFN="PXRMDFN"_DFN
- D KILLPC(PXRMDFN)
+ N EVENT,ZTDESC,ZTDTH,ZTIO,ZTRTN,ZTSAVE,ZTSK
+ S EVENT="PXRM PXK EVENT"_$J_" "_$$NOW^XLFDT
+ ;Make sure EVENT is unique.
+ I $D(^XTMP(EVENT)) H 1 S EVENT="PXRM PXK EVENT"_$J_" "_$$NOW^XLFDT
+ K ^XTMP(EVENT)
+ S ^XTMP(EVENT,0)=$$FMADD^XLFDT(DT,3)_U_DT
+ M ^XTMP(EVENT)=^TMP("PXKCO",$J)
+ L +^XTMP(EVENT):DILOCKTM
+ S ZTSAVE("EVENT")=""
+ S ZTSAVE("XTMP(")=""
+ S ZTRTN="DATACHGR^PXRMPINF"
+ S ZTDESC="Clinical Reminders PXK VISIT DATA EVENT handler"
+ S ZTDTH=$H
+ S ZTIO=""
+ D ^%ZTLOAD
+ Q
  ;
+ ;======================================================
+DATACHGR ;Process data from PXK VISIT DATA EVENT
+ N DATA,DFN,DGBL,NODE,PXRMDFN,VIEN,VISIT,VF,VFL,VGBL
+ S ZTREQ="@"
+ ;Look for PXK VISIT DATA EVENT data.
+ S VISIT=$O(^XTMP(EVENT,0))
+ S VIEN=$O(^XTMP(EVENT,VISIT,"VST",""))
+ S NODE=$O(^XTMP(EVENT,VISIT,"VST",VIEN,""))
+ S DATA=$G(^XTMP(EVENT,VISIT,"VST",VIEN,NODE,"AFTER"))
+ I DATA="" S DATA=$G(^XTMP(EVENT,VISIT,"VST",VIEN,NODE,"BEFORE"))
+ S DFN=$P(DATA,U,5)
  ;Build the list of V Files.
  S VF=""
- F  S VF=$O(^TMP("PXKCO",$J,VISIT,VF)) Q:VF=""  D
+ F  S VF=$O(^XTMP(EVENT,VISIT,VF)) Q:VF=""  D
  . S DGBL=$S(VF="CPT":"PXD(811.2,",VF="HF":"AUTTHF(",VF="IMM":"AUTTIMM(",VF="PED":"AUTTEDT(",VF="POV":"PXD(811.2,",VF="SK":"AUTTSK(",VF="XAM":"AUTTEXAM(",1:"")
  . S VGBL=$S(VF="CPT":"AUPNVCPT(",VF="HF":"AUPNVHF(",VF="IMM":"AUPNVIMM(",VF="PED":"AUPNVPED(",VF="POV":"AUPNVPOV(",VF="SK":"AUPNVSK(",VF="XAM":"AUPNVXAM(",1:"")
  . S VFL(VF)=DGBL_U_VGBL
- ;
  ;Call the routines that need to process the data.
- D UPDPAT^PXRMMST(DFN,VISIT,.VFL)
+ ;IHS/MSC/MGH Patch 1001 IHS is not currently using military sexual trauma or suicide
+ ;D UPDPAT^PXRMMST(EVENT,DFN,VISIT,.VFL)
+ ;D SUICIDE^PXRMNTFY(EVENT,DFN,VISIT)
+ ;L -^XTMP(EVENT)
+ ;K ^XTMP(EVENT)
  Q
  ;
- ;=======================================================================
-DEM(DFN) ;Load the patient demographics.
- I $L(DFN)'>0 Q "NO PATIENT"
- N DATEBLT,EXPDATE,NOW,PATIENT,TEMP
- S PXRMDFN="PXRMDFN"_DFN
- ;Since the Kernel Installation Guide suggests running XUTL once every
- ;7 days we need to check for expired patient caches.
- S TEMP=$G(^XTMP(PXRMDFN,0))
- S DATEBLT=+$P(TEMP,U,2)
- S EXPDATE=+$P(TEMP,U,1)
- ;If the patient's problem list has been modified since the cache was
- ;last built kill it.
- S NOW=$$NOW^XLFDT
- I (NOW>EXPDATE)!((+$$MOD^GMPLUTL3(DFN))>(DATEBLT)) D KILLPC(PXRMDFN)
- E  D KILLHF(PXRMDFN)
- ;
- I '$$LOCKPC(PXRMDFN) Q "NO LOCK"
- I $D(^XTMP(PXRMDFN,0)) D
- . S PATIENT=^XTMP(PXRMDFN,"PATIENT")
- . S PXRMSSN=^XTMP(PXRMDFN,"SSN")
- . ;IHS/CIA/MGH Modified to add health record number-updated patch 1006
- . I '$D(^XTMP(PXRMDFN,"HRCN")) D
- ..S ^XTMP(PXRMDFN,"HRCN")=$$HRCN^PXRMXXT(DFN,+$G(DUZ(2)))
- . S PXRMHRCN=$G(^XTMP(PXRMDFN,"HRCN"))
- . S PXRMDOB=^XTMP(PXRMDFN,"DOB")
- . S PXRMAGE=^XTMP(PXRMDFN,"AGE")
- . S PXRMSEX=^XTMP(PXRMDFN,"SEX")
- . S PXRMDOD=^XTMP(PXRMDFN,"DOD")
- . S PXRMRACE=^XTMP(PXRMDFN,"RACE")
- E  D
- . D DEM^VADPT
- . S (PATIENT,^XTMP(PXRMDFN,"PATIENT"))=VADM(1)
- . S (PXRMSSN,^XTMP(PXRMDFN,"SSN"))=VADM(2)
- . ;IHS/CIA/MGH Modified to add health record number
- . S (PXRMHRCN,^XTMP(PXRMDFN,"HRCN"))=$$HRCN^PXRMXXT(DFN,+$G(DUZ(2)))
- . S (PXRMDOB,^XTMP(PXRMDFN,"DOB"))=$P(VADM(3),U,1)
- . S (PXRMAGE,^XTMP(PXRMDFN,"AGE"))=VADM(4)
- . S (PXRMSEX,^XTMP(PXRMDFN,"SEX"))=VADM(5)
- . S (PXRMDOD,^XTMP(PXRMDFN,"DOD"))=$P(VADM(6),U,1)
- . S (PXRMRACE,^XTMP(PXRMDFN,"RACE"))=$P(VADM(8),U,2)
- . D KVA^VADPT
- . S ^XTMP(PXRMDFN,0)=$$FMADD^XLFDT(NOW,1)_U_NOW_U_"PXRM PATIENT DATA CACHE"
- ;If PXRMDATE has a value then the reminder is evaluated as if PXRMDATE
- ;is the current date.
- I +$G(PXRMDATE)>0 D
- . S PXRMAGE=$$AGE^PXRMAGE(PXRMDOB,PXRMDATE)
- I $L(PATIENT)'>0 Q "NO PATIENT"
- E  Q 1
- ;
- ;=======================================================================
-KILLPC(PXRMDFN) ;Kill the patient cache. See DBA 3411 (Inpatient Pharmacy)
- N LOCK
- S LOCK=$$LOCKPC(PXRMDFN)
- I LOCK D
- . K ^XTMP(PXRMDFN)
- . D UNLOCKPC(PXRMDFN)
- Q
- ;
-KILLHF(PXRMDFN) ;Kill the health factor cache.
- N LOCK
- S LOCK=$$LOCKPC(PXRMDFN)
- I LOCK D
- .K ^XTMP(PXRMDFN,"HF")
- .;IHS/MSC/MGH kill problem list each time patient is reviewed
- .K ^XTMP(PXRMDFN,"PROB")
- .D UNLOCKPC(PXRMDFN)
- Q
- ;=======================================================================
-LOCKPC(PXRMDFN) ;Lock the patient cache.
- N IND,LOCK
- S LOCK=0
- F IND=1:1:30 Q:LOCK  D
- . L +^XTMP(PXRMDFN):1
- . S LOCK=$T
- Q LOCK
- ;
- ;=======================================================================
-UNLOCKPC(PXRMDFN) ;Unlock the patient cache.
- L -^XTMP(PXRMDFN)
+ ;======================================================
+DEM(DFN,TODAY,DEMARR) ;Load the patient demographics into DEMARR
+ ;The patient's age is calculated using whatever date is passed as
+ ;TODAY. If there is a date of death and it is greater than TODAY
+ ;then set the date of death to null. Direct read of patient file
+ ;supported DBIA #10035. DATE OF BIRTH and SEX are required fields
+ ;in the patient file.
+ N TEMP
+ K DEMARR
+ I $L(DFN)'>0 S DEMARR("PATIENT")="" Q
+ S TEMP=$G(^DPT(DFN,0))
+ I TEMP="" S DEMARR("PATIENT")="" Q
+ S DEMARR("PATIENT")=$P(TEMP,U,1)
+ S DEMARR("SEX")=$P(TEMP,U,2)
+ S DEMARR("DOB")=$P(TEMP,U,3)
+ S DEMARR("SSN")=$P(TEMP,U,9)
+ ;IHS/MSC/MGH PATCH 1001 Add in HRCN
+ S DEMARR("HRCN")=$$HRCN^PXRMXXT(DFN,+$G(DUZ(2)))
+ S DEMARR("DOD")=$P($G(^DPT(DFN,.35)),U,1)
+ I DEMARR("DOD")>TODAY S DEMARR("DOD")=""
+ S DEMARR("DFN")=DFN
+ S DEMARR("AGE")=$$AGE^PXRMAGE(DEMARR("DOB"),DEMARR("DOD"),TODAY)
+ ;DBIA #1096
+ S TEMP=$O(^DGPM("ATID1",DFN,""))
+ I TEMP'="" S TEMP=9999999.999999-TEMP
+ S DEMARR("LAD")=TEMP
  Q
  ;

@@ -1,0 +1,266 @@
+BQIPDSC1 ;GDIT/HS/ALA-Panel descriptions continued ; 10 Apr 2013  4:54 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
+ ;
+CPT ;EP - CPTs
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"CNOT") Q:PORD=""
+ ;
+ I FNAME="CPT" D
+ . S VALUE=$G(FPARMS("VAL","CPT"))
+ . Q:VALUE=""
+ . S DSC=$S($G(FPARMS(PORD,"CNOT"))="Y":"without",1:"with")_" CPT "_VALUE
+ I FNAME="CPTTX" D
+ . S VALUE=$G(FPARMS("VAL","CPTTX"))
+ . S DSC=$S($G(FPARMS(PORD,"CNOT"))="Y":"without",1:"with")_" CPTs found in "_VALUE
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"CPT")
+ Q
+ ;
+CDAT ;EP - CPT Dates
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"CPT") Q:PORD=""
+ I FNAME="CFROM" D
+ . NEW CFROM,CTHRU
+ . S CFROM=$$GETVAL(OWNR,PLIEN,"CFROM")
+ . I CFROM]"" S VALUE=VALUE_" (Range from date "_$$FMTE^BQIUL1(CFROM)
+ . S CTHRU=$$GETVAL(OWNR,PLIEN,"CTHRU")
+ . I CTHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(CTHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="CRANGE" D
+ . NEW CRANGE,RFROM,RTHRU
+ . S CRANGE=$$GETVAL(OWNR,PLIEN,"CRANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(CRANGE,PPIEN,"CRANGE")
+ . I CRANGE'["Ever" S VALUE=CRANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I CRANGE["Ever" S VALUE=CRANGE
+ . S DSC="for timeframe"_VALUE
+ Q
+ ;
+GETVAL(OWNR,PLIEN,FLD) ;EP - Retrieve Single field value
+ N DECIEN,DA,IEN,IENS
+ S IEN=$O(^BQICARE(OWNR,1,PLIEN,15,"B",FLD,"")) Q:IEN="" ""
+ S DA(2)=OWNR,DA(1)=PLIEN,DA=IEN,IENS=$$IENS^DILF(.DA)
+ Q $$GET1^DIQ(90505.115,IENS,.02,"I")
+ ;
+ED ;EP - education
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"EDUNOT") Q:PORD=""
+ S DSC="Education "_$S($G(FPARMS(PORD,"EDUNOT"))="Y":"not found for",1:"found for")
+ I FNAME="EDUPICK" D
+ . S DSC=DSC_" EHR pick list "_$G(FPARMS("VAL","EDUPICK"))
+ I FNAME="EDUTOP" D
+ . S DSC=DSC_" topic "_$G(FPARMS("VAL","EDUTOP"))
+ I FNAME="EDUTX" D
+ . S DSC=DSC_" taxonomy "_$G(FPARMS("VAL","EDUTX"))
+ I FNAME="EDUC" D
+ . S DSC=DSC_$G(FPARMS("VAL","EDUC"))
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"EDUC")
+ Q
+ ;
+EDDT ;EP-education
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"EDUC") Q:PORD=""
+ I FNAME="EDUFROM" D
+ . NEW EFROM,ETHRU
+ . S EFROM=$$GETVAL(OWNR,PLIEN,"EDUFROM")
+ . I EFROM]"" S VALUE="(Range from date "_$$FMTE^BQIUL1(EFROM)
+ . S ETHRU=$$GETVAL(OWNR,PLIEN,"EDUTHRU")
+ . I ETHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(ETHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="EDURANGE" D
+ . NEW EDURANGE,RFROM,RTHRU
+ . S EDURANGE=$$GETVAL(OWNR,PLIEN,"EDURANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(EDURANGE,PPIEN,"EDURANGE")
+ . I EDURANGE'["Ever" S VALUE=EDURANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I EDURANGE["Ever" S VALUE=EDURANGE
+ . S DSC="for timeframe "_VALUE
+ Q
+ ;
+LAB ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"LNOT") Q:PORD=""
+ I FNAME="LAB" D
+ . S VALUE=$G(FPARMS("VAL","LAB"))
+ . Q:VALUE=""
+ . S VALUE=$$STRIP^XLFSTR(VALUE,$C(28))
+ . S DSC=$S($G(FPARMS(PORD,"LNOT"))="Y":"who did NOT have the following lab test(s) ",1:"who had the following lab test(s) ")_VALUE
+ I FNAME="LABTX" D
+ . S VALUE=$G(FPARMS("VAL","LABTX"))
+ . S DSC=$S($G(FPARMS(PORD,"LNOT"))="Y":"who did NOT have the following lab test(s) ",1:"who had the following lab test(s)")_" found in "_VALUE
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"LAB")
+ Q
+ ;
+LBDT ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"LAB") Q:PORD=""
+ I FNAME="LFROM" D
+ . NEW LFROM,LTHRU
+ . S LFROM=$$GETVAL(OWNR,PLIEN,"LFROM")
+ . I LFROM]"" S VALUE="(Range from date "_$$FMTE^BQIUL1(LFROM)
+ . S LTHRU=$$GETVAL(OWNR,PLIEN,"LTHRU")
+ . I LTHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(LTHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="LRANGE" D
+ . NEW LRANGE,RFROM,RTHRU
+ . S LRANGE=$$GETVAL(OWNR,PLIEN,"LRANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(LRANGE,PPIEN,"LRANGE")
+ . I LRANGE'["Ever" S VALUE=LRANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I LRANGE["Ever" S VALUE=LRANGE
+ . S DSC="for timeframe "_VALUE
+ Q
+ ;
+LBRS(LBVAL) ;EP - Lab result
+ NEW STR,N1,FND,N2,V,STR
+ S STR=""
+ S LBVAL=$P(LBVAL,"NUMLAB",2)
+ S LBVAL1=LBVAL,LBVAL2=""
+ I LBVAL["~" S LBVAL1=$P(LBVAL,"~",1)
+ S (N1,FND)="" F I=1:1:$L(LBVAL1) Q:FND=1  D
+ . I $E(LBVAL1,I)?1N S N1=N1_$E(LBVAL1,I,$L(LBVAL1)),FND=1
+ . ;I $E(LBVAL,I)?1N,$E(LBVAL,I-1)'="." S N1=N1_$E(LBVAL,I),FND=1
+ . ;I $E(LBVAL,I)?1N,$E(LBVAL,I-1)="." S N1=N1_$E(LBVAL,I-1,I),FND=1
+ Q:N1=""
+ I LBVAL["~" S LBVAL2=$P(LBVAL,"~",2)
+ S (N2,FND)="" F I=1:1:$L(LBVAL2) Q:FND=1  D
+ . I $E(LBVAL2,I)?1N S N2=N2_$E(LBVAL2,I,$L(LBVAL2)),FND=1
+ . ;I $E(LBVAL,I)?1N,$E(LBVAL,I-1)'="." S N2=N2_$E(LBVAL,I),FND=1 Q
+ . ;I $E(LBVAL,I)?1N,$E(LBVAL,I-1)="." S N2=N2_$E(LBVAL,I-1,I),FND=1
+ S V=LBVAL
+ I V["~",V["'" S STR=STR_" in range (inclusive) "_N1_" thru "_N2
+ E  I V["~" S STR=STR_" out of range (exclusive) less than "_N1_" or greater than "_N2
+ E  I V["'<" S STR=STR_" greater than or equal to "_N1
+ E  I V["'>" S STR=STR_" less than or equal to "_N1
+ E  I V["<" S STR=STR_" less than "_N1
+ E  I V[">" S STR=STR_" greater than "_N1
+ E  S STR=STR_" equal to "_N1
+ S LBVAL=STR
+ Q LBVAL
+ ;
+MED ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"MNOT") Q:PORD=""
+ I FNAME="MED" D
+ . S VALUE=$G(FPARMS("VAL","MED"))
+ . Q:VALUE=""
+ . S VALUE=$$STRIP^XLFSTR(VALUE,$C(28))
+ . S DSC=$S($G(FPARMS(PORD,"MNOT"))="Y":"who did NOT have the following medication(s) ",1:"who had the following medication(s) ")_VALUE
+ I FNAME="MEDTX" D
+ . S VALUE=$G(FPARMS("VAL","MEDTX"))
+ . S DSC=$S($G(FPARMS(PORD,"MNOT"))="Y":"who did NOT have the following medication(s) ",1:"who had the following medication(s)")_" found in "_VALUE
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"MED")
+ Q
+ ;
+MDDT ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"MED") Q:PORD=""
+ I FNAME="MFROM" D
+ . NEW MFROM,MTHRU
+ . S MFROM=$$GETVAL(OWNR,PLIEN,"MFROM")
+ . I MFROM]"" S VALUE="(Range from date "_$$FMTE^BQIUL1(MFROM)
+ . S MTHRU=$$GETVAL(OWNR,PLIEN,"MTHRU")
+ . I MTHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(MTHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="MRANGE" D
+ . NEW MRANGE,RFROM,RTHRU
+ . S MRANGE=$$GETVAL(OWNR,PLIEN,"MRANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(MRANGE,PPIEN,"MRANGE")
+ . I MRANGE'["Ever" S VALUE=MRANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I MRANGE["Ever" S VALUE=MRANGE
+ . S DSC="for timeframe "_VALUE
+ Q
+ ;
+PRB ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"PROB") Q:PORD=""
+ I FNAME="PROB" D
+ . S VALUE=$G(FPARMS("VAL","PROB"))
+ . Q:VALUE=""
+ . S VALUE=$$STRIP^XLFSTR(VALUE,$C(28))
+ . S DSC="with the following problem(s) "_VALUE
+ I FNAME="PROBTX" D
+ . S VALUE=$G(FPARMS("VAL","PROBTX"))
+ . S DSC="with the following problem(s) found in "_VALUE
+ I FNAME="PRSTAT" D
+ . I $G(FPARMS("VAL","PRSTAT"))'="" S DSC="with a status of "_$G(FPARMS("VAL","PRSTAT"))
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"PROB")
+ Q
+ ;
+PRDT ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"PROB") Q:PORD=""
+ I FNAME="PPFROM" D
+ . NEW PPFROM,PPTHRU
+ . S PPFROM=$$GETVAL(OWNR,PLIEN,"PPFROM")
+ . I PPFROM]"" S VALUE="(Range from date "_$$FMTE^BQIUL1(PPFROM)
+ . S PPTHRU=$$GETVAL(OWNR,PLIEN,"PPTHRU")
+ . I PPTHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(PPTHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="PRANGE" D
+ . NEW PRANGE,RFROM,RTHRU
+ . S PRANGE=$$GETVAL(OWNR,PLIEN,"PRANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(PRANGE,PPIEN,"PRANGE")
+ . I PRANGE'["Ever" S VALUE=PRANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I PRANGE["Ever" S VALUE=PRANGE
+ . S DSC="for timeframe "_VALUE
+ Q
+ ;
+ERV(VALUE) ;EP
+ S VAL=$P(^AMER(3,VALUE,0),U,1)
+ S VALUE=VAL
+ Q
+ ;
+ADAT ;EP
+ I $G(PARMS("APRANGE"))'="" S DSC="appointment timeframe is "_$G(PARMS("APRANGE")) K PARMS("APRANGE")
+ I $G(PARMS("FROM"))'="" S DSC="appointments are for "_$G(PARMS("FROM"))_"-"_$G(PARMS("THRU")) K PARMS("FROM"),PARMS("THRU")
+ I $G(PARMS("RFROM"))'="" S DSC="appointments are for "_$G(PARMS("RFROM"))_"-"_$G(PARMS("RTHRU")) K PARMS("RFROM"),PARMS("RTHRU")
+ Q
+ ;
+RDAT ; EP
+ I $G(PARMS("RMDRANGE"))="" S DSC="."
+ I $G(PARMS("RMDRANGE"))'="" S DSC=" and where the Due date range is "_$G(PARMS("RMDRANGE"))_"."
+ Q
+ ;
+RMDR ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"REMCODE") Q:PORD=""
+ I FNAME="REMCODE" D
+ . S VALUE=$G(FPARMS("VAL","REMCODE")) Q:VALUE=""
+ . S DSC="for reminder "_$$VAL^BQIRMDR1(VALUE)
+ I FNAME="OVD" D
+ . S VALUE=$G(FPARMS("VAL","OVD"))
+ . I VALUE="Y" S DSC="which is overdue"
+ I FNAME="FUT" D
+ . S VALUE=$G(FPARMS("VAL","FUT"))
+ . I VALUE="Y" S DSC="which is due"
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"REMCODE") Q:PORD=""
+ Q
+ ;
+RMDT ;EP
+ S PORD=$$PORD^BQIDCDF(FSOURCE,"REMCODE") Q:PORD=""
+ I FNAME="RMDFROM" D
+ . NEW RMDFROM,RMDTHRU
+ . S RMDFROM=$$GETVAL(OWNR,PLIEN,"RMDFROM")
+ . I RMDFROM]"" S VALUE="(Range from date "_$$FMTE^BQIUL1(RMDFROM)
+ . S RMDTHRU=$$GETVAL(OWNR,PLIEN,"RMDTHRU")
+ . I RMDTHRU]"" S VALUE=VALUE_$S(VALUE["Range":" thru date ",1:" (Range thru date ")_$$FMTE^BQIUL1(RMDTHRU)
+ . I VALUE["(" S VALUE=VALUE_")"
+ . S DSC="for "_VALUE
+ I FNAME="RMDRANGE" D
+ . NEW RMDRANGE,RFROM,RTHRU
+ . S RMDRANGE=$$GETVAL(OWNR,PLIEN,"RMDRANGE")
+ . I $G(PPIEN)'="" D RANGE^BQIDCAH1(RMDRANGE,PPIEN,"RMDRANGE")
+ . I RMDRANGE'["Ever" S VALUE=RMDRANGE_" ("_$$FMTE^BQIUL1(RFROM)_"-"_$$FMTE^BQIUL1(RTHRU)_")"
+ . I RMDRANGE["Ever" S VALUE=RMDRANGE
+ . S DSC="for timeframe "_VALUE
+ Q
+ ;
+COMMTX(VALUE) ;EP
+ NEW X,DIC,Y,IEN,VAL,COMMT,CTST,CM,FILE
+ I VALUE="" Q
+ ;
+ S DIC(0)="NXZ"
+ S X=VALUE,DIC="^ATXAX(" D ^DIC
+ S VALUE="Taxonomy "_VALUE_" containing"
+ I Y="-1" Q
+ S IEN=+Y_",",VAL=""
+ D GETS^DIQ(9002226,IEN,".15;2101*","IE","COMMT")
+ S FILE=$G(COMMT(9002226,IEN,.15,"I")) Q:FILE=""
+ S CTST="" F  S CTST=$O(COMMT(9002226.02101,CTST)) Q:CTST=""  D
+ . S CM=$G(COMMT(9002226.02101,CTST,".01","E")) Q:CM=""
+ . I CM?.N S CM=$$GET1^DIQ(FILE,CM_",",.01,"E")
+ . S VAL=VAL_$S(VAL="":" (Communities ",1:", ")_CM
+ S:VAL["(" VAL=VAL_")"
+ S VALUE=VALUE_VAL
+ Q

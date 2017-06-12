@@ -1,5 +1,5 @@
 AMERPCC  ; IHS/OIT/SCR - PRIMARY ROUTINE FOR PCC VISIT CREATION AND EDITING 
- ;;3.0;ER VISIT SYSTEM;**1,2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,2,5,6,8**;MAR 03, 2009;Build 23
  ;
  ; PCC vists are created with a call that includes an interface to the scheduling package
  ; IF a 
@@ -9,6 +9,8 @@ AMERPCC  ; IHS/OIT/SCR - PRIMARY ROUTINE FOR PCC VISIT CREATION AND EDITING
  ;
  ; ELSE
  ;   the visit is created and updated entirely through the ERS interface and is not "viewable" to EHR
+ ;
+ ;AMER*3.0*6;Turned off all V POV updates
  ;
  ; CURRENTLY: Only V POV and V PROVIDER support is provided by the ERS interface
  ; 
@@ -166,9 +168,15 @@ VISITIN(AMERDFN,AMERPCC)  ; EP From SAVE^AMER0
  D ^DIC
  K DIC
  Q:Y<0
- S AMERCOMP=$P($G(Y(0)),U,10) ; PRESENTING COMPLAINT
+ ;AMER*3.0*8;Pull from new field
+ ;S AMERCOMP=$P($G(Y(0)),U,10) ; PRESENTING COMPLAINT
+ S AMERCOMP=$G(^AMERADM(AMERDFN,23)) ; PRESENTING COMPLAINT
  S AMERVDR="1401///"_AMERCOMP
  D VSITDIE^AMERVSIT(AMERPCC,AMERVDR)
+ ;
+ ;AMER*3*5;Added auditing call
+ ;D LOG^AMERBUSA("P","E","AMERPCC","AMER: Updated ER visit presenting complaint ("_AMERDFN_")",AMERDFN)
+ ;
  Q
 SYNCHPCC(AMERDA) ; EP from UPDATE^AMERSAV, AMEREDPC, AND AMEREDTA
  ; This routine will:
@@ -186,6 +194,7 @@ SYNCHPCC(AMERDA) ; EP from UPDATE^AMERSAV, AMEREDPC, AND AMEREDTA
  ;   3c. Modify V PROVIDER times if admitting provider time is not the same
  ; 
  ; 4. Add V PROVIDER entries for discharge providers and ER CONSULANTS
+ ;AMER*3.0*6;No longer add V POV entries
  ; 5. Add V POV entries for each valid ICD9 DX code in ER VISIT
  ;
  ; RETURNS VISIT IEN IF SUCCESFUL, 0 IF NOT
@@ -275,7 +284,9 @@ SYNCHPCC(AMERDA) ; EP from UPDATE^AMERSAV, AMEREDPC, AND AMEREDTA
  K AMERVVAL,AMEREVAL,AMERVDR
  D SYNCHPRV^AMERPCC1(AMERDA,AMERPCC,AMERPAT)
  S AMERDOC=$P($G(^AMERVSIT(AMERDA,6)),U,3)
- D SYNCHPOV^AMERPCC2(AMERDA,AMERPCC,AMERPAT,AMERDATE,AMERDOC,AMERCLN)
+ ;
+ ;AMER*3.0*6;No longer update V POV
+ ;D SYNCHPOV^AMERPCC2(AMERDA,AMERPCC,AMERPAT,AMERDATE,AMERDOC,AMERCLN)
  Q
  ;
 SAVPCCA(AMERPCC,AMERDFN) ; EP FROM AMER WHEN AN ADMISSION AND PCC VISIT HAS JUST BEEN CREATED

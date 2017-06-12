@@ -1,5 +1,5 @@
-PXRMDLGH ; SLC/PJH - Reminder Dialog History ;01/04/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMDLGH ; SLC/PJH - Reminder Dialog History ;08/16/2001
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;Called from PXRMDLGZ
  ;
@@ -35,8 +35,6 @@ INIT ;Init
  S VALMCNT=0
  ;Get linked dialog
  S PXRMLINK=$P($G(^PXD(811.9,PXRMITEM,51)),U)
- ;Allow element selection
- S PXRMOPT=1
  ;Load details of reminder dialog
  D BUILD(PXRMITEM,PXRMLINK)
  ;Reset Menu
@@ -114,10 +112,10 @@ OTHER(DIEN) ;Other reminders linked to this dialog
  ;Linked reminders
  S RNAM="" K ARRAY
  F  S RNAM=$O(^PXD(811.9,"B",RNAM)) Q:RNAM=""  D
- .S RSUB=$O(^PXD(811.9,"B",RNAM,"")) Q:'RSUB
- .S DLG=$P($G(^PXD(811.9,RSUB,51)),U) Q:DLG'=DIEN
- .S RNAM=$P($G(^PXD(811.9,RSUB,0)),U) Q:RNAM=""
- .S ARRAY(RNAM)=RSUB
+ .S RSUB=$O(^PXD(811.9,"B",RNAM,"")) Q:'RSUB  D
+ ..S DLG=$P($G(^PXD(811.9,RSUB,51)),U) Q:DLG'=DIEN
+ ..S RNAM=$P($G(^PXD(811.9,RSUB,0)),U) Q:RNAM=""
+ ..S ARRAY(RNAM)=RSUB
  Q
  ;
 OLST(REM) ;List Other Reminders
@@ -140,6 +138,7 @@ SET(RIEN,DIEN) ;
  ;Reminder details
  I RIEN D
  .S RNAM=$P($G(^PXD(811.9,RIEN,0)),U)
+ .I RIEN=PXRMITEM S RNAM=""
  ;Update display
  S TXT=$J(DSEQ,4)_"  "_$E(DNAM,1,32)_$J("",32-$L(DNAM))
  S TXT=TXT_" "_DDAT_$J("",20-$L(DDAT))_RNAM

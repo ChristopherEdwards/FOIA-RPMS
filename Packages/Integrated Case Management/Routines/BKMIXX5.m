@@ -1,11 +1,16 @@
 BKMIXX5 ;PRXM/HC/KJH - BKMV UTILITY PROGRAM; [ 7/15/2005  1:28 PM ] ; 16 Jul 2005  8:34 PM
- ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.2;HIV MANAGEMENT SYSTEM;;Apr 01, 2015;Build 40
  ; Generic Taxonomy Utilities
  ; Utility for building list of referenced IENs from a Taxonomy.
  Q
  ;
 BLDTAX(TAX,TARGET) ; PEP
  ;
+ D BLD^BQITUTL(TAX,TARGET)
+ Q
+ ;
+ I $$PATCH^XPDUTL("ATX*5.1*11") D BLDTAX^ATXAPI(TAX,TARGET) Q
+ ; 
  ; Takes a taxonomy name and builds an array that can then be used
  ; to scan various V-File cross-references to see which records
  ; match an entry in the Taxonomy.
@@ -155,6 +160,8 @@ ICD(IEN,TXIEN,TYPE) ; EP - Utility wrapper for calling $$ICD^ATXCHK
  N ITEM
  I $G(IEN)=""!($G(TXIEN)="")!($G(TYPE)="") Q 0
  ; Check ranges first (most entries are setup as ranges)
+ I $$PATCH^XPDUTL("ATX*5.1*11") I $$ICD^ATXAPI(IEN,TXIEN,TYPE)=1 Q 1
+ ;
  I $$ICD^ATXCHK(IEN,TXIEN,TYPE)=1 Q 1
  ; Check individual entries (currently only a few, but potentially more could be defined)
  S ITEM=$S(TYPE=9:$P($G(^ICD9(IEN,0)),U),TYPE=0:$P($G(^ICD0(IEN,0)),U),TYPE=1:$P($G(^ICPT(IEN,0)),U),1:"")

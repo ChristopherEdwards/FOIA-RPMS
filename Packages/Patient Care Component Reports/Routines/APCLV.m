@@ -1,5 +1,5 @@
 APCLV ; IHS/CMI/LAB - visit data ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;IHS/TUCSON/LAB - added G parameter to provider call
  ;
  ;
@@ -29,6 +29,9 @@ VDTM(V,F) ;PEP - given visit ien in V, return visit date and time in F format
  ;F="S":01/01/98 3:15pm, F="E":JAN 01, 1998 3:15PM, F="I":fileman internal format
  G VDTM^APCLV1
  ;
+DDTM(V,F) ;PEP - discharge date/time
+ ;
+ G DDTM^APCLV1
 TIME(V,F) ;PEP - given visit ien in V, returns visit time of day i n format F
  ;F="E": form is 11:15   F="I" form is 1115 (fileman format), F="P" form in am/pm  11:15am
  G TIME^APCLV1
@@ -67,6 +70,12 @@ ADMTYPE(V,F) ;PEP - return admission type i format F
  ;E = long name of the type
  ;C = coded value
  G ADMTYPE^APCLV1
+LOSHRS(AD,DSD,PAT) ;PEP; returns length of stay in hours
+ Q $J($$FMDIFF^XLFDT(DSD,AD,2)/3600,0,0)
+ADMUB(V,F) ;PEP - return admission type i format F
+ G ADMUB^APCLV1
+ADMSOURC(V,F) ;PEP - return admission type i format F
+ G ADMSOURC^APCLV1
 DSCHTYPE(V,F) ;PEP - return discharge type in format F
  ;I - internal format
  ;E - external name
@@ -205,7 +214,7 @@ PBMI(P,EDATE) ;PEP - return patient's most current BMI as of EDATE
  ;EDATE - as of date in internal Fileman format if null DT is assumed
  ;return value:  will be a "^" pieced string with the following pieces:
  ;   1 - BMI value  (not rounded)
- ;   2 - HT value used  (not rounded)
+ ;   2 - HT value used  (not rounded) - IF BMI IS STORED THIS WILL BE DATE OF LAST HT
  ;   3 - Date of HT value used in internal fileman format
  ;   4 - visit ien of visit on which HT found
  ;   5 - WT used (not rounded)
@@ -218,7 +227,8 @@ PBMI(P,EDATE) ;PEP - return patient's most current BMI as of EDATE
  ;               this patient on or prior to the value of EDATE
  ;           NO HEIGHT FOUND ON OR PRIOR TO (edate) - no height on file for
  ;               this patiet on or prior to the value of EDATE
- ;               
+ ;    9 - DATE IF STORED BMI
+ ;   10 - IEN OF V MEASUREMENT OF STORED BMI
  ;               
  ;               
  ;NOTE:  any weight taken on a prenatal visit is excluded and a prior weight is used

@@ -1,5 +1,5 @@
 ABSPECA1 ; IHS/FCS/DRS - Assemble formatted claim ;   [ 09/23/2002  2:36 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,7,23,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,7,23,42**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;Assemble ASCII formatted claim submission record
  ;

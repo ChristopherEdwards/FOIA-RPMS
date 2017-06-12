@@ -1,5 +1,5 @@
 ABSPOSP1 ; IHS/FCS/DRS - POS Writeoffs batch ;    [ 09/12/2002  10:17 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
 INDEX() Q "APBWO" ; which one is the index for these?
 ISEMPTY() Q '$O(^ABSBITMS(9002302,$$INDEX,1,0)) ; true if there's none to do

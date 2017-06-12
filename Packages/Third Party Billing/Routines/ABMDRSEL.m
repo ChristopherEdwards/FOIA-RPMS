@@ -1,11 +1,13 @@
 ABMDRSEL ; IHS/ASDST/DMJ - Selective Report Parameters ;
- ;;2.6;IHS 3P BILLING SYSTEM;**3,4**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**3,4,14**;NOV 12, 2009;Build 238
  ;Original;TMD;07/14/95 12:23 PM
  ;
  ; IHS/SD/SDR - v2.5 p8 - Added code for cancelling official
  ; IHS/SD/SDR,TPB - v2.5 p8 - Added code for pending status (12)
  ; IHS/SD/SDR - v2.5 p10 - IM20566 - Fix for <UNDEF>PRINT+13^ABMDRST1
  ; IHS/SD/SDR - abm*2.6*4 - NO HEAT - Fixed closed/exported dates
+ ;IHS/SD/SDR - 2.6*14 - ICD10 009 - Added code for ICD-10 prompts
+ ;IHS/SD/SDR 2.6*14 - HEAT165197 (CR3109) - Made it so a range of alphanumeric codes can be selected.
  ;
  K DIC,DIR,ABMY
  S U="^"
@@ -54,7 +56,9 @@ LOOP ;
  I $D(ABM("STA")) W !?3,"- Claim Status.......: ",ABM("STA","NM")
  I $D(ABMY("PRV")) W !?3,"- Provider...........: ",$P(^VA(200,ABMY("PRV"),0),U)
  I $G(ABMY("PTYP")) W !?3,"- Eligibility Status.: ",ABMY("PTYP","NM")
- I $D(ABMY("DX")) W !?3,"- Diagnosis Code from: ",ABMY("DX",1),"  to: ",ABMY("DX",2),"  (",$S($D(ABMY("DX","ALL")):"Check All Diagnosis",1:"Primary Diagnosis Only"),")"
+ ;I $D(ABMY("DX")) W !?3,"- Diagnosis Code from: ",ABMY("DX",1),"  to: ",ABMY("DX",2),"  (",$S($D(ABMY("DX","ALL")):"Check All Diagnosis",1:"Primary Diagnosis Only"),")"  ;abm*2.6*14 ICD10 009
+ I $D(ABMY("DX",1)) W !?3,"- Diagnosis (ICD-9) Code from: ",ABM("DX",1),"  to: ",ABM("DX",2),"  (",$S($D(ABMY("DX","ALL")):"Check All Diagnosis",1:"Primary Diagnosis Only"),")"  ;abm*2.6*14 ICD10 009 and HEAT165197 (CR3109)
+ I $D(ABMY("DX",3)) W !?3,"- Diagnosis (ICD-10) Code from: ",ABM("DX",3),"  to: ",ABM("DX",4),"  (",$S($D(ABMY("DX10","ALL")):"Check All Diagnosis",1:"Primary Diagnosis Only"),")"  ;abm*2.6*14 ICD10 009 and HEAT165197 (CR3109)
  I $D(ABMY("PX")) W !?3,"- CPT Range from.....: ",ABMY("PX",1),"  to: ",ABMY("PX",2)
  I $G(ABM("RTYP")) W !?3,"- Report Type........: ",ABM("RTYP","NM")
  ;

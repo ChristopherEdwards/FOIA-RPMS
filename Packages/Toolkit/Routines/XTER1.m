@@ -1,19 +1,23 @@
-XTER1 ;ISC-SF.SEA/JLI - Kernel Error Trap Display ;10/18/2005  
- ;;8.0;KERNEL;**8,392**;Jul 10, 1995;Build 5
+XTER1 ;ISC-SF.SEA/JLI - Kernel Error Trap Display ;09/27/10  15:31
+ ;;8.0;KERNEL;**8,392,431**;Jul 10, 1995;Build 38
+ ;Per VHA Directive 2004-038, this routine should not be modified.
  S XTDV1=0
 WRT S XTOUT=0 S:'$D(XTBLNK) $P(XTBLNK," ",133)=" " S:'$D(C) C=0 K:C=0 ^TMP($J,"XTER")
  D DV
  I '$D(%XTZLIN) S %XTY=$P(%XTZE,","),%XTX=$P(%XTY,"^") S:%XTX[">" %XTX=$P(%XTX,">",2)
  I '$D(%XTZLIN),%XTX'="" S X=$P($P(%XTY,"^",2),":") I X'="" X ^%ZOSF("TEST") I $T D
- . N XCNP,DIF,%XTX,%XTY
+ . N XCNP,DIF
  . S XCNP=0,DIF="^TMP($J,""XTER1""," X ^%ZOSF("LOAD") S %XTY=$P(%XTX,"+",1) D
  . . I %XTY'="" F X=0:0 S X=$O(^TMP($J,"XTER1",X)) Q:X'>0  I $P(^(X,0)," ")=%XTY S X=X+$P(%XTX,"+",2),%XTZLIN=^TMP($J,"XTER1",X,0) Q
  . . I %XTY="" S X=+$P(%XTX,"+",2) Q:X'>0  S %XTZLIN=^TMP($J,"XTER1",X,0)
  S:'$D(%XTZLIN) %XTZLIN="" K ^TMP($J,"XTER1")
  I %XTZLIN'="" D ADD(""),ADD(%XTZLIN)
- I '$D(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B")) F XTI=0:0 S XTI=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV",XTI)) Q:XTI'>0  S XTSYM=^(XTI,0),^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTSYM,XTI)=""
- I IO'=IO(0) S XTDV1=0 D DV
- D:%XTZGR'="" ADD(""),ADD("Last Global Ref: "_%XTZGR) D:'$G(XTMES)&'$G(XTPRNT) WRITER^XTER1A I IO'="",IO'=IO(0)!$G(XTPRNT) U IO W @IOF S X="^L" G WRTA
+ ;I '$D(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B")) F XTI=0:0 S XTI=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV",XTI)) Q:XTI'>0  S XTSYM=^(XTI,0),^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTSYM,XTI)=""
+ I '$D(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B")) D  ;p431
+ . F XTI=0:0 S XTI=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV",XTI)) Q:XTI'>0  S XTSYM=$P(^(XTI,0),"(") S:'$D(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTSYM)) ^(XTSYM,XTI)=""
+ ;I IO'=IO(0) S XTDV1=0 D DV ;p431
+ D:'$G(XTMES)&'$G(XTPRNT) WRITER^XTER1A
+ I IO'="",IO'=IO(0)!$G(XTPRNT) U IO W:$E($G(IOST))="C" @IOF S X="^L" G WRTA
  I $G(XTMES) S X="^L" G WRTA
  ;
  K ^TMP($J,"XTER") S C=0
@@ -35,8 +39,10 @@ WRT1 ;
  S XTSYM=$S(X="^L":"",1:X),%XTYL=IOSL-4,XTI=0,XTC=1,X="",XTA=XTSYM,XTA=$S(XTA="":"",1:$E(XTA,1,$L(XTA)-1)_$C($A($E(XTA,$L(XTA)))-1)_"z")
  ;Find start by order thru B X-ref for Symbols, XTA=var name, XTB=var value
 WF S:'%XTYL %XTYL=IOSL-4
- S (XTA,XTA1)=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTA)) S XTI=$S(XTSYM="":1,XTA'="":$O(^(XTA,0)),1:0)
+ ;S (XTA,XTA1)=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTA)) S XTI=$S(XTSYM="":1,XTA'="":$O(^(XTA,0)),1:0)
+ S XTA=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV","B",XTA)) S XTI=$S(XTSYM="":1,XTA'="":$O(^(XTA,0)),1:0) ;p431
  I XTA=""!(XTSYM'=""&($E(XTA,1,$L(XTSYM))'=XTSYM)) D:XTSYM'=""&XTC ADD("No such symbol") D:'$G(XTPRNT) MORE^XTER1A Q
+ S (XTA,XTA1)=^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV",XTI,0) ;p431
  D WV
  ;Show the rest in order
  F  S XTI=$O(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZV",XTI)) Q:'XTI!(XTOUT)  S (XTA,XTA1)=^(XTI,0) Q:$E(XTA,1,$L(XTSYM))'=XTSYM  D WV
@@ -86,6 +92,7 @@ DV I $D(XTDV1),XTDV1=1 G DV1
  . I '(%XTI#2),X'?." " D ADD(""),ADD(X)
  . Q
 DV1 S XTDV1=1 D ADD(""),ADD("$ZE= "_%XTZE)
+ D:%XTZGR'="" ADD(""),ADD("Last Global Ref: "_%XTZGR) ;p431
  K X I $D(^%ZTER(1,%XTZDAT,1,%XTZNUM,"ZE2")) S X=^("ZE2")
  I $D(X) D ADD(""),ADD("%ZTER encountered an error while logging this error -- "),ADD("This may have caused some LOCAL VARIABLES to be lost."),ADD("This error was: "_X)
  Q

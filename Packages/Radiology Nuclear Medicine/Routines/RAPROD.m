@@ -1,5 +1,5 @@
-RAPROD ;HISC/FPT,GJC AISC/MJK-Detailed Exam View ;05/13/09  06:45
- ;;5.0;Radiology/Nuclear Medicine;**10,35,45,56,99,47**;Mar 16, 1998;Build 21
+RAPROD ;HISC/FPT,GJC AISC/MJK-Detailed Exam View ; 06 Oct 2013  11:04 AM
+ ;;5.0;Radiology/Nuclear Medicine;**10,35,45,56,99,47,1005**;Mar 16, 1998;Build 13
  ;Supported IA #2056 GET1^DIQ
  ;Supported IA #2053 UPDATE^DIE
  ;Supported IA #10040 ^SC(
@@ -28,6 +28,7 @@ VIEW W @IOF S X="",$P(X,"=",80)="" W X K X
  S Y=$E(RA("CAT")) I "CSR"[Y W !?40,$E($S("C"=Y:"Contract     : "_RA("CONT"),"S"=Y:"Sharing      : "_RA("CONT"),"R"=Y:"Research     : "_RA("REA"),1:""),1,38)
  W:$X>1 ! S X="",$P(X,"-",80)="" W X K X
  W !?2,"Registered    : ",$E(RAPRC,1,60) D PRCCPT
+ ;
  W:$G(RAOPRC)]"" !?2,"Requested     : ",$E(RAOPRC,1,60)
  W !?2,"Requesting Phy: ",$E(RA("PHY"),1,20),?40,"Exam Status  : ",$S($D(^RA(72,RAST,0)):$E($P(^(0),"^"),1,24),1:"")
  W !?2,"Int'g Resident: ",$E(RA("RES"),1,20),?40,"Report Status: ",$E(RA("RST"),1,21)
@@ -38,7 +39,11 @@ VIEW W @IOF S X="",$P(X,"=",80)="" W X K X
  I $D(RA("COMP")) W !?2,"Comment       : " F I=1:60 Q:$E(RA("COMP"),I,I+59)']""  W ?18,$E(RA("COMP"),I,I+59)
  ;W:$X>1 !
  W !
- I $$PTSEX^RAUTL8(RADFN)="F" D  ;get pt sex and display pregnancy status for females, ptch #99
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F" D  ;get pt sex and display pregnancy status for females, ptch #99
+ I $$PTSEX^RAUTL8(RADFN)'="M" D
+ .;
  .N RAOR751 S RAOR751=$P($G(^RADPT(RADFN,"DT",RADTI,"P",RACNI,0)),U,11)
  .W ?2,"Pregnant at time of order entry: ",$$GET1^DIQ(75.1,$G(RAOR751)_",",13)
  K RAFL W ?47,"Films :" F I=0:0 S I=$O(^RADPT(RADFN,"DT",RADTI,"P",RACNI,"F",I)) Q:I'>0  I $D(^(I,0)) S X=^(0) W ?55,$S($D(^RA(78.4,+$P(X,"^"),0)):$P(^(0),"^"),1:"Unknown")," - ",+$P(X,"^",2),!

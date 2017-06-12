@@ -1,5 +1,5 @@
-BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;09-Apr-2012 14:56;DU
- ;;1.1;BGO COMPONENTS;**1,3,6,10,11**;Mar 20, 2007;Build 3
+BGOVAST ; IHS/BAO/TMD - Manage V ASTHMA ;08-Jul-2013 14:14;DU
+ ;;1.1;BGO COMPONENTS;**1,3,6,10,11,13**;Mar 20, 2007;Build 16
  ;---------------------------------------------
  ; Get V Asthma entries by individual entry, visit, or patient
  ;  INP = Patient IEN [1] ^ V File IEN [2] ^ Visit IEN [3]

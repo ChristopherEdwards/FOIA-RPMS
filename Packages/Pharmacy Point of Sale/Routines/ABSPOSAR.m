@@ -1,5 +1,5 @@
 ABSPOSAR ; IHS/FCS/DRS - low-level Receive response ;    [ 09/12/2002  10:06 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,11**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,11**;JUN 21, 2001;Build 15
  ;---------------------------------------------------------------------
  ;Gather message from host until ETX, EOT control characters have been
  ;received or timeout has occurred

@@ -1,5 +1,5 @@
 BDPLDEL ; IHS/CMI/TMJ - LOOP DELETE EXISTING PROVIDER TO NEW PROVIDER ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ; Subscripted BDPREC is EXTERNAL form.
  ;   BDPREC("PAT NAME")=patient name
@@ -98,7 +98,9 @@ UPDATE ;Update Records
  . S BDPPAT=$P($G(^BDPRECN(BDPIEN,0)),U,2) ;Patient
  . Q:BDPPAT=""
  . ;Q:BDPPROV=""  ;Quit if No New Provider
+ . S BDPLINKI=1
  . S DIE="^BDPRECN(",DA=BDPIEN,DR=".03///"_"@" D ^DIE K DIE,DR,DA,DINUM Q
+ . ;I $T(KILL^BDPLINKI)]"" D KILL^BDPLINKI($P($G(^BDPTCAT($P(^BDPRECN(DA,0),U),0)),U,4),$P($G(^BDPTCAT($P(^BDPRECN(DA,0),U),0)),U,5),DA,X,$P(^BDPRECN(DA,0),U,2),$G(BDPLINKI))
  ;
  ;
 MSGEND ;End of Add Message

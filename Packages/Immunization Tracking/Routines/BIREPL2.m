@@ -1,9 +1,10 @@
 BIREPL2 ;IHS/CMI/MWR - REPORT, ADULT IMM; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**3**;SEP 10,2012
+ ;;8.5;IMMUNIZATION;**12**;MAY 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  VIEW ADULT IMMUNIZATION REPORT, GATHER DATA.
  ;;  PATCH 3: Remove Date Range line (no longer relevant).  HEAD+33
  ;;  PATCH 3: Set HPV upper limit display for males to 21 years. DISPLAY+69
+ ;;  PATCH 12: Add new Composite Measures.  DISPLAY+25
  ;
  ;
  ;----------
@@ -136,15 +137,40 @@ DISPLAY(BITOTS,BILINE) ;EP
  ;                      16 - BIP65 = Number over 65 w/Pneumo at or after 65 years.
  ;                      17 - BIP65E = Number over 65 w/Pneumo EVER.
  ;
+ ;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ ;---> New Composite Measure Variables.
+ ;                      18 - BIC19=Total >19 <60
+ ;                      19 - BIC191=Tdap ever
+ ;                      20 - BIC192=(Td or Tdap) <10 yrs
+ ;                      21 - BIC193=(Tdap ever) AND ((Tdap or Td) <10 yrs)
+ ;
+ ;                      22 - BIC60=Total >60 <65
+ ;                      23 - BIC601=Tdap ever
+ ;                      24 - BIC602=(Td or Tdap) <10 yrs
+ ;                      25 - BIC603=Zoster
+ ;                      26 - BIC604=(Tdap ever) AND ((Tdap or Td) <10 yrs) AND Zoster
+ ;
+ ;                      27 - BIC65=Total >65
+ ;                      28 - BIC651=Tdap ever
+ ;                      29 - BIC652=(Td or Tdap) <10 yrs
+ ;                      30 - BIC653=Zoster
+ ;                      31 - BIC654=Pneumo >65 yrs
+ ;                      32 - BIC655=(Tdap ever) AND ((Tdap or Td) <10 yrs) AND Zoster AND Pneumo
+ ;                      33 - BICUTDD=Overall UTD Denominator
+ ;                      34 - BICUTDN-Overall UTD Numerator
+ ;
  ;
  ;     1 - BILINE (ret) Number of lines written to Listman scroll area.
  ;
  I $G(BITOTS)="" D ERRCD^BIUTL2(667,.X) D WRITE(.BILINE,X) Q
  ;
  ;---> Set totals into BIV local array, 1-15.
- N BIV,I F I=1:1:17 S BIV(I)=$P(BITOTS,U,I)
+ ;**********
+ ;N BIV,I F I=1:1:17 S BIV(I)=$P(BITOTS,U,I)
+ N BIV,I F I=1:1:34 S BIV(I)=$P(BITOTS,U,I)
+ ;**********
  ;
- S X=$$PAD("  Total Number of Patients over 19 years old",56)_": "
+ S X=$$PAD("  Total Number of Patients 19 years and older",56)_": "
  S X=X_$$C(BIV(1),0,8) D WRITE(.BILINE,X,1)
  ;
  S X=$$PAD("    TETANUS: # patients w/Td in past 10 years",56)
@@ -205,7 +231,7 @@ DISPLAY(BITOTS,BILINE) ;EP
  D WRITE(.BILINE,X,1)
  ;
  ;---> Total patients over 60 & Zoster. (pcs 12-13).
- S X=$$PAD("  Total Number of Patients over 60 years old",56)
+ S X=$$PAD("  Total Number of Patients 60 years and older",56)
  S X=X_": "_$$C(BIV(12),0,8)
  I BIV(1) S X=X_$J((BIV(12)/BIV(1))*100,7,1)
  D WRITE(.BILINE,X)
@@ -217,7 +243,7 @@ DISPLAY(BITOTS,BILINE) ;EP
  ;
  ;
  ;---> Total patients over 65 (pcs 14-16).
- S X=$$PAD("  Total Number of Patients over 65 years old",56)
+ S X=$$PAD("  Total Number of Patients 65 years and older",56)
  S X=X_": "_$$C(BIV(14),0,8)
  I BIV(1) S X=X_$J((BIV(14)/BIV(1))*100,7,1)
  D WRITE(.BILINE,X)
@@ -242,11 +268,101 @@ DISPLAY(BITOTS,BILINE) ;EP
  I BIV(14) S X=X_$J((BIV(17)/BIV(14))*100,7,1)
  D WRITE(.BILINE,X,1)
  ;
- ;
  ;---> Now write total patients considered who had refusals.
  N M,N S (M,N)=0 F  S M=$O(BITMP("REFUSALS",M)) Q:'M  S N=N+1
  S X="  Total Patients included who had Refusals on record....:"_$J(N,8)
+ D WRITE(.BILINE,X,2)
+ ;
+ ;
+ ;
+ ;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ ;---> New Composite Measures display.
+ ;
+ S X=$$PAD("  * * * NEW GPRA COMPOSITE MEASURE SECTION * * *")
  D WRITE(.BILINE,X,1)
+ ;
+ S X=$$PAD("  Total Number of Patients ages 19 through 59 years",56)_": "
+ S X=X_$$C(BIV(18),0,8) D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap ever",56)
+ S X=X_": "_$$C(BIV(19),0,8)
+ I BIV(18) S X=X_$J((BIV(19)/BIV(18))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap or Td <10 years",56)
+ S X=X_": "_$$C(BIV(20),0,8)
+ I BIV(18) S X=X_$J((BIV(20)/BIV(18))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose Tdap ever AND Tdap or Td <10 years",56)
+ S X=X_": "_$$C(BIV(21),0,8)
+ I BIV(1) S X=X_$J((BIV(21)/BIV(18))*100,7,1)
+ D WRITE(.BILINE,X,1)
+ ;
+ ;
+ S X=$$PAD("  Total Number of Patients ages 60 through 64 years",56)_": "
+ S X=X_$$C(BIV(22),0,8) D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap ever",56)
+ S X=X_": "_$$C(BIV(23),0,8)
+ I BIV(22) S X=X_$J((BIV(23)/BIV(22))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap or Td <10 years",56)
+ S X=X_": "_$$C(BIV(24),0,8)
+ I BIV(22) S X=X_$J((BIV(24)/BIV(22))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Zoster ever",56)
+ S X=X_": "_$$C(BIV(25),0,8)
+ I BIV(22) S X=X_$J((BIV(25)/BIV(22))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received Tdap ever AND Tdap/Td <10 yrs AND Zoster",56)
+ S X=X_": "_$$C(BIV(26),0,8)
+ I BIV(22) S X=X_$J((BIV(26)/BIV(22))*100,7,1)
+ D WRITE(.BILINE,X,1)
+ ;
+ ;
+ S X=$$PAD("  Total Number of Patients 65 years and older",56)_": "
+ S X=X_$$C(BIV(27),0,8) D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap ever",56)
+ S X=X_": "_$$C(BIV(28),0,8)
+ I BIV(27) S X=X_$J((BIV(28)/BIV(27))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Tdap or Td <10 years",56)
+ S X=X_": "_$$C(BIV(29),0,8)
+ I BIV(27) S X=X_$J((BIV(29)/BIV(27))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Zoster ever",56)
+ S X=X_": "_$$C(BIV(30),0,8)
+ I BIV(27) S X=X_$J((BIV(30)/BIV(27))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received 1 dose of Pneumo after 65 yrs OR last 5yrs",56)
+ S X=X_": "_$$C(BIV(31),0,8)
+ I BIV(27) S X=X_$J((BIV(31)/BIV(27))*100,7,1)
+ D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Received Tdap AND Tdap/Td <10y AND Zoster AND Pneumo",56)
+ S X=X_": "_$$C(BIV(32),0,8)
+ I BIV(27) S X=X_$J((BIV(32)/BIV(27))*100,7,1)
+ D WRITE(.BILINE,X,1)
+ ;
+ ;
+ S X=$$PAD("  Total Number of Patients 19 years and older",56)_": "
+ S X=X_$$C(BIV(33),0,8) D WRITE(.BILINE,X)
+ ;
+ S X=$$PAD("    Total Patients 19 years and older appropriately ",52)
+ D WRITE(.BILINE,X)
+ S X=$$PAD("    vaccinated per age recommendations",56)
+ S X=X_": "_$$C(BIV(34),0,8)
+ I BIV(33) S X=X_$J((BIV(34)/BIV(33))*100,7,1)
+ D WRITE(.BILINE,X,1)
+ ;**********
  ;
  S VALMCNT=BILINE
  Q

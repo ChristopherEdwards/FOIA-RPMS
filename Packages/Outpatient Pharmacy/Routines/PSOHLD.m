@@ -1,9 +1,10 @@
-PSOHLD ;BIR/SAB - hold unhold functionality ;16-Apr-2013 18:17;PLS
- ;;7.0;OUTPATIENT PHARMACY;**1,16,21,24,27,32,55,82,114,130,166,1011,148,268,281,1015**;DEC 1997;Build 62
+PSOHLD ;BIR/SAB - hold unhold functionality ;05-Jun-2013 15:36;DU
+ ;;7.0;OUTPATIENT PHARMACY;**1,16,21,24,27,32,55,82,114,130,166,1011,148,268,281,1015,1017**;DEC 1997;Build 40
  ;External reference to ^DD(52-DBIA 999,  VA(200-DBIA 224, NA^ORX1-DBIA 2186,
  ;
  ;Modified - IHS/MSC/PLS - 07/21/2011 - Lines EN+5 and EN+19
  ;                         04/16/2013 - Change /// to //// for division (PSOSITE) set
+ ;                         06/05/2013 - Line NOOR+2
  ; L, UL, PSOL, and PSOUL^PSSLOCK-DBIA 2789, ^%DTC-DBIA 10000, ^DIE-DBIA 10018, ^DIR-DBIA 10026,
  ; ^DIK-DBIA 10013, ^VALM1-DBIA 10016, ^XUSEC(-DBIA 10076
 UHLD I '$D(PSOPAR) D ^PSOLSET G:'$D(PSOPAR) EX
@@ -103,7 +104,9 @@ FLD N DA K DIR S DIR("A")=$P(^DD(52,99,0),"^"),DIR(0)="52,99" D ^DIR Q:$D(DUOUT)
  Q
 NOOR ;ask nature of order
  K DIR,DTOUT,DTOUT,DIRUT I $T(NA^ORX1)]""  D  Q
- .S PSONOOR=$$NA^ORX1("W",0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
+ .;IHS/MSC/PLS - 06/05/2013
+ .;S PSONOOR=$$NA^ORX1("W",0,"B","Nature of Order",0,"WPSDIVR"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
+ .S PSONOOR=$$NA^ORX1("W",0,"B","Nature of Order",0,"WPSDIV"_$S(+$G(^VA(200,DUZ,"PS")):"E",1:""))
  .I +PSONOOR S PSONOOR=$P(PSONOOR,"^",3) Q
  .S DIRUT=1 K PSONOOR
  S DIR("A")="Nature of Order: ",DIR("B")="WRITTEN"

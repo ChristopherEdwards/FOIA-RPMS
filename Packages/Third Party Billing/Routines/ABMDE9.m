@@ -1,10 +1,12 @@
 ABMDE9 ; IHS/ASDST/DMJ - Edit Page 9 - UB-82 CODES ;
- ;;2.6;IHS Third Party Billing;**1,6,9,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**1,6,9,13,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR - v2.5 p10 - IM20337 - Added code for BACK if ADA
  ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Added page9G for clm attchments
  ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - Can't jump to page 5
- ;IHS/SD/SDR - 2/6*13 - Updated paging for exp mode 35; should go to page 9A, then 9E
+ ;IHS/SD/SDR - 2*6*13 - Updated paging for exp mode 35; should go to page 9A, then 9E
+ ;IHS/SD/SDR - 2.6*14 - HEAT163711 - Made change to check for exp mode 35, from HCFA to CMS
+ ;IHS/SD/SDR - 2.6*14 - CR3165 - Correction to page9F to go to page9G for exp mode 35
  ;
  I $D(ABMP("WORKSHEET")) S ABMP("QUIT")="" Q
 OPT ; Page 9A Occurrence Description
@@ -13,7 +15,8 @@ OPT ; Page 9A Occurrence Description
  D A^ABMDE9X
  D DISP^ABMDE9C W !! S ABM="",ABMP("OPT")="ADEVNJBQ" D SEL^ABMDEOPT I "ADVEN"'[$E(Y) G XIT
  ;G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT),OPT2:$E(Y)="N"  ;abm*2.6*13 exp mode 35
- G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT),OPT5:(($E(Y)="N")&($P(^ABMDEXP(ABMP("EXP"),0),U)["HCFA")),OPT2:$E(Y)="N"  ;abm*2.6*13 exp mode 35
+ ;G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT),OPT5:(($E(Y)="N")&($P(^ABMDEXP(ABMP("EXP"),0),U)["HCFA")),OPT2:$E(Y)="N"  ;abm*2.6*13 exp mode 35  ;abm*2.6*14 HEAT163711
+ G XIT:$D(DTOUT)!$D(DUOUT)!$D(DIROUT),OPT5:(($E(Y)="N")&($P(^ABMDEXP(ABMP("EXP"),0),U)["CMS")),OPT2:$E(Y)="N"  ;abm*2.6*13 exp mode 35  ;abm*2.6*14 HEAT163711
  S ABM("DO")=$S($E(Y)="A":"A1^ABMDEML",$E(Y)="V":"V1^ABMDE9B",$E(Y)="E":"E1^ABMDEMLE",1:"D1^ABMDEMLB") D @ABM("DO")
  G OPT
  ;
@@ -72,8 +75,10 @@ OPT6 ; Page 9F Remarks
  I $D(DTOUT)!$D(DUOUT)!$D(DIROUT) G XIT
  ;G OPT5:$E(Y)="B",OPT7:$E(Y)="N"  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
  G OPT5:$E(Y)="B"
- I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["837") G XIT  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
- I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837") G OPT7  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT
+ ;I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["837") G XIT  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT  ;abm*2.6*14 CR3165
+ I $E(Y)="N",(($P($G(^ABMDEXP(ABMP("EXP"),0)),U)'["837")&(ABMP("EXP")'=35)) G XIT  ;abm*2.6*14 CR3165
+ ;I $E(Y)="N",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837") G OPT7  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT  ;abm*2.6*14 HEAT163711
+ I $E(Y)="N",(($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["837")!(ABMP("EXP")=35)) G OPT7  ;abm*2.6*6 NOHEAT  ;abm*2.6*9 NOHEAT  ;abm*2.6*14 HEAT163711
  ;I $E(Y)="B",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA") S ABMP("SCRN")=9 G XIT  ;abm*2.6*1 HEAT6439
  I $E(Y)="B",($P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA") S ABMP("SCRN")=9 G OPT7  ;abm*2.6*1 HEAT6439
  I $E(Y)="B" G OPT5

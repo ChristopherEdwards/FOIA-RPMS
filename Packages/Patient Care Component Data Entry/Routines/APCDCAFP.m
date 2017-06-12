@@ -1,5 +1,5 @@
 APCDCAFP ; IHS/CMI/LAB - ;
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,11,15**;MAY 14, 2009;Build 11
  ;
 START ;
  D XIT
@@ -19,7 +19,7 @@ GETPAT ;
  S (DFN,APCDPATF)=+Y
 SORT ;how to sort list of visits
  W !! S APCDSORT=""
- K DIR S DIR(0)="S^D:Date of Visit;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status;R:Chart Deficiency Reason (Last one entered)"
+ K DIR S DIR(0)="S^D:Date of Visit;S:Service Category;L:Location of Encounter;C:Clinic;O:Hospital Location;P:Primary Provider;A:Chart Audit Status"
  S DIR("A")="How would you like the list of visits sorted",DIR("B")="D" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) G XIT
  S APCDSORT=Y

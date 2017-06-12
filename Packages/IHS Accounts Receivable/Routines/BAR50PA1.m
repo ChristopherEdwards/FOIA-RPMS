@@ -1,38 +1,21 @@
 BAR50PA1 ; IHS/SD/LSL - VARIABLE PROCESSING ROUTINE ; 12/12/2007
- ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,20,21,23,24**;OCT 26,2005;Build 69
- ;
- ; IHS/ASDS/LSL - 06/19/2001 - V1.5 Patch 1 - NOIS HQW-0201-100027
- ;     FM 22 issue.  Modified to include E in DIC(0)
- ;
- ; IHS/SD/LSL - 08/22/2002 - V1.7 Patch 4 - HIPAA
- ;    Added REFID line tag to set VVERNUM and VPATHRN
- ;
- ; IHS/SD/LSL - 11/17/03 - V1.7 Patch 4 - HIPAA
- ;    Allow POS bills to look at DOS at the Service Level.  POS
- ;    bills can be identified from the RA in CLP01 where the first
- ;    character is always a 0 (zero) as set in ABSPOSBB.
- ;
- ; IHS/SD/LSL - 02/10/04 - V1.7 Patch 5 - Remark Codes
- ;     Add RMKCD linetag that takes ERA Remark Code values and
- ;     populates REMARK CODE multiple of CLAIM multiple in
- ;     A/R EDI IMPORT File
- ;
- ; IHS/SD/LSL - 02/24/04 - V1.7 Patch 5 - IM12723
- ;      Resolve <SBSCR>IDENT+18^BAR50PA1.  Occurs when loading streamed
+ ;;1.8;IHS ACCOUNTS RECEIVABLE;**1,4,5,6,20,21,23,26**;OCT 26,2005;Build 17
+ ;IHS/ASDS/LSL - 06/19/2001 - V1.5 Patch 1 - NOIS HQW-0201-100027 - FM 22 issue.  Modified to include E in DIC(0)
+ ;IHS/SD/LSL - 08/22/2002 - V1.7 Patch 4 - HIPAA - Added REFID line tag to set VVERNUM and VPATHRN
+ ;IHS/SD/LSL - 11/17/03 - V1.7 Patch 4 - HIPAA - Allow POS bills to look at DOS at the Service Level.  POS
+ ;    bills can be identified from the RA in CLP01 where the first character is always a 0 (zero) as set in ABSPOSBB.
+ ;IHS/SD/LSL - 02/10/04 - V1.7 Patch 5 - Remark Codes - Add RMKCD linetag that takes ERA Remark Code values and
+ ;     populates REMARK CODE multiple of CLAIM multiple in A/R EDI IMPORT File
+ ;IHS/SD/LSL - 02/24/04 - V1.7 Patch 5 - IM12723 - Resolve <SBSCR>IDENT+18^BAR50PA1.  Occurs when loading streamed
  ;      files that contain EOF.
+ ; IHS/SD/LSL - 03/04/04 - V1.7 Patch 5 - NCPDP - Add LQ linetag that takes code from LQ02 and populates REMARK
+ ;      CODE or NCPDP REJ/PAY multiple of CLAIM multiple in A/R EDI IMPORT file accordingly.
+ ; IHS/SD/LSL - 03/17/04 - V1.7 Patch 5 - Allow  DOS from SVC loop if no claim start date sent.
  ;
- ; IHS/SD/LSL - 03/04/04 - V1.7 Patch 5 - NCPDP
- ;      Add LQ linetag that takes code from LQ02 and populates REMARK
- ;      CODE or NCPDP REJ/PAY multiple of CLAIM multiple in A/R
- ;      EDI IMPORT file accordingly.
- ;
- ; IHS/SD/LSL - 03/17/04 - V1.7 Patch 5
- ;      Allow  DOS from SVC loop if no claim start date sent.
- ;
- ; IHS/SD/POT HEAT106998 APR 2013 MAKE PAYEE ADDRESS NOT MANDATORY ($g()) BAR*1.8*23
- ;
- ; IHS/SD/POT BETA CORRECT DATE FORMAT FOR FIELDS 901,902 - BAR*1.8*24
- ;
+ ;IHS/SD/POT - 1.8*23 - HEAT106998 APR 2013 MAKE PAYEE ADDRESS NOT MANDATORY ($g())
+ ;IHS/SD/SDR - 1.8*26 - HEAT195751 - When getting the date from the service line, changed it to check for 472 or 150.  Can also
+ ;   be 151 but that's the service to date.  Going to wait for someone to report it before trying to deal with a date range at
+ ;   this level.
  ; ********************************************************************
 SEP(IMPDA) ; EP
  ; find seperators according to standards for transport
@@ -278,8 +261,8 @@ PAYEEADD ;EP - SAVE PAYEE ADDRESS
  K DIC,DIE,X,Y,DR
  Q:'+BARCKIEN
  S DA=BARCKIEN
- S VPEEADR1=$G(VPEEADR1) ;BAR*1.8*23
- S VPEEADR2=$G(VPEEADR2) ;BAR*1.8*23
+ S VPEEADR1=$G(VPEEADR1) ;P.OTT
+ S VPEEADR2=$G(VPEEADR2) ;P.OTT
  S DIE=$$DIC^XBDIQ1(90056.22)
  S DR="1201////^S X=VPEEADR1"
  S DR=DR_";1202////^S X=VPEEADR2"
@@ -313,16 +296,16 @@ VREFB ; EP
 PATIENT ; EP
  ; Capture patient data per claim, not dependent on Claim Date
  I $P(^BAREDI("1T",TRDA,10,SEGDA,0),U)="3-030.A-NM1" D
- . I $P(XREC(1.01),E,2)="QC" D
- . . K DIE,DR,DA
- . . S DIE=$$DIC^XBDIQ1(90056.0205)
- . . S DA=CLMDA
- . . S DA(1)=IMPDA
- . . S PAT=VPATLN_","_VPATFN_" "_VPATMID
- . . S PATID=$G(VPATHRN)_" | "_$G(VPATHIC)
- . . S DR=".06///^S X=$E(PAT,1,30)"
- . . S DR=DR_";.07///^S X=PATID"
- . . D ^DIE
+ .I $P(XREC(1.01),E,2)="QC" D
+ ..K DIE,DR,DA
+ ..S DIE=$$DIC^XBDIQ1(90056.0205)
+ ..S DA=CLMDA
+ ..S DA(1)=IMPDA
+ ..S PAT=VPATLN_","_VPATFN_" "_VPATMID
+ ..S PATID=$G(VPATHRN)_" | "_$G(VPATHIC)
+ ..S DR=".06///^S X=$E(PAT,1,30)"
+ ..S DR=DR_";.07///^S X=PATID"
+ ..D ^DIE
  Q
  ; ********************************************************************
  ;
@@ -331,53 +314,52 @@ CLMDATE ; EP
  ;W !,$P(^BAREDI("1T",TRDA,10,SEGDA,0),U)
  ;I $P(^BAREDI("1T",TRDA,10,SEGDA,0),U)="3-050.A-DTM" D
  I $P(^BAREDI("1T",TRDA,10,SEGDA,0),U)["3-050" D
- . K DIE,DR,DA
- . S DIE=$$DIC^XBDIQ1(90056.0205)
- . S DA=CLMDA
- . S DA(1)=IMPDA
- . S VCLMQLF=$P($G(VCLMQLF)," ")
+ .K DIE,DR,DA
+ .S DIE=$$DIC^XBDIQ1(90056.0205)
+ .S DA=CLMDA
+ .S DA(1)=IMPDA
+ .S VCLMQLF=$P($G(VCLMQLF)," ")
  .;W !,"VCLMQLF: ",$G(VCLMQLF)
- . I $P(XREC(1.01),E,2)=232 D
- . . S VCLMFR=VCLMDT
- . . S IMGDA=$G(IMGDA)+1
- . . S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMFR     "_VCLMFR
- . . S DR=".08///^S X=VCLMFR"
- . . D ^DIE
- . I $P(XREC(1.01),E,2)=233 D
- . . S VCLMTO=VCLMDT
- . . S IMGDA=$G(IMGDA)+1
- . . S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMTO     "_VCLMTO
- . . S DR=".09///^S X=VCLMTO"
- . . D ^DIE
- . .;BEGIN IHS/SD/TPF BAR*1.8*21 NEW DTM SEGMENTS PAGE 11 SPACES
- . I $P(XREC(1.01),E,2)="036" D
- . . S VCLMEXP=VCLMDT
- . . S IMGDA=$G(IMGDA)+1
- . . S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMEXP     "_VCLMEXP
- . . ;S DR="901///^S X=VCLMEXP" ; - BAR*1.8*24
- . . S DR="901///^S X=VCLMEXP-17000000" ; - BAR*1.8*24
- . . D ^DIE
- . I $P(XREC(1.01),E,2)="050" D
- . . S VCLMREC=VCLMDT
- . . S IMGDA=$G(IMGDA)+1
- . . S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMREC     "_VCLMREC
- . . ;S DR="902///^S X=VCLMREC"  - BAR*1.8*24
- . . S DR="902///^S X=VCLMREC-17000000" ; - BAR*1.8*24
- . . D ^DIE
+ .I $P(XREC(1.01),E,2)=232 D
+ ..S VCLMFR=VCLMDT
+ ..S IMGDA=$G(IMGDA)+1
+ ..S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMFR     "_VCLMFR
+ ..S DR=".08///^S X=VCLMFR"
+ ..D ^DIE
+ .I $P(XREC(1.01),E,2)=233 D
+ ..S VCLMTO=VCLMDT
+ ..S IMGDA=$G(IMGDA)+1
+ ..S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMTO     "_VCLMTO
+ ..S DR=".09///^S X=VCLMTO"
+ ..D ^DIE
+ ..;BEGIN IHS/SD/TPF BAR*1.8*21 NEW DTM SEGMENTS PAGE 11 SPACES
+ .I $P(XREC(1.01),E,2)="036" D
+ ..S VCLMEXP=VCLMDT
+ ..S IMGDA=$G(IMGDA)+1
+ ..S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMEXP     "_VCLMEXP
+ ..S DR="901///^S X=VCLMEXP"
+ ..D ^DIE
+ .I $P(XREC(1.01),E,2)="050" D
+ ..S VCLMREC=VCLMDT
+ ..S IMGDA=$G(IMGDA)+1
+ ..S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMREC     "_VCLMREC
+ ..S DR="902///^S X=VCLMREC"
+ ..D ^DIE
  ;END IHS/SD/TPF BAR*1.8*21
  ; If Pharmacy POS bill and no claim level DOS,
  ; look for Service level DOS
  I $P(^BAREDI("1T",TRDA,10,SEGDA,0),U)="3-080-DTM",'$D(VCLDOSB) D
- . K DIE,DR,DA
- . S DIE=$$DIC^XBDIQ1(90056.0205)
- . S DA=CLMDA
- . S DA(1)=IMPDA
- . I $P(XREC(1.01),E,2)=472 D
- . . S VCLMDOSB=VCLMDATE
- . . S IMGDA=$G(IMGDA)+1
- . . S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMDOSB     "_VCLMDOSB
- . . S DR=".08///^S X=VCLMDOSB"
- . . D ^DIE
+ .K DIE,DR,DA
+ .S DIE=$$DIC^XBDIQ1(90056.0205)
+ .S DA=CLMDA
+ .S DA(1)=IMPDA
+ .;I $P(XREC(1.01),E,2)=472 D  ;bar*1.8*26 IHS/SD/SDR HEAT195751
+ .I "^150^472^"[("^"_$P(XREC(1.01),E,2)_"^") D  ;bar*1.8*26 IHS/SD/SDR HEAT195751
+ ..S VCLMDOSB=VCLMDATE
+ ..S IMGDA=$G(IMGDA)+1
+ ..S ^BAREDI("I",DUZ(2),IMPDA,40,IMGDA,0)="VCLMDOSB     "_VCLMDOSB
+ ..S DR=".08///^S X=VCLMDOSB"
+ ..D ^DIE
  ;
  ;
  K VCLMDT,VCLMQLF
@@ -393,9 +375,9 @@ READ(BARPATH,BARFILE) ; EP
  S (BARCNT,BARDONE)=0
  D OPEN^%ZISH("835FILE"_$J,BARPATH,BARFILE,"R")
  I POP D  Q
- . W !!,"Error opening file....please verify filename and directory and try again"
- . S BARDONE=1
- . D EOP^BARUTL(1)
+ .W !!,"Error opening file....please verify filename and directory and try again"
+ .S BARDONE=1
+ .D EOP^BARUTL(1)
  D READTST
  D CLOSE^%ZISH("835FILE"_$J)
  H 5
@@ -419,9 +401,9 @@ STREAM ;
  U IO
  R BARTXT#250:DTIME           ;Direct read of flat file
  I $$STATUS^%ZISH D
- . S BARCNT=BARCNT+1
- . S ^TMP($J,"ERA",BARCNT)=BARTXT
- . S BARTXT=""
+ .S BARCNT=BARCNT+1
+ .S ^TMP($J,"ERA",BARCNT)=BARTXT
+ .S BARTXT=""
  I '+$L(BARTXT) S BARDONE=1 Q
  S BARCNT=BARCNT+1
  S ^TMP($J,"ERA",BARCNT)=BARTXT

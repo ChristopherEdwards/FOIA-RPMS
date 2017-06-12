@@ -1,7 +1,8 @@
-BEHORXCV ;MSC/IND/PLS/DKM - Cover Sheet: Medications ;09-Feb-2011 08:56;PLS
- ;;1.1;BEH COMPONENTS;**033002,033003,033004**;Mar 20, 2007
+BEHORXCV ;MSC/IND/PLS/DKM - Cover Sheet: Medications ;09-Jan-2014 13:59;DU
+ ;;1.1;BEH COMPONENTS;**033002,033003,033004,033005**;Mar 20, 2007
  ;=================================================================
  ; List medications
+ ; IHS/MSC/MGH reconcillation data added 1/09/2014
 LIST(DATA,DFN) ;EP
  N RXN,CNT,X,Y,Z
  S DATA=$$TMPGBL^CIAVMRPC,CNT=0
@@ -36,6 +37,7 @@ DETAIL(DATA,DFN,ID) ;EP
  D ADD($P(NODE,U,6),"Status:")
  D:$P(NODE,U,11) ADD("Order #"_+$P(NODE,U,11))
  D ADD($$GETRXNRM^BEHORXFN(+$P(NODE,U,11)),"RXNorm Code:")
+ D RECON(+$P(NODE,U,11),"M")
  K ^TMP("PS",$J)
  Q
  ; VMED Detail
@@ -116,4 +118,15 @@ ROUTING(X) ;
 ADD(TXT,LBL) ;
  S TXT=$G(TXT," ")
  S:$L(TXT) CNT=CNT+1,@DATA@(CNT)=$S($D(LBL):$$LJ^XLFSTR(LBL,20),1:"")_TXT,LBL=""
+ Q
+RECON(RX,TYP) ;Get reconciliation data
+ N REC,IEN,AIEN,WHEN,BY
+ Q:RX=""
+ S REC=""
+ S REC=$O(^BEHOCIR("G",TYP,RX,REC),-1) Q:REC=""  D
+ .S IEN="" S IEN=$O(^BEHOCIR("G",TYP,RX,REC,IEN),-1) Q:IEN=""  D
+ ..S AIEN=IEN_","_REC_","
+ ..S WHEN=$$GET1^DIQ(90461.632,AIEN,.01)
+ ..S BY=$$GET1^DIQ(90461.632,AIEN,.02)
+ ..D ADD("Reconciled On: "_WHEN_" by "_BY)
  Q

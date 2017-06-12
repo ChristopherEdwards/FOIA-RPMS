@@ -1,5 +1,5 @@
-PXRMXX1 ; SLC/PJH - Build list of reminder findings;07/31/2000
- ;;1.5;CLINICAL REMINDERS;**1**;June 19, 2000
+PXRMXX1 ; SLC/PJH - Build list of reminder findings;08/03/2005
+ ;;2.0;CLINICAL REMINDERS;**4**;Feb 04, 2005;Build 21
  ;
  ;Called at REM, REPORT and PSMERG from PXRMXX
  ;
@@ -7,9 +7,9 @@ PXRMXX1 ; SLC/PJH - Build list of reminder findings;07/31/2000
  ;--------------------------------------------
 PSMERG(TYP,NODE,SEARCH) ;
  N DATA,DATE,DCNT,DFN,DRUG,DSUP,FCNT,FINDING,FIEN,FLD,FTYP,FREC,FUNIQ
- N LAST,LDATE,NEXT,RDATE,SDATE,TERM,TIEN,VTYP
+ N LAST,LDATE,NEXT,RDATE,SDATE,STOPDATE,TERM,TIEN,VTYP
  ;
- S DFN="",VTYP=$S(TYP="PSI":"I",1:"O")
+ S DFN="",VTYP=$S(TYP="PXRMPSI":"I",1:"O")
  F  S DFN=$O(^TMP(TYP_NODE,$J,DFN)) Q:'DFN  D
  .;Get last entry for this patient created by reminder evaluation
  .S LAST=$O(^TMP(NODE,$J,DFN,"FIND",""),-1),NEXT=LAST+1,DCNT=0
@@ -91,6 +91,8 @@ REPORT(NODE) ;
  S $P(^PXRMXT(810.3,0),U,3)=CNT,$P(^PXRMXT(810.3,0),U,4)=COUNT
  ;Save Task and extract parameters
  S ^PXRMXT(810.3,CNT,0)=DESC_U_PXRMBDT_U_PXRMEDT_U_$G(ZTSK)_U_DUZ_U_$$NOW^XLFDT_U_PXRMCNT_U_PXRMFCNT
+ S $P(^PXRMXT(810.3,CNT,50),U)=1
+ S $P(^PXRMXT(810.3,CNT,100),U)="N"
  ;Transfer findings into report file
  N DATE,DFN,DRUG,DSUP,ENC,EREC,ETYP,IC,FINDING,RESULT
  N TERM,ALTTRM,TIEN,TNDBID,VALUE,VIEN
@@ -140,13 +142,6 @@ REPORT(NODE) ;
  S DIK="^PXRMXT(810.3,",DA=CNT
  D IX1^DIK
  ;
- ;Purge entries
- S OLD=0
- F  S OLD=$O(^PXRMXT(810.3,OLD)) Q:'OLD  D
- .;Keep last 30 runs
- .I (OLD+30)>CNT Q
- .N DIK,DA
- .S DIK="^PXRMXT(810.3,",DA=OLD D ^DIK
  Q
  ;
  ;Store finding for term

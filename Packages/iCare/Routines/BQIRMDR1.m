@@ -1,5 +1,5 @@
 BQIRMDR1 ;VNGT/HS/ALA-Reminders continued ; 06 Nov 2008  3:53 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
 REA ;EP - Reactivate record
  NEW DIE,DR,DA,CODE
@@ -7,11 +7,6 @@ REA ;EP - Reactivate record
  S BQIUPD(90506.1,DA_",",.1)="@"
  S BQIUPD(90506.1,DA_",",.11)="@"
  S BQIUPD(90506.1,DA_",",.03)=TEXT
- ;S BQIUPD(90506.1,DA_",",2.01)=SOURCE
- ;S BQIUPD(90506.1,DA_",",2.02)=GCAT
- ;S BQIUPD(90506.1,DA_",",2.03)=RCAT
- ;S BQIUPD(90506.1,DA_",",2.05)=RCLIN
- ;S BQIUPD(90506.1,DA_",",2.06)=GCLIN
  S BQIUPD(90506.1,DA_",",.08)=HDR
  S BQIUPD(90506.1,DA_",",.09)=$S($G(DEF)=1:"D",1:"O")
  S CODE=$P(^BQI(90506.1,DA,0),U,1)
@@ -27,23 +22,26 @@ REA ;EP - Reactivate record
  D FILE^DIE("E","BQIUPD","ERROR")
  ;
  ; Make sure that the new style cross-references are set
- NEW DIK
- S DIK="^BQI(90506.1,",DIK(1)="3.01"
- D ENALL^DIK
+ ;NEW DIK
+ ;S DIK="^BQI(90506.1,",DIK(1)="3.01"
+ ;D ENALL^DIK
  ;
  Q
  ;
 EHR ;
- NEW EHIEN,ETLP,FN,IMM,PXN,FT,AST
+ NEW EHIEN,ETLP,FN,IMM,PXN,FT,AST,UTEXT
  S SOURCE="Reminders",DEF=0,RCLIN=""
  S EHIEN=0
  F  S EHIEN=$O(^PXD(811.9,EHIEN)) Q:'EHIEN  D
+ . I $G(^PXD(811.9,EHIEN,0))="" Q
  . ; If it is inactive, ignore
  . I $P(^PXD(811.9,EHIEN,0),U,6)=1 Q
  . S TEXT=$P(^PXD(811.9,EHIEN,0),U,3) I TEXT="" Q
+ . S UTEXT=$$UP^XLFSTR(TEXT)
  . S FN=0,IMM=0,AST=0
- . I TEXT="Immunization Forecast" S IMM=1
- . I TEXT["Immunization" S IMM=1
+ . ;I UTEXT="Immunization Forecast" S IMM=1
+ . I UTEXT["IMMUNIZATION" S IMM=1
+ . I $P(^PXD(811.9,EHIEN,0),U,1)[" IMMUN" S IMM=1
  . F  S FN=$O(^PXD(811.9,EHIEN,20,FN)) Q:'FN  D
  .. NEW DA,IENS
  .. S DA(1)=EHIEN,DA=FN,IENS=$$IENS^DILF(.DA)
@@ -58,7 +56,8 @@ EHR ;
  .... S DA(1)=PXN,DA=FT,IENS=$$IENS^DILF(.DA)
  .... I $$GET1^DIQ(811.52,IENS,.01,"I")["AUTTIMM" S IMM=1
  . ;If the finding contains IMMUNIZATIONS and it is not turned on, quit
- . I IMM,+$P(^BQI(90508,1,0),U,16)=0 Q
+ . ;I IMM,+$P(^BQI(90508,1,0),U,16)=0 Q
+ . I IMM Q
  . ;If the finding contains ASTHMA and it is not turned on, quit
  . I AST,+$P(^BQI(90508,1,0),U,17)=0 Q
  . S RCLIN=$$GET1^DIQ(811.9,EHIEN_",",100,"E")
@@ -77,6 +76,7 @@ EHR ;
 EMR(APCHSPAT,CODE) ;EP
  NEW EHIEN,RNAME
  S EHIEN=$P(CODE,"_",2)
+ I $G(ERRCNT)="" S ERRCNT=0
  ;
  S (REMDUE,REMLAST,REMNEXT,RDATA)=""
  S DFN=APCHSPAT
@@ -162,3 +162,15 @@ CMT(APCHSPAT,CODE) ;EP
  S REMDUE=$P(RDATA,U,7),REMLAST=$P(RDATA,U,5),VISIT=$P(RDATA,U,9)
  D FIL^BQIRMDR
  Q
+ ;
+VAL(CODE) ;EP - Get the name of a reminder given the CODE
+ NEW RN,NAME
+ S RN=$O(^BQI(90506.1,"B",CODE,"")) I RN="" Q ""
+ S NAME=$P(^BQI(90506.1,RN,0),"^",3)
+ I $P(CODE,"_",1)="AUTTIMM" Q ""
+ I $P(CODE,"_",1)'="EHR",$P(CODE,"_",1)'="REG",$P(CODE,"_",1)'="CMET" S NAME=NAME_" (HS)"
+ I $P(CODE,"_",1)="EHR" S NAME=NAME_" (EHR)"
+ I $P(CODE,"_",1)="REG" S NAME=NAME_" (HMS)"
+ I $P(CODE,"_",1)="CMET" S NAME=NAME_" (CMET)"
+ I $P(CODE,"_",1)="IZ" S NAME=NAME_" (Forecaster)"
+ Q NAME

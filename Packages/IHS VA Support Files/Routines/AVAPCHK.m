@@ -1,5 +1,5 @@
 AVAPCHK ;IHS/ORDC/LJF - CLEAN UP FILES 3,6,16&200 ; [ 10/03/95  7:57 AM ]
- ;;93.2;VA SUPPORT FILES;;SEPT 18, 1995
+ ;;93.2;VA SUPPORT FILES;;SEPT 18, 1995;Build 8
  ;
  ;This routine checks the status of your User, Person, Provider, and 
  ;New Person files.  It attempts to correct links, if possible. Those
@@ -12,7 +12,7 @@ AVAPCHK ;IHS/ORDC/LJF - CLEAN UP FILES 3,6,16&200 ; [ 10/03/95  7:57 AM ]
  ;     number.
  ;  3. Run EN^AVAPCHK. There is no user interface.  Then run
  ;     RESULTS^AVAPCHK which displays to the screen the results.
- ;  4. If it did not run clean, call the Help Desk.  I will
+ ;  4. If it did not run clean, call me at (405) 945-6968.  I will
  ;     need to hand fix those errors.
  ;
  ;To Developers: Use this routine to check the status of the 4 files

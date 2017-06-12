@@ -1,9 +1,10 @@
 BDGAD1 ; IHS/ANMC/LJF - A&D ADMISSIONS ;  [ 01/07/2004  1:05 PM ]
- ;;5.3;PIMS;**1003,1005,1010,1013**;MAY 28, 2004
+ ;;5.3;PIMS;**1003,1005,1010,1013,1019**;MAY 28, 2004;Build 3
  ;IHS/ITSC/LJF 06/03/2005 PATCH 1003 track multiple admits per patient
  ;IHS/OIT/LJF  12/29/2005 PATCH 1005 changed AGE^BGDF2 to official API
  ;cmi/anch/maw 12/18/2008 PATCH 1010 change set of ward to ?? in GATHER to quitting if now ward
  ;ihs/cmi/maw  09/13/2011 PATCH 1013 added code to filter day surgery in totals
+ ;ihs/cmi/maw  01/29/2016 PATCH 1019 add code to screen out DEMO PATIENTS
  ;
  ;Variables defined in calling VA routines DGPMGL*
  ; RD = report date
@@ -70,6 +71,7 @@ GATHER ; gather info on admission and put counts into arrays
  ;S TYPE=$S(SERVN["OBSERVATION":"O",1:"I")             ;inpt vs observ ihs/cmi/maw 09/13/2011 orig
  S TYPE=$S(SERVN["OBSERVATION":"O",SERVN="DAY SURGERY":"D",1:"I")             ;inpt vs observ  09/13/2011 mod for ds
  S NAME=$$GET1^DIQ(2,DFN,.01)                         ;patient name
+ Q:$$DEMO^APCLUTL(DFN,"E")  ;ihs/cmi/maw patch 1019
  ;
  S DATA=SERV_U_WARD
  ;IHS/OIT/LJF 12/29/2005 PATCH 1005 changed age call to official API

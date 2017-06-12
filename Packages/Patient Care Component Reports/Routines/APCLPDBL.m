@@ -1,5 +1,5 @@
 APCLPDBL ; IHS/CMI/LAB - Routine to send bulletin if patient has certain PRE-DM test results ;
- ;;2.0;IHS PCC SUITE;**5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**5,11**;MAY 14, 2009;Build 58
  ;
  Q  ;not at top
 EN(T,P,V,RES) ;EP - Called by PD mumps x-ref on Results Field (.04)of V Lab File
@@ -33,7 +33,7 @@ DMDX(P) ;
  ;check problem list OR must have 3 diagnoses
  N Z S Z=$O(^ATXAX("B","SURVEILLANCE DIABETES",0))
  I 'Z Q ""
- N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXCHK(Y,T,9) S I=1
+ N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I $$ICD^ATXAPI(Y,Z,9) S I=1
  I I Q "Yes"
  NEW APCLX,E
  S APCLX=""

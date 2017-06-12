@@ -1,5 +1,5 @@
-GMPLBLD1 ; SLC/MKB -- Bld PL Selection Lists cont ;;3/12/03 13:48
- ;;2.0;Problem List;**3,28**;Aug 25, 1994
+GMPLBLD1 ; ISL/MKB,JER - Bld PL Selection Lists cont ;09/22/11  14:40
+ ;;2.0;Problem List;**3,28,36**;Aug 25, 1994;Build 65
  ;
  ; This routine invokes IA #3991,#10082
  ;
@@ -48,22 +48,26 @@ H1 D ^DIR I $D(DTOUT)!(X="^") Q "^"
  ;
 TEXT(TEXT) ; Edit problem text
  N DIR,X,Y S:$L(TEXT) DIR("B")=TEXT
- S DIR(0)="FAO^2:80",DIR("A")="DISPLAY TEXT: "
+ S DIR(0)="FAO^2:80",DIR("A")=" DISPLAY TEXT: "
  S DIR("?")="Enter the text you wish presented here for this problem."
 T1 D ^DIR I $D(DTOUT)!("^"[X) S Y="^" G TQ
  I X?1"^".E W $C(7),$$NOJUMP G T1
  I X="@" G:'$$SURE^GMPLX T1 S Y="@" G TQ
 TQ Q Y
  ;
-CODE(CODE) ; Enter/edit problem code
- N DIR,X,Y
- S DIR(0)="PAO^ICD9(:QEMZ",DIR("A")="ICD CODE: " S:$L(CODE) DIR("B")=CODE
- S DIR("?")="Enter the code you wish to be displayed with this problem."
- S DIR("S")="I $$STATCHK^ICDAPIU($P(^(0),U),DT)"
+CODE(SCTCODE,ICDCODE) ; Confirm problem codes
+ N DIR,X,Y,CODESYS
+ S CODESYS="ICD-9-CM"
+ W !!?2,"The following ",$S(SCTCODE]"":"SNOMED CT & ",1:""),CODESYS," Code(s) are associated with the problem",!?2,"you selected:"
+ I SCTCODE]"" W !!?2,"SNOMED CT: ",SCTCODE,?24,CODESYS,": ",ICDCODE,!
+ E  W !!?2,CODESYS,": ",ICDCODE,!
+ S DIR(0)="YA",DIR("A")="  ... Ok? "
+ S DIR("?")="Please indicate ((Y)es or (N)o) whether the problem/code(s) specified are appropriate."
 C1 D ^DIR I $D(DTOUT)!(X="^") S Y="^" G CQ
  I X?1"^".E W $C(7),$$NOJUMP G C1
  I X="@" G:'$$SURE^GMPLX C1 S Y=""
- S:+Y'>0 Y="" S:+Y>0 Y=Y(0,0)
+ S:+Y'>0 Y="" S:+Y>0 Y=ICDCODE
+ W !
 CQ Q Y
  ;
 FLAG(DFLT) ; Edit category flag
@@ -102,7 +106,7 @@ RESEQ ; Resequence items
  . S NUM=$P(SEL,",",PIECE) Q:NUM'>0
  . S IFN=$P($G(^TMP("GMPLST",$J,"B",NUM)),U,1) Q:+IFN'>0  S SEQ=$P(^TMP("GMPLIST",$J,IFN),U,1)
  . W !!,$P(^TMP("GMPLIST",$J,IFN),U,3)
- . S NSEQ=$$SEQ(SEQ) I NSEQ="^" S GMPQUIT=1 Q 
+ . S NSEQ=$$SEQ(SEQ) I NSEQ="^" S GMPQUIT=1 Q
  .I SEQ'=NSEQ S ^TMP("GMPLIST",$J,IFN)=NSEQ_U_$P(^TMP("GMPLIST",$J,IFN),U,2,$L(^TMP("GMPLIST",$J,IFN),U)),^TMP("GMPLIST",$J,"SEQ",NSEQ)=IFN,GMPREBLD=1 K ^TMP("GMPLIST",$J,"SEQ",SEQ)
  I $D(GMPREBLD) S VALMBCK="R",GMPLSAVE=1 ; D BUILD in exit action
 RSQ S:'VALMCC VALMBCK="R" S VALMSG=$$MSG^GMPLX

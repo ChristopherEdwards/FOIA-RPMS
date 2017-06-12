@@ -1,5 +1,5 @@
 BKMQQCRB ;VNGT/HS/ALA - Updates to HIVQual Report ; 10 Mar 2010  6:06 PM
- ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.2;HIV MANAGEMENT SYSTEM;;Apr 01, 2015;Build 40
  ;
 EN ;
  D VIS,LAB
@@ -125,7 +125,7 @@ LAB ; CD4 and Viral Load break down by every 4 and 6 months
  ;
  ; Get Dates of performance
  D DTR^BKMQQCRU(EDATE\1)
- S RVRSE=9999999-(EDATE\1),RVRSB=9999999-REVPER\1
+ S RVRSE=9999999-(EDATE\1),RVRSB=9999999-(REVPER\1)
  ;
  ; CD4RES1 = CD4 Result 0-199
  ; CD4RES2 = CD4 Result 200-349

@@ -1,5 +1,5 @@
 AMERERS ; IHS/OIT/SCR - ROUTINES TO SUPPORT MERGE OF PCC DATA TO ERS DATA ;
- ;;3.0;ER VISIT SYSTEM;**1,2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**1,2,6,7**;MAR 03, 2009;Build 5
 SYNCHERA(AMERDA,AMERPCC)   ;
  ;IHS/OIT/SCR 12/31/08 
  ;This routine is called when it is determined that PCC admission data needs to replace shared ERS Visit
@@ -15,8 +15,11 @@ SYNCHERA(AMERDA,AMERPCC)   ;
  I (AMEREVAL'=AMERVVAL) D
  .Q:AMERVVAL=""
  .;KEEP THE PCC VISIT INFO - PUT IT INTO THE AMER VISIT
- .S AMERDR="1////"_AMERVVAL
- .D DIE^AMEREDIT(AMERDA,AMERDR)
+ .NEW AMUPD
+ .S AMUPD(9009080,AMERDA_",",1)=AMERVVAL
+ .D FILE^DIE("","AMUPD","ERROR")
+ .;S AMERDR="1////"_AMERVVAL
+ .;D DIE^AMEREDIT(AMERDA,AMERDR)
  .;D NOW^%DTC
  .;S AMERSTRG="1;"_X_";"_AMEREVAL_";"_AMERVVAL_";Other;CHIEF COMPLAINT;Silent PCC SYNCH"
  .;S AMEREDTS=AMERSTRG
@@ -46,78 +49,81 @@ SYNCHERX(AMERDA,AMERPCC)  ;EP from AMEREDIT and AMERPCC2
  ;3. REPLACE EACH DX NODE IN ERS WITH THAT PCC DX NODE
  N AMERDXS,AMERINDX,AMERVERR,AMERDR,AMERONAR,AMERODX,AMEROLD,AMERNEW,AMERPDX,AMERNNAR,AMERSTRG,AMERAIEN,AMERDUZ
  N AMEREDNM,AMEREDTS,AMERDIE,AMERERR,DA,DIC,X,Y,DIK,AMEROFST
+ N AMERPOV
+ ;
  S AMEREDTS=""
  ;S AMEROFST=0
  S AMERERR=0
  ;S AMEREDNM=1
  ;S AMERDUZ=DUZ ;WHO EVER IS USING THIS APPLICATION WHEN THIS ROUTINE IS CALLED
  ;S AMERAIEN=$$CREATAUD^AMEREDAU(AMERDA,AMERDUZ) Q:AMERAIEN<0  ;CREATE AN AUDIT FILE RECORD
+ ;
+ ;Clear out exisiting AMER VISIT POV entries
  S AMERINDX=0
  F  S AMERINDX=$O(^AMERVSIT(AMERDA,5,AMERINDX)) Q:(AMERINDX="")  D
  .S DA(1)=AMERDA,DA=AMERINDX
  .S DIK="^AMERVSIT(DA(1),5,"
  .D ^DIK,EN^DIK  ; Delete identified entry and re-index diagnosis field
  .Q
- S AMERDXS="",AMERDR=""
- K APCLV
- S AMERVERR=$$PCCVF^APCLV(AMERPCC,"POV","5;7;11;12;14;17")
- ; This will return:
- ; APCLV(x)=^^^^internal value of V POV^^ ICD9 code^^^^Cause of injury^place of injury^provider narrative^date of injury
- ; for each V POV x in the file for this visit
- Q:$G(APCLV(1))=""  ;IHS/OIT/SCR 01/20/09 - if there are no DX in the PCC visit, don't wipe out ERS .9999 info
- S AMERINDX="",AMERCNT=0
- F  S AMERINDX=$O(APCLV(AMERINDX)) Q:AMERINDX=""  D
- .S AMERNDX=$P(APCLV(AMERINDX),"^",7)
- .S AMERNDXI=$P($$ICDDX^ICDCODE(AMERNDX,,,1),U,1)
- .I AMERNDXI<1 D
- ..S AMERNDXI=$P($$ICDDX^ICDCODE(".9999",,,1),U,1)   ;start by setting it to 'uncoded' pointer
- ..I AMERNDX="VA LOCAL CODE SELECTED" D
- ...;LOOK IT UP THROUGH FILEMAN
- ...S DIC="^AUPNVPOV(",DIC(0)="NX",X="`"_$P(APCLV(AMERINDX),"^",5)
- ...D ^DIC
- ...I Y'=-1 D
- ....;Now you have looked upt the entry in AUPNVPOV
- ....S AMERNDXI=$P(Y,"^",2)  ;brings back the pointer to ICD in the .01 field of this V POV
- ....S AMERNDX=$P($$ICDDX^ICDCODE(AMERNDX,,,1),U,2)  ;brings back the ICD code
- ...Q
- ..Q
- .S AMERNNAR=$P(APCLV(AMERINDX),"^",14)
- .S AMERNNAR=$$STRIPNAR^AMERPCC2(AMERNNAR) ;IHS/OIT/SCR 05/05/09
- .I AMERINDX=1 D
- ..S AMERODX=$P($G(^AMERVSIT(AMERDA,5.1)),U,2)  ;OLD PRIMARY DX IEN
- ..S AMERONAR=$P($G(^AMERVSIT(AMERDA,5.1)),U,3)   ;OLD PRIMARY NARRATIVE
- ..I AMERODX'=AMERNDXI D
- ...;I AMERODX'="" S AMEROLD=$P($$ICDDX^ICDCODE(AMERODX,,,1),U,2)
- ...;E  S AMEROLD=""
- ...;S AMERNEW=$P($$ICDDX^ICDCODE(AMERNDX,,,1),U,2)
- ...;D NOW^%DTC  ; FM datetime returned in X
- ...;S AMERSTRG="5.2."_AMEREDNM_";"_X_";"_$$EDDISPL^AMEREDAU(AMEROLD,"X")_";"_$$EDDISPL^AMEREDAU(AMERNEW,"X")_";Other;PRIMARY DIAGNOSIS;Silent PCC SYNCH"
- ...;S AMEREDNM=AMEREDNM+1
- ...;S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
- ...S AMERDR=$S(AMERDR'="":AMERDR_";",1:""),AMERDR=AMERDR_"5.2////"_AMERNDXI
- ...Q
- ..I AMERONAR'=AMERNNAR D
- ...;D NOW^%DTC  ; FM date time returned in X
- ...;S AMERSTRG="5.3."_AMEREDNM_";"_X_";"_AMERONAR_";"_AMERNNAR_";Other;PRIMARY DX NARRATIVE;Silent PCC SYNCH"
- ...;S AMEREDNM=AMEREDNM+1
- ...;S AMEREDTS=$S(AMEREDTS="":AMERSTRG,1:AMEREDTS_"^"_AMERSTRG)
- ...S AMERDR=$S(AMERDR'="":AMERDR_";",1:""),AMERDR=AMERDR_"5.3////"_AMERNNAR  ; Update narrative
- ..D:AMERDR'="" DIE^AMEREDIT(AMERDA,AMERDR)  ;UPDATES ER VISIT PRIMARY DX AND NARRATIVE
- ..;D:AMEREDTS'="" MULTAUDT^AMEREDAU(AMEREDTS,AMERAIEN)
- ..Q
- .;S DA(1)=AMERDA,DIC="^AMERVSIT("_DA(1)_",5,",DIC(0)="L" ; DIAGNOSES
- .S DA(1)=AMERDA,DIC="^AMERVSIT("_DA(1)_",5,",DIC(0)="" ; DIAGNOSES
- .;S X="`"_AMERNDXI
- .S X=AMERNDXI
- .;D ^DIC
- .D FILE^DICN
- .Q:+Y<0
- .S DIE=DIC,DA(1)=AMERDA,DA=+Y,DR="1////"_AMERNNAR
- .D ^DIE
- .K DIC,DIE,DA,Y,DR
- .Q
- K APCLV
+ ;
+ ;Clear out primary Dx and Narrative
+ D
+ . NEW DIE,DA,DR
+ . S DIE="^AMERVSIT("
+ . S DA=AMERDA
+ . S DR="5.2////@;5.3////@"
+ . L +^AMERVSIT(DA):0 I $T D ^DIE L -^AMERVSIT(DA)
+ ;
+ ;AMER*3*6;Pull POV information using new call
+ ;$$POV^AMERUTIL Returns
+ ;AMERPOV(CNT)=[1]^[2]^[3]^[4]^[5]
+ ;[1] - ICD code
+ ;[2] - P-Primary, S-Secondary
+ ;[3] - Provider Narrative
+ ;[4] - IEN Pointer to file 80
+ ;[5] - ICD Description Value
+ ;[6] - V POV IEN
+ S AMERVERR=$$POV^AMERUTIL("",AMERPCC,.AMERPOV)
+ ;
+ ;Now update AMERVSIT
+ S AMERINDX="" F  S AMERINDX=$O(AMERPOV(AMERINDX)) Q:AMERINDX=""  D
+ . NEW DXNAR,DXIEN,DXPRM,DA,DIC,DIE,X,Y,DLAYGO,DR
+ . ;
+ . ;Retrieve values
+ . S DXNAR=$P(AMERPOV(AMERINDX),U,3) ;Provider Narrative
+ . S DXIEN=$P(AMERPOV(AMERINDX),U,4) ;POV IEN
+ . S DXPRM=$P(AMERPOV(AMERINDX),U,2) ;P/S
+ . ;
+ . ;If primary save special fields
+ . I DXPRM="P" D
+ .. ;AMER*3.0*7;Changes to handle special characters in narrative
+ .. NEW AMUPD
+ .. S AMUPD(9009080,AMERDA_",",5.2)=DXIEN
+ .. I DXNAR]"" S AMUPD(9009080,AMERDA_",",5.3)=DXNAR
+ .. D FILE^DIE("","AMUPD","ERROR")
+ .. ;S DIE="^AMERVSIT("
+ .. ;S DA=AMERDA
+ .. ;S DR="5.2////"_DXIEN
+ .. ;I DXNAR]"" S DR=DR_";5.3////"_DXNAR
+ .. ;L +^AMERVSIT(DA):0 I $T D ^DIE L -^AMERVSIT(DA)
+ . ;
+ . ;Save entry
+ . S DA(1)=AMERDA,DIC="^AMERVSIT("_DA(1)_",5,",DIC(0)="L"
+ . S DLAYGO=9009080.05
+ . S X=DXIEN
+ . K DO,DD D FILE^DICN
+ . Q:DXNAR=""  ;Quit if no narrative
+ . Q:+Y<0
+ . ;AMER*3.0*7;Changes to handle special characters in narrative
+ . ;S DIE=DIC,DA(1)=AMERDA,DA=+Y,DR="1////"_DXNAR
+ . ;D ^DIE
+ . NEW IENS,AMUPD
+ . S DA(1)=AMERDA,DA=+Y,IENS=$$IENS^DILF(.DA)
+ . S AMUPD(9009080.05,IENS,1)=DXNAR
+ . D FILE^DIE("","AMUPD","ERROR")
+ ;
  Q
+ ;
 SYNCHERD(AMERDA,AMERPCC)  ;EP from AMEREDIT and AMERPCC1
  ;IHS/OIT/SCR 12/30/08
  ;This routine is called when it is determined that PCC PROVIDERS need to replace the ER VISIT file PROVIDERS.

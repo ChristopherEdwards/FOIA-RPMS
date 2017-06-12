@@ -1,6 +1,7 @@
 ABME5NM1 ; IHS/ASDST/DMJ - 837 NM1 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8,9,10,11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS Third Party Billing System;**6,8,9,10,11,20**;NOV 12, 2009;Build 317
  ;Submitter Name
+ ;IHS/SD/SDR 2.6*20 - HEAT270943 - Made change to default NM109 to the origanization/facility NPI if the provider doesn't have an NPI
  ;
 EP(X,Y) ;EP - START HERE
  ;x=entity identifier
@@ -179,7 +180,11 @@ LOOP ;LOOP HERE
  .I ABMEIC="DN" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","F",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094
  .;I ABMEIC="DQ" S ABMR("NM1",100)=$S($D(^VA(200,ABMIEN)):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*9 HEAT53094  ;abm*2.6*10 HEAT80154
  .I ABMEIC="DQ" S ABMR("NM1",100)=$S(((+ABMIEN'=0)&$D(^VA(200,+ABMIEN))):$P($$NPI^XUSNPI("Individual_ID",+ABMIEN),U),1:$P($G(ABMP("PRV","S",ABMIEN)),U,3)) Q  ;abm*2.6*10 HEAT80154
- .S ABMR("NM1",100)=$P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U) Q
+ .;S ABMR("NM1",100)=$P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U) Q  ;abm*2.6*20 IHS/SD/SDR HEAT270943
+ .;start new abm*2.6*20 IHS/SD/SDR HEAT270943
+ .I $P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U)>1 S ABMR("NM1",100)=$P($$NPI^XUSNPI("Individual_ID",+ABM("PRV")),U) Q
+ .S ABMR("NM1",100)=$P($$NPI^XUSNPI("Organization_ID",+ABMP("LDFN")),U)
+ .;end new abm*2.6*20 IHS/SD/SDR HEAT270943
  ;
  ; Payer
  I ABMEIC="PR" D

@@ -1,5 +1,5 @@
-BEHORXF2 ;MSC/IND/PLS -  XML Support for Pharmacy Rx Gen service ;24-Jul-2013 15:13;PLS
- ;;1.1;BEH COMPONENTS;**009009,009010**;Sep 18, 2007
+BEHORXF2 ;MSC/IND/PLS -  XML Support for Pharmacy Rx Gen service ;14-Nov-2013 15:46;DU
+ ;;1.1;BEH COMPONENTS;**009009,009010,009011,009012**;Sep 18, 2007
  ;=================================================================
  ; RPC: BEHORXF2 DRUGTXT
  ; Returns data from 51.7 associated with drug
@@ -97,10 +97,11 @@ RXNORM(POF) ;
  S RXNORM=""
  S DIEN=$$GET1^DIQ(52.41,POF,11,"I")
  I +DIEN D
- .S NDC=$TR($P($G(^PSDRUG(DIEN,2)),U,4),"-","")
- .Q:'$L(NDC)
- .S RXNORM=+$O(^C0CRXN(176.002,"NDC",NDC,0))
- .S RXNORM=$$GET1^DIQ(176.002,RXNORM,.01)
+ .S RXNORM=$$RXNORDRG^APSPFNC1(+DIEN)
+ .;S NDC=$TR($P($G(^PSDRUG(DIEN,2)),U,4),"-","")
+ .;Q:'$L(NDC)
+ .;S RXNORM=+$O(^C0CRXN(176.002,"NDC",NDC,0))
+ .;S RXNORM=$$GET1^DIQ(176.002,RXNORM,.01)
  Q RXNORM
  ;Get patient data
 BLDPT(DFN,RX) ;
@@ -134,6 +135,7 @@ PROV(PRVIEN,ORD) ;
  D ADD($$TAG^BEHORXF1("ProviderESig",2,$S($L(X):"/ES/ "_X,1:"")))
  D ADD($$TAG^BEHORXF1("ProviderESigTitle",2,$$PRVINFO(PRVIEN,20.3)))
  D ADD($$TAG^BEHORXF1("ProviderNPI",2,$$PRVINFO(PRVIEN,41.99)))
+ D ADD($$TAG^BEHORXF1("ProviderSup",2,$$GET1^DIQ(49,$$GET1^DIQ(200,PRVIEN,29,"I"),2)))
  Q
  ;Get patient data
 DATA(DFN) ;

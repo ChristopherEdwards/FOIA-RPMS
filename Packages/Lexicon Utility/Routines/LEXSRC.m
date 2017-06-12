@@ -1,5 +1,5 @@
 LEXSRC ;ISL/KER - Classification Code Source ;08/17/2011
- ;;2.0;LEXICON UTILITY;**7,25,26,38,73,81**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**7,25,26,38,73,81**;Sep 23, 1996;Build 10
  ;
  ; External References
  ;   None

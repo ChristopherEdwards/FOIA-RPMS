@@ -1,20 +1,47 @@
-APCDEREF ; IHS/CMI/LAB - prompt for refusal value ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+APCDEREF ; IHS/CMI/LAB - prompt for refusal value ; 23 May 2013  10:50 AM
+ ;;2.0;IHS PCC SUITE;**11,17**;MAY 14, 2009;Build 18
  ;
- ;
+IN ;EP
+ ;lookup refusal type and create entry
+ I $G(APCDTREF)="" W !,"Refusal type missing.....!" Q
+ S APCDT02=$G(APCDPAT)
+ I APCDT02="" S APCDT02=$G(DFN)
+ I 'APCDT02 W !!,"Patient missing..." Q
+ D EN^XBNEW("IN1^APCDEREF","APCDTREF;APCDT02")
+ Q
+IN1 ;EP - called from xbnew to create a refusal entry
+ S DIC="^AUTTREFT(",DIC(0)="AEMQ",DIC("A")="PATIENT REFUSALS FOR SERVICE/NMI SERVICE TYPE: "
+ D ^DIC
+ I Y=-1 Q
+ I $P(^AUTTREFT(+Y,0),U)="SNOMED" W !!,"That type of refusal cannot be entered through PCC Data Entry.",! Q
+ S APCDT01=+Y
 VALUE ;EP - called from input template
- I '$D(DA) S APCDTERR=1 Q
- I 'DA S APCDTERR=1 Q
- NEW APCDX S APCDX=$P(^AUPNPREF(DA,0),U)
- S APCDTF=$P(^AUTTREFT(APCDX,0),U,2)
- I 'APCDTF S APCDTERR=1 D EOJ Q
- S DIC("B")=$S($D(APCDTOLD):APCDTOLD,1:""),DIC("A")="  Enter the "_$P(^DIC(APCDTF,0),U)_" value: ",DIC=APCDTF,DIC(0)="AEMQ" D ^DIC K DIC
- I Y=-1 W !!,"Invalid entry.  Try again." G VALUE
- S APCDTIEN=+Y,APCDTID=$$VAL^XBDIQ1(APCDTF,APCDTIEN,$P(^AUTTREFT(APCDX,0),U,3))
+ S APCDTF=$P(^AUTTREFT(APCDT01,0),U,2)
+ I 'APCDTF W !!,"table file missing..." Q
+ K X,DUOUT,DIRUT
+ I $P(^AUTTREFT(APCDT01,0),U)="RXNORM" D RX Q
+ K DIC S DIC("B")=$S($D(APCDTOLD):APCDTOLD,1:""),DIC("A")="  Enter the "_$P(^DIC(APCDTF,0),U)_" value: ",DIC=APCDTF,DIC(0)="AEMQ"
+ ;I APCDTF=80.1 S DIC("S")="D ICDOPCHK^AUPNSICD"
+ D ^DIC K DIC
+ I $P(Y,U)=-1 W !!,"Invalid entry.  Try again." G VALUE
+ S APCDTFI=+Y
+ I APCDTF=80.1 S APCDTID=$P($$ICDOP^ICDEX(APCDTFI,,,"I"),U,5) I 1
+ E  S APCDTID=$$VAL^XBDIQ1(APCDTF,APCDTFI,$P(^AUTTREFT(APCDT01,0),U,3))
+ D CENTRY  ;create the entry and edit
 EOJ ;
  K Y
  Q
  ;
+CENTRY ;
+ I $G(APCDTDA) G CENTRYE
+ S X=APCDT01,DIC="^AUPNPREF(",DIC(0)="L",DIC("DR")=".02////"_APCDT02 K DD,DO,D0 D FILE^DICN K DIC
+ I Y=-1 W !,"ERROR CREATING ENTRY....TRY AGAIN..." Q
+ S APCDTDA=+Y
+CENTRYE ;now edit it
+ ;FIRST WIPE OUT FIELDS
+ S DA=APCDTDA,DIE="^AUPNPREF(",DR="1301///@;1302///@;.04///@;.05///@;.07///@" D ^DIE K DIE,DA,DR
+ S DIE("NO^")="",DA=APCDTDA,DIE="^AUPNPREF(",DR="[APCD REF ADD]" D ^DIE K DIE,DA,DR
+ Q
 MOD(APCDP) ;EP
  ;select entry for modify and pass to template in APCDLOOK
  S APCDTIEN=""
@@ -30,6 +57,9 @@ MOD1 ;EP called from xbnew
  I $D(DIRUT) Q
  I 'Y Q
  S APCDTIEN=$G(APCDD(Y))
+ Q
+MOD2 ;EP called from input template
+ D EN^XBNEW("VALUE^APCDEREF","APCDTMOD;APCDTDA;APCDT01;APCDTREF;APCDTOLD")
  Q
 EN(PATIENT,VFIEN) ;EP - called from APCD EL (ADD/MOD) templates
  I '$G(PATIENT) Q
@@ -60,3 +90,76 @@ ADDEC ;
  I Y=-1 W !,"ERROR ADDING ELDER CARE STATUS ENTRY" D XIT Q
  D EDITEC
  Q
+RX ;
+ ;prompt for rxnorm code or text
+ ;call bsts srch if not all numbers
+ K DIR
+ S (APCDTID,APCDTF,APCDTFI,APCDTDID)=""
+ S APCDTF=$P(^AUTTREFT(APCDT01,0),U,2)
+ W !
+ S DIR(0)="F^1:60",DIR("A")="Enter the RXNORM code or drug ingredient (or '^' to exit)" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) Q
+ S APCDRXN=Y
+ I APCDRXN?.N D  I APCDTID="" G RX
+ .S APCDRXN1=$$CONC^BSTSAPI(APCDRXN_"^1552^^1")
+ .Q:$P(APCDRXN1,U)=""  ;W !!,APCDRXN1 H 2
+ .W !!,$P(APCDRXN1,U,1)," ",$P(APCDRXN1,U,2)
+ .S (APCDTFI,APCDTCON)=APCDRXN
+ .S APCDTID=$P(APCDRXN1,U,2)
+ .S APCDTDID=$P(APCDRXN1,U,1)
+ .D CENTRY
+ .Q
+ I APCDRXN'?.N D  I APCDTID="" G RX
+ .NEW OUT,VARS,IN,APCDC
+ .S OUT="VARS",IN=APCDRXN,$P(IN,U,2)="F",$P(IN,U,3)=1552 I $$SUBE("RXNO SRCH Drug Ingredients All") S $P(IN,U,4)="RXNO SRCH Drug Ingredients All"
+ .S APCDC=$$SEARCH^BSTSAPI(OUT,IN)
+ .I +APCDC<1 W !!,?9,"No entries found in the IHS STANDARD RXNORM TERMINOLOGY database."
+ .I +APCDC>0&(APCDC'=9999999) D GETANS
+ .I '$G(APCDY) Q
+ .S (APCDTFI,APCDTCON)=VARS(APCDY,"CON")
+ .S APCDTID=$G(VARS(APCDY,"FSN","TRM"))
+ .S APCDTDID=$G(VARS(APCDY,"FSN","DSC"))
+ .D CENTRY
+ .Q
+ Q
+GETANS ;EP - DISPLAY RXNORM ARRAY
+ NEW APCDX,APCDZ,APCDQ,APCDCNT,APCDTOT,Z,MF
+ S MF=0
+ S Z=0 F  S Z=$O(VARS(Z)) Q:Z'=+Z  S MF=MF+1
+ W !!?5,MF," matches found.",!
+ S APCDX=0,APCDY="",APCDQ=0,APCDCNT=0,APCDTOT=0
+ F  S APCDX=$O(VARS(APCDX)) Q:APCDX'=+APCDX!(APCDY]"")  D
+DISP .;display code
+ .W !?3,APCDX,")"
+ .S APCDZ=$G(VARS(APCDX,"FSN","TRM"))
+ .I APCDX="" S APCDX="MISSING FULLY SPECIFIED TERM"
+ .K ^UTILITY($J)
+ .S X=APCDZ,DIWL=0,DIWR=70 D ^DIWP
+ .S Z=0 F  S Z=$O(^UTILITY($J,"W",0,Z)) Q:Z'=+Z  W:Z>1 ! W ?9,^UTILITY($J,"W",0,Z,0)
+ .K ^UTILITY($J)
+ .S APCDCNT=APCDCNT+1,APCDTOT=APCDTOT+1
+ .I MF=1 S APCDCNT=1,APCDTOT=1 D READ S:APCDY="" APCDY="^" Q
+ .I MF>4,APCDCNT=5!(MF=APCDTOT) D READ S APCDCNT=0 Q
+ .I MF<5,MF=APCDX D READ S APCDNT=0 Q:APCDY]""
+ .Q
+ Q
+READ ;
+ K DIR,DIRUT
+ S APCDY=""
+ W !
+ ;W !,"Type ""^"" to STOP, press ENTER to continue the list or SELECT 1-"_APCDTOT
+ S DIR("B")=$S(MF=1:1,1:""),DIR(0)="NO^1:"_APCDTOT_":0"
+ S DIR("A")="Type ""^"" to STOP or SELECT 1-"_APCDTOT
+ KILL DA D ^DIR W !
+ I $D(DIRUT) S APCDY="^"
+ I Y="" S APCDY="" Q
+ S APCDY=+Y
+ Q	
+SUBE(X) ;EP - does this subset exist?
+ NEW LST,Y,G
+ S G=""
+ S Y=$$SUBSET^BSTSAPI("LST",1552)
+ S Y=0 F  S Y=$O(LST(Y)) Q:Y'=+Y!(G)  D
+ .I $P(LST(Y),U,1)=X S G=1
+ .Q
+ Q G

@@ -1,5 +1,5 @@
 AMERSAV1 ; IHS/ANMC/GIS - PUT ENTRY IN ER VISIT FILE ;   
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6**;MAR 03, 2009;Build 30
  ;
 RUN() ; EP from AMERSAVE
  D COMP
@@ -116,12 +116,15 @@ INJ ; EP - ENTRY POINT CALLED BY AMERSAV ;INJURY ENTRIES
  N G,X,Y,Z,%,F,N,V
  S G="AMERDRI(N)",X=30
  F  S X=$O(^TMP("AMER",$J,2,X)) Q:'X  S V=^(X) I V]"" D
- . I X="33" S V=$G(^AMER(3,+V,"ICD")) I V="" Q  ; CONVERT CAUSE OF INJURY OPTION TO ICD CODE
+ . ;
+ . ;AMER*3.0*6;No longer convert to ICD - Already done
+ . ;I X="33" S V=$G(^AMER(3,+V,"ICD")) I V="" Q  ; CONVERT CAUSE OF INJURY OPTION TO ICD CODE
  . S Y="QD"_X,Z=$O(^AMER(2.3,"B",Y,0)) I Y="" Q
  . S N=X\10,F=$P($G(^AMER(2.3,Z,0)),U,5) I 'F Q
  . S %=$G(@G) I %]"" S %=%_";"
  . S %=%_F_"////"_V,@G=%
  . Q
+ ;
  Q
  ;
 TRANS ; HER TRANSFER FIELDS

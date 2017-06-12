@@ -1,5 +1,5 @@
 APCLDV3P ; IHS/CMI/LAB - list refusals ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10**;MAY 14, 2009;Build 88
  ;
  ;
 PRINT ;EP - called from xbdbque
@@ -172,7 +172,7 @@ COVPAGE ;EP
 SHOW ;
  W !!?6,"Patient must have had a screening between ",$$FMTE^XLFDT(APCLBD)," and ",$$FMTE^XLFDT(APCLED),!
  ;W:APCLTYPE="S" !!?6,"Search Template: ",$P(^DIBT(APCLSEAT,0),U),!
- W !?6,"Gender:  ",$S(APCLSEX="F":"FEMALES ONLY",APCLSEX="M":"MALES ONLY",APCLSEX="MF":"Both MALES and FEMALES",1:"")
+ W !?6,"Gender:  ",$S(APCLSEX="F":"FEMALES ONLY",APCLSEX="M":"MALES ONLY",APCLSEX="U":"UNKNOWN",APCLSEX="MFU":"ALL GENDERS",1:"")
  I $D(APCLAGET) W !?6,"Age of Patients included: ",$P(APCLAGET,"-")," to ",$P(APCLAGET,"-",2)
  I '$D(APCLAGET) W !?6,"All Ages included"
  W !?6,"Patients must have had a screening during the time period with one of ",!?6,"the following screening results:"

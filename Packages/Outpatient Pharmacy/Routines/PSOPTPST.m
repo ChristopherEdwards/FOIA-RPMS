@@ -1,5 +1,5 @@
-PSOPTPST ;BIR/DSD - Post Patient Selection Action ;29-May-2012 15:05;PLS
- ;;7.0;OUTPATIENT PHARMACY;**7,71,88,146,157,1005,143,225,1015**;DEC 1997;Build 62
+PSOPTPST ;BIR/DSD - Post Patient Selection Action ;27-Aug-2013 14:35;DU
+ ;;7.0;OUTPATIENT PHARMACY;**7,71,88,146,157,1005,143,225,1015,1017**;DEC 1997;Build 40
  ;External reference to SDCO22 supported by DBIA 1579
  ;External reference to IBE(350.1,"ANEW" supported by DBIA 592
  ;External reference to PS(55 supported by DBIA 2228
@@ -9,6 +9,7 @@ PSOPTPST ;BIR/DSD - Post Patient Selection Action ;29-May-2012 15:05;PLS
  ;                          04/05/04 - Prevent PSODFN Undefined error
  ;            IHS/MSC/PLS - 08/30/06 - INSURER API - Added Plan Name to output
  ;                          02/13/07 - QST+5 - Commented out call to DGCV
+ ;                          08/27/13 - INP
 START S PSOQFLG=0
  G:'$G(PSODFN) END  ; IHS/CIA/PLS - 04/05/04 - Prevent undefined error at GET^PSOPTPST
  D GET ; Gets data from Patient file
@@ -36,7 +37,8 @@ DEAD ;
  .S ZTIO="",PSOCLC=DUZ,ZTSAVE("PSOCLC")="",ZTDTH=$H D ^%ZTLOAD K ACOM,ZTSK,PSODEATH
  Q
  ;
-INP I '$G(PSOXFLG),'$G(PSOFIN),$G(PSOPTPST(2,PSODFN,.1))]"" S PSOXFLG=1,SSN=$P(^DPT(PSODFN,0),"^",9) W !!?10,$C(7),PSORX("NAME")_" ("_$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,9)_")" K SSN
+INP ;I '$G(PSOXFLG),'$G(PSOFIN),$G(PSOPTPST(2,PSODFN,.1))]"" S PSOXFLG=1,SSN=$P(^DPT(PSODFN,0),"^",9) W !!?10,$C(7),PSORX("NAME")_" ("_$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,9)_")" K SSN
+ I '$G(PSOXFLG),'$G(PSOFIN),$G(PSOPTPST(2,PSODFN,.1))]"" S PSOXFLG=1,SSN=$P(^DPT(PSODFN,0),"^",9) W !!?10,$C(7),PSORX("NAME")_" (XXX-XX-"_$E(SSN,6,9)_")" K SSN
  I $G(PSOPTPST(2,PSODFN,.1))]"" W !?10,$C(7),"Patient is an Inpatient on Ward "_PSOPTPST(2,PSODFN,.1)_" !!" D DIR
  Q
 TPB ;

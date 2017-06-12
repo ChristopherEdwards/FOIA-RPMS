@@ -1,5 +1,5 @@
-GMPLBLD2 ; SLC/MKB,JFR -- Bld PL Selection Lists cont ; 3/14/03 11:20
- ;;2.0;Problem List;**3,28**;Aug 25, 1994
+GMPLBLD2 ; SLC/MKB,JFR -- Bld PL Selection Lists cont ;09/21/11  16:33
+ ;;2.0;Problem List;**3,28,36**;Aug 25, 1994;Build 65
  ;
  ; This routine invokes IA #3991
  ;
@@ -58,8 +58,9 @@ SAVE ; Save changes to group/list
  . N ITM,CODE
  . S ITM=0
  . F  S ITM=$O(^TMP("GMPLIST",$J,ITM)) Q:'ITM!(GMPLQT)  D
+ .. N GMI
  .. S CODE=$P(^TMP("GMPLIST",$J,ITM),U,4) Q:'$L(CODE)
- .. I '$$STATCHK^ICDAPIU(CODE,DT) S GMPLQT=1 Q
+ .. F GMI=1:1:$L(CODE,"/") I '$$STATCHK^ICDAPIU($P(CODE,"/",GMI),DT) S GMPLQT=1 Q
  . I 'GMPLQT Q  ;no inactive codes in the category
  . D FULL^VALM1
  . W !!,$C(7),"This Group contains problems with inactive ICD9 codes associated with them."
@@ -96,10 +97,10 @@ SAVGRP ; Save changes to existing group
  . Q:"@"[$G(^TMP("GMPLIST",$J,DA))  ; nothing to save
  . S TMPITEM=^TMP("GMPLIST",$J,DA) D NEW(DIK,+GMPLGRP,TMPITEM)
  I "@"[$G(^TMP("GMPLIST",$J,DA)) D ^DIK Q
- S ITEM=$P($G(^GMPL(125.12,DA,0)),U,2,5)
+ S ITEM=$P($G(^GMPL(125.12,DA,0)),U,2,7)
  I ITEM'=^TMP("GMPLIST",$J,DA) D
  . S DR="",DIE=DIK
- . F I=1:1:4 D
+ . F I=1:1:6 D
  .. S:$P(^TMP("GMPLIST",$J,DA),U,I)'=$P(ITEM,U,I) DR=DR_";"_I_"////"_$S($P(^TMP("GMPLIST",$J,DA),U,I)="":"@",1:$P(^TMP("GMPLIST",$J,DA),U,I))
  . S:$E(DR)=";" DR=$E(DR,2,999) D ^DIE
  Q
@@ -155,10 +156,10 @@ VALGRP(GMPLCAT) ; check all problems in the category for inactive codes
  N PROB,GMPLVALC
  S GMPLVALC=1,PROB=0
  F  S PROB=$O(^GMPL(125.12,"B",GMPLCAT,PROB)) Q:'PROB!('GMPLVALC)  D
- . N GMPLCOD
+ . N GMPLCOD,GMI
  . S GMPLCOD=$P(^GMPL(125.12,PROB,0),U,5)
  . Q:'$L(GMPLCOD)  ; no code there
- . I '$$STATCHK^ICDAPIU(GMPLCOD,DT) S GMPLVALC=0
+ . F GMI=1:1:$L(GMPLCOD,"/") I '$$STATCHK^ICDAPIU($P(GMPLCOD,"/",GMI),DT) S GMPLVALC=0
  . Q
  Q GMPLVALC
  ;
@@ -169,7 +170,7 @@ VALLIST(LIST) ;check all categories in list for probs w/ inactive codes
  ; Output:
  ;    1     = list has no problems with inactive codes
  ;    0     = list has one or more problems with inactive codes
- ;    O^ERR = list is invalid^error message 
+ ;    O^ERR = list is invalid^error message
  ;
  N GMPLIEN,GMPLVAL
  I '$G(LIST) Q 0

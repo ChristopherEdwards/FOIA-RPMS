@@ -1,5 +1,5 @@
 BDPDPEE ; IHS/CMI/TMJ - UPDATE USING LISTMAN ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10**;MAY 14, 2009;Build 88
  ;
  ;
 START ;
@@ -31,7 +31,7 @@ EN ;EP -- main entry point for BDP UPDATE PATIENT DATA
  ;
 HDR ; -- header code
  S VALMHDR(1)=$TR($J(" ",80)," ","-")
- S VALMHDR(2)="Patients with Designated Provider: "_IORVON_$P(^VA(200,BDPPIEN,0),U)_IOINORM
+ S VALMHDR(2)="Patients with Designated Provider: "_$P(^VA(200,BDPPIEN,0),U)
  S VALMHDR(3)="*I or *D denotes patient is Inactive or Deceased"
  S VALMHDR(4)=$TR($J(" ",80)," ","-")
  S VALMHDR(5)="#      HRN    PATIENT NAME            DOB          SEX LAST VISIT    PROV TYPE"
@@ -63,17 +63,20 @@ GATHER ;
  ;
 CHG ;EP - Called from Protocol to change from One Provider to Another
  ;
+ D FULL^VALM1
  S DIR(0)="LO^:",DIR("A")="Change which selected item" K DA D ^DIR S:$D(DUOUT) DIRUT=1
  I Y="" W !,"No items selected." G EXIT
  I $D(DIRUT) W !,"No Item selected." G EXIT
  S BDPANS=Y ;Selected Items
- W ! S DIC("A")="Enter New Designated Provider Name: ",DIC="^VA(200,",DIC(0)="AEMQ",DIC("B")=$P(^VA(200,DUZ,0),U) D ^DIC K DIC,DA,DR,DLAYGO,DIADD
+ W ! S DIC("A")="Enter New Designated Provider Name: ",DIC="^VA(200,",DIC(0)="AEMQ",DIC("B")=$P(^VA(200,DUZ,0),U)
+ D ^DIC K DIC,DA,DR,DLAYGO,DIADD
  I Y<0 W !,"No Provider Selected." D PAUSE G EXIT
  S BDPPROV=+Y
  S BDPC="" F BDPI=1:1 S BDPC=$P(BDPANS,",",BDPI) Q:BDPC=""  S BDPR=^TMP("BDPDPEE",$J,"IDX",BDPC,BDPC) D
  . I '$D(^BDPRECN(BDPR,0)) Q
  . S BDPPAT=$P(^BDPRECN(BDPR,0),U,2)
  . S BDPTYPE=$P(^BDPRECN(BDPR,0),U) ; TYPE
+ . I $$GET1^DIQ(90360.3,BDPTYPE,.01)="MESSAGE AGENT",'$D(^BDPMSGA("B",BDPPROV)) W !!,"Cannot assign as Message Agent-RECORD ",BDPC D PAUSE^BDP Q
  . S X=$$CREATE^BDPPASS(BDPPAT,BDPTYPE,BDPPROV)
  W !,"Changed the selected Providers",!
  D EXIT
@@ -131,10 +134,18 @@ ADDDP ;EP called from protocol to open a new case
  S DIC="^AUPNPAT(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DR,DLAYGO,DIADD
  I Y<0 W !,"No Patient Selected." Q
  S BDPPAT=+Y
- S BDPTYPE=""
+ADDDP1 S BDPTYPE=""
  K DIR S DIR(0)="90360.1,.01",DIR("A")="Enter the Type of Designated Provider" KILL DA D ^DIR KILL DIR
  I $D(DIRUT) W !!,"TYPE not entered." D PAUSE,EXIT Q
  S BDPTYPE=+Y
+ I $P(^BDPTCAT(BDPTYPE,0),U,1)="MESSAGE AGENT",'$D(^BDPMSGA("B",BDPPIEN)) D  G ADDDP1
+ .W !!,"You are not listed as a Message Agent, you must be added to the Message"
+ .W !,"Agent List using the option on the Manager's Menu before you can be "
+ .W !,"assigned as a message agent.",!
+ I $P($G(^BDPMSGA(BDPPIEN,0)),U,3) D  G ADDDP1
+ .W !!,"You have been inactivated as a message agent, you must be reactivated"
+ .W !,"using the option on the Manager's Menu before you can be assigned"
+ .W !,"as a message agent.",!
  S X=$$CREATE^BDPPASS(BDPPAT,BDPTYPE,BDPPIEN)
  D EXIT
  Q

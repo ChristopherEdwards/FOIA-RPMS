@@ -1,5 +1,5 @@
-BHSRCIS ;IHS/CIA/MGH - Health Summary for Referred care ;17-Mar-2006 10:36;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;;March 17, 2006
+BHSRCIS ;IHS/CIA/MGH - Health Summary for Referred care ;22-Apr-2014 09:36;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**9**;Jan 06, 2006;Build 16
  ;===================================================================
  ;Taken from BMCHS
  ; IHS/PHXAO/TMJ - RCIS HEALTH SUMMARY COMPONENT ;
@@ -29,10 +29,11 @@ WRTREF ; WRITE RCIS REFERRAL ENTRY
  ;
  Q:BMCRSTAT'="A"  ;Quit if Not an Active Referral
  ;
- ;Begin Y2K fix block
  D CKP^GMTSUP Q:$D(GMTSQIT)
  W !,"BEGIN DOS: ",$$AVDOS^BMCRLU(BMCRIEN,"C"),"  ",$$AVDOS^BMCRLU(BMCRIEN,"E"),?37,"DISCHARGE CONSULT DT: ",$$FMTE^XLFDT($P(BMCRREC,U,18),"5D") W !,"DATE REFERRED: ",$$FMTE^XLFDT($P(BMCRREC,U),"5D") ;Y2000
- ;End Y2K fix block
+ W ?37,"DISCHARGE CONSULT DT: ",$$FMTE^XLFDT($P(BMCRREC,U,18),"5D")
+ W !,"DATE REFERRED: ",$$FMTE^XLFDT($P(BMCRREC,U),"5D")
+ W ?37,"CHS STATUS: ",$$VAL^XBDIQ1(90001,BMCRIEN,1112)
  S BMCMCC=""
  I $D(^BMCPARM(DUZ(2),4100)) S BMCMCC=$P($G(^BMCPARM(DUZ(2),4100)),U)
  I BMCMCC="Y" W ?37,"MCC ACTION: ",$$VAL^XBDIQ1(90001,BMCRIEN,1123)
@@ -67,7 +68,12 @@ WRTDXLP ; LOOP THRU DX ENTRIES
 WRTDX2 ; WRITE ONE DX
  S X=^BMCDX(BMCDIEN,0)
  Q:$P(X,U,4)'=BMCPFS
- W ?10,$P(^ICD9($P(X,U),0),U),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ ;Patch 9
+ I $$AICD^BHSUTL D
+ .W ?10,$P($$ICDDX^ICDEX($P(X,U),0,"","I"),U),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ E  D
+ .W ?10,$P($$ICDDX^ICDCODE($P(X,U),0),U),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ ;W ?10,$P(^ICD9($P(X,U),0),U),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
  S X=$P(X,U,6)
  I X S:$D(^AUTNPOV(X,0)) X=$P(^AUTNPOV(X,0),U) I 1
  E  D ENP^XBDIQ1(90001.01,BMCDIEN,".019","BMCX(","E") S:BMCX(".019")]"" X=BMCX(".019")
@@ -94,7 +100,8 @@ WRTPXLP ; LOOP THRU PX ENTRIES
 WRTPX2 ; WRITE ONE PX
  S X=^BMCPX(BMCPIEN,0)
  Q:$P(X,U,4)'=BMCPFS
- W ?10,$S($P(X,U)'=1:$P(^ICPT($P(X,U),0),U),1:"???"),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ ;W ?10,$S($P(X,U)'=1:$P(^ICPT($P(X,U),0),U),1:"???"),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
+ W ?10,$S($P(X,U)'=1:$P($$CPT^ICPTCOD($P(X,U),0),U,2),1:"???"),?18,$S($P(X,U,4)="P":"PROV",$P(X,U,4)="F":"FINAL",1:"???")," ",$S($P(X,U,5)="P":"PRI",$P(X,U,5)="S":"SEC",1:"???")
  S X=$P(X,U,6)
  I X S:$D(^AUTNPOV(X,0)) X=$P(^AUTNPOV(X,0),U) I 1
  E  D ENP^XBDIQ1(90001.02,BMCPIEN,".019","BMCX(","E") S:BMCX(".019")]"" X=BMCX(".019")

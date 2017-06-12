@@ -1,5 +1,5 @@
-GMRCHL7A ;SLC/DCM,MA - Receive HL-7 Message from OERR ;3/7/02 13:20
- ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,15,21,22,33**;DEC 27, 1997
+GMRCHL7A ;SLC/DCM,MA - Receive HL-7 Message from OERR ;16-Apr-2014 14:22;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,5,12,15,21,22,33,1004**;DEC 27, 1997;Build 12
  ;
  ; This routine invokes IA #2849
  ;
@@ -27,7 +27,7 @@ OBR(GMRCOBR) ;Get fields from OBR segment and set into GMRC variables
  ;GMRCPLI=place of consultation          GMRCODT=observation date/time
  ;GMRCATN=person to alert (attention)    GMRCSTDT=status change date/time
  ;GMRCS123=results status (table 123)    GMRCINTR=results interpreter
- ;GMRCPRI=procedure from file ^ORD(101,  
+ ;GMRCPRI=procedure from file ^ORD(101,
  ;GMRCXMF=foreign consult service
  ;        a flag that tells the HL7 routine that
  ;        consults does not need to return CPRS a file
@@ -67,8 +67,12 @@ OBX(GMRCOBX) ;Get fields from OBX segment and set into GMRC variables
  . I GMRCVTYP="TX" S GMRCPRDG=$P(GMRCMSG,SEP1,6) Q
  . I GMRCVTYP="CE" D  Q
  .. N PRDXSEG S PRDXSEG=$P(GMRCMSG,SEP1,6)
- .. S GMRCPRDG=$P(PRDXSEG,"^",2)_" ("_$P(PRDXSEG,"^")_")"
+ .. ;S GMRCPRDG=$P(PRDXSEG,"^",2)_" ("_$P(PRDXSEG,"^")_")"
+ .. S GMRCPRDG=$P(PRDXSEG,"^",2)
+ .. S GMRCPRDG=$TR(GMRCPRDG,"*","|")
  .. S GMRCPRCD=$P(PRDXSEG,"^")
+ .. ;IHS/MSC/MGH Added for patch 1004
+ .. S GMRCPRPB=$P(GMRCMSG,SEP1,7)
  I GMRCOID["COMMENT" D
  .S GMRCCMT(1)=$P(GMRCMSG,SEP1,6)
  .S LN=0 F  S LN=$O(MSG(GMRCOBX,LN)) Q:LN=""  S GMRCCMT(LN+1)=MSG(GMRCOBX,LN)
@@ -82,7 +86,7 @@ EN(MSG) ;Entry point to routine
  N DFN,GMRCACT,GMRCADD,GMRCFAC,GMRCMTP,GMRCPNM,GMRCO,GMRCOCR,GMRCORNP
  N GMRCORFN,GMRCPLCR,GMRCRB,GMRCSEND,GMRCSTS,GMRCTRLC,GMRCWARD,ORIFN
  N GMRCTRLC,GMRCAD,ORC,GMRCSBR,GMRCZSS,GMRCSS,GMRCOTXT,GMRCPRCD
- N GMRCREJ,GMRCRECV
+ N GMRCREJ,GMRCRECV,GMRCPRPB
  S GMRCMSG="",GMRCNOD=0 F  S GMRCNOD=$O(MSG(GMRCNOD)) Q:GMRCNOD=""  S GMRCMSG=MSG(GMRCNOD) I $E(GMRCMSG,1,3)="MSH" D INIT^GMRCHL7U(GMRCMSG) D  Q
  .S GMRCSEND=$P(GMRCMSG,SEP1,3),GMRCFAC=$P(GMRCMSG,SEP1,4)
  .S GMRCMTP=$P(GMRCMSG,SEP1,9),GMRCRECV=$P(GMRCMSG,SEP1,5)
@@ -97,7 +101,7 @@ EN(MSG) ;Entry point to routine
  .I $E(GMRCMSG,1,3)="ZSV" D ZSV(GMRCMSG) Q
  .I $E(GMRCMSG,1,3)="OBX" D OBX(GMRCNOD) Q
  .I $E(GMRCMSG,1,3)="NTE" D NTE^GMRCHL7U(.MSG,GMRCNOD,GMRCO,GMRCTRLC) Q
- .I $E(GMRCMSG,1,3)="ZXX" S GMRCOFN=+$P(GMRCMSG,SEP1,2) K MSG(GMRCNOD) Q 
+ .I $E(GMRCMSG,1,3)="ZXX" S GMRCOFN=+$P(GMRCMSG,SEP1,2) K MSG(GMRCNOD) Q
  .Q
  ;Note, ZXX is not used yet; planned for future sharing consults with foreign facilities.
  I '$D(GMRCTRLC) D EXIT^GMRCHL7U Q
@@ -112,7 +116,7 @@ EN(MSG) ;Entry point to routine
  ; If consults sends an XX, CPRS returns an NA.
  D EXIT^GMRCHL7U
  Q
-RTN(GMRCORN,DA) ;Put ^OR(100, ien for order into ^GMR(123, 
+RTN(GMRCORN,DA) ;Put ^OR(100, ien for order into ^GMR(123,
  S DIE="^GMR(123,",DR=".03////^S X=GMRCORN"
  L +^GMR(123,DA) D ^DIE L -^GMR(123,DA)
  K DIE,DR

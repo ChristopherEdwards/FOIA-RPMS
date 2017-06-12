@@ -1,5 +1,5 @@
 AMHRBV1 ; IHS/CMI/LAB - PRNT BILL VSTS ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**5**;JUN 02, 2010;Build 18
 START ;
  S AMH80E="==============================================================================="
  S AMH80D="-------------------------------------------------------------------------------"
@@ -46,7 +46,7 @@ WPOV ;
  I $Y>(IOSL-6),AMH2>1 D HEAD Q:$D(AMHQUIT)
  Q:$P(AMHX,U)=""
  ;W:AMH2>1 ! 
- W ?40,$P(^AMHPROB($P(AMHX,U),0),U) W:$P(AMHX,U,4) ?47,$E($P(^AUTNPOV($P(AMHX,U,4),0),U),1,25),?73,$P(^AMHPROB($P(AMHX,U),0),U,5)
+ W ?40,$P(^AMHPROB($P(AMHX,U),0),U) W ?47,$E($$GET1^DIQ(9002011.01,AMHX,.04),1,25),?73,$P(^AMHPROB($P(AMHX,U),0),U,5)
  W !
  Q
 WCPT ;

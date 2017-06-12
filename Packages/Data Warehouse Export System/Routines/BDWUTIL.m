@@ -1,5 +1,5 @@
 BDWUTIL ; IHS/CMI/LAB - DW UTILITIES ;
- ;;1.0;IHS DATA WAREHOUSE;;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**4**;JAN 23, 2006;Build 24
  ;
  ;
 POVS(RETVAL,BDWV) ;EP
@@ -11,10 +11,36 @@ POVS(RETVAL,BDWV) ;EP
  I $P(^AUPNVSIT(BDWV,0),"^",7)'="H" S BDWP=$O(^AUPNVPOV("AD",BDWV,0))
  S BDWC=1
  I $P(^AUPNVSIT(BDWV,0),U,7)="H",'BDWP S RETVAL(BDWC)=""
- I BDWP S RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.07,BDWP,.01)_"^"_$P(^AUPNVPOV(BDWP,0),"^",7)_"^"_$$VAL^XBDIQ1(9000010.07,BDWP,.09)_"^"_$P(^AUPNVPOV(BDWP,0),"^",11)
+ I BDWP D  ;ihs/cmi/maw 10/17/2012 patch 4 added coding system for icd10
+ . N CS,ICDP,CSE,COIP,PN
+ . S ICDP=$P($G(^AUPNVPOV(BDWP,0)),U)
+ . S PN=$TR($$GET1^DIQ(9000010.07,BDWP,.04),"|","")  ;p5 ALPMR
+ . I $D(^ICDS(0)) S CS=$S($P($$ICDDX^ICDEX(ICDP),U,20)=30:"I10",1:"I9")
+ . I '$D(^ICDS(0)) S CS="I9"
+ . S COIP=$P($G(^AUPNVPOV(BDWP,0)),U,9)
+ . I $G(COIP) D
+ .. I $D(^ICDS(0)) S CSE=$S($P($$ICDDX^ICDEX(COIP),U,20)=30:"I10",1:"I9")
+ .. I '$D(^ICDS(0)) S CSE="I9"
+ . S RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.07,BDWP,.01)_"^"_$P(^AUPNVPOV(BDWP,0),"^",7)_"^"_$$VAL^XBDIQ1(9000010.07,BDWP,.09)_"^"_$P(^AUPNVPOV(BDWP,0),"^",11)
+ . S $P(RETVAL(BDWC),"^",10)=$G(CS)  ;coding system
+ . S $P(RETVAL(BDWC),"^",11)=$G(CSE)  ;coding system
+ . S $P(RETVAL(BDWC),"^",12)=$TR($G(PN),"|","")  ;provider narrative p5 ALPMR
  S BDWS=0 F  S BDWS=$O(^AUPNVPOV("AD",BDWV,BDWS)) Q:BDWS'=+BDWS  D
- .Q:BDWS=BDWP
- .S BDWC=BDWC+1,RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.07,BDWS,.01)_"^"_$P(^AUPNVPOV(BDWS,0),"^",7)_"^"_$$VAL^XBDIQ1(9000010.07,BDWS,.09)_"^"_$P(^AUPNVPOV(BDWS,0),"^",11)
+ . Q:BDWS=BDWP
+ . ;ihs/cmi/maw 10/17/2012 patch 4 added coding system for icd10
+ . N CS,ICDP,CSE,COIP,PN
+ . S ICDP=$P($G(^AUPNVPOV(BDWS,0)),U)
+ . S PN=$TR($$GET1^DIQ(9000010.07,BDWS,.04),"|","")  ;p5 ALPMR
+ . I $D(^ICDS(0)) S CS=$S($P($$ICDDX^ICDEX(ICDP),U,20)=30:"I10",1:"I9")
+ . I '$D(^ICDS(0)) S CS="I9"
+ . S COIP=$P($G(^AUPNVPOV(BDWS,0)),U,9)
+ . I $G(COIP) D
+ .. I $D(^ICDS(0)) S CSE=$S($P($$ICDDX^ICDEX(COIP),U,20)=30:"I10",1:"I9")
+ .. I '$D(^ICDS(0)) S CSE="I9"
+ . S BDWC=BDWC+1,RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.07,BDWS,.01)_"^"_$P(^AUPNVPOV(BDWS,0),"^",7)_"^"_$$VAL^XBDIQ1(9000010.07,BDWS,.09)_"^"_$P(^AUPNVPOV(BDWS,0),"^",11)
+ . S $P(RETVAL(BDWC),"^",10)=$G(CS)  ;coding system
+ . S $P(RETVAL(BDWC),"^",11)=$G(CSE)  ;coding system
+ . S $P(RETVAL(BDWC),"^",12)=$TR($G(PN),"|","")  ;provider narrative p5 ALPMR
  Q
 DATE(D) ;EP - return YYYYMMDD from internal fm format
  I $G(D)="" Q ""
@@ -42,10 +68,29 @@ DISPER(V) ;EP - called to get ER disposition
  NEW Y S Y=$O(^AUPNVER("AD",V,0)) I 'Y Q ""
  Q $$VALI^XBDIQ1(9000010.29,Y,.11)
 CPT(RETVAL,V) ;EP cpt and quantity
- K AUPNCPT,RETVAL
+ K AUPNCPT,RETVAL,MOD1,MOD2
  NEW X,C,E S X=$$CPT^AUPNCPT(V)
  I '$D(AUPNCPT) Q
- S (X,C)=0 F  S X=$O(AUPNCPT(X)) Q:X'=+X  S C=C+1,RETVAL(C)=$P(AUPNCPT(X),"^") I $P(AUPNCPT(X),"^",4)=9000010.18 S E=$P(AUPNCPT(X),"^",5),$P(RETVAL(C),"^",2)=$P($G(^AUPNVCPT(E,0)),"^",16)
+ S (X,C)=0 F  S X=$O(AUPNCPT(X)) Q:X'=+X  D
+ . S C=C+1
+ . S RETVAL(C)=$P(AUPNCPT(X),"^")
+ .;ihs/cmi/maw p5 alpmr
+ . I $P(AUPNCPT(X),"^",4)=9000010.18 D
+ .. S E=$P(AUPNCPT(X),"^",5),$P(RETVAL(C),"^",2)=$P($G(^AUPNVCPT(E,0)),"^",16)
+ .. N MOD1,MOD1C,MOD1I,MOD2,MOD2C,MOD2I,MOD1STR,MOD2STR
+ .. S MOD1I=$$GET1^DIQ(9000010.18,E,.08,"I")
+ .. S MOD1=$$GET1^DIQ(9000010.18,E,.08)
+ .. S MOD1C=$$GET1^DIQ(81.3,MOD1I,.02)
+ .. S MOD1STR=$S(MOD1]"":MOD1_"!"_MOD1C_"!"_"CPTM",1:"")
+ .. S MOD2I=$$GET1^DIQ(9000010.18,E,.09,"I")
+ .. S MOD2=$$GET1^DIQ(9000010.18,E,.09)
+ .. S MOD2C=$$GET1^DIQ(81.3,MOD2I,.02)
+ .. S MOD2STR=$S(MOD2]"":MOD2_"!"_MOD2C_"!"_"CPTM",1:"")
+ .. I $G(MOD1STR)]"" D
+ ... S $P(RETVAL(C),"^",3)=MOD1STR
+ ... I $G(MOD2STR)]"" S $P(RETVAL(C),"^",3)=MOD1STR_"~"_MOD2STR
+ .. I $G(MOD1STR)="" D
+ ... I $G(MOD2STR)]"" S $P(RETVAL(C),"^",3)=MOD2STR
  Q
 DSCHTYPE(V) ;EP
  I 'V Q ""
@@ -133,7 +178,8 @@ MEAS(RETVAL,BDWV) ;EP -
  NEW BDWC,BDWI,BDWM
  S (BDWI,BDWC)=0 F  S BDWI=$O(^AUPNVMSR("AD",BDWV,BDWI)) Q:BDWI'=+BDWI  D
  .S BDWM=$$VAL^XBDIQ1(9000010.01,BDWI,.01)
- .I BDWM'="BP",BDWM'="HT",BDWM'="WT" Q
+ .;ihs/cmi/maw 06/05/2014 p5 ALPMR don't screen any measurement types
+ .;I BDWM'="BP",BDWM'="HT",BDWM'="WT" Q
  .S BDWVAL=$P(^AUPNVMSR(BDWI,0),"^",4) I BDWM="HT"!(BDWM="WT") S BDWVAL=BDWVAL+.05,BDWVAL=+($P(BDWVAL,".")_"."_$E($P(BDWVAL,".",2),1))
  .S BDWC=BDWC+1
  .S RETVAL(BDWC)=$P(^AUTTMSR($P(^AUPNVMSR(BDWI,0),"^"),0),"^",3)_"^"_BDWVAL
@@ -252,14 +298,18 @@ LAB(RETVAL,BDWV) ;EP
  K RETVAL
  I '$G(BDWV) Q
  I '$D(^AUPNVSIT(BDWV)) Q
- NEW BDWI,BDWC,BDWL
+ NEW BDWI,BDWC,BDWL,BDWS,BDWLNI,BDWIENS
  S (BDWI,BDWC)=0
  F  S BDWI=$O(^AUPNVLAB("AD",BDWV,BDWI)) Q:BDWI'=+BDWI  D
  .Q:'$D(^AUPNVLAB(BDWI,0))
  .S BDWL=$P(^AUPNVLAB(BDWI,0),"^")
  .I '$D(^LAB(60,BDWL,0)) Q
- .S BDWLOINC=$$LOINC($P(^AUPNVLAB(BDWI,0),U))
- .Q:BDWLOINC=""  ;don't want that test
+ .S BDWS=$P($G(^AUPNVLAB(BDWI,11)),U,3)
+ .S BDWIENS=BDWS_","_BDWL_","
+ .S BDWLOINC=$S(BDWS]"":$$GET1^DIQ(60.01,BDWIENS,95.3),1:"")
+ .;ihs/cmi/maw 06/02/2014 p5 ALPMR dont screen out any lab tests
+ .;S BDWLOINC=$$LOINC($P(^AUPNVLAB(BDWI,0),U))
+ .;Q:BDWLOINC=""  ;don't want that test
  .S BDWC=BDWC+1
  .;S RETVAL(BDWC)=$$VAL^XBDIQ1(9000010.09,BDWI,1113)_"^"_$P(^LAB(60,BDWL,0),"^")_"^"_$P(^AUPNVLAB(BDWI,0),"^",4)_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^")_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^",4)_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^",5)
  .S RETVAL(BDWC)=BDWLOINC_"^"_$P(^LAB(60,BDWL,0),"^")_"^"_$P(^AUPNVLAB(BDWI,0),"^",4)_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^")_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^",4)_"^"_$P($G(^AUPNVLAB(BDWI,11)),"^",5)
@@ -296,3 +346,4 @@ FACTX(V) ;EP
  S Y=+Y
  I '$D(^AUTTLOC(Y,0)) Q ""
  Q $P(^AUTTLOC(Y,0),"^",10)
+ ;

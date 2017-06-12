@@ -1,5 +1,5 @@
 BDWREDO ; IHS/CMI/LAB - REDO A RUN ;
- ;;1.0;IHS DATA WAREHOUSE;**2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**2,4**;JAN 23, 2006;Build 24
 START ;
  D EN^XBVK("BDW")
  I $D(^BDWTMP) W !!,"Previous run not completed." Q
@@ -22,6 +22,8 @@ EN ;EP FROM TASKMAN
  D ^XBFMK S DA=BDWLOG,DIE="^BDWXLOG(",DR=".03////"_BDW("RUN START")_";.15///R"_";.22///1" D ^DIE,^XBFMK
  S BDW("BT")=$HOROLOG
  D PROCESS ;            Generate transactions
+ I BDW("QFLG") W:'$D(ZTQUEUED) !!,"Abnormal termination!  QFLG=",BDW("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
+ D ALPMR^BDWRDR2  ;generate ALPMR patient centric messages
  I BDW("QFLG") W:'$D(ZTQUEUED) !!,"Abnormal termination!  QFLG=",BDW("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q
  D LOG ;                Update Log entry
  I BDW("QFLG") W:'$D(ZTQUEUED) !!,"Log error! ",BDW("QFLG") D:$D(ZTQUEUED) ABORT D EOJ Q

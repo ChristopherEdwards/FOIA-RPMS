@@ -1,6 +1,6 @@
-PSSNDCUT ;BIRM/MFR - NDC Utilities ;10/15/04
- ;;1.0;PHARMACY DATA MANAGEMENT;**90**;9/30/97
- ;
+PSSNDCUT ;BIRM/MFR - NDC Utilities ;10-Dec-2013 16:28;DU
+ ;;1.0;PHARMACY DATA MANAGEMENT;**90,1017**;9/30/97;Build 40
+ ; Modified - IHS/MSC/MGH 12/10/2013 - Line GETNDC+4
 SAVNDC(DRG,SITE,NDC,CMP) ; Saves the NDC in the DRUG file (Format: 5-4-2)
  ; Input: (r) DRG  - Drug IEN (#50)
  ;        (r) SITE - Outpatient Site IEN (#59)
@@ -25,10 +25,11 @@ GETNDC(DRG,SITE,CMOP) ; Retuns the NDC for a specific Drug/Site/CMOP or NON-CMOP
  N NDC,NDF
  ;
  I '$D(CMOP) S CMOP=$S($D(^PSDRUG("AQ",DRG)):1,1:0)
+ ;Patch 1017 DO NOT use Local NDC codes.
  ; - LOCAL NDC by DIVISION
- I $G(SITE),'CMOP S NDC=$$NDCFMT($$GET1^DIQ(50.032,SITE_","_DRG,1)) I NDC'="" Q NDC
+ ;I $G(SITE),'CMOP S NDC=$$NDCFMT($$GET1^DIQ(50.032,SITE_","_DRG,1)) I NDC'="" Q NDC
  ; - CMOP NDC by DIVISION
- I $G(SITE),CMOP S NDC=$$NDCFMT($$GET1^DIQ(50.032,SITE_","_DRG,2)) I NDC'="" Q NDC
+ ;I $G(SITE),CMOP S NDC=$$NDCFMT($$GET1^DIQ(50.032,SITE_","_DRG,2)) I NDC'="" Q NDC
  ; - Drug File NDC
  S NDC=$$NDCFMT($$GET1^DIQ(50,DRG,31)) I NDC'="" Q NDC
  ; - National Drug File NDC
@@ -53,7 +54,7 @@ NDCFMT(NDC) ; Formats NDC codes into 5-4-2
  ;
  Q (S1_"-"_S2_"-"_S3)
  ;
-CHKCH(STR)      ; Checks characters different from "-" and numbers
+CHKCH(STR) ; Checks characters different from "-" and numbers
  N CHKCH
  I STR="" Q 0
  S CHKCH=1 F I=1:1:$L(STR) I $E(STR,I)'?1N,$E(STR,I)'?1"-" S CHKCH=0 Q

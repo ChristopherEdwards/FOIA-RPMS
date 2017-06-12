@@ -1,7 +1,8 @@
 AGED4A ; IHS/ASDS/EFG - PAGE 4 - INSURANCE SUMMARY ; MAR 19, 2010
- ;;7.1;PATIENT REGISTRATION;**1,2,7**;AUG 25, 2005
+ ;;7.1;PATIENT REGISTRATION;**1,2,7,11**;AUG 25, 2005;Build 1
  ;
  ;AG*7.1*7 - Modified code to allow the new page 10 to be called
+ ;IHS/OIT/NKD AG*7.1*11 REMOVED SITE SPECIFIC CHECK
  ;
 VAR ;PEP FOR PCC+
  K CATPTR,CATHD,AGINS,AGCAT,AGNEWINS,AGTOUT
@@ -214,15 +215,20 @@ ADDINS ;EP
  N DIC,AGANS,AGMEANT
  K ADDCHK,AGNEWINS
  S DIC="^AUTNINS("
- X ^%ZOSF("UCI")
+ ;IHS/OIT/NKD AG*7.1*11 REMOVED SITE SPECIFIC CHECK - START OLD CODE
+ ;X ^%ZOSF("UCI")
  ;AG*7.1*2 IM21372 ;PER ADRIAN/SANDRA SITE SPECIFIC CHECK
  ;THE SPECIAL LOOKUP ROTUINE DOES NT WORK RIGHT AT WWH (TALEQUAH/WWHASTINGS)
- I $P(Y,",")="WWH" D
- .S DIC(0)="AEMQZI"
- .S DIC("W")="S ZIP=$P(^(0),U,5),ST=$P(^(0),U,2),CITY=$P(^(0),U,3) S:$P(^(0),U,4)'="""" STA=$P($G(^DIC(5,$P(^(0),U,4),0)),U,2) W ?40,ST,!?40,CITY,"", "",$G(STA),"" "",ZIP,!"
- E  D
- .S DIC(0)="AEMQZ"
- .S DIC("S")="I $P($G(^(1)),U,7)'=0"
+ ;I $P(Y,",")="WWH" D
+ ;.S DIC(0)="AEMQZI"
+ ;.S DIC("W")="S ZIP=$P(^(0),U,5),ST=$P(^(0),U,2),CITY=$P(^(0),U,3) S:$P(^(0),U,4)'="""" STA=$P($G(^DIC(5,$P(^(0),U,4),0)),U,2) W ?40,ST,!?40,CITY,"", "",$G(STA),"" "",ZIP,!"
+ ;E  D
+ ;.S DIC(0)="AEMQZ"
+ ;.S DIC("S")="I $P($G(^(1)),U,7)'=0"
+ ;END OLD CODE - START NEW CODE
+ S DIC(0)="AEMQZ"
+ S DIC("S")="I $P($G(^(1)),U,7)'=0"
+ ;END NEW CODE
  D ^DIC
  I +Y<1 W !!,"Must enter an existing insurer" K DIC H 2 Q
  S AGELP("INS")=+Y

@@ -1,6 +1,9 @@
-XUSNPIX4 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/7/08  17:39
- ;;8.0;KERNEL;**438,452,453,481**; Jul 10, 1995;Build 18
+XUSNPIX4 ;OAK_BP/CMW/SLT - NPI EXTRACT REPORT ;7/7/08  17:39
+ ;;8.0;KERNEL;**438,452,453,481,528,548**; Jul 10, 1995;Build 27
  ;;Per VHA Directive 2004-038, this routine should not be modified.
+ ;
+ ; Direct access to ^IBE(350.9, fields .02, 1.05, 19;.02, 19;1.01, 19;1.02, 19;1.03, 19;,1.04, 19;1.05 authorized by
+ ; Integration Agreement #4964.
  ;
  ; NPI Extract Report
  ;
@@ -19,13 +22,13 @@ XUSNPIX4 ;OAK_BP/CMW - NPI EXTRACT REPORT ;7/7/08  17:39
  ;      Piece 4 => Last Date Compiled
  ;      Piece 5 => $H last run start time
  ;      Piece 6 => $H last run completion time
- ;
+ ;      
  ;      Entry Point - ENT called from XUSNPIX1
  ;
  Q
  ;
  ; Individual records
-TYPE1(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;
+TYPE1(DTTM3,SITE,XUSPROD,XUSHDR,XUSP2P) ;
  N IBA0,NVIEN,XUSNPI,MAXSIZE,XUSEOL,XUSCNT
  N XUSI,XUSNM,XUSNV,XLFNC,XUSIZE,XUSDT,XUSNEW
  N TOTREC1
@@ -42,7 +45,7 @@ TYPE1(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;
  . S XUSDATA=XUSNPI
  . S NVIEN=$G(^TMP("XUSNPI",$J,1,XUSNPI))
  . ;
- . F XUSI=1:1:29 S XUSNV(XUSI)=""
+ . F XUSI=1:1:33 S XUSNV(XUSI)=""
  . S IBA0=$G(^IBA(355.93,NVIEN,0))
  . S XUSNM=$P(IBA0,U)
  . ; Break Name into components
@@ -53,79 +56,104 @@ TYPE1(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;
  . . K XLFNC
  . S XUSDATA=XUSDATA_U_XUSNV(2)_U_XUSNV(3)_U_XUSNV(4)
  . S XUSNV(5)=1 ;TYPE
- . ;
+ . ;                                    
  . ; DOB (place holder)
  . S XUSNV(6)=""
  . S XUSDATA=XUSDATA_U_XUSNV(5)_U_XUSNV(6)
  . ;
- . ; Pay to Provider Address (7-11)
- . S XUSDATA=XUSDATA_U_PTPMAIL
+ . ; Pay to Provider Address (7-12)
+ . S XUSDATA=XUSDATA_U_XUSP2P
  . ;
  . ; Servicing Provider Address
- . S XUSNV(12)=$P(IBA0,U,5)
- . S XUSNV(13)=$P(IBA0,U,10)
- . S XUSNV(14)=$P(IBA0,U,6)
- . S XUSNV(15)=$P(IBA0,U,7)
- . I XUSNV(15) S XUSNV(15)=$P($G(^DIC(5,XUSNV(12),0)),U,2)
- . S XUSNV(16)=$P(IBA0,U,8)
- . S XUSDATA=XUSDATA_U_XUSNV(12)_U_XUSNV(13)_U_XUSNV(14)_U_XUSNV(15)_U_XUSNV(16)
+ . S XUSNV(13)=$P(IBA0,U,5)
+ . S XUSNV(14)=$P(IBA0,U,10)
+ . S XUSNV(15)=$P(IBA0,U,6)
+ . S XUSNV(16)=$P(IBA0,U,7)
+ . I XUSNV(16) S XUSNV(16)=$P($G(^DIC(5,XUSNV(16),0)),U,2)
+ . S XUSNV(17)=$P(IBA0,U,8)
+ . S XUSDATA=XUSDATA_U_XUSNV(13)_U_XUSNV(14)_U_XUSNV(15)_U_XUSNV(16)_U_XUSNV(17)
  . ;
  . ; Office Phone number (place holder)
- . S XUSNV(17)=""
+ . S XUSNV(18)=""
  . ;
  . ; Degree Description / Degree Code (place holder)
- . S XUSNV(18)=""
  . S XUSNV(19)=""
+ . S XUSNV(20)=""
  . ;
  . ; Get Taxonomy and specialty codes
  . N NVTX,NVSPC,NVTAX
  . S NVTX=0
  . F  S NVTX=$O(^IBA(355.93,NVIEN,"TAXONOMY","B",NVTX)) Q:'NVTX  D
  . . S NVSPC=$P($G(^USC(8932.1,NVTX,0)),U,9)
- . . S NVTAX=$P($G(^USC(8932.1,NVTX,0)),U,7)
+ . . ;S NVTAX=$P($G(^USC(8932.1,NVTX,0)),U,7)
  . . I NVSPC'="" D
- . . . I XUSNV(20)="" S XUSNV(20)=NVSPC Q
- . . . S XUSNV(20)=XUSNV(20)_";"_NVSPC
- . . I NVTAX'="" D
- . . . I XUSNV(21)="" S XUSNV(21)=NVTAX Q
- . . . S XUSNV(21)=XUSNV(21)_";"_NVTAX
+ . . . I XUSNV(21)="" S XUSNV(21)=NVSPC Q
+ . . . S XUSNV(21)=XUSNV(21)_";"_NVSPC
+ . . . Q
+ . . Q
+ . ;use "B" cross ref to find primary vs non-primary code 0 (no)!1 (yes), and only "A"'s
+ . S NVTX=0
+ . F  S NVTX=$O(^IBA(355.93,NVIEN,"TAXONOMY",NVTX)) Q:NVTX'?1N.N  D
+ . . S IBA=$G(^IBA(355.93,NVIEN,"TAXONOMY",NVTX,0))
+ . . I $P(IBA,U,3)="A" D
+ . . . I $P(IBA,U,2)=1 S XUSNV(22)=$P($G(^USC(8932.1,$P(IBA,U,1),0)),U,7)
+ . . . I $P(IBA,U,2)=0 D
+ . . . . I XUSNV(23)="" S XUSNV(23)=$P($G(^USC(8932.1,$P(IBA,U,1),0)),U,7) Q
+ . . . . ;
+ . . . . ; *** Start XU*8.0*548 - RBN ***
+ . . . . ;
+ . . . . I (XUSNV(23)'[$P($G(^USC(8932.1,$P(IBA,U,1),0)),U,7))&($P($G(^USC(8932.1,$P(IBA,U,1),0)),U,7)'=XUSNV(22)) D
+ . . . . . S XUSNV(23)=XUSNV(23)_";"_$P($G(^USC(8932.1,$P(IBA,U,1),0)),U,7)
+ . . . . . ;
+ . . . . . ; *** End XU*8.0*548 - RBN ***
+ . . . . . ;
+ . . . . Q
+ . . . Q
+ . . Q
+ . K IBA
  . ;
  . ; Fed tax ID
- . S XUSNV(22)=$P($G(IBA0),U,9)
+ . S XUSNV(24)=$P($G(IBA0),U,9)
  . ;
- . S XUSDATA=XUSDATA_U_XUSNV(17)_U_XUSNV(18)_U_XUSNV(19)_U_XUSNV(20)_U_XUSNV(21)_U_XUSNV(22)
+ . S XUSDATA=XUSDATA_U_XUSNV(18)_U_XUSNV(19)_U_XUSNV(20)_U_XUSNV(21)_U_XUSNV(22)
+ . S XUSDATA=XUSDATA_U_XUSNV(23)_U_XUSNV(24)
  . ;
  . ; Medicare Part A/B
- . S XUSNV(23)=670899
- . S XUSNV(24)="VA"_$E(SITE+10000,2,5)
+ . S XUSNV(25)=670899
+ . S XUSNV(26)="VA"_$E(SITE+10000,2,5)
  . ;
  . ; State Lic and DEA (place holder)
- . S XUSNV(25)=""
- . S XUSNV(26)=""
+ . S XUSNV(27)=""
+ . S XUSNV(28)=""
  . ;
+ . ; Status and Creation/Termination Date (place holder)
+ . S XUSNV(29)=""
+ . S XUSNV(30)=""
  . ; VISN Station
- . S XUSNV(27)=SITE
+ . S XUSNV(31)=SITE
  . ;
- . S XUSDATA=XUSDATA_U_XUSNV(23)_U_XUSNV(24)_U_XUSNV(25)_U_XUSNV(26)_U_XUSNV(27)
+ . S XUSDATA=XUSDATA_U_XUSNV(25)_U_XUSNV(26)_U_XUSNV(27)
+ . S XUSDATA=XUSDATA_U_XUSNV(28)_U_XUSNV(29)_U_XUSNV(30)_U_XUSNV(31)
  . ;
  . ;BCBS info
  . K XUSBXID
  . D NNVAID^XUSNPIXU(NVIEN,.XUSBXID)
  . ;
  . ;Update counter and save Entry
- . N XUSB
+ . N XUSB,XUSB1
  . S XUSCNT=XUSCNT+1,TOTREC1=TOTREC1+1
  . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_XUSEOL
  . S XUSIZE=XUSIZE+$L(^TMP(XUSRTN,$J,XUSCNT))
  . I $D(XUSBXID) D
  . . S XUSB=""
  . . F  S XUSB=$O(XUSBXID(XUSB)) Q:XUSB=""  D
+ . . . S XUSB1=$G(XUSBXID(XUSB)) I XUSB1'="" S XUSB1="^"_XUSB1 ;add p 528
  . . . S XUSCNT=XUSCNT+1,TOTREC1=TOTREC1+1
- . . . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_XUSB_U_XUSEOL
+ . . . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_$$TRIM^XLFSTR(XUSB)_XUSB1_U_XUSEOL ;add _XUSB1 p 528
  . . . S XUSIZE=XUSIZE+$L(^TMP(XUSRTN,$J,XUSCNT))
  . I XUSIZE>MAXSIZE D
  . . D EOF1(XUSRTN)
- . . D EMAIL^XUSNPIX3(XUSRTN)
+ . . D EMAIL^XUSNPIX3(XUSRTN) ;sending the extracted data via MailMan
  . . K ^TMP(XUSRTN,$J)
  . . S ^TMP("XUSNPIXS",$J,3,MSGCNT)="1 (Non-VA)^"_(XUSCNT-2)
  . . S ^TMP(XUSRTN,$J,1)=XUSHDR
@@ -136,7 +164,7 @@ TYPE1(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;
  ;
  ; Send last message (if it has records)
  I $G(XUSCNT)>1 D
- . D EMAIL^XUSNPIX3(XUSRTN)
+ . D EMAIL^XUSNPIX3(XUSRTN) ;sending the extracted data via MailMan
  . K ^TMP(XUSRTN,$J)
  . S ^TMP("XUSNPIXS",$J,3,MSGCNT)="1 (Non-VA)^"_($G(XUSCNT)-2)
  ;
@@ -152,7 +180,7 @@ EOF1(XUSRTN) ;
  S ^TMP(XUSRTN,$J,XUSCNT)="END OF FILE"_U_XUSEOL
  Q
  ;
-TYPE2(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;Facility/Group
+TYPE2(DTTM3,SITE,XUSPROD,XUSHDR,XUSP2P) ;Facility/Group
  N IBA0,NVIEN,XUSNPI,MAXSIZE,XUSEOL,XUSCNT
  N XUSNV,XUSI,XUSNM,XLFNC,MSGCNT,XUSIZE,XUSDT,XUSNEW,TOTREC2
  ;
@@ -170,28 +198,28 @@ TYPE2(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;Facility/Group
  . ;
  . F XUSI=1:1:24 S XUSNV(XUSI)=""
  . S IBA0=$G(^IBA(355.93,NVIEN,0))
- . ;Get Organization name
+ . ;Get Organization name  
  . S XUSNV(2)=$P(IBA0,U)
  . ;Type
  . S XUSNV(3)=2
  . ;
  . S XUSDATA=XUSDATA_U_XUSNV(2)_U_XUSNV(3)
  . ;
- . ; Pay to Provider Address (4-8)
- . S XUSDATA=XUSDATA_U_PTPMAIL
+ . ; Pay to Provider Address (4-9)
+ . S XUSDATA=XUSDATA_U_XUSP2P
  . ;
  . ; Servicing Provider Address
- . S XUSNV(9)=$P(IBA0,U,5)
- . S XUSNV(10)=$P(IBA0,U,10)
- . S XUSNV(11)=$P(IBA0,U,6)
- . S XUSNV(12)=$P(IBA0,U,7)
- . I XUSNV(12) S XUSNV(12)=$P($G(^DIC(5,XUSNV(12),0)),U,2)
- . S XUSNV(13)=$P(IBA0,U,8)
- . S XUSDATA=XUSDATA_U_XUSNV(9)_U_XUSNV(10)_U_XUSNV(11)_U_XUSNV(12)_U_XUSNV(13)
+ . S XUSNV(10)=$P(IBA0,U,5)
+ . S XUSNV(11)=$P(IBA0,U,10)
+ . S XUSNV(12)=$P(IBA0,U,6)
+ . S XUSNV(13)=$P(IBA0,U,7)
+ . I XUSNV(13) S XUSNV(13)=$P($G(^DIC(5,XUSNV(13),0)),U,2) ;SLT 9/23/10
+ . S XUSNV(14)=$P(IBA0,U,8)
+ . S XUSDATA=XUSDATA_U_XUSNV(10)_U_XUSNV(11)_U_XUSNV(12)_U_XUSNV(13)_U_XUSNV(14)
  . ;
  . ;Office Phone number (place holder)
- . S XUSNV(14)=""
- . ;
+ . S XUSNV(15)=""
+ . ; 
  . ; get Taxonomy and Specialty
  . N NVTX,NVSPC,NVTAX
  . S NVTX=0
@@ -199,50 +227,60 @@ TYPE2(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;Facility/Group
  . . S NVSPC=$P($G(^USC(8932.1,NVTX,0)),U,9)
  . . S NVTAX=$P($G(^USC(8932.1,NVTX,0)),U,7)
  . . I NVSPC'="" D
- . . . I XUSNV(15)="" S XUSNV(15)=NVSPC Q
- . . . S XUSNV(15)=XUSNV(15)_";"_NVSPC
+ . . . I XUSNV(16)="" S XUSNV(16)=NVSPC Q
+ . . . S XUSNV(16)=XUSNV(16)_";"_NVSPC
  . . I NVTAX'="" D
- . . . I XUSNV(16)="" S XUSNV(16)=NVTAX Q
- . . . S XUSNV(16)=XUSNV(16)_";"_NVTAX
+ . . . I XUSNV(17)="" S XUSNV(17)=NVTAX Q
+ . . . ;
+ . . . ; *** Start XU*8.0*548 - RBN ***
+ . . . ;
+ . . . ;S XUSNV(17)=XUSNV(17)_";"_NVTAX
+ . . . S:(XUSNV(17)'[NVTAX) XUSNV(17)=XUSNV(17)_";"_NVTAX
+ . . . ;
+ . . . ; *** End XU*8.0*548 - RBN ***
  . ;
  . ; Fed Tax ID
- . S XUSNV(17)=$P($G(IBA0),U,9)
+ . S XUSNV(18)=$P($G(IBA0),U,9)
  . ;
  . ;Medicare A/B
- . S XUSNV(18)=670899
- . S XUSNV(19)="VA"_$E(SITE+10000,2,5)
+ . S XUSNV(19)=670899
+ . S XUSNV(20)="VA"_$E(SITE+10000,2,5)
  . ;
- . S XUSDATA=XUSDATA_U_XUSNV(14)_U_XUSNV(15)_U_XUSNV(16)_U_XUSNV(17)_U_XUSNV(18)_U_XUSNV(19)
+ . S XUSDATA=XUSDATA_U_XUSNV(15)_U_XUSNV(16)_U_XUSNV(17)_U_XUSNV(18)_U_XUSNV(19)_U_XUSNV(20)
  . ;
  . ;State License Number
- . S XUSNV(20)=$P($G(IBA0),U,12)
+ . ;S XUSNV(20)=$P($G(IBA0),U,12)
  . ;
  . ;DEA Number (place holder)
  . S XUSNV(21)=""
  . ;
- . ;VISN STATION ID
- . S XUSNV(22)=SITE
+ . ;NCPDP #
+ . S XUSNV(22)=""
  . ;
- . S XUSDATA=XUSDATA_U_XUSNV(20)_U_XUSNV(21)_U_XUSNV(22)
+ . ;VISN STATION ID
+ . S XUSNV(23)=SITE
+ . ;
+ . S XUSDATA=XUSDATA_U_XUSNV(21)_U_XUSNV(22)_U_XUSNV(23)
  . ;
  . ;BCBS info
  . K XUSBXID
  . D NNVAID^XUSNPIXU(NVIEN,.XUSBXID)
  . ;
  . ;Update counter and save Entry
- . N XUSB
+ . N XUSB,XUSB1
  . S XUSCNT=XUSCNT+1,TOTREC2=TOTREC2+1
  . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_XUSEOL
  . S XUSIZE=XUSIZE+$L(^TMP(XUSRTN,$J,XUSCNT))
  . I $D(XUSBXID) D
  . . S XUSB=""
  . . F  S XUSB=$O(XUSBXID(XUSB)) Q:XUSB=""  D
+ . . . S XUSB1=$G(XUSBXID(XUSB)) I XUSB1'="" S XUSB1="^"_XUSB1 ;add p 528
  . . . S XUSCNT=XUSCNT+1,TOTREC2=TOTREC2+1
- . . . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_XUSB_U_XUSEOL
+ . . . S ^TMP(XUSRTN,$J,XUSCNT)=XUSDATA_U_$$TRIM^XLFSTR(XUSB)_XUSB1_U_XUSEOL ;add _XUSB1 p 528
  . . . S XUSIZE=XUSIZE+$L(^TMP(XUSRTN,$J,XUSCNT))
  . I XUSIZE>MAXSIZE D
  . . D EOF2(XUSRTN)
- . . D EMAIL^XUSNPIX3(XUSRTN)
+ . . D EMAIL^XUSNPIX3(XUSRTN) ;sending the extracted data via MailMan
  . . K ^TMP(XUSRTN,$J)
  . . S ^TMP("XUSNPIXS",$J,4,MSGCNT)="2 (Non-VA)^"_(XUSCNT-2)
  . . S ^TMP(XUSRTN,$J,1)=XUSHDR
@@ -253,7 +291,7 @@ TYPE2(DTTM3,PTPMAIL,SITE,XUSPROD,XUSHDR) ;Facility/Group
  ;
  ; Send last message (if it has records)
  I $G(XUSCNT)>1 D
- . D EMAIL^XUSNPIX3(XUSRTN)
+ . D EMAIL^XUSNPIX3(XUSRTN) ;sending the extracted data via MailMan
  . K ^TMP(XUSRTN,$J)
  . S ^TMP("XUSNPIXS",$J,4,MSGCNT)="2 (Non-VA)^"_($G(XUSCNT)-2)
  ;

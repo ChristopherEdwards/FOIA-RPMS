@@ -1,0 +1,27 @@
+BQI25PRE ;GDIT/HS/ALA-Preinstall ; 08 Jan 2015  8:57 AM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
+ ;
+ ;
+PRE ;EP
+ NEW CODE,NM,DA,DIK,IEN,DIU
+ S DIK="^BQI(90506.1,"
+ F CODE="2007_","2008_","2009_","2010_","2011_","2012_","2013_" D
+ . S NM=CODE
+ . F  S NM=$O(^BQI(90506.1,"B",NM)) Q:NM=""!($E(NM,1,5)'=CODE)  D
+ .. S IEN=$O(^BQI(90506.1,"B",NM,""))
+ .. S DA=IEN D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506.9,"
+ F  S DA=$O(^BQI(90506.9,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90507.1,"
+ F  S DA=$O(^BQI(90507.1,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIK="^BQI(90506,"
+ F  S DA=$O(^BQI(90506,DA)) Q:'DA  D ^DIK
+ ;
+ S DA=0,DIC="^BQI(90506.4,"
+ F  S DA=$O(^BQI(90506.4,DA)) Q:'DA  D ^DIK
+ ;
+ S DIU="^BQI(90508,",DIU(0)="" D EN^DIU2
+ Q

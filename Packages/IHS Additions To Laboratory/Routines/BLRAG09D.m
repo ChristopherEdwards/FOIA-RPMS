@@ -1,5 +1,5 @@
-BLRAG09D ; IHS/MSC/SAT - SUPPORT FOR LABORATORY ACCESSION GUI RPCS ; NOV 16, 2012
- ;;5.2;IHS LABORATORY;**1031**;NOV 01, 1997;Build 185
+BLRAG09D ; IHS/MSC/SAT - SUPPORT FOR LABORATORY ACCESSION GUI RPCS ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1031,1034**;NOV 01, 1997;Build 88
  ;
  ;screen formatted text for manifest display
 DEVT(BLRTXT,LA7SCFG,LA7SM,BLRIOM,BLRIOSL) ; collect manifest text for terminal display
@@ -285,7 +285,8 @@ DGP(ORI) ;
  . S CNT=CNT+1
  . S DX=$P($G(^BLRRLO(ORI,1,BDA,0)),U)
  . S DXE=$P($G(^ICD9(DX,0)),U)
- . S DXEE=$E($P($G(^ICD9(DX,0)),U,3),1,39)
+ . ; S DXEE=$E($P($G(^ICD9(DX,0)),U,3),1,39)
+ . S DXEE=$E($$DIAGICD^BLRAG07(DX),1,39)    ; IHS/MSC/MKK - LR*5.2*1034
  . D WR("Diagnosis: ",DXE,11,1)
  . D WR("Description: ",DXEE,30)
  Q

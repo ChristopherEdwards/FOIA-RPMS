@@ -1,5 +1,5 @@
-BPXRMIMF ; IHS/CIA/MGH - Handle measurement findings. ;22-Feb-2012 09:41;DU
- ;;1.5;CLINICAL REMINDERS;**1002,1004,1008**;Jun 19, 2000;Build 25
+BPXRMIMF ; IHS/MSC/MGH - Handle immunization forecaster. ;18-Apr-2014 15:21;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,1002**;Feb 04, 2005;Build 15
  ;=================================================================
  ;This routine is designed to check and see if the forecaster has
  ;already run for this patient.  If it has run, the data is current.
@@ -8,8 +8,10 @@ BPXRMIMF ; IHS/CIA/MGH - Handle measurement findings. ;22-Feb-2012 09:41;DU
 CHECK(DFN,TEST,DATE,VALUE,TEXT) ;
  ;Check if forecaster already has already run
  N X,Y,TODAY,BIERR
- S X="TODAY" D ^%DT S TODAY=Y
- D RUN
+ S TODAY=$$DT^XLFDT()
+ I $D(^XTMP("BIPDUE",DFN)) D
+ .I $G(^XTMP("BIPDUR",DFN))'=TODAY D RUN
+ I '$D(^XTMP("BIPDUE",DFN)) D RUN
  Q
 RUN ;Run the forecaster
  I '$$FORECAS^BIUTL2(DUZ(2)) S TEST=1,VALUE="Forecasting not enabled",DATE=TODAY Q

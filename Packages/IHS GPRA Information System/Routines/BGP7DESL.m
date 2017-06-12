@@ -1,5 +1,5 @@
-BGP7DESL ; IHS/CMI/LAB - FY 07 DISPLAY IND LISTS ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+BGP7DESL ; IHS/CMI/LAB - IHS 2017 DISPLAY IND LISTS ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;; ;
 RT ;EP
  ;for each measure list, choose report type
@@ -23,7 +23,7 @@ EOJ1 ;EP
  Q
  ;; ;
 EN ;EP -- main entry point for GPRA LIST DISPLAY
- D EN^VALM("BGP 07 ELDER LIST SELECTION")
+ D EN^VALM("BGP 17 ELDER LIST SELECTION")
  D CLEAR^VALM1
  D FULL^VALM1
  W:$D(IOF) @IOF
@@ -31,17 +31,17 @@ EN ;EP -- main entry point for GPRA LIST DISPLAY
  Q
  ;
 HDR ; -- header code
- S VALMHDR(1)="IHS FY 07 ELDER Performance Measure Lists of Patients"
+ S VALMHDR(1)="IHS 2017 ELDER Performance Measure Lists of Patients"
  S VALMHDR(2)="* indicates the list has been selected"
  Q
  ;
 INIT ; -- init variables and list array
  K BGPGLIST,BGPNOLI S BGPHIGH=""
  S (X,C,I)=0 F  S X=$O(BGPIND(X)) Q:X'=+X  D
- .I $P(^BGPELIA(X,0),U,5)]"" S C=C+1 D  Q
- ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPELIA(X,0),U,5),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
- .I $P(^BGPELIA(X,0),U,5)="" S C=C+1 D
- ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPELIA(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P($G(^BGPELIG(X,13)),U,1)]"" S C=C+1 D  Q
+ ..S BGPGLIST(C,0)=C_")",$E(BGPGLIST(C,0),5)=$P(^BGPELIG(X,13),U,1),BGPGLIST("IDX",C,C)=X I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
+ .I $P(^BGPELIG(X,0),U,5)="" S C=C+1 D
+ ..S BGPGLIST(C,0)="NO patient list available for measure:  "_$P(^BGPELIG(X,0),U,4),BGPGLIST("IDX",C,C)=X,BGPNOLI(X)="" I $D(BGPLIST(X)) S BGPGLIST(C,0)="*"_BGPGLIST(C,0)
  S (VALMCNT,BGPHIGH)=C
  Q
  ;
@@ -69,7 +69,7 @@ ADD ;EP - add an item to the selected list - called from a protocol
  I Y="" W !,"No items selected." G ADDX
  I $D(DIRUT) W !,"No items selected." G ADDX
  D FULL^VALM1 W:$D(IOF) @IOF
- S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  S BGPI=$O(BGPGLIST("IDX",BGPGC,0)) I $D(BGPIND(BGPI)),'$D(BGPNOLI(BGPI)) S BGPLIST(BGPI)=""
+ S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  S BGPI=BGPGLIST("IDX",BGPGC,BGPGC) I $D(BGPIND(BGPI)),'$D(BGPNOLI(BGPI)) S BGPLIST(BGPI)=""
 ADDX ;
  D BACK
  Q
@@ -83,7 +83,7 @@ REM ;
  I Y="" W !,"No items selected." G ADDX
  I $D(DIRUT) W !,"No items selected." G ADDX
  D FULL^VALM1 W:$D(IOF) @IOF
- S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  K BGPLIST(BGPGC)
+ S BGPGANS=Y,BGPGC="" F BGPGI=1:1 S BGPGC=$P(BGPGANS,",",BGPGI) Q:BGPGC=""  S I=BGPGLIST("IDX",BGPGC,BGPGC) K BGPLIST(I)
 REMX ;
  D BACK
  Q

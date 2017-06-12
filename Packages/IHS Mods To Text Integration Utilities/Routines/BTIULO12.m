@@ -1,5 +1,5 @@
-BTIULO12 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;15-Jul-2013 09:49;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010,1011**;NOV 04, 2004;Build 9
+BTIULO12 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;06-Jan-2016 12:29;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010,1012,1016**;NOV 04, 2004;Build 10
 TORDER(DFN,TARGET) ;EP Orders for today
  NEW X,I,CNT,RESULT
  S CNT=0
@@ -30,8 +30,9 @@ GETORD(RETURN,DFN) ;Get list of orders
  . S C=C+1
  . F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;Patch 1011
- .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
+ .. ;I $E(ORD("TX",Y),1,6)="Change" Q
+ .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999)
+ .. ;I $E(ORD("TX",Y),1,3)="to " Q
  .. I $E(ORD("TX",Y),1,3)="to " D
  ... K RETURN(C)
  ... S NEWORD=$E(ORD("TX",Y),4,999)
@@ -71,15 +72,11 @@ GETORD2(RETURN,DFN,TYPE) ;Get list of orders
  . I NATURE'="" S CODE=$P($G(^ORD(100.02,NATURE,0)),U,2)
  . Q:CODE'=TYPE
  .F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
- .. S C=C+1
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;Patch 1011
- .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
- .. I $E(ORD("TX",Y),1,3)="to " D
- ... K RETURN(C)
- ... S NEWORD=$E(ORD("TX",Y),4,999)
- ... S RETURN(C)="  "_NEWORD
- .. E  S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
+ .. I $E(ORD("TX",Y),1,6)="Change" Q
+ .. I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
+ .. S C=C+1
+ .. S RETURN(C)=$G(RETURN(C))_"  "_$P(ORD("TX",Y)," Quantity:")
  I C=0 S RETURN(1)=""
  K ^TMP("ORR",$J)
  Q
@@ -141,4 +138,45 @@ PHN(DFN,TARGET,NUM) ;Return PHN data
  ...I LONG'="" D
  ....S CT=CT+1
  ....S @TARGET@(CT,0)="Long Term Goals: "_LONG
+ I CT=0 S @TARGET@(1,0)="No PHNs for this patient."
+ Q "~@"_$NA(@TARGET)
+ ;New object for current PHN Patch 1016
+VPHN(DFN,TARGET) ;Return PHN for the visit context patch 1016
+ N X,VST,VDT,CNT,RESULT,PHN,FNUM,LONG,LVL,NSG,PSYCH,REC,SHORT,VDATE
+ I $T(GETVAR^CIAVMEVT)="" S @TARGET@(1,0)="Invalid context variables" Q "~@"_$NA(@TARGET)
+ S CNT=0
+ S FNUM=9000010.32
+ S VST=$$GETVAR^CIAVMEVT("ENCOUNTER.ID.ALTERNATEVISITID",,"CONTEXT.ENCOUNTER")
+ I VST="" S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S X="BEHOENCX" X ^%ZOSF("TEST") I $T S VST=+$$VSTR2VIS^BEHOENCX(DFN,VST) I VST<1 S @TARGET@(1,0)="Invalid visit" Q "~@"_$NA(@TARGET)
+ S PHN="" F  S PHN=$O(^AUPNVPHN("AD",VST,PHN)) Q:PHN=""  D
+ .S REC=$G(^AUPNVPHN(PHN,0))
+ .S LVL=$$GET1^DIQ(FNUM,PHN,.05)
+ .S TYPE=$$GET1^DIQ(FNUM,PHN,.06)
+ .S PSYCH=$G(^AUPNVPHN(PHN,21))
+ .S NSG=$G(^AUPNVPHN(PHN,22))
+ .S SHORT=$G(^AUPNVPHN(PHN,23))
+ .S LONG=$G(^AUPNVPHN(PHN,24))
+ .S VDATE=$$GET1^DIQ(9000010.32,PHN,.03)
+ .S CNT=CNT+1
+ .S @TARGET@(CNT,0)="Visit Date: "_VDATE
+ .I LVL'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Level of Intervention: "_LVL
+ .I TYPE'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Type of Decision Making: "_TYPE
+ .I PSYCH'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Psycho/Social/Envron: "_PSYCH
+ .I NSG'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Nursing DX: "_NSG
+ .I SHORT'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Short Term Goals: "_SHORT
+ .I LONG'="" D
+ ..S CNT=CNT+1
+ ..S @TARGET@(CNT,0)="Long Term Goals: "_LONG
+ I CNT=0 S @TARGET@(1,0)="No PHN for this visit."
  Q "~@"_$NA(@TARGET)

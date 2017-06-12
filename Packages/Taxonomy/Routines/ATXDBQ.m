@@ -1,0 +1,62 @@
+ATXDBQ ;IHS/CMI/LAB-CREATED BY ^ATXSTX ON APR 01, 2014;
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
+ ;;BQI TUBERCULOSIS BCG DXS
+ ;
+ ; This routine loads Taxonomy BQI TUBERCULOSIS BCG DXS
+ ;
+START ;
+ K:'$G(ATXPGMC) ^TMP("ATX",$J)
+ S ATXPGMC=$G(ATXPGMC)+1
+ F ATXI=1:1 S X=$P($T(TMP+ATXI),";;",2,99) Q:X=""  S X="^TMP(""ATX"",$J,"_X,ATXI=ATXI+1,Y=$P($T(TMP+ATXI),";;",2,99) S @X=Y
+ D OTHER
+ I $O(^TMP("ATX",$J,3.6,0)) D BULL^ATXSTX2
+ I $O(^TMP("ATX",$J,9002226,0)) D TAX^ATXSTX2
+ D KILL^ATXSTX2
+ Q
+ ;
+TMP ;;TAXONOMY (WITH BULLETIN)
+ ;;21,"V03.2 ")
+ ;;1
+ ;;9002226,1877,.01)
+ ;;BQI TUBERCULOSIS BCG DXS
+ ;;9002226,1877,.02)
+ ;;Tuberculosis (BCG) Vaccine
+ ;;9002226,1877,.04)
+ ;;n
+ ;;9002226,1877,.06)
+ ;;@
+ ;;9002226,1877,.08)
+ ;;0
+ ;;9002226,1877,.09)
+ ;;3131204
+ ;;9002226,1877,.11)
+ ;;@
+ ;;9002226,1877,.12)
+ ;;31
+ ;;9002226,1877,.13)
+ ;;1
+ ;;9002226,1877,.14)
+ ;;@
+ ;;9002226,1877,.15)
+ ;;80
+ ;;9002226,1877,.16)
+ ;;@
+ ;;9002226,1877,.17)
+ ;;@
+ ;;9002226,1877,3101)
+ ;;@
+ ;;9002226.01101,"1877,1",.01)
+ ;;Need For Prophylactic Vaccination With Tuberculosis (BCG) Vaccine
+ ;;9002226.01101,"1877,2",.01)
+ ;;part of CDC Nationally Notificable Disease
+ ;;9002226.02101,"1877,V03.2 ",.01)
+ ;;V03.2
+ ;;9002226.02101,"1877,V03.2 ",.02)
+ ;;V03.2
+ ;;9002226.02101,"1877,V03.2 ",.03)
+ ;;1
+ ;;9002226.04101,"1877,1",.01)
+ ;;BQI
+ ;
+OTHER ; OTHER ROUTINES
+ Q

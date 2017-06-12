@@ -1,5 +1,5 @@
 AMHLETN ; IHS/CMI/LAB - DISPLAY/EDIT TREATMENT NOTES ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**5**;JUN 02, 2010;Build 18
  ;
  ;
  ;
@@ -26,7 +26,7 @@ DISP ;EP - display current Treatment plans for this problem
  Q:'$G(AMHLETP("PROB IEN"))
  S AMHLETP("PROB REC")=^AMHPPROB(AMHLETP("PROB IEN"),0)
  W !!,"Problem #",+$P(AMHLETP("PROB REC"),U,7),?17,"Problem Diagnosis: ",$P(^AMHPROB($P(AMHLETP("PROB REC"),U),0),U),?45,"Patient: ",$E($P(^DPT($P(AMHLETP("PROB REC"),U,2),0),U),1,25)
- W !,"Provider Narrative: " S AMHLETP("NRQ")=$P(AMHLETP("PROB REC"),U,5),AMHLETP("NRQ")=$P(^AUTNPOV(AMHLETP("NRQ"),0),U),AMHLETP("ICL")=21,AMHLETP("TXT")="" D PRTTXT
+ W !,"Provider Narrative: " S AMHLETP("NRQ")=$$GET1^DIQ(9002011.51,AMHLETP("PROB IEN"),.05),AMHLETP("ICL")=21,AMHLETP("TXT")="" D PRTTXT
  I $O(^AMHPTP("AE",AMHLETP("PROB IEN"),"")) W !,"TREATMENT NOTES:",!
  ;I '$O(^AMHPTP("AE",AMHLETP("PROB IEN"),"")) W !!,"No Treatment Plans recorded for this problem.",! K AMHLETP Q
  NEW %

@@ -1,25 +1,32 @@
-PXRMAGE ; SLC/PKR - Utilities for age calculations. ;17-Feb-2006 11:02;MGH
- ;;1.5;CLINICAL REMINDERS;**2,5,1001,1002,1004**;Jun 19, 2000
- ;IHS/CIA/MGH - 5/12/2004 Changes made to calculate ages in months
- ;IHS/CIA/MGH - 5/27/2005 Changes made to use age decode in reminder resolution
+PXRMAGE ; SLC/PKR - Utilities for age calculations. ;07-Jun-2012 09:58;DU
+ ;;2.0;CLINICAL REMINDERS;**4,1001**;Feb 04, 2005;Build 21
+ ;IHS/MSC/MGH Make changes for babies and toddlers
+ ;===========================================
+AGE(DOB,DOD,DATE) ;Given a date of birth, date of death, and a date
+ ;return the age on that date. If the date of death is not null the
+ ;return the age on the date of death. All dates should be in VA
+ ;Fileman format.
+ ;IHS/MSC/MGH patch 1001 was not returning correct data for babies
+ N CDATE,BAGE,VADM
+ S CDATE=$S(DOD="":DATE,DOD'="":DOD)
+ S BAGE=(CDATE-DOB)\10000
+ I BAGE<2 D
+ .D DEM^VADPT
+ .S BAGE=VADM(4)
+ Q BAGE
  ;
- ;=======================================================================
-AGE(DOB,DATE) ;Given a date of birth and a date return the age on that date.
- ;Both dates should be in VA Fileman format.
- Q (DATE-DOB)\10000
- ;
- ;=======================================================================
+ ;===========================================
 AGECHECK(AGE,MINAGE,MAXAGE) ;Given an AGE, MINimumAGE, and MAXimumAGE
  ;return true if age lies within the range.
  ;Special values of NULL or 0 mean there are no limits.
  ;
- ; IHS/CIA/MGH - 5/12/2004 PATCH 1001 Changed to function call to calculate age
- ; Two lines changed and one added
+ ;IHS/MSC/MGH Put back in age check patch 1001
  ;S MAXAGE=+MAXAGE
  ;S MINAGE=+MINAGE
+ N PTAGE
+ S AGE=$$DECAGE(AGE)
  S MAXAGE=$$DECODE(MAXAGE)
  S MINAGE=$$DECODE(MINAGE)
- S AGE=$$DECAGE(AGE)
  ;See if too old.
  I (AGE>MAXAGE)&(MAXAGE>0) Q 0
  ;
@@ -28,16 +35,18 @@ AGECHECK(AGE,MINAGE,MAXAGE) ;Given an AGE, MINimumAGE, and MAXimumAGE
  I AGE<MINAGE Q 0
  Q 1
  ;
+ ;===========================================
 DECAGE(AGEVALUE) ; Put age from VADPT into format for reminders
- ; IHS/CIA/MGH - 5/12/2004 PATCH 1001 Added function to change age into days
+ ; IHS/MSC/MGH - 2/28/2012 PATCH 1001 Added function to change age into days or months
  N NUM,CODE,MULT
  S NUM=$P(AGEVALUE," ",1),CODE=$P(AGEVALUE," ",2)
  S MULT=1.0
  I CODE="MOS" S MULT=30.42
  I CODE=""!(CODE="YRS") S MULT=365.25
  Q +(MULT*NUM)
+ ;====================================================================
 DECODE(AGEVALUE) ;Determine the age in years or months
- ; IHS/CIA/MGH - 5/12/2004 PATCH 1001 Added function to change reminder defintion ages into days
+ ; IHS/MSC/MGH - 2/28/2012 PATCH 1001 Added function to change reminder
  N CODE,LEN,MULT,NUM
  S LEN=$L(AGEVALUE)
  S NUM=$E(AGEVALUE,1,LEN-1)
@@ -46,7 +55,7 @@ DECODE(AGEVALUE) ;Determine the age in years or months
  I CODE="M" S MULT=30.42
  I CODE="Y"!(CODE="") S MULT=365.25
  Q +(MULT*NUM)
- ;=======================================================================
+ ;==================================================================
 FMTAGE(MINAGE,MAXAGE) ;Format the minimum age and maximum age for display.
  N STR
  I $L(MINAGE)!$L(MAXAGE) D
@@ -56,29 +65,25 @@ FMTAGE(MINAGE,MAXAGE) ;Format the minimum age and maximum age for display.
  E  S STR=" for all ages"
  Q STR
  ;
- ;=======================================================================
+ ;===========================================
 FMTFREQ(FREQ) ;Format the frequency for display.
- ;This is based on FREQ^PXRMPT.
- N STR
- I +FREQ=0 S STR=FREQ_" - Not Indicated" Q STR
- I FREQ?1"99Y" S STR="99Y - Once"
- E  S STR=+FREQ_($S(FREQ["D":" day",FREQ["M":" month",FREQ["Y":" year",1:""))_$S(+FREQ>1:"s",1:"")
- Q STR
+ N FREQT,STR
+ S STR="Frequency: "
+ S FREQT=$$FREQ^PXRMPTD2(FREQ)
+ I FREQ=-1 Q STR_FREQT
+ Q STR_"Due every "_FREQT
  ;
- ;=======================================================================
-MMF(MINAGE,MAXAGE,FREQ,FIEVAL) ;Set the baseline minimum age, maximum
- ;age, and frequency.  If there are multiple intervals they cannot
- ;overlap.
+ ;===========================================
+MMF(DEFARR,PXRMPDEM,MINAGE,MAXAGE,FREQ,FIEVAL) ;Set the baseline minimum age,
+ ;maximum age, and frequency.  If there are multiple intervals they
+ ;cannot overlap.
  N FR,IC,INDEX,MATCH,MAXA,MINA,NAR,TEMP
- ;
  ;Initialize MINAGE, MAXAGE, and FREQ.
  S (MINAGE,MAXAGE,FREQ)=""
- ;
- S IC=0
- S NAR=0
- F  S IC=$O(^PXD(811.9,PXRMITEM,7,IC)) Q:+IC=0  D
+ S (IC,NAR)=0
+ F  S IC=$O(DEFARR(7,IC)) Q:+IC=0  D
  . S NAR=NAR+1
- . S TEMP=$G(^PXD(811.9,PXRMITEM,7,IC,0))
+ . S TEMP=DEFARR(7,IC,0)
  . S FR(NAR)=$$UP^XLFSTR($P(TEMP,U,1))
  . S MINA(NAR)=$P(TEMP,U,2)
  . S MAXA(NAR)=$P(TEMP,U,3)
@@ -87,13 +92,13 @@ MMF(MINAGE,MAXAGE,FREQ,FIEVAL) ;Set the baseline minimum age, maximum
  I NAR=0 Q
  ;
  ;Make sure that none of the age ranges overlap.
- I $$OVERLAP(NAR,.MINA,.MAXA) Q
+ I $D(PXRMDEBG),$$OVERLAP(NAR,.MINA,.MAXA) Q
  ;
  ;Look for an age range match.
  S FREQ=-1
  S MATCH=0
  F IC=1:1:NAR Q:MATCH  D
- . I $$AGECHECK(PXRMAGE,MINA(IC),MAXA(IC)) D
+ . I $$AGECHECK(PXRMPDEM("AGE"),MINA(IC),MAXA(IC)) D
  .. S MATCH=1
  .. S MINAGE=MINA(IC)
  .. S MAXAGE=MAXA(IC)
@@ -101,31 +106,12 @@ MMF(MINAGE,MAXAGE,FREQ,FIEVAL) ;Set the baseline minimum age, maximum
  .. S FIEVAL("AGE",INDEX(IC))=1
  Q
  ;
- ;=======================================================================
-MNMT(NLINES,FIEVAL) ;Output the AGE match/no match text.
- N IC,IND,LC,TEXT
- I '$D(FIEVAL("AGE")) Q
- S IC=""
- F  S IC=$O(FIEVAL("AGE",IC)) Q:IC=""  D
- . I FIEVAL("AGE",IC)=1 S IND=1
- . E  S IND=2
- . S LC=0
- . F  S LC=$O(^PXD(811.9,PXRMITEM,7,IC,IND,LC)) Q:LC=""  D
- .. S TEXT=$G(^PXD(811.9,PXRMITEM,7,IC,IND,LC,0))
- .. D ADDTXT^PXRMOPT(.NLINES,TEXT)
- . I $D(PXRMDEV) D
- .. N DES,UID
- .. S DES="AGE"_IC_IND
- .. S UID=DES_$$NTOAN^PXRMUTIL(LC)
- .. S ^TMP(PXRMPID,$J,PXRMITEM,UID)=FIEVAL("AGE",IC)
- Q
- ;
- ;=======================================================================
+ ;===========================================
 OVERLAP(NAR,MINA,MAXA) ;Check age ranges for overlap.  Return an error message
  ;if an overlap is found.
- ;IHS/CIA/MGH Changes made to decode the ages into numeric results
+ ;IHS/MSC/MGH Decode added for IHS ages
  I NAR'>1 Q 0
- N IC,IN,JC,MAXI,MAXJ,MINI,MINJ,OVRLAP
+ N IC,IN,JC,MAXI,MAXJ,MINI,MINJ,OVRLAP,TEXT
  S OVRLAP=0
  F IC=1:1:NAR-1 D
  . S MAXI=$$DECODE(MAXA(IC))
@@ -142,28 +128,28 @@ OVERLAP(NAR,MINA,MAXA) ;Check age ranges for overlap.  Return an error message
  .. I (MAXJ'<MINI)&(MAXJ'>MAXI) S IN=1
  .. I IN D
  ... S OVRLAP=OVRLAP+1
- ... S ^TMP(PXRMPID,$J,PXRMITEM,"FERROR","AGE OVERLAP",OVRLAP)=MINA(IC)_" to "_MAXA(IC)_" and "_MINA(JC)_" to "_MAXA(JC)
+ ... S TEXT=MINA(IC)_" to "_MAXA(IC)_" and "_MINA(JC)_" to "_MAXA(JC)
+ ... I $D(PXRMPID) S ^TMP(PXRMPID,$J,PXRMITEM,"FERROR","AGE OVERLAP",OVRLAP)=TEXT
+ ... E  S ^TMP($J,"OVERLAP",OVRLAP)=TEXT
  I OVRLAP>1 S OVRLAP=1
  Q OVRLAP
  ;
- ;=======================================================================
-RESTORE(SOURCE,INDEX,FREQ,MINAGE,MAXAGE) ;Restore FREQ, MINAGE, and
- ;MAXAGE back to the original form.
- N IND,TEMP
- I SOURCE="CFIND" D
- . S IND=$O(^PXD(811.9,PXRMITEM,10,"B",INDEX,""))
- . S TEMP=^PXD(811.9,PXRMITEM,10,IND,0)
- ;
- I SOURCE="HFIND" D
- . S IND=$O(^PXD(811.9,PXRMITEM,6,"B",INDEX,""))
- . S TEMP=^PXD(811.9,PXRMITEM,6,IND,0)
- ;
- I SOURCE="TFIND" D
- . S IND=$O(^PXD(811.9,PXRMITEM,4,"B",INDEX,""))
- . S TEMP=^PXD(811.9,PXRMITEM,4,IND,0)
- ;
- S MINAGE=$P(TEMP,U,2)
- S MAXAGE=$P(TEMP,U,3)
- S FREQ=$P(TEMP,U,4)
- Q
+ ;===========================================
+OVLAP() ;Check age ranges for overlap. Called from definition editor after
+ ;input of baseline frequency/age ranges.
+ N IC,NAR,MAXA,MINA,OVERLAP,TEMP
+ S (IC,NAR)=0
+ F  S IC=$O(^PXD(811.9,DA,7,IC)) Q:+IC=0  D
+ . S NAR=NAR+1
+ . S TEMP=^PXD(811.9,DA,7,IC,0)
+ . S MINA(NAR)=$P(TEMP,U,2)
+ . S MAXA(NAR)=$P(TEMP,U,3)
+ S OVERLAP=$$OVERLAP^PXRMAGE(NAR,.MINA,.MAXA)
+ I OVERLAP D
+ . W !,"Error - the following age ranges overlap:"
+ . S IC=0
+ . F  S IC=$O(^TMP($J,"OVERLAP",IC)) Q:IC=""  W !,?2,^TMP($J,"OVERLAP",IC)
+ . K ^TMP($J,"OVERLAP")
+ . W !,"Please correct this problem."
+ Q OVERLAP
  ;

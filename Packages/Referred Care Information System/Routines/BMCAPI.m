@@ -1,5 +1,5 @@
 BMCAPI ; IHS/OIT/FCJ -API ADD,EDIT VIEW A NEW REFERRAL- PASSING PATIENT DFN ;          [ 10/20/2006  1:51 PM ]
- ;;4.0;REFERRED CARE INFO SYSTEM;**2,3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**2,3**;JAN 09, 2006;Build 51
  ;4.0*2 7/20/06 IHS/OIT/FCJ Added flg for closed ref, will no longer
  ;      display as a selection for adding a Secondary ref or modifying
  ;      added flg for display sec ref during sec ref data entry

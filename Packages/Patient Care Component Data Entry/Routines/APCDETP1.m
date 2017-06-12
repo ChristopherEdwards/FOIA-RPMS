@@ -1,5 +1,5 @@
 APCDETP1 ; IHS/CMI/LAB - treatment plan update ; 
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11**;MAY 14, 2009;Build 58
  ;
 PL ;EP
  D EN1^APCDPL
@@ -45,7 +45,7 @@ DI ;
  W !!
  S APCDTDI=""
  S DIR(0)="D^:"_DT_":EP",DIR("A")="Enter Date Initiated" KILL DA D ^DIR KILL DIR
- I $D(DIRUT) D TYPE Q
+ I $D(DIRUT) G TYPE
  S APCDTDI=Y
 RP ;
  W !!
@@ -53,22 +53,26 @@ RP ;
  S APCDTRP="",APCDTRPN=""
  S DIC=200,DIC("A")="Enter Responsible Provider: ",DIC(0)="AEMQ",DIC("S")="I $D(^VA(200,""AK.PROVIDER"",$P($G(^VA(200,+Y,0)),U),+Y)),$P($G(^VA(200,+Y,""PS"")),U,4)="""""
  D ^DIC
- I Y=-1 D DI
+ I Y=-1 G DI
  S APCDTRP=+Y,APCDTRPN=$P(Y,U,2)
 DX ;
  K DIC
  S APCDTDX=""
  W !!,"Please enter the diagnosis associated with this treatment plan.",!
- S DIC="^ICD9(",DIC(0)="AEMQ",APCDDATE=APCDTDI,DIC("S")="D ^AUPNSICD" D ^DIC K DIC
- I Y=-1 G RP
- S APCDTDX=+Y
+ ;K DIC,DIADD,DLAYGO
+ ;S DIC="^ICD9(",DIC(0)="AEMQ",APCDDATE=APCDTDI,DIC("S")="D ICD^AUPNCIX(+Y,,$G(APCDTDI))" D ^DIC K DIC
+ ;I Y=-1 G RP
+ ;S APCDTDX=+Y
+ D ^APCDETPD
+ I $D(APCDTERR) W !,"A valid code was not selected." G DX
+ I '$G(APCDTDX) W !,"A valid code was not selected." D PAUSE G RP
 CONT ;
  W !!!,"A Treatment Plan is going to be added for ",$P(^DPT(DFN,0),U)
  W !,"with the following data:"
  W !?5,"Type: ",APCDTPTN I APCDOTHT]"" W ?40,APCDOTHT
  W !?5,"Date Initiated: ",$$FMTE^XLFDT(APCDTDI)
  W !?5,"Responsible Provider: ",APCDTRPN
- W !?5,"Diagnosis: ",$P($$ICDDX^ICDCODE(APCDTDX),U,2)
+ W !?5,"Diagnosis: ",$P($$ICDDX^ICDEX(APCDTDX,APCDTDI),U,2)
  W !
  W !! S DIR(0)="Y",DIR("A")="Do you want to continue to add this Treatment Plan",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  I $D(DIRUT) D EXIT Q

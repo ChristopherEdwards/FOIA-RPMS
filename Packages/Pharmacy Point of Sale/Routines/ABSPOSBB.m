@@ -1,5 +1,5 @@
 ABSPOSBB ; IHS/FCS/DRS - POS billing - new ;        [ 03/14/2003  11:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**6,7,11,14,19,22,28,31,36,37,38,39,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**6,7,11,14,19,22,28,31,36,37,38,39,46**;JUN 21, 2001;Build 15
  ;
  ; When a transaction completes, POSTING^ABSPOSBB is called
  ; (the transaction completion happens in ^ABSPOSU)

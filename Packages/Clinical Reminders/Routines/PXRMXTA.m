@@ -1,32 +1,59 @@
-PXRMXTA ; SLC/PJH - Reminder Reports Template Edit ;01/02/2002 
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
- ; 
+PXRMXTA ; SLC/PJH - Reminder Reports Template Edit ;23-Mar-2015 10:42;DU
+ ;;2.0;CLINICAL REMINDERS;**4,1001,12,26,1005**;Feb 04, 2005;Build 23
+ ;IHS/MSC/MGH Patch 1001 added data for IHS primary provider
+ ;
  ; Called from PXRMYD,PXRMXD
  ;
  ;Edit selected template or run report
  ;-------------------------------------
+CANEDIT(TIEN) ;
+ I $P($G(^PXRMPT(810.1,TIEN,0)),U,11)=DUZ Q 1
+ I $D(^XUSEC("PXRM MANAGER",DUZ)) Q 1
+ Q 0
+ ;
 START(ROUTINE) ;
- N PXRMASK,PXRMEDIT,PXRMCOPY,MSG,DIC,NLOC
+ N DA,PXRMASK,PXRMEDIT,PXRMCOPY,MSG,DIC,NLOC
+ N PXRMTREM,PXRMTCAT
  S PXRMASK="N",PXRMCOPY="N",PXRMEDIT="N"
  ;Option to edit/copy template
-USE I 'PXRMUSER D ASK(.PXRMASK) Q:$D(DUOUT)!$D(DTOUT)
+USE I 'PXRMUSER,$$CANEDIT($P(PXRMTMP,U)) D ASK(.PXRMASK) Q:$D(DUOUT)!$D(DTOUT)
  ;Option to edit template
  I PXRMASK="Y" D  Q:$D(DUOUT)!$D(DTOUT)
  .;Template edit and redisplay
  .D LOCK Q:$D(DUOUT)
- .D EDIT,UNLOCK
+ .D EDIT^PXRMXTE,UNLOCK
  .;Rollback changes on exit
  .I $D(DUOUT)!$D(DTOUT) D  Q
  ..D ROLL^PXRMXTF
  .;If all the templates have been deleted exit report
  .I '$$FIND^PXRMXT(PXRMTYP) S DTOUT=1 Q
- .;Check if template has been deleted 
+ .;Check if template has been deleted
  .I '$D(DA) S DUOUT=1 Q
  .;Sort out the filing
  .D ^PXRMXTF I $D(MSG) S DUOUT=1 Q
  ;
+CHECK ;Check for missing fields
+ N CNT,CRCNT,NODE,QUIT,RIEN
+ S CNT=0,QUIT=0
+ I PXRMSEL="R" F  S CNT=$O(PXRMLIST(CNT)) Q:CNT'>0  D
+ .S NODE=$G(PXRMLIST(CNT))
+ .I $P(^PXRMXP(810.5,$P(NODE,U),30,0),U,3)'>0 S QUIT=1 W !!,"PATIENT LIST: "_$P(NODE,U,2)_"DOES NOT CONTAIN PATIENTS!" Q
+ ;I PXRMSEL="O" F  S CNT=$O(PXRMOTM(CNT)) Q:CNT'>0  D
+ ;.S NODE=$G(PXRMOTM(CNT))
+ ;.I $P(^OR(100.21,$P(NODE,U),10,0),U,3)'>0 S QUIT=1 W !!,"OE/RR TEAM: "_$P(NODE,U,2)_"DOES NOT CONTAIN PATIENTS!" Q
+ S CNT=0
+ I $D(PXRMRCAT)>0 F  S CNT=$O(PXRMRCAT(CNT)) Q:CNT'>0  D
+ .S NODE=$G(PXRMRCAT(CNT))
+ .S CRCNT=0 F  S CRCNT=$O(^PXRMD(811.7,$P(NODE,U),2,CRCNT)) Q:CRCNT'>0  D
+ ..S RIEN=$P($G(^PXRMD(811.7,$P(NODE,U),2,CRCNT,0)),U)
+ ..I $D(^PXD(811.9,RIEN))'>0 S QUIT=1 D
+ ...W !!,"REMINDER CATEGORY: "_$P(NODE,U,2)_" CONTAINS A POINTER TO ONE OR MORE REMINDERS THAT DO"
+ ...W !,"NOT EXIST ON THE SYSTEM!" Q
+ I QUIT=1,'PXRMUSER W !!,"THE TEMPLATE NEEDS TO BE EDITED." H 2 G USE
+ I QUIT=1,PXRMUSER W !!,"HAVE THE REMINDERS CLINICAL APPLICATION COORDINATOR CORRECT THE TEMPLATE." H 2 Q
+ ;
 FAC ;Option to combine multifacility report
- I "IPO"'[PXRMSEL,NFAC>1 D  Q:$D(DTOUT)  I $D(DUOUT) Q:PXRMUSER  G USE
+ I "IRPO"'[PXRMSEL,NFAC>1 D  Q:$D(DTOUT)  I $D(DUOUT) Q:PXRMUSER  G USE
  .D COMB^PXRMXSD(.PXRMFCMB,"Facilities","N")
  ;
  ;Date range input (location only)
@@ -46,18 +73,30 @@ LCOMB S NLOC=0
  .D NLOC^PXRMXD
  .I NLOC>1 D COMB^PXRMXSD(.PXRMLCMB,TEXT,DEFAULT)
  ;
+ ;Check if combined OE/RR team report is required
+TCOMB S NOTM=0
+ I PXRMREP="D",PXRMSEL="O" D  G:$D(DTOUT) EXIT G:$D(DUOUT) EFF
+ .N DEFAULT,TEXT
+ .S NOTM=$O(PXRMOTM(""),-1) I NOTM<2 Q
+ .S DEFAULT="N",TEXT="OE/RR teams"
+ .D COMB^PXRMXSD(.PXRMTCMB,TEXT,DEFAULT)
+ ;
  ;Reminders Due sort and appointment date options
-APPT I PXRMREP="D" D FUT Q:$D(DTOUT)  I $D(DUOUT) G:(PXRMSEL="L")&(NLOC>1) LCOMB G EFF
+APPT I PXRMREP="D" D FUT Q:$D(DTOUT)  I $D(DUOUT) G:(PXRMSEL="L")&(NLOC>1) LCOMB G:(PXRMSEL="O")&(NOTM>1) TCOMB G EFF
  ;
  ;
  ;Option to print full SSN
 SSN I PXRMREP="D" D  G:$D(DTOUT) EXIT G:$D(DUOUT) APPT
- .D SSN^PXRMXSD(.PXRMSSN)
+ .;IHS/MSC/MGH Patch 1001 Use HRCN
+ .;D SSN^PXRMXSD(.PXRMSSN)
+ .D SSN^PXRMXSD(.PXRMHRCN)
  ;
  ;Option to print without totals, with totals or totals only
 TOT I PXRMREP="S" D  Q:$D(DTOUT)  I $D(DUOUT) G EFF
  .;Default is normal report
  .S PXRMTOT="I"
+ .;Ignore patient list and individual patient options
+ .I "RI"[PXRMSEL Q
  .;Only prompt if more than one location, team or provider is selected
  .I PXRMSEL="P",'$O(PXRMPRV(1)) Q
  .I PXRMSEL="O",'$O(PXRMOTM(1)) Q
@@ -69,14 +108,37 @@ TOT I PXRMREP="S" D  Q:$D(DTOUT)  I $D(DUOUT) G EFF
  .N LIT1,LIT2,LIT3
  .D LIT^PXRMXD,TOTALS^PXRMXSD(.PXRMTOT,LIT1,LIT2,LIT3)
  ;
+SEPCS ;Allow users to determine the output of the Clinic Stops report
+ D SEPCS^PXRMXSD(.PXRMCCS) G:$D(DTOUT) EXIT I $D(DUOUT) G:PXRMREP="D" SSN G TOT
  ;Option to print delimiter separated output
 TABS D  G:$D(DTOUT) EXIT I $D(DUOUT) G:PXRMREP="D" SSN G TOT
  .D TABS^PXRMXSD(.PXRMTABS)
  ;
  ;Select chracter
 TCHAR I PXRMTABS="Y" D  G:$D(DTOUT) EXIT G:$D(DUOUT) TABS
- .D TABSEL^PXRMXSD(.PXRMTABC)
+ .S PXRMTABC=$$DELIMSEL^PXRMXSD
  ;
+DPAT ;Ask whether to include deceased and test patients.
+ S PXRMDPAT=$$ASKYN^PXRMEUT("N","Include deceased patients on the list")
+ N PXRMIDOD I PXRMDPAT>0 S PXRMIDOD=1
+ Q:$D(DTOUT)  G:$D(DUOUT) TABS
+TPAT ;
+ S PXRMTPAT=$$ASKYN^PXRMEUT("N","Include test patients on the list")
+ Q:$D(DTOUT)  G:$D(DUOUT) DPAT
+PATLIST ;
+ N PATLST,PATCREAT
+ I PXRMSEL'="I"&(PXRMUSER=0) D
+ . D ASK^PXRMXD(.PATLST,"Save due patients to a patient list: ",3)
+ . I $G(PATLST)="" Q
+ . I $G(PATLST)="N" S PXRMLIS1=""
+ . I $G(PATLST)="Y" D
+ . . S PATCREAT="N" D ASK^PXRMXD(.PATCREAT,"Secure list?: ",2)
+ . . Q:$D(DTOUT)!($D(DUOUT))
+ . . K PLISTPUG
+ . . S PLISTPUG="N" D ASK^PXRMXD(.PLISTPUG,"Purge Patient List after 5 years?: ",5)
+ I $G(PATLST)="" G:$D(DTOUT) EXIT I $D(DUOUT) G TPAT
+ G:$D(DTOUT) EXIT I $D(DUOUT) G PATLIST
+ I $G(PATLST)="Y" S TEXT="Select PATIENT LIST name: " D PLIST^PXRMLCR(.PXRMLIS1,TEXT,"") Q:$D(DUOUT)!$D(DTOUT)
  ;Initiate report
  D @ROUTINE
 EXIT Q
@@ -84,67 +146,8 @@ EXIT Q
  ;File locking
  ;------------
 UNLOCK L -^PXRMPT(810.1,$P(PXRMTMP,U)) Q
-LOCK L +^PXRMPT(810.1,$P(PXRMTMP,U)):0
+LOCK L +^PXRMPT(810.1,$P(PXRMTMP,U)):DILOCKTM
  E  W !!?5,"Another user is editing this entry" S DUOUT=1
- Q
- ;
- ;Option to Edit
- ;--------------
-EDIT N DIDEL,DIE,DR K DTOUT,DUOUT
- ;Edit report name, title and PXRMSEL (patient sample)
- S DIE=810.1,DA=$P(PXRMTMP,U),DR=".01T;1.9T;1.2T",DIDEL=810.1
- D ^DIE I $D(Y) S DUOUT=1 Q
- ;Check if template has been deleted
- I '$D(DA) Q
- ;Get updated value of PXRMXSEL
- N PXRMSEL S PXRMSEL=X
- ;Needed for 1.6T validation - Prior/Future or Current/Admissions
- N PXRMINP
- ;Further fields depend on value in PXRMXSEL
- I PXRMSEL="I" S DR="6T",PXRMINP=0
- I PXRMSEL="L" D  Q:$D(DUOUT)
- .;Get location report type 
- .S DR="3T;1.5T" D ^DIE I $D(Y) S DUOUT=1 Q
- .N PXRMLCSC S PXRMLCSC=X,DR=""
- .;All location reports - prompt for prior/future/current/admissions
- .I PXRMLCSC="HAI" S PXRMINP=1,DR="1.6T" Q
- .I PXRMLCSC="HA" S PXRMINP=0,DR="1.6T"
- .I PXRMLCSC="CA" S PXRMINP=0,DR="1.6T"
- .;Selected Location/Stop Code/Clinic Group fields 
- .I PXRMLCSC="HS" D  Q:$D(DUOUT)
- ..S DR="10T"
- ..D ^DIE I $D(Y) S DUOUT=1 Q
- ..;Determine if locations input are all wards
- ..S PXRMINP=$$INP^PXRMXAP(PXRMLCSC,.PXRMLOCN)
- ..;Select Prior/Future or Current Inpatient/Admissions
- ..S DR="1.6T"
- .;Clinic Stop input and prior/future
- .I PXRMLCSC="CS" S PXRMINP=0,DR="11T;1.6T"
- .;Clinic Group input and prior/future
- .I PXRMLCSC="GS" S PXRMINP=0,DR="12T;1.6T"
- .;Service categories (except for inpatient reports)
- .I PXRMINP=0 S DR=DR_";9T"
- ;OE/RR teams
- I PXRMSEL="O" S DR="7T"
- ;PCMM Provider and Primary care/All
- I PXRMSEL="P" S DR="4T;1.3T"
- ;PCMM teams
- I PXRMSEL="T" S DR="3T;8T"
- ;Report type (detail or summary)
- S DR=DR_";1.4T"
- ;Reminder Categories
- S DR=DR_";13T"
- ;Reminders
- S DR=DR_";2T"
- ;
- ;Strip of any leading semi-colons
- I $E(DR)=";" S DR=$P(DR,";",2,99)
- ;
- D ^DIE I $D(Y) S DUOUT=1 Q
- ;
- ;If all reminders have been deleted from the template disallow save
- I +$P($G(^PXRMPT(810.1,DA(1),1,0)),U,4)=0 D  S DUOUT=1 Q
- .W !,"This template is incomplete - no reminders defined"
  Q
  ;
  ;Option to use report template
@@ -192,9 +195,11 @@ HELP(CALL) ;
  ;Reminders Due specific prompts
  ;------------------------------
 FUT ;For detailed report give option to display future appointments
- S PXRMFUT="N"
+ S PXRMFUT="N",PXRMDLOC="N"
  I PXRMREP="D" D  Q:$D(DTOUT)!$D(DUOUT)
- .D FUTURE^PXRMXSD(.PXRMFUT)
+ .D FUTURE^PXRMXSD(.PXRMFUT,"Display All Future Appointments: ",5)
+ .I PXRMFUT="Y" D  Q:$D(DTOUT)!$D(DUOUT)
+ ..D FUTURE^PXRMXSD(.PXRMDLOC,"Display Appointment Location: ",15)
  ;
 SRT ;For detailed report give option to sort by appointment date
  S PXRMSRT="N"

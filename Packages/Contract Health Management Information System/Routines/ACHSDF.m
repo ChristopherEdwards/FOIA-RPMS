@@ -1,5 +1,5 @@
 ACHSDF ; IHS/ITSC/PMF - UNMET NEEDS DATA ENTRY (1/2) ;   [ 03/24/2005  8:22 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18**;JUN 11, 2001
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**18**;JUN 11, 2001;Build 37
  ;ACHS*3.1*18 4/1/2010;IHS/OIT/ABK;Change every occurrance of Deferred to Unmet Need
  ;
  D SETCK^ACHSDF1       ;SET UP SITE PARAMETERS
@@ -95,7 +95,8 @@ DEFDIAG ; --- Deferred Service Diagnosis.
  I $$DF^ACHS(100,2)="O" G DEFPROC
  Q:'$$DIE(200,2)
  I $D(Y) S ACHDXIT="" Q
- I '$D(^ACHSDEF(DUZ(2),"D",ACHSA,200,0)) W !,*7,"An ICD9 Diagnosis Code Must Be Entered",!! G DEFDIAG
+ ;ACHS*3.1*23 CHG ICD9 TO ICD IN NXT LINE
+ I '$D(^ACHSDEF(DUZ(2),"D",ACHSA,200,0)) W !,*7,"An ICD Diagnosis Code Must Be Entered",!! G DEFDIAG
  D DEFCMT
  Q
  ;

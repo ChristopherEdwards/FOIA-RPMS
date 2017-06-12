@@ -1,5 +1,5 @@
-LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ; July 19, 2006
- ;;5.2;LAB SERVICE;**48,65,1010,121,128,1013,153,202,261,1018,286,1027,1030,331,379,331,379,1031,1032**;NOV 1, 1997
+LRWLST1 ;DALOI/CJS/RWF/FHS - ACCESSION SETUP ; 21-Jul-2015 06:30 ; MKK
+ ;;5.2;LAB SERVICE;**48,65,1010,121,128,1013,153,202,261,1018,286,1027,1030,331,379,331,379,1031,1032,415,1033,1034,1035**;NOV 1, 1997;Build 5
  ;
  ; Reference to ^DIC(42 supported by IA #10039
  ; Reference to ^SC( supported by IA #10040
@@ -17,6 +17,7 @@ EP ; EP
  Q:$G(LRORDR)="P"
  K LRNM,LRTSTS
  K ^TMP("LR",$J,"TMP")
+ K ^TMP("LRWLST1",$J)
  Q
  ;
 SPLIT ;
@@ -140,7 +141,8 @@ STWLN ; Set accession number
  . . S FDAIEN(1)=LRI,LRX=$G(^LRO(69,LRODT,1,LRSN,4,LRI,0))
  . . S FDA(LRI,68.05,"+1,"_LR6802,.01)=$P(LRX,"^")
  . . ; S FDA(LRI,68.05,"+1,"_LR6802,1)=$P($G(^LRO(69,LRODT,1,LRSN,0)),"^",3)     ; IHS/MSC/MKK - LR*5.2*1031 - Collection Sample
- . . D IHSCOLS     ; IHS/MSC/MKK - LR*5.2*1032
+ . . ; D IHSCOLS     ; IHS/MSC/MKK - LR*5.2*1032
+ . . D IHSCOLS^BLRUTIL6      ; IHS/MSC/MKK - LR*5.2*1033
  . . D UPDATE^DIE("","FDA(LRI)","FDAIEN","LRDIE(LRI)")
  . . ; I $D(LRDIE(LRI)) D MAILALRT
  . . I $D(LRDIE(LRI)) D MAILALRT("3 ("_LRI_")")  ; IHS/MSC/MKK - LR*5.2*1031
@@ -148,8 +150,11 @@ STWLN ; Set accession number
  ; Create UID.
  S LRUID=$$LRUID^LRX(LRAA,LRAD,LRAN)
  ;
+ D STORACCS(LRODT,LRSN,LRUID)
+ ;
  ; I '$D(LRPHSET),('$G(LRQUIET)) W !!,"ACCESSION:  ",LRACC,"  <",LRUID,">"
  ;----- BEGIN IHS/MSC/MKK MODIFICATIONS LR*5.2*1031
+ D ENTRYAUD^BLRUTIL("STWLN^LRWLST1 8.5","LRDIE")
  I '$D(LRPHSET),('$G(LRQUIET)) W:'$G(BLRGUI)&('$D(^TMP("LRWLST1",$J,LRACC,LRUID))) !!,"ACCESSION:  ",LRACC,"  <",LRUID,">"  S ^TMP("LRWLST1",$J,LRACC,LRUID)=""  S:$G(BLRGUI) BPCACC=BPCACC_"   "_LRACC
  ;----- END IHS/MSC/MKK MODIFICATIONS LR*5.2*1031
  ;
@@ -157,46 +162,6 @@ STWLN ; Set accession number
  ;
  L -^LRO(68,LRAA,1,LRAD,1,0)
  Q
- ;
- ;
- ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1032
- ;       See the LRORDST routine regarding the ^TMP("LRORDST") setup.
-IHSCOLS ; EP - Set Collection Sample - IHS Specific
- NEW DN,F60IEN,COLLSAMP,COLLSIEN,CSAMP1,CSAMP2,CSAMP3,STR,TMPCNT,TMPSPEC,TMPSAMP,TMPTEST
- ;
- S TMPSAMP=0  F  S TMPSAMP=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP))  Q:TMPSAMP<1  D
- . S TMPSPEC=0  F  S TMPSPEC=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC))  Q:TMPSPEC<1  D
- .. S TMPCNT=0  F  S TMPCNT=$O(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT))  Q:TMPCNT<1  D
- ... S TMPTEST(+$G(^TMP("LRORDST",$J,"LROT",TMPSAMP,TMPSPEC,TMPCNT)))=TMPSAMP_"^"_TMPSPEC
- ;
- S F60IEN=+LRTSTS
- Q:F60IEN<1
- ;
- I $D(TMPTEST) D  Q:$L(LRSAMP)
- . S STR=$G(TMPTEST(F60IEN))
- . S LRSAMP=$P(STR,"^"),LRSPEC=$P(STR,"^",2)
- . S FDA(LRI,68.05,"+1,"_LR6802,1)=LRSAMP
- ;
- ; Reset LRSPEC variable
- S LRSPEC=+LRX
- S:LRSPEC<1 LRSPEC=-1
- ;
- S COLLSIEN=+$O(^LAB(60,F60IEN,3,0))
- S CSAMP1=+$$GET1^DIQ(60.03,COLLSIEN_","_F60IEN,.01,"I")   ; Collection Sample from File 60
- S CSAMP2=+$$GET1^DIQ(61,LRSPEC,4.1,"I")                   ; Collection Sample from File 61
- ;
- S COLLSAMP=$S(CSAMP2:CSAMP2,1:CSAMP1)
- Q:COLLSAMP<1
- ;
- S FDA(LRI,68.05,"+1,"_LR6802,1)=COLLSAMP
- ;
- ; Force the Order file to have the value, if null
- S:$P(^LRO(69,LRODT,1,LRSN,0),"^",3)="" $P(^LRO(69,LRODT,1,LRSN,0),"^",3)=COLLSAMP
- ;
- ; Reset LRSAMP variable
- S LRSAMP=COLLSAMP
- Q
- ; ----- END IHS/MSC/MKK - LR*5.2*1032
  ;
  ;
 UPD696 ; Update file #69.6 if LEDI referral patient and no existing entry
@@ -415,3 +380,38 @@ MAILALRT(MSGN) ; Send mail message alert when FileMan DBS errors returned - IHS/
  S XMINSTR("ADDR FLAGS")="R"
  D SENDMSG^XMXAPI(DUZ,XMSUB,"LRMTXT",.XMTO,.XMINSTR)
  Q
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+STORACCS(LRODT,LRSN,LRUID) ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRODT,LRSN,LRUID,U,XPARSYS,XQXFLG)
+ ;
+ S ORDLOC=+$$GET1^DIQ(69.01,LRSN_","_LRODT,23,"I")    ; Ordering Location
+ S ORDLINST=+$$GET1^DIQ(44,ORDLOC,3,"I")              ; Ordering Location's Institution
+ Q:+$$GET1^DIQ(9009029,ORDLINST,3001,"I")<1      ; Quit if no Reference Lab setup
+ ;
+ S ORDERN=$$GET1^DIQ(69.01,LRSN_","_LRODT,9.5,"I")
+ Q:ORDERN<1      ; Quit if no Order #
+ ;
+ Q:$L(LRUID)<1   ; Quit if no UID
+ ;
+ D REFLAB68^BLRLINKU    ; Make sure ^XTMP("BLRLINKU") is current.  See documentation at REFLAB68^BLRLINKU.
+ S X=$Q(^LRO(68,"C",LRUID,0)),LRAA=+$QS(X,4)     ; Get Accession Area IEN
+ ;
+ Q:$D(^XTMP("BLRLINKU",ORDLINST,LRAA))<1         ; Quit if Accession Area not Reference Lab
+ ;
+ S LRDFN=$$GET1^DIQ(69.01,LRSN_","_LRODT,.01,"I")
+ S DFN=$$GET1^DIQ(63,LRDFN,.03,"I")
+ ;
+ ; S X=$$ORD^BLRRLEDI(ORDERN,DFN)   ; Store Order # if not in there already
+ S ORDIEN=$$FIND1^DIC(9009026.3,,,ORDERN)
+ ;
+ Q:ORDIEN<1      ; Quit if Order # NOT in 9009026.3
+ ;
+ S LRASIEN=1+$O(^BLRRLO(ORDIEN,3,"A"),-1)
+ ;
+ K ERRS,FDA
+ S FDA(9009026.33,"?+1,"_ORDIEN_",",.01)=LRUID
+ D UPDATE^DIE(,"FDA",,"ERRS")
+ ;
+ Q
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034

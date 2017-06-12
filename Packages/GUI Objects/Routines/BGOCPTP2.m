@@ -1,5 +1,5 @@
-BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;27-Feb-2013 15:34;DU
- ;;1.1;BGO COMPONENTS;**1,3,4,5,11,12**;Mar 20, 2007;Build 5
+BGOCPTP2 ; IHS/BAO/TMD - CPT PREFERENCES MANAGER-2 ;06-Jan-2016 10:13;du
+ ;;1.1;BGO COMPONENTS;**1,3,4,5,11,12,14,19**;Mar 20, 2007;Build 5
  ;
  ; Returns list of assocs for specified category and item
  ;  INP = Category IEN ^ Item IEN
@@ -35,12 +35,22 @@ GETASSOC(RET,INP) ;EP
  .I ITEMIEN=CPT,TYP="ICPT(",$L(NAR) S $P(X,U,2)=NAR,CPT=0
  .S P=$$TYPECVT(TYP,1,3)
  .I TYP="DIC(81.3," S P=$$TYPECVT(TYP,1,3)
- .;Changes made for AICD version 4.0 and Patch 12
- .I TYP="ICD9(" D
- ..I $$AICD^BGOUTL2 S ITEMNAME=$$SD^ICDEX(80,ITEMIEN,DT)
- ..E  S ITEMNAME=$P(X,U,P)
+ .;Changes made for AICD version 4.0 and Patch 14
+ .I TYP="ICD9(" D ICD(X,N0) Q
+ .I TYP="ICD0(" D ICD0(X,N0) Q
  .E  S ITEMNAME=$P(X,U,P)
- .;End chagnes
+ .I TYP="AUTTEDT(" D
+ ..I $P($G(^AUTTEDT(ITEMIEN,0)),U,12)'="" D
+ ...N TXT,SNO,IN,X
+ ...S TXT=""
+ ...S SNO=$P($G(^AUTTEDT(ITEMIEN,0)),U,12)
+ ...;IHS/MSC/MGH Changed to use new API p14
+ ...S IN=SNO_"^^^1"
+ ...;S X=$$CONC^BSTSAPI(IN)
+ ...S X=$$CONC^AUPNSICD(IN)
+ ...S TXT=$P(X,U,4)
+ ...S ITEMNAME=TXT_"-"_$P($P($G(^AUTTEDT(ITEMIEN,0)),U,1),"-",2)
+ .;End changes
  .S P=$$TYPECVT(TYP,1,4)
  .S CODE=$P(X,U,P)
  .S AUTO=$P(N0,U,2)
@@ -51,7 +61,80 @@ GETASSOC(RET,INP) ;EP
  .S ID=$$TYPECVT(TYP,1,5)
  .S TYP=$$TYPECVT(TYP,1,2)
  .S CNT=CNT+1
- .S @RET@(CNT)=ITEMIEN_U_ITEMNAME_U_TYP_U_AUTO_U_DFLT_U_NODUP_U_AMT_U_IEN_U_QTY_U_CODE_U_ID
+ .S @RET@(CNT)=ITEMIEN_U_ITEMNAME_U_TYP_U_AUTO_U_DFLT_U_NODUP_U_AMT_U_IEN_U_QTY_U_CODE_U_ID_U_""
+ Q
+ICD(X,N0) ;Lookup ICD diagnosis association
+ N SNO,DESC,ERR,IMP,ICD,SYS,CODE,ITEMNAME,CT,ITEMIEN,STRING,SNOICD
+ S SNO=$P(N0,U,8),DESC=$P(N0,U,9)
+ S ICD=+$P(N0,U,1)      ;ICD code in the association
+ S SNOICD=""
+ S ERR=""
+ I +SNO D
+ .S CT=$$CONC^BSTSAPI(SNO_"^^^1")
+ .S ITEMNAME=$P(CT,U,4)
+ .S ITEMIEN=SNO
+ .S SNOICD=$P($P(CT,U,5),";",1)    ;ICD code found from SNOMED lookup
+ I 'SNO D
+ .S CODE=$$ICDDX^ICDCODE(ICD)
+ .S ITEMNAME=$P(CODE,U,4)
+ .S ITEMIEN=$P(CODE,U,1)
+ .S ERR="-1^DX has not been converted to SNOMED and cannot be stored."
+ I $$AICD^BGOUTL2 D
+ .S IMP=$$IMP^ICDEX("10D",DT)    ;Get the implementation date
+ .S CODE=$$ICDDX^ICDEX(ICD,,,"I")
+ .I IMP>$$NOW^XLFDT  D           ;This needs to be an ICD-9 code
+ ..I $P(CODE,U,20)'=1  S ERR="-1^You may not use this diagnosis for this visit date, please assign POV from IPL"
+ .I IMP<$$NOW^XLFDT D
+ ..I $P(CODE,U,20)=1 S ICD=$$UPDATE(CAT,ITEM,SNOICD,IEN)    ;Change the code to an ICD-10 code
+ .I SNOICD'="",ICD'=SNOICD S ICD=$$UPDATE(CAT,ITEM,SNOICD,IEN)  ;Change the code if it has changed
+ E  D
+ .S CODE=$$ICDDX^ICDCODE(ICD)
+ .S ITEMNAME=$P(CODE,U,4)
+ .S ITEMIEN=$P(CODE,U,1)
+ S AUTO=$P(N0,U,2)
+ S DFLT=$P(N0,U,3)
+ S NODUP=$P(N0,U,4)
+ S AMT=$P(N0,U,5)
+ S QTY=$P(N0,U,7)
+ S ID=$$TYPECVT(TYP,1,5)
+ S CODE=$P(CODE,U,2)
+ I +SNO S TYP=$$TYPECVT(TYP,1,2)
+ E  S TYP="ICD Diagnosis"
+ ;Patch 19 added DESC to output
+ S STRING=ITEMIEN_U_ITEMNAME_U_TYP_U_AUTO_U_DFLT_U_NODUP_U_AMT_U_IEN_U_QTY_U_CODE_U_ID_U_DESC
+ S CNT=CNT+1
+ I ERR'="" S STRING=STRING_U_ERR
+ S @RET@(CNT)=STRING
+ Q
+ICD0(X,N0) ;Lookup ICD procedure in association
+ N ERR,IMP,ICD,SYS,CODE,ITEMNAME,CT,ITEMIEN,STRING,SNOICD
+ S ICD=+$P(N0,U,1)      ;ICD code in the association
+ S ERR=""
+ I $$AICD^BGOUTL2 D
+ .S IMP=$$IMP^ICDEX("10P",DT)    ;Get the implementation date
+ .S CODE=$$ICDOP^ICDEX(ICD,"","","I")
+ .S ITEMNAME=$P(CODE,U,5)
+ .S ITEMIEN=$P(CODE,U,1)
+ .I IMP>$$NOW^XLFDT  D           ;This needs to be an ICD-9 code
+ ..I $P(CODE,U,15)'=2  S ERR="-1^You may not use this ICD Procedure Code for this visit date, please assign ICD procedure code from the Services component."
+ .I IMP<$$NOW^XLFDT D
+ ..I $P(CODE,U,15)=2 S ERR="-1^You may not use this ICD Procedure Code for this visit date, please assign ICD procedure code from the Services component."
+ E  D
+ .S CODE=$$ICDOP^ICDCODE(ICD)
+ .S ITEMNAME=$P(CODE,U,5)
+ .S ITEMIEN=$P(CODE,U,1)
+ S AUTO=$P(N0,U,2)
+ S DFLT=$P(N0,U,3)
+ S NODUP=$P(N0,U,4)
+ S AMT=$P(N0,U,5)
+ S QTY=$P(N0,U,7)
+ S ID=$$TYPECVT(TYP,1,5)
+ S CODE=$P(CODE,U,2)
+ S TYP="ICD Procedure"
+ S STRING=ITEMIEN_U_ITEMNAME_U_TYP_U_AUTO_U_DFLT_U_NODUP_U_AMT_U_IEN_U_QTY_U_CODE_U_ID_U_""
+ S CNT=CNT+1
+ I ERR'="" S STRING=STRING_U_ERR
+ S @RET@(CNT)=STRING
  Q
  ; Delete an association
  ;  INP = Category IEN ^ Item IEN ^ Element IEN
@@ -62,11 +145,23 @@ DELASSOC(RET,INP) ;EP
  S DA=+$P(INP,U,3)
  S RET=$$DELETE^BGOUTL("^BGOCPTPR("_DA(2)_",1,"_DA(1)_",1,",.DA)
  Q
+UPDATE(CAT,IEN,VAL,ASSOC) ;Change the code in the association
+ N IENS,FDA,NEWCODE,RET2,ERR
+ S ERR=""
+ I $$AICD^BGOUTL2 S NEWCODE=$P($$ICDDX^ICDEX(VAL,"","","E"),U,1)
+ E  S NEWCODE=$P($$ICDDX^ICDCODE(VAL),U,1)
+ S IENS=ASSOC_","_IEN_","_CAT_","
+ S FDA=$NA(FDA(90362.3121,IENS))
+ S @FDA@(.01)=NEWCODE_";ICD9("
+ S RET2=$$UPDATE^BGOUTL(.FDA,"@",.IEN)
+ I 'RET2 S RET2=VAL
+ Q RET2
  ; Set an association
  ;  INP = CPT Preference IEN [1] ^ CPT Subfile IEN [2] ^ Type [3] ^ Value [4] ^ Association [5] ^ Auto Add [6] ^
  ;        Default to Add [7] ^ No Dups [8] ^ Amount [9] ^ Quantity [10]
 SETASSOC(RET,INP) ;EP
- N TYP,TYP2,VAL,ASSOC,AUTO,DFLT,NODUP,AMT,QTY,FDA,IENS,DA,IEN,Z
+ N TYP,TYP2,VAL,ASSOC,AUTO,DFLT,NODUP,AMT,QTY,FDA,IENS,DA,IEN,Z,TYP2
+ N SNO,ICD,X,IMP
  S RET=""
  S DA(2)=+INP
  S DA(1)=+$P(INP,U,2)
@@ -85,7 +180,23 @@ SETASSOC(RET,INP) ;EP
  I VAL="" S RET=$$ERR^BGOUTL(1013) Q
  S IENS=$S(ASSOC:ASSOC,1:"+1")_","_DA(1)_","_DA(2)_","
  S FDA=$NA(FDA(90362.3121,IENS))
- S @FDA@(.01)=VAL_";"_TYP
+ ;Patch 14 changes
+ I TYP="ICD9(" D
+ .S X=$$CONC^BSTSAPI(VAL_"^^^1")
+ .S ICD=$P($P(X,U,5),";",1)
+ .;Store .9999 or ZZZ-999 depending on coding system
+ .I ICD="" D
+ ..I $$AICD^BGOUTL2 D
+ ...S IMP=$$IMP^ICDEX("10D",DT)    ;Get the implementation date
+ ...I IMP>$$NOW^XLFDT S ICD=".9999"
+ ...I IMP<$$NOW^XLFDT S ICD="ZZZ-999"
+ ..E  S ICD=".9999"
+ .I $$AICD^BGOUTL2 S TYP2=$P($$ICDDX^ICDEX(ICD,$$NOW^XLFDT,"","E"),U,1)
+ .E  S TYP2=$P($$ICDDX^ICDCODE(ICD,$$NOW^XLFDT,"","E"),U,2)
+ .S @FDA@(1)=VAL
+ .S @FDA@(1.1)=$P(X,U,3)
+ .S @FDA@(.01)=TYP2_";"_TYP
+ E  S @FDA@(.01)=VAL_";"_TYP
  S @FDA@(.02)=AUTO
  S @FDA@(.03)=DFLT
  S @FDA@(.04)=NODUP
@@ -98,7 +209,7 @@ SETASSOC(RET,INP) ;EP
  ; Return list of entries stored for a visit for a pick list
  ;  INP = Category IEN ^ Item IEN ^ Visit IEN
 VSTASSOC(RET,INP) ;EP
- N LP,TMP,VFIEN,VIEN,GBL,IEN,TYP,CNT,TXT,ID,FNUM,X
+ N LP,TMP,VFIEN,VIEN,GBL,IEN,TYP,CNT,TXT,ID,FNUM,X,Y
  S VIEN=$P(INP,U,3)
  Q:'VIEN
  D GETASSOC(.RET,$P(INP,U,1,2))
@@ -113,7 +224,9 @@ VSTASSOC(RET,INP) ;EP
  .S VFIEN=0
  .F  S VFIEN=$O(@GBL@("AD",VIEN,VFIEN)) Q:'VFIEN  D
  ..S X=$G(@GBL@(VFIEN,0))
- ..Q:+X'=IEN!($P(X,U,3)'=VIEN)
+ ..S Y=$P(X,U,3)
+ ..I GBL="^AUPNVPOV" S X=$G(@GBL@(VFIEN,11))
+ ..Q:+X'=IEN!(Y'=VIEN)
  ..S CNT=CNT+1,@RET@(CNT)=ID_U_TYP_U_IEN_U_TXT_U_VFIEN_U_FNUM
  K @TMP
  Q
@@ -269,7 +382,7 @@ TYPECVT(X,F,T) ;
  Q $G(R)
  ; Information about association types
  ; Format is: Global Root;Item Name;Name Piece;Code Piece;ID;V File #
-TYPES ;;ICD9(;ICD Diagnosis;3;1;0;9000010.07
+TYPES ;;ICD9(;SNOMED DX;3;1;0;9000010.07
  ;;ICD0(;ICD Procedure;4;1;1;9000010.08
  ;;ICPT(;CPT;2;1;2;9000010.18
  ;;AUTTSK(;Skin Test;1;2;3;9000010.12

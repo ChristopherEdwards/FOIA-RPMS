@@ -1,5 +1,5 @@
 ABSPOSQP ; IHS/FCS/DRS - SGM 05:46 PM 20 Jan 1997 ;     [ 09/12/2002  10:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,12,40**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,12,40**;JUN 21, 2001;Build 15
  ; Entry points:
  ;   EN     called from ABSPOSQB from ABSPOSQ1
  ;   PAGE7  called from ABSPOSI7

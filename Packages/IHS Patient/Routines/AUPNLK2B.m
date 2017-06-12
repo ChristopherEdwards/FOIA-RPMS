@@ -1,5 +1,5 @@
 AUPNLK2B ; IHS/CMI/LAB - Broke up AUPNLK2 because of size ;
- ;;99.1;IHS DICTIONARIES (PATIENT);**12**;MAR 09, 1999
+ ;;99.1;IHS DICTIONARIES (PATIENT);**12**;MAR 09, 1999;Build 9
  ;
 TALK ; TALK TO OPERATOR
  D ASK ;                       Ask if want to add patient

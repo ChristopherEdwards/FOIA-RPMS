@@ -1,7 +1,8 @@
-PSIVSP ;BIR/RGY,PR,CML3-DOSE PROCESSOR ;09 Feb 99 / 12:30 PM
- ;;5.0; INPATIENT MEDICATIONS ;**30,37,41,50,56,74,83,111,133,138,134,213**;16 DEC 97;Build 8
+PSIVSP ;BIR/RGY,PR,CML3-DOSE PROCESSOR ;14-Aug-2014 10:08;DU
+ ;;5.0; INPATIENT MEDICATIONS ;**30,37,41,50,56,74,83,111,133,138,134,213,1018**;16 DEC 97;Build 21
  ;
  ; Reference to ^PS(51.1 is supported by DBIA #2177
+ ;Modified -  IHS/MSC/MGH - 08/14/2014 - Line ENI+3 do not allow control characters
  ;
 EN ;
  Q:'$D(X)
@@ -16,7 +17,7 @@ EN1 ;
 NS0 S Y=""
  I $E(X,1,2)="AD" S XT=-1 Q
  I $E(X,1,3)="BID"!($E(X,1,3)="TID")!($E(X,1,3)="QID") S XT=1440\$F("BTQ",$E(X))
- E  S:$E(X)="Q" X=$E(X,2,99) S:'X X=$E(X)["O"+1_X S I=+X,X=$P(X,I,2),XT=I*$S(X["'":1,(X["D"&(X'["AD"))!(X["AM")!(X["PM")!(X["HS"&(X'["THS")):1440,X["H"&(X'["TH"):60,X["AC"!(X["PC"):480,X["W":10080,X["M":40320,1:0),X=X0 D 
+ E  S:$E(X)="Q" X=$E(X,2,99) S:'X X=$E(X)["O"+1_X S I=+X,X=$P(X,I,2),XT=I*$S(X["'":1,(X["D"&(X'["AD"))!(X["AM")!(X["PM")!(X["HS"&(X'["THS")):1440,X["H"&(X'["TH"):60,X["AC"!(X["PC"):480,X["W":10080,X["M":40320,1:0),X=X0 D
  . I 'XT,X'="NOW",X'="STAT",X'="ONCE",X'="ONE-TIME",X'="ONE TIME",X'="ONETIME",X'="1-TIME",X'="1 TIME",X'="1TIME",Y="" S XT=-1
 SH ;
  I +Y<1,$E(X0)'="^" W:$G(ON)'["P" "  ",$S(XT=0&($S("^NOW^STAT^ONCE^ONE-TIME^ONETIME^1TIME^1-TIME^"[(U_$P(X," ")_U):1,X["1 TIME":1,1:X["ONE TIME")):"(ONCE ONLY)",XT>0:"Nonstandard schedule",XT<0:"",1:"(??)") W:XT>0 " (",XT," MINUTES)"
@@ -43,7 +44,9 @@ OV I P(11)="" W $C(7)," ???",!?15,"*** You have not defined any administration t
 QDLP K X1,X2 Q
  ;
 ENI ;
- K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q
+ ;IHS/MSC/MGH Validate infusion rate
+ ;K:$L(X)<1!($L(X)>30)!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q
+ K:X'?1.30ANP!(X["""")!($A(X)=45) X I '$D(X)!'$D(P(4)) Q  ;IHS/MSC/MGH  DO NOT ALLOW CONTROL CHARACTERS
  I P(4)="P"!(P(5))!(P(23)="P") Q:'X  S X="INFUSE OVER "_X_" MINUTE"_$S(X>1:"S",1:"") W "   ",X Q
  I $E(X)="." K X Q  ;Enforce leading zero.
  I X'=+X!(X'=0_+X),X["@",($P(X,"@",2,999)'=+$P(X,"@",2,999)!(+$P(X,"@",2,999)<0)) K X Q

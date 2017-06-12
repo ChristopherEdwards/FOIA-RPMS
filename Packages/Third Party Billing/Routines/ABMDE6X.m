@@ -1,12 +1,11 @@
 ABMDE6X ; IHS/ASDST/DMJ - Page 6 - ERROR CHECKS ;
- ;;2.6;IHS 3P BILLING SYSTEM;**8**;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**8,14**;NOV 12, 2009;Build 238
  ;
  ; Added code for new error 217
  ;
- ; IHS/SD/SDR - v2.5 p10 - IM20435
- ;   Removed error from claim editor; AIDC said these
- ;   should be caught during PCC data entry and error
- ;   is no longer needed
+ ;IHS/SD/SDR - v2.5 p10 - IM20435 - Removed error from claim editor; AIDC said these should be caught during PCC data
+ ;   entry and error is no longer needed
+ ;IHS/SD/SDR - 2.6*14 HEAT163747 - Updated error 217 so it only displays one for ea service line, no matter how many coor dx are present
  ;
 ERR S ABME("TITL")="PAGE 6 - DENTAL INFORMATION"
 A S ABMX=0 F ABMX("I")=1:1 S ABMX=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),33,ABMX)) Q:'ABMX  D A1
@@ -22,7 +21,8 @@ A1 S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),33,ABMX,0)
  ..;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
  ..;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
  ..;end old code start new code
- ..I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
+ ..;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
+ ..I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") Q:ABME(217)[(ABMX("I"))  S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
  ..I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ..;end new code
  I $P(ABMX("X0"),U,7)]"",$P(ABMX("X0"),U,7)<ABMP("VDT") S ABME(127)=""

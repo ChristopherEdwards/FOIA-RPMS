@@ -1,5 +1,5 @@
 APCLNJ21 ; IHS/CMI/LAB - PRINT CLINIC VISITS (CALC) ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in POV
  ;
@@ -40,7 +40,7 @@ NEXT ;
 POV ;check to see if pov is injury
  ;IHS/CMI/LAB - patched line below
  ;NEW X S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  I $P(^ICD9(+^AUPNVPOV(X,0),0),U)>799.999 D  ;cmi/anch/maw 9/10/2007 orig line
- NEW X S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  I $P($$ICDDX^ICDCODE(+^AUPNVPOV(X,0)),U,2)>799.999 D  ;cmi/anch/maw 9/10/2007 csv
+ NEW X S X=0 F  S X=$O(^AUPNVPOV("AD",APCLVDFN,X)) Q:X'=+X  S %=$P(^AUPNVPOV(X,0),U) I $$INJ^APCDAPOV(%,1)!($$INJ^APCDAPOV(%,30)) D  ;cmi/anch/maw 9/10/2007 csv
  .S APCLGOT=0
  .S APCLCIEN=$P($G(^AUPNVPOV(X,0)),U,9)
  .Q:'$D(APCLCIEN)
@@ -49,7 +49,7 @@ POV ;check to see if pov is injury
  ..S APCLTXN=$P(APCLY,";;",3)
  ..S APCLZ=$P(APCLY,";;",2)
  ..S APCLTAX=$O(^ATXAX("B",APCLTXN,0))
- ..S %=$$ICD^ATXCHK(APCLCIEN,APCLTAX,9)
+ ..S %=$$ICD^ATXAPI(APCLCIEN,APCLTAX,9)
  ..Q:'%
  ..S APCLGOT=1
  ..S:'$D(APCLCNTR(APCLX,APCLZ)) APCLCNTR(APCLX,APCLZ)="0^0"

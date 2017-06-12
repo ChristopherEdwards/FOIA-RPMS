@@ -1,10 +1,10 @@
-BLRLINKU ;IHS/OIT/MKK - IHS LABORATORY VISIT CREATION Utilities ; [ 05/31/2011  10:35 AM ]
- ;;5.2;LR;**1030,1031**;NOV 01, 1997
+BLRLINKU ;IHS/OIT/MKK - IHS LABORATORY VISIT CREATION Utilities ; 25-Nov-2014 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1030,1031,1033,1034,1037,1038**;NOV 01, 1997;Build 6
  ;
  ;       Need to get Reference Ranges & Units from Incoming HL7 message
  ;       IF and ONLY IF the transaction is tied to a Reference Lab Accession
 CHKINHL7 ; EP
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 0.0","BLRVAL")
+ D ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 0.0","BLRVAL")
  NEW DNIEN,DNDESC,F60IEN,HL7TEST,LRAA,LRAD,LRAN,LRAS,STR,UID
  NEW ABNFLAG,REFHIGH,REFLOW,UNITS
  ;
@@ -24,7 +24,7 @@ CHKINHL7 ; EP
  ;
  Q:$$GETINTHU(UID)<1
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 4.5")
+ D ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 4.5")
  ;
  S STR=$G(^TMP("BLR",$J,UID,F60IEN))
  Q:$L(STR)<1
@@ -34,7 +34,7 @@ CHKINHL7 ; EP
  D STORVAL(8,$P(STR,"^",3))    ; Reference Low
  D STORVAL(9,$P(STR,"^",4))    ; Referench High
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 9.0","BLRVAL")
+ D ENTRYAUD^BLRUTIL("CHKINHL7^BLRLINKU 9.0","BLRVAL")
  Q
  ;
 STORVAL(WHERE,WHAT)  ; EP -- Store values in the IHS LAB TRANSACTION LOG file AND the BLRVAL array
@@ -45,7 +45,7 @@ STORVAL(WHERE,WHAT)  ; EP -- Store values in the IHS LAB TRANSACTION LOG file AN
  Q
  ;
 GETINTHU(UID) ; EP -- Get Reference Range information from File 4001 (UNIVERSAL INTERFACE)
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("GETINTHU^BLRLINKU 0.0")
+ D ENTRYAUD^BLRUTIL("GETINTHU^BLRLINKU 0.0")
  ;
  ; Don't search if test already stored in ^TMP global
  Q:$D(^TMP("BLR",$J,UID,F60IEN))>0 1
@@ -58,15 +58,19 @@ GETINTHU(UID) ; EP -- Get Reference Range information from File 4001 (UNIVERSAL 
  S LA7INST=$$GET1^DIQ(9009029,DUZ(2),3001)
  Q:$G(LA7INST)="" 0                                ; Quit with zero if no Reference Lab
  ;
- ; Determine what piece is the observation sub-id: QUEST uses OBX3.4; all others use OBX3.1
- S WOTPIECE=$S($$UP^XLFSTR(LA7INST)["QUEST":4,1:1)
- ;
  S AUTOINSP=+$O(^LAB(62.4,"B",LA7INST,""))         ; Auto Instrument IEN
  Q:AUTOINSP<1 0                                    ; Quit with zero if No Auto Instrument
+ ;
+ Q:$$LAHREFR() 1   ; IHS/MSC/MKK - LR*5.2*1038
+ ;
+ ; Determine what piece is the observation sub-id: QUEST uses OBX3.4; all others use OBX3.1
+ S WOTPIECE=$S($$UP^XLFSTR(LA7INST)["QUEST":4,1:1)
  ;
  D:$G(SNAPSHOT) STORFIND(UID,0)                    ; Store Starting Time of search
  S WOTREF=+$G(^XTMP("BLRLINKU",+$G(DUZ(2))))       ; Interface Destination (# 4005) IEN
  Q:WOTREF<1 0                                      ; Quit with zero if IEN<1
+ ;
+ ; NEW MSGSEG2                                       ; IHS/MSC/MKK - LR*5.2*1034
  ;
  ; Use "AD" Cross Reference
  S (FOUNDIT,MSGNUM)=0
@@ -80,8 +84,11 @@ GETINTHU(UID) ; EP -- Get Reference Range information from File 4001 (UNIVERSAL 
  .. ;
  .. ; Find OBX segment
  .. S (CNT,FOUNDIT)=0
- .. F  S MSGSEG=$O(^INTHU(MSGNUM,3,MSGSEG))  Q:MSGSEG<1!(FOUNDIT)  D
- ... S MSGSTR=$G(^INTHU(MSGNUM,3,MSGSEG,0))
+ .. S MSGSEG2=MSGSEG    ; IHS/MSC/MKK - LR*5.2*1034
+ .. ; F  S MSGSEG=$O(^INTHU(MSGNUM,3,MSGSEG))  Q:MSGSEG<1!(FOUNDIT)  D
+ .. F  S MSGSEG2=$O(^INTHU(MSGNUM,3,MSGSEG2))  Q:MSGSEG2<1!(FOUNDIT)  D   ; IHS/MSC/MKK - LR*5.2*1034
+ ... ; S MSGSTR=$G(^INTHU(MSGNUM,3,MSGSEG,0))
+ ... S MSGSTR=$G(^INTHU(MSGNUM,3,MSGSEG2,0))     ; IHS/MSC/MKK - LR*5.2*1034
  ... Q:$P(MSGSTR,"|")'="OBX"
  ... ;
  ... S CNT=CNT+1
@@ -103,10 +110,11 @@ GETINTHU(UID) ; EP -- Get Reference Range information from File 4001 (UNIVERSAL 
  ... ; Store information
  ... S ^TMP("BLR",$J,UID,AUTIF60P)=MSGRESLT_"^"_MSGABN_"^"_MSGRLOW_"^"_MSGRHI_"^"_MSGUNITS
  ... S FOUNDIT=1                                   ; Set flag
+ ... S ^TMP("BLRLINKU",$J,MSGNUM)=""
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) STORFIND(UID,1)                    ; Store Ending Time of search
+ D STORFIND(UID,1)                    ; Store Ending Time of search
  ;
- D:+$P($G(^BLRSITE($G(DUZ(2)),0)),U,10) ENTRYAUD^BLRUTIL("GETINTHU^BLRLINKU 9.0")
+ D ENTRYAUD^BLRUTIL("GETINTHU^BLRLINKU 9.0")
  Q FOUNDIT
  ;
  ; Done to speed up Lab to PCC processing for Ref Labs
@@ -133,7 +141,7 @@ REFLAB68 ; EP -- Setup ^XTMP global with Ref Lab Accessions' IENs
  . ;       YES in the BLR MASTER CONTROL file is using LEDI for the
  . ;       interface.  That means incoming data goes directly into 62.49,
  . ;       bypassing 4001, so skip this logic.
- . Q:$$UP^XLFSTR($$GET1^DIQ(9009029,INSTIEN,3022))["Y"
+ . ; Q:$$UP^XLFSTR($$GET1^DIQ(9009029,INSTIEN,3022))["Y"   ; Don't do this -- IHS/MSC/MKK - LR*5.2*1033
  . ; ----- END IHS/MSC/MKK LR*5.2*1031
  . ;
  . S REFLLABS=+$G(^BLRSITE(BLRDIVS,"RL"))
@@ -141,9 +149,14 @@ REFLAB68 ; EP -- Setup ^XTMP global with Ref Lab Accessions' IENs
  . S DESTNAME="HL IHS LAB R01 "_REFLABN_" IN"
  . K OUTARRAY
  . D FIND^DIC(4005,,,,DESTNAME,,,,,"OUTARRAY")
- . S DESTIEN=+$G(OUTARRAY("DILIST",2,1))
- . Q:DESTIEN<1
- . S ^XTMP("BLRLINKU",INSTIEN)=DESTIEN_"^"_DESTNAME
+ . S DESTIEN=$G(OUTARRAY("DILIST",2,1))
+ . ; Q:DESTIEN<1
+ . ; S ^XTMP("BLRLINKU",INSTIEN)=DESTIEN_"^"_DESTNAME
+ . ; S ^XTMP("BLRLINKU",INSTIEN)="" ; IHS/MSC/MKK - LR*5.2*1034
+ . ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1037
+ . I +$G(DESTIEN) S ^XTMP("BLRLINKU",INSTIEN)=+$G(DESTIEN)_"^"_DESTNAME
+ . E  S ^XTMP("BLRLINKU",INSTIEN)=""
+ . ; ----- END IHS/MSC/MKK - LR*5.2*1037
  . S REFLLRAA=.9999999
  . F  S REFLLRAA=$O(^BLRRL(REFLLABS,2,REFLLRAA))  Q:REFLLRAA=""  D
  .. S LRAAREF=+$G(^BLRRL(REFLLABS,2,REFLLRAA,0))
@@ -246,8 +259,12 @@ ICDCHEK(ICDCODE) ; EP - Check to see if passed string is in ICD dictionary.
  I ICDCODE["^" S ICDCODE=$P(ICDCODE,"^")
  Q:+ICDCODE<1 0
  ;
- D FIND^DIC(80,,,"M",ICDCODE,,,,,"TARGET","ERRORS")
- Q $S(+$G(TARGET("DILIST",1,1))>0:1,1:0)
+ ; D FIND^DIC(80,,,"M",ICDCODE,,,,,"TARGET","ERRORS")
+ ; Q $S(+$G(TARGET("DILIST",1,1))>0:1,1:0)
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1033
+ ; Q $L($$ICDDX^ICDCODE(ICDCODE))
+ Q $L($$ICDDX^ICDEX(ICDCODE))     ; IHS/MSC/MKK - LR*5.2*1034 - Use AICD 4.0 function
+ ; ----- END IHS/MSC/MKK - LR*5.2*1033
  ;
  ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
 RESETX ; EP
@@ -294,5 +311,43 @@ WARNINGS(MSG) ; EP
  . W !!,?14,"Invalid/Quit/No response.  Routine Ends."
  . D PRESSKEY^BLRGMENU(19)
  Q "OK"
+ ; ----- END IHS/MSC/MKK - LR*5.2*1031
  ;
- ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1031
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038
+LAHREFR() ; EP - Return Flag/Ref Ranges/Units from ^LR, if possible
+ NEW F60IEN,ISQN,LWL,LRSB,RESULT,RHI,RLOW,TMPBLRU,UNITS
+ ;
+ D ENTRYAUD^BLRUTIL("LAHREFR^BLRLINKU 1.0")
+ ;
+ S LRAA=+$O(^LRO(68,"C",UID,0)),LRAD=+$O(^LRO(68,"C",UID,LRAA,0)),LRAN=+$O(^LRO(68,"C",UID,LRAA,LRAD,0))
+ Q:LRAA<1!(LRAD<1)!(LRAN<1) 0
+ ;
+ S LRAAIEN=LRAN_","_LRAD_","_LRAA
+ S LRDFN=$$GET1^DIQ(68.02,LRAAIEN,.01)
+ S LRIDT=$$GET1^DIQ(68.02,LRAAIEN,13.5,"I")
+ ;
+ S F60IEN=+$P($G(^BLRTXLOG(BLRLOGDA,0)),"^",6)
+ S LRSB=+$$GET1^DIQ(60,F60IEN,"DATA NAME","I")
+ ;
+ S STR=$G(^LR(LRDFN,"CH",LRIDT,LRSB))
+ ;
+ D ENTRYAUD^BLRUTIL("LAHREFR^BLRLINKU 3.0")
+ ;
+ Q:$L(STR)<1 0
+ ;
+ S RESULT=$P(STR,U)          ; Results
+ S ABN=$P(STR,U,2)           ; Status Flag
+ ;
+ S OTHER=$P(STR,U,5)
+ S RLOW=$P(OTHER,"!",2)      ; Reference Low
+ S RHI=$P(OTHER,"!",3)       ; Reference High
+ S UNITS=$P(OTHER,"!",7)     ; Units
+ ; 
+ ; Store information
+ S ^TMP("BLR",$J,UID,F60IEN)=RESULT_"^"_ABN_"^"_RLOW_"^"_RHI_"^"_UNITS
+ S FOUNDIT=1                                   ; Set flag
+ ;
+ M TMPBLRU("BLR",$J,UID,F60IEN)=^TMP("BLR",$J,UID,F60IEN)
+ D ENTRYAUD^BLRUTIL("LAHREFR^BLRLINKU 9.0")
+ Q 1
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038

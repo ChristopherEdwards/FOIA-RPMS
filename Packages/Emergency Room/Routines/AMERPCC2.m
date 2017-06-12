@@ -1,7 +1,10 @@
 AMERPCC2 ; IHS/OIT/SCR - SUPPORTING ROUTINES FOR V POV SYNCHING ;
- ;;3.0;ER VISIT SYSTEM;**1,3**;DEC 07, 2011;Build 11
+ ;;3.0;ER VISIT SYSTEM;**1,3,6**;MAR 03, 2009;Build 30
  ;
 SYNCHPOV(AMERDA,AMERPCC,AMERPAT,AMERTIME,AMERDOC,AMERCLN)  ; EP from SYNCHPCC^AMERPCC
+ ;AMER*3.0*6;AMER no longer storing DX information directly to AMER
+ ;          ;Information now gets updated using SYNC^AMERPOV
+ Q
  ; Q  ; DX SYNCHRONIZATION VALIDATION BETWEEN ER VISIT FILE AND V POV NOW MANAGED ELSEWHERE
  ; This routine LOOKS AT EACH V POV entry and tries to find it in ERS for comparison
  ;  IF differences exist will prompt user to identify which data to save 

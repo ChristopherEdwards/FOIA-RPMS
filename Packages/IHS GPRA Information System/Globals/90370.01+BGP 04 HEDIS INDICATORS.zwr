@@ -1,5 +1,5 @@
-BGP 04 HEDIS INDICATORS
-ZWR
+OSEHRA ZGO Export: BGP 04 HEDIS INDICATORS
+12-JUN-2017 09:47:24 ZWR
 ^BGPHEIF(0)="BGP 04 HEDIS INDICATORS^90370.01I^12^12"
 ^BGPHEIF(1,0)="1^1^Colorectal Cancer Screening^Colorectal Cancer Screening^Colorectal Cancer Screen: Pts =>52 and CRC screening, if any^1^^^1^^1"
 ^BGPHEIF(1,1)="D I1^BGP4DHE1"

@@ -1,6 +1,12 @@
-LEXDDTD ; ISL Display Defaults - Display           ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
- ;
+LEXDDTD ;ISL/KER - Display Defaults - Display ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
+ ;               
+ ; Global Variables
+ ;    None
+ ;               
+ ; External References
+ ;    None
+ ;               
 DSO ; Display Sources
  ; Required LEXSHOW
  K LEX N LEXTCTR,LEXTI,LEXTIC,LEXTSTR,LEXT

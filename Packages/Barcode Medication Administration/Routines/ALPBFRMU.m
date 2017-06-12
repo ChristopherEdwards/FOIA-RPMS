@@ -1,5 +1,5 @@
 ALPBFRMU ;OIFO-DALLAS MW,SED,KC-PRINT FORMATTING UTILITIES;01/01/03
- ;;3.0;BAR CODE MED ADMIN;**8**;Mar 2004
+ ;;3.0;BAR CODE MED ADMIN;**8,1018**;Mar 2004;Build 27
  ;
 FTEXT(COL,TEXT,RESULTS) ; format TEXT array...
  ; COL  = number of columns (line length)
@@ -49,7 +49,7 @@ HDR(DATA,PG,RESULTS) ; print page header...
  S RESULTS(1)=$$PAD^ALPBUTL(RESULTS(1),32)_"Inpatient Pharmacy Orders (Backup)"
  S RESULTS(1)=$$PAD^ALPBUTL(RESULTS(1),122)_"Page: "_$J(PG,3)
  S RESULTS(2)=$P($G(DATA(0)),"^")
- S RESULTS(2)=$$PAD^ALPBUTL(RESULTS(2),33)_"SSN: "_$P($G(DATA(0)),"^",2)
+ S RESULTS(2)=$$PAD^ALPBUTL(RESULTS(2),33)_"HRN: "_$P($G(DATA(0)),"^",2)
  S RESULTS(2)=$$PAD^ALPBUTL(RESULTS(2),50)_"DOB: "_$S($P($G(DATA(0)),"^",3)'="":$$FMTE^XLFDT($P(DATA(0),"^",3)),1:"not on file")
  S RESULTS(2)=$$PAD^ALPBUTL(RESULTS(2),70)_"Sex: "_$P($G(DATA(0)),"^",4)
  S RESULTS(3)="Ward: "_$P($G(DATA(0)),"^",5)

@@ -1,6 +1,7 @@
 BKMVSUP ;PRXM/HC/WOM - HIV SUPPLEMENT; [ 1/19/2005 7:16 PM ] ; 10 Jun 2005  12:02 PM
- ;;2.1;HIV MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.2;HIV MANAGEMENT SYSTEM;;Apr 01, 2015;Build 40
  Q
+ ;
 EP(DFN) ;EP - Called by Health Summary Supplement
  ; Value for APCHSPAT is passed to identify the patient (DFN)
  ; IO variables will already have been set
@@ -8,12 +9,13 @@ EP(DFN) ;EP - Called by Health Summary Supplement
  S DFN=$G(DFN)
  Q:DFN=""
  K ^TMP("BKMSUPP",$J),^TMP("BKMVSUP",$J)
- S X=$O(^BKM(90451,"B",DFN,"")) ;Q:X=""
+ S X=$O(^BKM(90451,"B",DFN,""))
+ ;I X="" S X=$$ATAG^BQITDUTL(DFN,"HIV/AIDS") I 'X S X=""
  I X="" D:'$D(ZTQUEUED)  Q
- . W !!?5,"HMS Patient Care Summary is not available.  This patient does not"
- . W !?5,"have an active HIV diagnostic tag and/or is not in the HMS Register.",!
- . ;W !!?5,"HMS Patient Care Summary cannot be generated as selected patient"
- . ;W !?5,"is not in the HMS Register.",!
+ . ;W !!?5,"HMS Patient Care Summary is not available.  This patient does not"
+ . ;W !?5,"have an active HIV diagnostic tag and/or is not in the HMS Register.",!
+ . W !!?5,"HMS Patient Care Summary cannot be generated as selected patient"
+ . W !?5,"is not in the HMS Register.",!
  ;
  ; Comment out the security check in the event that IHS reconsiders
  ; I '$$PRIV(DUZ) D   Q
@@ -39,11 +41,12 @@ EP2(DFN) ; Get data and report for one patient
  ; Store lines to print in ^TMP("BKMVSUP",$J)
  N NOW,X,DA,Y,HLDBKM,AUPNPAT,AUDT,AUDATA,PTNAME,HRECNO,PAGES,BKMDT
  S X=$O(^BKM(90451,"B",DFN,""))
+ ;I X="" S X=$$ATAG^BQITDUTL(DFN,"HIV/AIDS") I 'X S X=""
  I X="" D:'$D(ZTQUEUED)  Q
- . W !!?5,"HMS Patient Care Summary is not available.  This patient does not"
- . W !?5,"have an active HIV diagnostic tag and/or is not in the HMS Register.",!
- . ;W !!?5,"HMS Patient Care Summary cannot be generated as selected patient"
- . ;W !?5,"is not in the HMS Register.",!
+ . ;W !!?5,"HMS Patient Care Summary is not available.  This patient does not"
+ . ;W !?5,"have an active HIV diagnostic tag and/or is not in the HMS Register.",!
+ . W !!?5,"HMS Patient Care Summary cannot be generated as selected patient"
+ . W !?5,"is not in the HMS Register.",!
  S (DA,Y)=X,HLDBKM=X_U_DFN
  K LOCAL,DIC,ICD9S
  D NOW^%DTC S NOW=X
@@ -69,7 +72,7 @@ GETDATA ; Load data in ^TMP
  ;
  N A,DPTIEN,BKMIEN,CLCL,RDIAG,GETSIENS,BKMREG,LSTDXDT,A1,I,J,K,L,BKMDT,TEMP,MAXCT,BKM,BKMT
  N BMI,%H,DR,STCAT,STIEN,AGE,GLOBAL,CPRDT,CNT,CDDT,Y,CDTST,TYPE,BKMHAART,HIVDXDT,TMPDT
- N HPRV,HCSM
+ N HPRV,HCSM,DBMI
  S MAXCT=IOSL-7
  ;
  S DPTIEN=$P(^TMP("BKMSUPP",$J,"IENS"),U,2),BKMIEN=$P(^TMP("BKMSUPP",$J,"IENS"),U)
@@ -123,9 +126,12 @@ GETDATA ; Load data in ^TMP
  S LINE=$$LINE(LINE," Last Weight: ",POS)_$P(RDIAG,U,3)_"  "_$P(RDIAG,U,4)
  D UPD
  ; Determine BMI
- S BMI=$$BMI(DFN,$P(RDIAG,U),$$DT($P(RDIAG,U,2)),$P(RDIAG,U,3),$$DT($P(RDIAG,U,4)),AGE)
+ ;S BMI=$$BMI(DFN,$P(RDIAG,U),$$DT($P(RDIAG,U,2)),$P(RDIAG,U,3),$$DT($P(RDIAG,U,4)),AGE)
+ S DBMI=$$PBMI^APCLV(DFN,DT)
+ S BMI=$P(DBMI,U,1)
+ I BMI'="" S BMI=$J(BMI,3,2)
  ; if BMI cannot be set display the following
- I BMI="" S BMI="BMI cannot be calculated with current data."
+ I BMI="" S BMI="BMI cannot be calculated with current data. - "_$P(DBMI,U,8)
  S LINE=" BMI: "_BMI
  D UPD,BLANK(1)
  S LINE=" Register Diagnosis: "_$G(LOCAL(90451.01,1_","_+BKMIEN_",",2.3,"E"))
@@ -185,14 +191,14 @@ OI ; Opportunistic Infections
  .... ;S LINE=$$LINE(LINE,"[Description]",28),LINE=$$LINE(LINE,"[Provider Narrative]",55)
  .... S LINE=DASH D UPD
  ... K ICD,NAR
- ... I $T(ICDD^ICDCODE)'="" S ICDDSC=$$ICDD^BKMUL3("ICD9",K,9999999-A1) ; csv
- ... I $T(ICDD^ICDCODE)="" S ICDDSC=$$GET1^DIQ(80,K,10,"E")
+ ... I $$VERSION^XPDUTL("BCSV") S ICDDSC=$$ICDD^BKMUL3("ICD9",K,9999999-A1) ; csv
+ ... I '$$VERSION^XPDUTL("BCSV") S ICDDSC=$$GET1^DIQ(80,K,10,"E")
  ... D PARSE(ICDDSC,12,"ICD")
  ... S PNARR=$P($G(ICD9S(A1,K)),U,2) D PARSE(PNARR,18,"NAR")
  ... S LINE="  "_BKMDT,ENTDT=$P(ICD9S(A1,K),U,3)
  ... I ENTDT'="" S LINE=$$LINE(LINE,$$FMTE^XLFDT(ENTDT,"5Z"),15)
- ... I $T(ICDDX^ICDCODE)'="" S LINE=$$LINE(LINE,$$ICD9^BKMUL3(K,9999999-A1,2),27) ; csv
- ... I $T(ICDDX^ICDCODE)="" S LINE=$$LINE(LINE,$$GET1^DIQ(80,K,.01,"E"),27)
+ ... I $$VERSION^XPDUTL("BCSV") S LINE=$$LINE(LINE,$$ICD9^BKMUL3(K,9999999-A1,2),27) ; csv
+ ... I '$$VERSION^XPDUTL("BCSV") S LINE=$$LINE(LINE,$$GET1^DIQ(80,K,.01,"E"),27)
  ... ;S LINE=$$LINE(LINE,BKMDT,5),LINE=$$LINE(LINE,$$ICD9^BKMUL3(K,9999999-A1,2),20) ; csv
  ... S LINE=$$LINE(LINE,$G(ICD(1)),35),LINE=$$LINE(LINE,$G(NAR(1)),49)
  ... ;S LINE=$$LINE(LINE,$E($$ICDD^BKMUL3("ICD9",K,9999999-A1),1,25),28) ; csv
@@ -279,7 +285,7 @@ OI ; Opportunistic Infections
  Q
  ;
 BMI(PT,HT,HTD,WT,WTD,AGE) ; Calculate BMI
- ;
+ Q
  ; PT = patient's DFN
  ; HT = patient's height
  ; HTD = date patient's height was recorded
@@ -287,18 +293,18 @@ BMI(PT,HT,HTD,WT,WTD,AGE) ; Calculate BMI
  ; WTD = date patient's weight was recorded
  ; AGE = patient's age (taken from 9000001,1102.98)
  ;
- N BMI,WDIFF,HDIFF
- I PT=""!(HT="")!(WT="")!(AGE="") Q ""
+ ;N BMI,WDIFF,HDIFF
+ ;I PT=""!(HT="")!(WT="")!(AGE="") Q ""
  ; Patients younger than 19 must have both measurements on the same day
- I AGE<19,HTD'=WTD Q ""
- S WDIFF=$$FMDIFF^XLFDT(DT,WTD,1)
- S HDIFF=$$FMDIFF^XLFDT(DT,HTD,1)
+ ;I AGE<19,HTD'=WTD Q ""
+ ;S WDIFF=$$FMDIFF^XLFDT(DT,WTD,1)
+ ;S HDIFF=$$FMDIFF^XLFDT(DT,HTD,1)
  ; Patients older than 50 must have both measurements in the last two years
- I AGE>50,WDIFF>(2*365)!(HDIFF>(2*365)) Q ""
+ ;I AGE>50,WDIFF>(2*365)!(HDIFF>(2*365)) Q ""
  ; Patients between 19 and 50 must have both measurements in the last five years
- I AGE<50,AGE>18,WDIFF>(5*365)!(HDIFF>(5*365)) Q ""
- S BMI=$$BMI^APCHS2A3(PT,WT,DT)
- Q $$STRIP^XLFSTR($P(BMI,U,1)," ")
+ ;I AGE<50,AGE>18,WDIFF>(5*365)!(HDIFF>(5*365)) Q ""
+ ;S BMI=$$BMI^APCHS2A3(PT,WT,DT)
+ ;Q $$STRIP^XLFSTR($P(BMI,U,1)," ")
  ; S WT=WT*.45359,HT=HT*.0254 ;Convert to metric
  ; Q $J(WT/(HT*HT),0,1)
  ;

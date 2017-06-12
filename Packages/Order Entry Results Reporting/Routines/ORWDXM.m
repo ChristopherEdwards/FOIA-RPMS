@@ -1,5 +1,5 @@
 ORWDXM ; SLC/KCM/JLI - Order Dialogs, Menus;31-Dec-2012 10:33;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,132,1007**;Dec 17, 1997;Build 47
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**10,132,1007,1013**;Dec 17, 1997;Build 47
  ;Modified - IHS/MSC/PLS - 01/25/2011 - Line MENU+15
 MENU(LST,DLG) ; Return menu contents for an order dialog
  ; LST(0)=name^# cols^path switch^^^ Key Variables (pieces 6-20)

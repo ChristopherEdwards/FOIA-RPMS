@@ -1,10 +1,11 @@
 BIRPC1 ;IHS/CMI/MWR - REMOTE PROCEDURE CALLS; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  RETURNS PATIENT DATA, DATA FOR AN IMMUNIZATION OR SKIN TEST VISIT.
  ;;  PATCH 3: Add Eligibility Code to default Hx string.  GET+35
  ;;  PATCH 5: Add Admin Note to default Hx string. GET+38
  ;;  PATCH 9: Add Date VIS Presented and Admin Date to data string. GET+40
+ ;;  PATCH 10: Add Skin Test Lot Number IEN and Text.  GET+86
  ;
  ;
  ;----------
@@ -133,7 +134,11 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;
  ;---> SKIN TEST:
  ;---> If this is a Skin Test Visit, collect these Data Elements.
- I '$D(BIDE),BIVTYPE="S" F I=24,26,29,34:1:42,61,67,68,70,76 S BIDE(I)=""
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Add Skin Test Lot Number IEN and Text.
+ ;I '$D(BIDE),BIVTYPE="S" F I=24,26,29,34:1:42,61,67,68,70,76 S BIDE(I)=""
+ I '$D(BIDE),BIVTYPE="S" F I=24,26,29,34:1:42,61,67,68,70,76,92,93 S BIDE(I)=""
  ;
  ;---> IEN PC  DATA
  ;---> --- --  ----
@@ -155,6 +160,9 @@ GET(BIDATA,BIDA,BIVTYPE,BIDE) ;PEP - Return data for one Immunization or Skin Te
  ;---> 68 16 = Volume.
  ;---> 70 17 = Skin Test Reader (Provider) IEN.
  ;---> 76 18 = Visit IEN.
+ ;---> 92 19 = Skin Test Lot Number IEN.
+ ;---> 93 20 = Skin Test Lot Number Text.
+ ;**********
  ;
  ;
  ;---> Now, gather data from one V File Visit.

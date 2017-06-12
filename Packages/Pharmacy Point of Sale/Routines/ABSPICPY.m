@@ -1,5 +1,5 @@
 ABSPICPY ; IHS/OIT/CASSevern/Pieran ran 9/19/2011 - Copy Insurance default Profiles
- ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,46**;JUN 21, 2001;Build 15
  ;
  ; This routine will be called when creating a new ABSP INSURER so that a "sane" set of defaults can be loaded for a good chance at working without modification.
  ; Basically we will prompt the user as to whether it's a Medicaid, Medicare or Commercial insurer...go to the appropriate table and add the defaults stored in that table.

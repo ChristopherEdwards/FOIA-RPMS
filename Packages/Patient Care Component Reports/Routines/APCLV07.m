@@ -1,10 +1,5 @@
 APCLV07 ; IHS/CMI/LAB - provider functions ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
- ;IHS/CMI/LAB - added stage as output parameter
- ;
- ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
- ;
- ;cmi/anch/maw 9/12/2007 code set versioning E,C,J,A
+ ;;2.0;IHS PCC SUITE;**2,11**;MAY 14, 2009;Build 58
  ;
 PRIMPOV ;EP - primary provider in many different formats
  I 'V Q -1
@@ -60,27 +55,28 @@ I ;
  S %=P Q
 E ;
  ;S %=$P(^ICD9(P,0),U,3) Q  ;cmi/anch/maw 9/12/2007 orig line
- S %=$P($$ICDDX^ICDCODE(P,,,1),U,4) Q  ;cmi/anch/maw 9/12/2007 csv
+ S %=$P($$ICDDX^ICDEX(P,,,"I"),U,4) Q  ;cmi/anch/maw 9/12/2007 csv
 C ;
  ;S %=$P(^ICD9(P,0),U) Q  ;cmi/anch/maw 9/12/2007 orig line
- S %=$P($$ICDDX^ICDCODE(P,,,1),U,2) Q  ;cmi/anch/maw 9/12/2007 csv
+ S %=$P($$ICDDX^ICDEX(P,,,"I"),U,2) Q  ;cmi/anch/maw 9/12/2007 csv
 D ;
  S %=$P(^AUPNVPOV(Z,0),U,7) Q
 J ;
  ;S %=$P(^AUPNVPOV(Z,0),U,9) I % S %=$P(^ICD9(%,0),U) Q  ;cmi/anch/maw 9/12/2007 orig line
- S %=$P(^AUPNVPOV(Z,0),U,9) I % S %=$P($$ICDDX^ICDCODE(%),U,2) Q  ;cmi/anch/maw 9/12/2007 csc
+ S %=$P(^AUPNVPOV(Z,0),U,9) I % S %=$P($$ICDDX^ICDEX(%),U,2) Q  ;cmi/anch/maw 9/12/2007 csc
  Q
 P ;
  S %=$P(^AUPNVPOV(Z,0),U,11) Q
 N ;
- S %=$P(^AUPNVPOV(Z,0),U,4) I %,$D(^AUTNPOV(%,0)) S %=$P(^AUTNPOV(%,0),U)
+ S %=$$VAL^XBDIQ1(9000010.07,Z,.04)
+ ;S %=$P(^AUPNVPOV(Z,0),U,4) I %,$D(^AUTNPOV(%,0)) S %=$P(^AUTNPOV(%,0),U)
  Q
 S ;stage
  S %=$P(^AUPNVPOV(Z,0),U,5) Q
 A ;
  NEW I,H,R,L,E,D
  ;S I=$P(^ICD9(P,0),U)  ;cmi/anch/maw 9/12/2007 orig line
- S I=$P($$ICDDX^ICDCODE(P),U,2)  ;cmi/anch/maw 9/12/2007 csv
+ S I=$P($$ICDDX^ICDEX(P),U,2)  ;cmi/anch/maw 9/12/2007 csv
  I $E(I)="E" S %=999 Q
  I $E(I)="." D CODE10 G HIGH
  S R="09"_($P(I,".")_$P(I,".",2))_" "

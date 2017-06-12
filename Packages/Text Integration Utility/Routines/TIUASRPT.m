@@ -1,6 +1,7 @@
-TIUASRPT ; SLC/JMH - Review unsigned additional signer Documents by DIVISION ; [12/2/04 11:50am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**157**;Jun 20, 1997
+TIUASRPT ; SLC/JMH - Review unsigned additional signer Documents by DIVISION ;27-Mar-2013 08:22;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**157,1011**;Jun 20, 1997;Build 13
 BEGIN ; Select Division(s), Entry Date Range, Service, Type of Report
+ ; IHS/MSC/MGH Changed SSN to HRCN Patch 1011
  N TIUI,TIUSTDT,TIUENDT,TIUSVCS
  D SELDIV^TIULA Q:SELDIV'>0
  I $D(TIUDI) D
@@ -101,7 +102,7 @@ PRNT(TIUDA) ; Does document have a parent?
  ;                    Exists= TIU Document file (#8925) entry is
  ;                            an addendum or ID child.
  ;                            Value: Parent TIU Document file
- ;                                   (#8925) IEN 
+ ;                                   (#8925) IEN
  N ADDMPRNT,IDPRNT,TIUPRNT
  S TIUPRNT=""
  S ADDMPRNT=+$P($G(^TIU(8925,TIUDA,0)),U,6) ; Addm parent
@@ -213,9 +214,10 @@ STATXFER(TIUSTAT) ;format a small status string
  I TIUSTAT="AMENDED"!(TIUSTAT="amended") Q "amend"
  Q "???"
 PATPRNT(TIUPAT) ; format patient as initials and then last 6 SSN
- N PAT,LST4,INIT
+ N PAT,LST4,INIT,HRCN
  I 'TIUPAT Q ""
  S PAT=$$EXTERNAL^DILFD(8925,.02,"",TIUPAT)
  S LST4=$E($$GET1^DIQ(2,$G(TIUPAT),.09),4,9)
+ S HRCN=$$HRCN^TIUR2(TIUPAT,+$G(DUZ(2)))            ;MSC/MGH/MGH PATCH 1011
  S INIT=$E($P(PAT,",",2))_$E($P(PAT,","))
- Q INIT_LST4
+ Q INIT_HRCN

@@ -1,5 +1,5 @@
-BLRLUAC1 ; IHS/OIT/MKK - IHS LRUPAC 1, main driver ; [ 05/15/11  7:50 AM ]
- ;;5.2;IHS LABORATORY;**1030**;NOV 01, 1997
+BLRLUAC1 ; IHS/OIT/MKK - IHS LRUPAC 1, main driver ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;IHS LABORATORY;**1030,1033**;NOV 01, 1997
  ;;
  ;; Emulates the Lab accession and test counts Report.
  ;; Should be more Accurate.
@@ -81,7 +81,8 @@ TGETDATA ; EP - Tasked GETDATA
  D TASKDATI
  ;
  F  S LRDFN=$O(^LR(LRDFN))  Q:LRDFN<1  D
- . S DFN=$P($G(^LR(LRDFN,0)),"^",3)
+ . ; S DFN=$P($G(^LR(LRDFN,0)),"^",3)
+ . S DFN=+$P($G(^LR(LRDFN,0)),"^",3)     ; IHS/OIT/MKK - LR*5.2*1033 - DFN Must be an integer
  . S LRIDT=DINVEND
  . F  S LRIDT=$O(^LR(LRDFN,LRSS,LRIDT))  Q:LRIDT<1!(LRIDT>DINVBEG)  D
  .. S STR0=$G(^LR(LRDFN,LRSS,LRIDT,0))
@@ -92,7 +93,8 @@ TGETDATA ; EP - Tasked GETDATA
  .. ;
  .. S SPTKNDAT=+$P(STR0,"^")             ; Specimen Taken Date
  .. S COMPDATE=+$P(STR0,"^",3)           ; Completed Date
- .. S SPECTYPE=$P(STR0,"^",5)            ; Specimen Type
+ .. ; S SPECTYPE=$P(STR0,"^",5)            ; Specimen Type
+ .. S SPECTYPE=+$P(STR0,"^",5)           ; IHS/OIT/MKK - LR*5.2*1033 - Specimen Type Must be an integer
  .. ;
  .. S LRIDT($P(LRIDT,"."))=SPTKNDAT
  .. ;
@@ -271,11 +273,14 @@ LDORDSRT ; EP - Lab Data Hospital Location File Sort
  ;
  NEW LOCPIECE
  ;
- S LOCPIECE=$S(LRSS="BB":8,LRSS="CH":11,LRSS="CY":8,LRSS="MI":8,LRSS="SP":8,1:0)
+ ; S LOCPIECE=$S(LRSS="BB":8,LRSS="CH":11,LRSS="CY":8,LRSS="MI":8,LRSS="SP":8,1:0)
+ S LOCPIECE=$S(LRSS="BB":8,LRSS="CH":11,LRSS="CY":8,LRSS="MI":13,LRSS="SP":8,1:0)   ; IHS/MSC/MKK - LR*5.2*1033 - Need to use Requesting LOC/DIV field for "MI" tests
+ ;
  S F44IEN=$P($G(^LR(LRDFN,LRSS,LRIDT,0)),"^",LOCPIECE)
  S:$L(F44IEN)>0 F44IEN=+$O(^SC("C",F44IEN,0))
  ;
- I +$G(F44IEN)<1 D STORERRS(LRDFN,LRSS,LRIDT,DATANAME,LAB60IEN,"No File 44 Data in V FILE")  Q
+ ; I +$G(F44IEN)<1 D STORERRS(LRDFN,LRSS,LRIDT,DATANAME,LAB60IEN,"No File 44 Data in V FILE")  Q
+ I +$G(F44IEN)<1 D STORERRS(LRDFN,LRSS,LRIDT,+$G(DATANAME),LAB60IEN,"No File 44 Data in V FILE")  Q     ; IHS/MSC/MKK - LR*5.2*1033 - DATANAME variable only exists for "CH" tests
  ;
  S:$D(^BLRLUPAC(DATETIME,"LOCSORT"))<1 ^BLRLUPAC(DATETIME,"LOCSORT")=SELRAAAB_"^"_LRSDT_"^"_LRLDT
  S ^BLRLUPAC(DATETIME,"LOCSORT",F44IEN)=1+$G(^BLRLUPAC(DATETIME,"LOCSORT",F44IEN))

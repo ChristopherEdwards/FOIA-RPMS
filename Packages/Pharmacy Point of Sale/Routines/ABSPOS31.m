@@ -1,5 +1,5 @@
 ABSPOS31 ; IHS/FCS/DRS - survey prescribers' ID #s ; 
- ;;1.0;PHARMACY POINT OF SALE;**15,20**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**15,20**;JUN 21, 2001;Build 15
  ;
  ;IHS/SD/RLT - 1/12/06 - Fix header - Patch 15
  ;

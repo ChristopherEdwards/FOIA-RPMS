@@ -1,0 +1,149 @@
+BGP7D27 ; IHS/CMI/LAB - measure I2 ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
+ ;
+ ;
+AMP(P,EDATE) ;EP - DID PATIENT HAVE AMPUTATION
+ ;
+ NEW X,Y,Z,G,T,Y,D,%,E,BGPX,C,BGPG
+ ;CHECK DX 15.1
+ S BGPG=$$LASTPRC^BGP7UTL1(P,"BGP BILAT FOOT AMP PROCEDURES",$$DOB^AUPNPAT(P),EDATE)
+ I BGPG Q 1
+ S BGPG=$$CPT^BGP7DU(P,$$DOB^AUPNPAT(P),EDATE,$O(^ATXAX("B","BGP CPT BILAT FOOT AMP",0)))
+ I BGPG Q 1
+ ;check cpt codes for bilateral
+ ;loop through all cpt codes up to Edate and if any match quit
+ S (X,Y,Z,G)=0 K BGPX
+ S T=$O(^ATXAX("B","BGP FOOT AMP CPTS",0))
+ I T S %="" D  I %]"" Q %
+ .S Y=0 F  S Y=$O(^AUPNVCPT("AC",P,Y)) Q:Y'=+Y!(%]"")  D
+ ..S D=$P($G(^AUPNVCPT(Y,0)),U,3)
+ ..Q:D=""
+ ..S D=$P($P($G(^AUPNVSIT(D,0)),U),".") ;date done
+ ..Q:D=""
+ ..I D>EDATE Q
+ ..S X=$P(^AUPNVCPT(Y,0),U)
+ ..Q:'$$ICD^BGP7UTL2(X,T,1)
+ ..S BGPX(D)=""
+ ..;
+ ..S M=$P(^AUPNVCPT(Y,0),U,8) I M S M=$P($G(^AUTTCMOD(M,0)),U) I M=50 S %=1_U_$$DATE^BGP7UTL(D)_" FOOT AMP "_$P(^ICPT(X,0),U,1)
+ ..S M=$P(^AUPNVCPT(Y,0),U,9) I M S M=$P($G(^AUTTCMOD(M,0)),U) I M=50 S %=1_U_$$DATE^BGP7UTL(D)_" FOOT AMP "_$P(^ICPT(X,0),U,1)
+ ..Q
+ .Q
+ ; now check tran codes
+ I T,$D(^AUPNVTC("AC",P)) S %="" D  I %]"" Q %
+ .S E=0 F  S E=$O(^AUPNVTC("AC",P,E)) Q:E'=+E!(%]"")  D
+ ..S D=$P($G(^AUPNVTC(E,0)),U,3) Q:'D  S D=$P($P($G(^AUPNVSIT(D,0)),U),".")
+ ..Q:'$$ICD^BGP7UTL2($P(^AUPNVTC(E,0),U,7),T,1)
+ ..S Y=$P(^AUPNVTC(E,0),U,7)
+ ..I D>EDATE Q
+ ..S BGPX(D)=""
+ ..S M=$P(^AUPNVTC(E,0),U,12) I M S M=$P($G(^AUTTCMOD(M,0)),U) I M=50 S %=1_U_$$DATE^BGP7UTL(D)_" FOOT AMP "_$P(^ICPT(Y,0),U,1)
+ ..S M=$P(^AUPNVTC(E,0),U,15) I M S M=$P($G(^AUTTCMOD(M,0)),U) I M=50 S %=1_U_$$DATE^BGP7UTL(D)_" FOOT AMP "_$P(^ICPT(Y,0),U,1)
+ ..Q
+ .Q
+ ;see if 2 on different dates
+ S %=0,X=0,C=0 F  S X=$O(BGPX(X)) Q:X'=+X  S C=C+1
+ I C>1 Q 1
+ S T=$O(^ATXAX("B","BGP FOOT AMP PROCEDURES",0))
+ S (F,S)=0 F  S F=$O(^AUPNVPRC("AC",P,F)) Q:F'=+F  S C=$P(^AUPNVPRC(F,0),U) D
+ .S G=0 S:$$ICD^BGP7UTL2(C,T,0) G=1
+ .Q:G=0
+ .S D=$P(^AUPNVPRC(F,0),U,6) I D="" S D=$P($P(^AUPNVSIT($P(^AUPNVPRC(F,0),U,3),0),U),".")
+ .I D>EDATE Q
+ .S BGPX(D)=""
+ S %=0,X=0,C=0 F  S X=$O(BGPX(X)) Q:X'=+X  S C=C+1
+ I C>1 Q 1
+ ;NOW ADD IN DX CODES
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL DX [BGP UNILATERAL FOOT AMP DXS;DURING "_$$DOB^AUPNPAT(P)_"-"_EDATE S E=$$START1^APCLDF(X,Y)
+ S %=0 F  S %=$O(BGPG(%)) Q:%'=+%  S D=$P(BGPG(%),U,1),BGPX(D)=""
+ S %=0,X=0,C=0 F  S X=$O(BGPX(X)) Q:X'=+X  S C=C+1
+ I C>1 Q 1
+ Q 0
+DEPSCRBH(P,BDATE,EDATE) ;EP
+ NEW BGPDEPS,BGPG,%,E,Y,X,BGPC,D,V,BGPP,BGPTC
+ S BGPDEPS=""
+ I $G(P)="" Q ""
+ S BGPTC=$O(^BGPCTRL("B",2017,0))
+BH S D=0,BGPC="",E=9999999-BDATE,D=9999999-EDATE-1_".99" F  S D=$O(^AMHREC("AE",P,D)) Q:D'=+D!($P(D,".")>E)!(BGPC)  S V=0 F  S V=$O(^AMHREC("AE",P,D,V)) Q:V'=+V!(BGPC)  D
+ .Q:'$D(^AMHREC(V,0))
+ .S C=$P(^AMHREC(V,0),U,25)
+ .Q:'C
+ .S C=$P($G(^DIC(40.7,C,0)),U,2)
+ .Q:C=""
+ .Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ .I $P($G(^AMHREC(V,14)),U,5)="P"!($P($G(^AMHREC(V,14)),U,5)="N") S BGPC=1_U_C_U_$$DATE^BGP7UTL(9999999-D)_U_(9999999-D)_U_C
+ .Q:BGPC
+ .S X=0 F  S X=$O(^AMHRPRO("AD",V,X)) Q:X'=+X!(BGPC)  S BGPP=$P($G(^AMHRPRO(X,0)),U) D
+ ..Q:'BGPP
+ ..S BGPP=$P($G(^AMHPROB(BGPP,0)),U)
+ ..I BGPP=14.1 S BGPC=1_U_C_U_$$DATE^BGP7UTL(9999999-D)_U_(9999999-D)_U_C Q
+ .Q:BGPC
+ .S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(BGPC)  S BGPP=$P($G(^AMHRMSR(X,0)),U) D
+ ..Q:'BGPP
+ ..S BGPP=$P($G(^AUTTMSR(BGPP,0)),U)
+ ..I BGPP="PHQ2"!(BGPP="PHQ9")!(BGPP="PHQT") S BGPC=1_U_C_U_$$DATE^BGP7UTL(9999999-D)_U_(9999999-D)_U_C
+ .Q:BGPC
+ .S X=0 F  S X=$O(^AMHRPROC("AD",V,X)) Q:X'=+X!(BGPC)  S BGPP=$P($G(^AMHRPROC(X,0)),U) D
+ ..Q:'BGPP
+ ..Q:'$$ICD^BGP7UTL2(BGPP,$O(^ATXAX("B","BGP DEPRESSION SCREEN CPTS",0)),1)
+ ..S BGPC=1_U_C_U_$$DATE^BGP7UTL(9999999-D)_U_(9999999-D)_U_C
+ I BGPC]"",$P(BGPDEPS,U,4)<$P(BGPC,U,4) S BGPDEPS=BGPC
+ K BGPG S %=P_"^ALL EXAM 36;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
+ I $D(BGPG(1)) D
+ .S E=0 F  S E=$O(BGPG(E)) Q:E'=+E  S V=$P(BGPG(E),U,5),C=$$CLINIC^APCLV(V,"C") D
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ ..I $P(BGPDEPS,U,4)<$P(BGPG(E),U) S BGPDEPS=1_"^"_C_U_$$DATE^BGP7UTL($P(BGPG(E),U))_U_$P(BGPG(E),U)_U_C
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL DX [BGP DEPRESSION SCRN DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) D
+ .S E=0 F  S E=$O(BGPG(E)) Q:E'=+E  S V=$P(BGPG(E),U,5),C=$$CLINIC^APCLV(V,"C") D
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ ..I $P(BGPDEPS,U,4)<$P(BGPG(E),U) S BGPDEPS=1_"^"_C_U_$$DATE^BGP7UTL($P(BGPG(E),U))_U_$P(BGPG(E),U)_U_C
+ ;now add in v measurements
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL MEAS PHQ2;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) D
+ .S E=0 F  S E=$O(BGPG(E)) Q:E'=+E  S V=$P(BGPG(E),U,5),C=$$CLINIC^APCLV(V,"C") D
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ ..I $P(BGPDEPS,U,4)<$P(BGPG(E),U) S BGPDEPS=1_C_U_$$DATE^BGP7UTL($P(BGPG(E),U))_U_$P(BGPG(E),U)_U_C
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL MEAS PHQ9;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) D
+ .S E=0 F  S E=$O(BGPG(E)) Q:E'=+E  S V=$P(BGPG(E),U,5),C=$$CLINIC^APCLV(V,"C") D
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ ..I $P(BGPDEPS,U,4)<$P(BGPG(E),U) S BGPDEPS=1_C_U_$$DATE^BGP7UTL($P(BGPG(E),U))_U_$P(BGPG(E),U)_U_C
+ K BGPG
+ S Y="BGPG("
+ S X=P_"^ALL MEAS PHQT;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BGPG(1)) D
+ .S E=0 F  S E=$O(BGPG(E)) Q:E'=+E  S V=$P(BGPG(E),U,5),C=$$CLINIC^APCLV(V,"C") D
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))  ;not BH clinic
+ ..I $P(BGPDEPS,U,4)<$P(BGPG(E),U) S BGPDEPS=1_C_U_$$DATE^BGP7UTL($P(BGPG(E),U))_U_$P(BGPG(E),U)_U_C
+BHSCRC ;
+ ;go through visits in a date range for this patient, check cpts
+ NEW BD,ED
+ S ED=(9999999-EDATE),BD=9999999-BDATE,G=""
+ F  S ED=$O(^AUPNVSIT("AA",P,ED)) Q:ED=""!($P(ED,".")>BD)!(G)  D
+ .S V=0 F  S V=$O(^AUPNVSIT("AA",P,ED,V)) Q:V'=+V!(G)  D
+ ..Q:'$D(^AUPNVSIT(V,0))
+ ..Q:'$D(^AUPNVCPT("AD",V))
+ ..S C=$$CLINIC^APCLV(V,"C")
+ ..Q:C=""
+ ..Q:'$D(^BGPCTRL(BGPTC,50,"B",C))
+ ..S X=0 F  S X=$O(^AUPNVCPT("AD",V,X)) Q:X'=+X!(G)  D
+ ...I $$ICD^BGP7UTL2($P(^AUPNVCPT(X,0),U),$O(^ATXAX("B","BGP DEPRESSION SCREEN CPTS",0)),1) S G=1_U_C_U_$$DATE^BGP7UTL($$VD^APCLV(V))_U_$$VD^APCLV(V)_U_C
+ ...Q
+ ..Q
+ .Q
+ I G,$P(BGPDEPS,U,4)<$P(G,U,1) S BGPDEPS=G
+ Q BGPDEPS

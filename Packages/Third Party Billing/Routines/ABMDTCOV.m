@@ -1,5 +1,6 @@
 ABMDTCOV ; IHS/ASDST/DMJ - Table Maintenance of COVERAGE TYPES ;
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR - 2.6*14 - ICD10 Added UNBILLABLE DIAGNOSIS to prompt
  ;
  S U="^"
 INS W !! K DIC S DIC="^AUTNINS(",DIC("S")="I $P($G(^(1)),U,7)'=0",DIC("A")="Select INSURER: ",DIC(0)="QEAM" D ^DIC K DIC
@@ -12,8 +13,13 @@ EDIT W !! K DIC S DIC="^AUTTPIC(",DIC("A")="Select COVERAGE TYPE to Edit: ",DIC(
  I +Y<1 G EDIT
  S DA=+Y
  S DIE="^AUTTPIC("
- I $P(^AUTNINS(ABM("INS"),0),U)="MEDICARE" S DR="W !;.04;11;13;15"
- E  S DR="W !;.01;.03;.04;.05;11;13;15"
+ ;start old code abm*2.6*14 ICD10
+ ;I $P(^AUTNINS(ABM("INS"),0),U)="MEDICARE" S DR="W !;.04;11;13;15"
+ ;E  S DR="W !;.01;.03;.04;.05;11;13;15"
+ ;end old start new code abm*2.6*14 ICD10
+ I $P(^AUTNINS(ABM("INS"),0),U)="MEDICARE" S DR="W !;.04;11;13UNBILLABLE DIAGNOSIS;15"
+ E  S DR="W !;.01;.03;.04;.05;11;13UNBILLABLE DIAGNOSIS;15"
+ ;end new abm*2.6*14 ICD10
  D ^ABMDDIE K DR G XIT:$D(ABM("DIE-FAIL"))
  G INS
  ;

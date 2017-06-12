@@ -1,5 +1,5 @@
-GMPL1 ; SLC/MKB/AJB -- Problem List actions ; 04/22/03
- ;;2.0;Problem List;**3,20,28**;Aug 25, 1994
+GMPL1 ; SLC/MKB/AJB/TC -- Problem List actions ; 04/22/03 [5/24/12 9:35am]
+ ;;2.0;Problem List;**3,20,28,43**;Aug 25, 1994;Build 4
  ; 10 MAR 2000 - MA - Added to the routine another user prompt
  ; to backup and refine Lexicon search if ICD code 799.9
 ADD ;add new entry to list - Requires GMPDFN
@@ -21,8 +21,9 @@ ADD1 ; set up default values
  I '+$$STATCHK^ICDAPIU(GMPICD,DT) W !,GMPROB,!,"has an inactive code.  Please edit before adding." H 3 Q
  N OK,GMPI,GMPFLD K GMPLJUMP
  S GMPFLD(1.01)=GMPTERM,GMPFLD(.05)=U_GMPROB
- S GMPFLD(.01)=$O(^ICD9("AB",GMPICD_" ",0))_U_GMPICD
- S:'GMPFLD(.01) GMPFLD(.01)=$$NOS^GMPLX ; cannot resolve code
+ ;S GMPFLD(.01)=$O(^ICD9("AB",GMPICD_" ",0))_U_GMPICD
+ S GMPFLD(.01)=$P($$CODEN^ICDCODE(GMPICD,80),"~")_U_GMPICD ; Replacing direct global read to ^ICD9
+ S:'GMPFLD(.01)!($P(GMPFLD(.01),U)<0) GMPFLD(.01)=$$NOS^GMPLX ; cannot resolve code
  S (GMPFLD(1.04),GMPFLD(1.05))=$G(GMPROV),GMPFLD(1.03)=DUZ
  S GMPFLD(1.06)=$$SERVICE^GMPLX1(+GMPFLD(1.04)),GMPFLD(1.08)=$G(GMPCLIN)
  S (GMPFLD(.08),GMPFLD(1.09))=DT_U_$$EXTDT^GMPLX(DT)

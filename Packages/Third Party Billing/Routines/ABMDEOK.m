@@ -1,15 +1,18 @@
 ABMDEOK ; IHS/ASDST/DMJ - Approve Claim for Billing ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**9**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**9,19**;NOV 12, 2009;Build 300
  ;
  ; IHS/ASDS/SDH - 03/12/01 - V2.4 Patch 9 - NOIS XJG-0500-160047
  ;     Remove the post pre-payment on the fly functionality
- ;
  ; IHS/ASDS/SDH - 09/26/01 - V2.4 Patch 9 - NOIS NDA-1199-180065
  ;     Modified to add prompts for Unbillable secondary stuff
  ;
- ; IHS/SD/SDR - v2.5 p9 - IM19585
- ;    Added code to check status of active insurer; change to
+ ; IHS/SD/SDR - v2.5 p9 - IM19585 - Added code to check status of active insurer; change to
  ;    initiated if complete
+ ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT193348 - Made change to stop duplicate bill from creating in A/R.  If the 3P Bill entry
+ ;  thought it was incomplete for some reason, it would delete the 3P Bill without checking for the A/R Bill.  The
+ ;  A/R Bill would have created when the 3P Claim was approved.  Updated the statuses of the 3P Bill check to include
+ ;  approved.
  ;
  ; *********************************************************************
  ;
@@ -59,7 +62,8 @@ BIL ;
  F  S DA=$O(^ABMDTMP(ABMP("CDFN"),DA)) Q:'DA  D  K ^ABMDTMP(ABMP("CDFN"),DA)
  .Q:'$D(^ABMDBILL(DUZ(2),DA,0))
  .Q:+$P(^ABMDBILL(DUZ(2),DA,0),U)'=ABMP("CDFN")
- .Q:"BTPC"[$P(^ABMDBILL(DUZ(2),DA,0),U,4)
+ .;Q:"BTPC"[$P(^ABMDBILL(DUZ(2),DA,0),U,4)  ;abm*2.6*19 IHS/SD/SDR HEAT193348
+ .Q:"ABTPC"[$P(^ABMDBILL(DUZ(2),DA,0),U,4)  ;approved, billed, transferred, partial payment, or complete - skip  ;abm*2.6*19 IHS/SD/SDR HEAT193348
  .W !!,*7,"Bill Number ",$P(^ABMDBILL(DUZ(2),DA,0),U)
  .W " was previously created from this claim"
  .W !,"but was not completed. It is now being removed!..."

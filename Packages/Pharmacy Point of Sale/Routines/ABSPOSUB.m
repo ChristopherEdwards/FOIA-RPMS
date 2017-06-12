@@ -1,5 +1,5 @@
 ABSPOSUB ; IHS/FCS/DRS - diagnostic data collection ;   [ 09/12/2002  10:20 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q  ; diagnostics data collection from full screen display
  ;  You may need to rework this if/when it's ever needed to debug
  ;  the user screen and the continuous update.

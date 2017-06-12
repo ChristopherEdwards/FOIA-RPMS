@@ -1,5 +1,5 @@
 BQIPLPM ;PRXM/HC/ALA-Get Panel Parameters ; 13 Nov 2008  3:07 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;

@@ -1,5 +1,5 @@
 APCHSMU1 ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,11,16**;MAY 14, 2009;Build 9
  ;
  ;
 GETMEDS(P,APCHMBD,APCHMED,TAXM,TAXN,TAXC,APCHNAME,APCHZ) ;EP
@@ -100,7 +100,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^ATXAPI(I,T,1)
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
  .Q
  Q G
@@ -114,6 +114,23 @@ REFTAX(P,F,T,B,E) ;EP - refused an item in a taxonomy
  S X=E,%DT="P" D ^%DT S E=Y
  S T1=0,G="" F  S T1=$O(^ATXAX(T,21,"B",T1)) Q:T1=""!(G)  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,F,T1,X)) Q:X'=+X!(G)  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,F,T1,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<B&(D'>E) S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
+ Q G
+IPLSNO(P,T,B) ;EP - any problem list entry with a SNOMED in T
+ NEW OUT,IN,C,G,Y,X,I,SNL,SNI
+ S OUT="SNL"
+ S B=$G(B)
+ S X=$$SUBLST^BSTSAPI(OUT,T)
+ ;BUILD INDEX
+ S C=0 F  S C=$O(SNL(C)) Q:C'=+C  S I=$P(SNL(C),U,1) I I]"" S SNI(I)=SNL(C)
+ K SNL
+ ;LOOP PROBLEM LIST
+ S (X,G)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..I 'B Q:$P(^AUPNPROB(Y,0),U,12)="I"  ;inactive - per susan 5.3.16
+ ..I $D(SNI(X)) S G=1_U_$$CONCPT^AUPNVUTL(X)_" on their Problem List"
  Q G
 PAPCPTS ;;
  ;;88141

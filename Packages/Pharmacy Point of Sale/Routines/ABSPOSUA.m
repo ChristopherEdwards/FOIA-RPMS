@@ -1,5 +1,5 @@
 ABSPOSUA ; IHS/FCS/DRS - sort and print utilities ;    
- ;;1.0;PHARMACY POINT OF SALE;**37**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**37**;JUN 21, 2001;Build 15
  Q
 DEFDEST()          Q "^TMP("""_$T(+0)_""","_$J_",1)" ; default dest for sort
 SAVEAREA()         Q "^TMP("""_$T(+0)_""","_$J_",2)" ; if you save old vers.

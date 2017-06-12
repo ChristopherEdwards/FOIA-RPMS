@@ -1,5 +1,5 @@
-TIUSRVR2 ; SLC/JER - RPC for record-wise GET ; 4/14/03
- ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,162**;Jun 20, 1997
+TIUSRVR2 ; SLC/JER - RPC for record-wise GET ; 11/23/07
+ ;;1.0;TEXT INTEGRATION UTILITIES;**100,109,162,222,234**;Jun 20, 1997;Build 6
  ; 4/12/01 Moved signature modules to new rtn TIUSRVR3
 LOADREC(TIUDA,TIUL,TIUGDATA,TIUGWHOL,ACTION) ; Load ^TMP
  ;Requires TIUDA, array TIUL, TIUGDATA
@@ -66,7 +66,9 @@ LOADREC(TIUDA,TIUL,TIUGDATA,TIUGWHOL,ACTION) ; Load ^TMP
  . I +$$ISADDNDM^TIULC1(TIUKID)'>0 D LOADREC(TIUKID,.TIUL,$G(TIUGDATA))
  ; ---- Load signature of TIUDA if TIUDA is not addm
  ;           or comp: ----
- I '$$ISCOMP^TIUSRVR1(TIUDA) D LOADSIG^TIUSRVR3(TIUDA,.TIUL)
+ ; *222 don't display sig info. for FORM LETTERS
+ I '+$$MEMBEROF^TIUPR222(+$G(^TIU(8925,+TIUDA,0)),"FORM LETTERS") D
+ . I '$$ISCOMP^TIUSRVR1(TIUDA) D LOADSIG^TIUSRVR3(TIUDA,.TIUL)
  ; ---- Load addenda of TIUDA: ----
  S TIUKID=0
  F  S TIUKID=$O(^TIU(8925,"DAD",+TIUDA,TIUKID)) Q:+TIUKID'>0  D
@@ -128,7 +130,7 @@ LOADID(TIUDA,TIUL,TIUGDATA,TIUWHOL) ; Load ID note for browse
 INQUIRE(TIUDA,TIUREC,TIUCPF) ; Inquire to document TIUDA and set TIUREC
  N DA,DIC,DIQ,DR
  S DA=TIUDA,DIC=8925,DIQ="TIUREC("
- S DR=".01;.02;.05;.09;1201;1202;1208;1209;1301;1307;1501;1502;1505;1506"
+ S DR=".01;.02;.05;.09;1201;1202;1208;1209;1301;1307;1501;1502;1505;1506;89261"
  ;If the document is a member of the Clinical Procedures Class, include the
  ;Procedure Summary Code field and the Date/Time Performed field
  I $G(TIUCPF) S DR=DR_";70201;70202"

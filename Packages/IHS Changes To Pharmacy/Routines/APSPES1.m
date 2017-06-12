@@ -1,5 +1,5 @@
-APSPES1 ;IHS/MSC/PLS - SureScripts HL7 interface  ;31-Oct-2013 12:09;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1011,1013,1014,1016**;Sep 23, 2004;Build 74
+APSPES1 ;IHS/MSC/PLS - SureScripts HL7 interface  ;01-Apr-2014 11:28;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1008,1009,1011,1013,1014,1016,1017**;Sep 23, 2004;Build 40
  ;====================================================================
  ;Patch 1016 added AL1 segment and RXC segment
  Q
@@ -28,6 +28,7 @@ NEWRX(RXIEN) ;EP
  S RX2=^PSRX(RXIEN,2)
  S DFN=$P(RX0,U,2)
  ;Create segments
+ ;
  D PID(DFN),ORCNW("NW",1),RXO(1),RXR,RXC,DG1,AL1
  ; Define sending and receiving parameters
  S APPARMS("SENDING APPLICATION")="APSP RPMS"
@@ -177,7 +178,6 @@ ORCNW(OCC,ADD) ;EP
  S NM=$$HLNAME^HLFNC($$GET1^DIQ(200,$P(RX0,U,16),.01),HLECH)
  F LP=1:1:$L(NM,$E(HLECH)) S VAL=$P(NM,$E(HLECH),LP) D
  .D SET(.ARY,VAL,10,LP+1)
- ;_$E(HLECH)_$$HLNAME^HLFNC($P(RX0,U,16),HLECH),10)  ;Entered By
  S IMMSUP=$$GET1^DIQ(49,$$GET1^DIQ(200,+$P(RX0,U,4),29,"I"),2,"I")
  S IMMNPI=$$GET1^DIQ(200,+IMMSUP,41.99) ; Immediate Supervisor NPI
  D SET(.ARY,IMMNPI,11)
@@ -252,7 +252,7 @@ RXO(ADD) ;EP
  N DSF,PHM,DNAME,X,FRM,DRG,NDC,RXNORM,DIEN,TYP,NIEN,TTY,APP,FOUND
  S TYP=""
  D SET(.ARY,"RXO",0)
- S NDC=$$NDC^APSPES4($P(RX0,U,6))
+ S NDC=$TR($P(RX2,U,7),"-","")
  S DIEN=$P(RX0,U,6)
  D SET(.ARY,NDC,1,1)  ; NDC Value
  ;IHS/MSC/MGH Patch 1016 change to use long name if available
@@ -282,20 +282,15 @@ RXO(ADD) ;EP
  I $P($G(^PSDRUG(DIEN,999999935)),U,1)=1 S TYP="C"
  I $E($P($G(^PSDRUG(DIEN,0)),U,2),1,2)="XA"!($P($G(^PSDRUG(DIEN,0)),U,3)["S") S TYP="P"
  D SET(.ARY,TYP,27,1)        ;Supply or compound code
+ ;Patch 1017 Get Rxnorm and TTY from the NDC of the prescription
  I NDC'="" D
- .S RXNORM=$$RXNORM^APSPFNC1(NDC)
+ .S RXNORM=$$RXNORM^APSPFNC1(NDC,1)
  .Q:RXNORM=""
+ .S TTY=$P(RXNORM,U,2)
+ .S RXNORM=$P(RXNORM,U,1)
  .D SET(.ARY,RXNORM,24,1)     ;RxNorm as alt id
- .S FOUND=0
- .S NIEN="" F  S NIEN=$O(^C0CRXN(176.001,"B",RXNORM,NIEN)) Q:NIEN=""!(FOUND=1)  D
- ..S TTY=""
- ..S APP=$$GET1^DIQ(176.001,NIEN,2)
- ..I APP="RXNORM" D
- ...S TTY=$$GET1^DIQ(176.001,NIEN,3)
- ...I TTY="SCD"!(TTY="SBD")!(TTY="GPCK")!(TTY="BPCK") D
- ....S FOUND=1
- ....S TTY=$S(TTY="GPCK":"GPK",TTY="BPCK":"BPK",1:TTY)
- ....D SET(.ARY,TTY,24,2)     ;TTY code
+ .S TTY=$S(TTY="GPCK":"GPK",TTY="BPCK":"BPK",1:TTY)
+ .D SET(.ARY,TTY,24,2)     ;TTY code
  .D SET(.ARY,"RXNORM",24,3)   ;Code List
  S PHM=$$GPHM(RXIEN)
  I PHM D

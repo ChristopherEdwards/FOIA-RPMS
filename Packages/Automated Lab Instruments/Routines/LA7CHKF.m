@@ -1,5 +1,5 @@
-LA7CHKF ;DALOI/JMC - Check Lab Messaging File Integrity ; 2/26/97 11:00
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,46**;Sep 27, 1994
+LA7CHKF ;VA/DALOI/JMC - Check Lab Messaging File Integrity ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,46,1033**;NOV 1, 1997
  ;This routine checks file integrity for Lab Messaging.
 EN ; Run an integrity check
  ;

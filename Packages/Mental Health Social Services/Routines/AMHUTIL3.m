@@ -1,8 +1,40 @@
 AMHUTIL3 ; IHS/CMI/LAB - provider functions ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2,3,4**;JUN 18, 2010;Build 28
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,3,4,6**;JUN 02, 2010;Build 10
  ;IHS/CMI/LAB - added stage as output parameter
  ;
  ;IHS/TUCSON/LAB - patch 1 05/19/97 - fixed setting of array
+RACESF(PAT) ;
+ NEW Y,Z,X,I
+ K Z
+ S X=""
+ D LIST^DIC(2.02,","_PAT_",","@;.01E","P",,,,,,,"Z")
+ S Y=0 F  S Y=$O(Z("DILIST",Y)) Q:Y=""  D
+ .S I=$P($G(^DIC(10,+$P(Z("DILIST",Y,0),U,1),.02)),U,1)
+ .Q:I
+ .S Z=$P(^DIC(10,+$P(Z("DILIST",Y,0),U,1),0),U,3)
+ .;I Z="" S Z=$P(^DIC(10,+$P(Z("DILIST",Y,0),U,1),0),U,2)
+ .Q:Z=""
+ .S X=X_Z_U
+ Q X
+ETHN(P) ;EP
+ I '$G(P) Q ""
+ I $G(F)="" S F="E"
+ I '$D(^DPT(P,0)) Q ""
+ NEW Z,E,I
+ S (E,I)=""
+ S Z=0 F  S Z=$O(^DPT(P,.06,Z)) Q:Z'=+Z!(E]"")  D
+ .S I=$P($G(^DPT(P,.06,Z,0)),U,1)
+ .Q:I=""
+ .S E=$P($G(^DIC(10.2,I,0)),U,2)
+ .Q
+ Q E
+ASUFACLD(R) ;EP - get asufac of logged in facility suicide form
+ I '$G(R) Q ""
+ I '$D(^AMHPSUIC(R,0)) Q ""
+ NEW Z
+ S Z=$$VALI^XBDIQ1(9002011.65,R,.28)
+ I 'Z Q ""
+ Q $$VAL^XBDIQ1(9999999.06,Z,.12)
 DLM(V) ;EP date last modified
  I 'V Q ""
  I '$D(^AMHREC(V)) Q ""

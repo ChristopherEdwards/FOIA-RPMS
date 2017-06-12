@@ -1,5 +1,5 @@
-LA7VCN1A ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**64,1027**;NOV 01, 1997
+LA7VCN1A ;VHA/DALOI/JMC - Process Incoming UI Msgs, continued ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**64,1027,1033**;NOV 01, 1997
  ; This routine is a continuation of LA7VIN1.
  ; It performs generation of any mail bulletins needed.
  ;
@@ -160,7 +160,7 @@ SENDACB ; Send abnormal/critical bulletin
  . D SMB
  . S XQAMSG="Lab Messaging - Reference Lab Abnormal Results received from "_XMPARM(1),XQAID="LA7-ABNORMAL-RESULTS-"_XMPARM(1)
  . D SA
- . D:$P($G(^BLRSITE(BLRQSITE,0)),U,10) ENTRYAUD^BLRUTIL("SENDACB^LA7VCN1A 9.0","XMPARM","LA7I")    ; <<<< DEBUG
+ . ;D:$P($G(^BLRSITE(BLRQSITE,0)),U,10) ENTRYAUD^BLRUTIL("SENDACB^LA7VCN1A 9.0","XMPARM","LA7I")    ; <<<< DEBUG
  ;
  K ^TMP("LA7 ABNORMAL RESULTS",$J)
  ;

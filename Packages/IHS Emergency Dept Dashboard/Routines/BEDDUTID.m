@@ -1,5 +1,5 @@
 BEDDUTID ;VNGT/HS/BEE-BEDD Utility Routine 2 ; 08 Nov 2011  12:00 PM
- ;;1.0;BEDD DASHBOARD;;Dec 17, 2012;Build 31
+ ;;2.0;BEDD DASHBOARD;**1**;Jun 04, 2014;Build 22
  ;
  ;Adapted from BEDDUTL1/CNDH/RPF
  ;
@@ -28,13 +28,16 @@ ADDDX(VIEN,DXI,DUZ) ;EP - Add DX TO V POV FILE
  ;
  S VIEN=$G(VIEN,""),DXI=$G(DXI,"") S:$G(U)="" U="^"
  ;
+ NEW DFN,NOW,XIEN,PDX,I9,STS
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  ;Define DUZ variable
- I $G(DUZ)="" Q
+ I $G(DUZ)="" S STS="Missing DUZ" Q
  D DUZ^XUP(DUZ)
  ;
- ;
- NEW DFN,NOW,XIEN,PDX,I9
- ; 
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTID D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
@@ -71,6 +74,10 @@ EDCON(AMERVSIT,EDCONS) ;EP - Get list of ER Consults
  ;
  I $G(AMERVSIT)="" S EDCONS=0 Q
  ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTID D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
@@ -98,6 +105,11 @@ PROC(AMERVSIT,ERPROC) ;EP - Get list of ER Procedures Performed
  ;
  I $G(AMERVSIT)="" S ERPROC=0 Q
  ;
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTID D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
@@ -123,6 +135,11 @@ DX(AMERVSIT,ERDX) ;EP - Get list of ER DX'S
  ;
  I $G(AMERVSIT)="" S ERDX=0 Q
  ;
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTID D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
@@ -143,6 +160,11 @@ MDTRN(DFN) ;EP - Update Patient's MODE OF TRANSPORT
  ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTID D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
  ;
  NEW MD,MDO,AMUPD,ERROR
  ;
@@ -172,6 +194,10 @@ HTIME(TM) ;EP - Given seconds portion of $H value, return time
  ;
 PRIMDX(VIEN,OBJID) ;EP - Retrieve/Save the Primary EHR DX
  ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  NEW DX
  ;
  S DX=""
@@ -194,7 +220,11 @@ PRIMDX(VIEN,OBJID) ;EP - Retrieve/Save the Primary EHR DX
  ;
 AGE(DFN) ;EP - Return Patients Age
  ;
- S:$G(DT)="" DT=$$DT^XLFDT
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
  Q $$AGE^AUPNPAT(DFN,,1)
  ;
  ;
@@ -206,6 +236,16 @@ DSAVE(DFN,AMERVSIT,VIEN,OBJID,DUZ,SITE,BEDDARY) ;EP - Dashboard Discharge Screen
  ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTIL D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
+ NEW AUPNVSIT,STS
+ ;
+ ;Define DUZ variable
+ I $G(DUZ)="" S STS="Missing DUZ" Q 0
+ D DUZ^XUP(DUZ)
  ;
  ;File ER ADMISSION entries
  I $G(DFN)]"" D
@@ -219,21 +259,13 @@ DSAVE(DFN,AMERVSIT,VIEN,OBJID,DUZ,SITE,BEDDARY) ;EP - Dashboard Discharge Screen
  I $G(VIEN)]"" D
  . S:$G(BEDDARY("txcln"))]"" AMUPD(9000010,VIEN_",",.08)=$O(^DIC(40.7,"C",BEDDARY("txcln"),""))
  ;
- ;File ER VISIT entries
- ;I $G(AMERVSIT)]"" D
- ;. ;
- ;. ;Save Clinic Type
- ;. I $D(BEDDARY("txcln")) D
- ;.. NEW CLIN,XCLIN
- ;.. S CLIN=$O(^DIC(40.7,"C",BEDDARY("txcln"),"")) Q:CLIN=""
- ;.. S XCLIN=$$GET1^DIQ(40.7,CLIN_",",.01,"E") Q:XCLIN=""
- ;.. S CLIN=$O(^AMER(3,"B",XCLIN,"")) Q:CLIN=""
- ;.. S AMUPD(9009080,AMERVSIT_",",.04)=CLIN
- ;
  I $D(AMUPD) D FILE^DIE("","AMUPD","ERROR")
  ;
  ;Complete Discharge
  D DC^BEDDUTIS(DFN,OBJID,VIEN,DUZ,SITE,.BEDDARY)
+ ;
+ ;Flag visit as edited
+ S AUPNVSIT=VIEN D MOD^AUPNVSIT
  ;
  I $D(ERROR) Q 0
  Q 1
@@ -362,36 +394,68 @@ XDATE(X)  ;EP - Convert External Date to FileMan
  ;
  Q $$FMTE^BEDDUTIL(Y)
  ;
-DXLKP(VALUE) ;EP - Lookup to File 80 (DX)
+DXLKP(VALUE,OBJID,DUZ,FILTER) ;EP - Lookup to File 80 (DX)
  ;
- NEW CNT,FIELD,FLAGS,INDEX,SCREEN,ERROR
+ NEW VIEN,EXEC,VDT,SEX,STS
  ;
- ;Error Trapping
- NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTIL D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
+ ;Verify that the object id was passed in
+ I $G(OBJID)="" Q
  ;
- K ^TMP("BEDDDX",$J),^TMP("DILIST")
- S FIELD="FID;-WID"
- S FLAGS="MP"
- S INDEX=""
- S SCREEN="D ^AUPNSICD"
- D FIND^DIC(80,"",FIELD,FLAGS,VALUE,"",INDEX,SCREEN,"","","ERROR")
+ ;Make sure filter is populated
+ S:$G(FILTER)="" FILTER=0
  ;
- S CNT=0 F  S CNT=$O(^TMP("DILIST",$J,CNT)) Q:'CNT  S ^TMP("BEDDDX",$J,CNT)=$G(^TMP("DILIST",$J,CNT,0))
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
  ;
+ ;Define DUZ variable
+ I $G(DUZ)="" S STS="Missing DUZ" Q
+ D DUZ^XUP(DUZ)
+ ;
+ ;Get the visit ien
+ S VIEN=""
+ S EXEC="S BEDDVST=""""" X EXEC
+ S EXEC="S BEDDVST=##CLASS(BEDD.EDVISIT).%OpenId(OBJID,1)" X EXEC
+ S EXEC="S VIEN=BEDDVST.VIEN" X EXEC
+ S EXEC="S BEDDVST=""""" X EXEC
+ ;
+ ;Get the visit date and gender
+ S VDT="" I $G(VIEN)]"" D
+ .NEW DFN
+ . S DFN=$$GET1^DIQ(9000010,VIEN_",",".05","I")
+ . S SEX=$$GET1^DIQ(2,DFN_",",".02","I")
+ . S VDT=$P($$GET1^DIQ(9000010,VIEN_",",".01","I"),".")
+ S:$G(VDT)="" VDT=DT
+ S:$G(SEX)="" SEX=""
+ ;
+ ;Get the gender
+ ;
+ ;Call the new lookup
+ D DXLKP^BEDDPOV(VALUE,VDT,.SEX,FILTER)
  Q
  ;
-ESAVE(DFN,AMERVSIT,VIEN,BEDDARY) ;EP - Dashboard Edit Screen Save
+ESAVE(DFN,AMERVSIT,VIEN,BEDDARY,DUZ) ;EP - Dashboard Edit Screen Save
  ;
  ; Input:
  ; DFN - Patient IEN
  ; BEDDARY - Array of entries to save
+ ; DUZ
+ ;
+ NEW X
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
+ ;Define DUZ variable
+ D DUZ^XUP(DUZ)
  ;
  ;Error Trapping
  NEW $ESTACK,$ETRAP S $ETRAP="D ERR^BEDDUTIL D UNWIND^%ZTER" ; SAC 2006 2.2.3.3.2
  ;
  ;File ER ADMISSION entries
  I $G(DFN)]"" D
- . S:$D(BEDDARY("COMP")) AMUPD(9009081,DFN_",",8)=BEDDARY("COMP")
+ . ;BEDD*2.0*8;Switch complaint to field 23 (from 8)
+ . ;S:$D(BEDDARY("COMP")) AMUPD(9009081,DFN_",",8)=BEDDARY("COMP")
+ . S:$D(BEDDARY("COMP")) AMUPD(9009081,DFN_",",23)=BEDDARY("COMP")
  . S:$D(BEDDARY("Trg")) AMUPD(9009081,DFN_",",20)=BEDDARY("Trg")
  . S:$D(BEDDARY("TrgNow")) AMUPD(9009081,DFN_",",21)=$$DATE^BEDDUTIL(BEDDARY("TrgNow"))
  . S:$D(BEDDARY("AdmPrv")) AMUPD(9009081,DFN_",",18)=BEDDARY("AdmPrv")
@@ -401,7 +465,10 @@ ESAVE(DFN,AMERVSIT,VIEN,BEDDARY) ;EP - Dashboard Edit Screen Save
  ;File VISIT entries
  I $G(VIEN)]"" D
  . S:$G(BEDDARY("txcln"))]"" AMUPD(9000010,VIEN_",",.08)=$O(^DIC(40.7,"C",BEDDARY("txcln"),""))
+ . S:$G(BEDDARY("txcln"))="" AMUPD(9000010,VIEN_",",.08)="@"
  . S AMUPD(9000010,VIEN_",",1401)=$S($G(BEDDARY("COMP"))]"":BEDDARY("COMP"),1:"@")
+ . ;BEDDv2.0;Save Decision to admit date
+ . S AMUPD(9000010,VIEN_",",1116)=$S($G(BEDDARY("DecAdmit"))]"":BEDDARY("DecAdmit"),1:"@")
  ;
  ;File ER VISIT entries
  I $G(AMERVSIT)]"" D
@@ -414,25 +481,51 @@ ESAVE(DFN,AMERVSIT,VIEN,BEDDARY) ;EP - Dashboard Edit Screen Save
  .. S CLIN=$O(^AMER(3,"B",XCLIN,"")) Q:CLIN=""
  .. S AMUPD(9009080,AMERVSIT_",",.04)=CLIN
  ;
- I $D(AMUPD) D FILE^DIE("","AMUPD","ERROR")
+ ;File visit entries
+ I $D(AMUPD) D
+ . NEW AUPNVSIT
+ . D FILE^DIE("","AMUPD","ERROR")
+ . ;
+ . ;Flag that visit was changed
+ . D MOD^AUPNVSIT
+ ;
+ ;BEDD*2.0*1;Update V EMERGENCY VISIT
+ D VER^AMERVER($G(DFN),$G(VIEN))
  ;
  I $D(ERROR) Q 0
  Q 1
  ;
-PLCHLD(OBJID) ;EP - Look for Diagnosis Default
+PLCHLD(OBJID,VIEN) ;EP - Look for Diagnosis Default
  ;
  I $G(OBJID)="" Q ""
  ;
- NEW CDIEN,DXNM,DIC,X,Y
+ ;
+ ;Make sure initial variables are set
+ S X="S:$G(U)="""" U=""^""" X X
+ S X="S:$G(DT)="""" DT=$$DT^XLFDT" X X
+ ;
+ NEW CDIEN,DXNM,DIC,X,Y,VDT,DFLTDX,BEDDPOV
+ ;
+ ;Get visit date, if blank use DT
+ I $G(VIEN)]"" S VDT=$P($$GET1^DIQ(9000010,VIEN,".01","I"),".")
+ S:$G(VDT)="" VDT=DT
  ;
  ;Quit if patient already has DX codes
- I $$DXCNT^BEDDUTIS(OBJID)>0 Q ""
+ ;I $$DXCNT^BEDDUTIS(OBJID)>0 Q ""
+ I $$POV^AMERUTIL("",VIEN,.BEDDPOV)>0 Q ""
  ;
- S DIC="^ICD9(",DIC(0)="XMO",X=".9999" D ^DIC I +Y<0 Q ""
+ ;Determine if pre-AICD 4.0, pre-ICD-10, or post ICD-10
+ S (DFLTDX,X)=".9999"
+ I $$VERSION^XPDUTL("AICD")>3.51,$$IMP^ICDEXA(30)'>VDT S (DFLTDX,X)="ZZZ.999"
+ ;
+ S DIC="^ICD9(",DIC(0)="XMO" D ^DIC I +Y<0 Q ""
  S CDIEN=+Y
  ;
- S DXNM=$$GET1^DIQ(80,CDIEN_",","3","E")
- Q ".9999^"_CDIEN_"^"_DXNM
+ S DXNM=$E($P($$ICDDX^AUPNVUTL(CDIEN,VDT),U,4),1,55)
+ Q DFLTDX_"^"_CDIEN_"^"_DXNM
+ ;
+UPPER(X) ;EP - Convert to uppercase
+ Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  ;
 ERR ;EP - Capture the error
  D ^%ZTER

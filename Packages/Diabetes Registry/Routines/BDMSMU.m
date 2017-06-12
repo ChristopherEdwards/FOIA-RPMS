@@ -1,5 +1,5 @@
 BDMSMU ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8**;JUN 14, 2007;Build 53
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,8,9**;JUN 14, 2007;Build 78
  ;
 D1(D) ;EP - DATE WITH 4 YR
  I $G(D)="" Q ""
@@ -86,12 +86,12 @@ PLTAX(P,A,S,F) ;EP - is DM on problem list 1 or 0
  S S=$G(S)
  S F=$G(F)
  I F="" S F=1
- N T S T=$O(^ATXAX("B",A,0))
- I 'T Q ""
+ N T S T=A  ;$O(^ATXAX("B",A,0))
+ ;I 'T Q ""
  N X,Y,I,Z S (X,Y,I)=0,Z="" F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:'$$ICD^ATXCHK(Y,T,9)
+ .Q:'$$ICD^BDMUTL(Y,T,9)
  .I S]"",$P(^AUPNPROB(X,0),U,12)'=S Q
  .S I=1
  .S Z=X
@@ -184,7 +184,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^BDMUTL(I,T,1)
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
  .Q
  Q G

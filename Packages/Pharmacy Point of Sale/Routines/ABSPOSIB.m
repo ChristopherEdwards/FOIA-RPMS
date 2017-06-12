@@ -1,5 +1,5 @@
 ABSPOSIB ; IHS/FCS/DRS - branching logic ;  [ 09/12/2002  10:11 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,3,6**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,3,6**;JUN 21, 2001;Build 15
  Q
  ; Situation:  after inputting NDC #, there are a number of
  ; pop-up pages which could appear.  Process them in order.

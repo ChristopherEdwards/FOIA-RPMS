@@ -1,5 +1,5 @@
 APCDFH1 ; IHS/CMI/LAB - LIST MANAGER API'S FOR FAMILY HISTORY AND API FOR REP FACTORS 19 Jun 2008 2:14 PM ; 
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,7,10,11,17**;MAY 14, 2009;Build 18
  ;
  ;
 FM ;EP - called from d/e input template APCD FP (FP)
@@ -14,6 +14,7 @@ FM1 ;EP - called from XBNEW call
  D EN^DDIOL("Contraceptive Method","","!?3"),EN^DDIOL("Start Date","","?43"),EN^DDIOL("End Date","","?63")
  D EN^DDIOL($$REPEAT^XLFSTR("-",75),"","!?3")
  K APCDCM S X=0,APCDC=0 F  S X=$O(^AUPNREP(APCDREPI,2101,X)) Q:X'=+X  D
+ .Q:$P($G(^AUPNREP(APCDREPI,2101,X,1)),U,1)]""  ;DELETED
  .S APCDC=APCDC+1,APCDCM(APCDC)=X
  .W !?2,APCDC,")  ",$P(^AUTTCM($P(^AUPNREP(APCDREPI,2101,X,0),U),0),U),?43,$$FMTE^XLFDT($P(^AUPNREP(APCDREPI,2101,X,0),U,2)),?63,$$FMTE^XLFDT($P(^AUPNREP(APCDREPI,2101,X,0),U,3))
  .I $P(^AUPNREP(APCDREPI,2101,X,0),U,6)]"" W !?4,"Comment: ",$P(^AUPNREP(APCDREPI,2101,X,0),U,6)
@@ -32,9 +33,9 @@ FM13 ;
  K Y
  Q
 FMA ;
- NEW APCDY
+ NEW APCDY,DIC
  S DIC("A")="Enter CONTRACEPTIVE METHOD: ",DIC="^AUTTCM(",DIC(0)="AEMQ" D ^DIC
- I Y=-1 K DIC Q
+ I Y=-1 K DIC,Y Q
  S APCDCMI=+Y
  S DIC="^AUPNREP("_APCDREPI_",2101,"
  S DA(1)=APCDREPI
@@ -89,9 +90,13 @@ FMD ;
  I $D(DIRUT) Q
  K DIC,DA,DR
  S APCDY=+Y
- S DA=APCDCM(APCDY),DA(1)=APCDREPI,DR=".01///@"
+ S DA=APCDCM(APCDY),DA(1)=APCDREPI,DR="1.01////"_DUZ_";1.02////"_$$NOW^XLFDT_";1.03"
  S DIE="^AUPNREP("_APCDREPI_",2101,"
  D ^DIE
+ K DA,DIE,DR
+ I $P($G(^AUPNREP(APCDREPI,2101,APCDCM(APCDY),1)),U,3)="O" D
+ .S DIE="^AUPNREP("_APCDREPI_",2101,"
+ .S DA=APCDCM(APCDY),DA(1)=APCDREPI,DR="1.04R" D ^DIE K DA,DIE
  S DA=APCDCM(APCDY),DA(1)=APCDREPI D MULTOSET^APCDRF
  K DA
  Q
@@ -133,4 +138,49 @@ LMP11 ;
  S DIE="^AUPNREP(",DA=APCDREPI,DR="[APCD LMP EDIT]" D ^DIE
  K DIE,DA,DR
  K Y
+ Q
+DELETE ;EP
+ I 'APCDRCNT D EN^DDIOL("No Family History to Edit",,"!!") H 3 D BACK^APCDFH Q
+ D EN^VALM2(XQORNOD(0),"OS")
+ I '$D(VALMY) W !,"No FAMILY HISTORY entry selected." Q
+ S APCDP=$O(VALMY(0)) I 'APCDP K APCDP,VALMY,XQORNOD W !,"No record selected." D BACK^APCDFH Q
+ S (APCDFHI,APCDRELI)=0
+ S (X,Y)=0 F  S X=$O(APCDFHA("IDX",X)) Q:X'=+X!(APCDFHI)  I $O(APCDFHA("IDX",X,0))=APCDP S Y=$O(APCDFHA("IDX",X,0)),APCDFHI=$P(APCDFHA("IDX",X,Y),U,1),APCDRELI=$P(APCDFHA("IDX",X,Y),U,2)
+ I APCDFHI=0 D  D BACK^APCDFH Q
+ .D FULL^VALM1
+ .I $D(^AUPNFH("AE",APCDRELI)) W !!,"There are conditions associated with this relation, you cannot delete it." Q
+ .W !,"There are no conditions associated with this relation ("_$$VAL^XBDIQ1(9000014.1,APCDRELI,.01),")."
+ .S DIR(0)="Y",DIR("A")="Are you sure you want to delete this relation",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) Q
+ .I 'Y Q
+ .S DA=APCDRELI,DIK="^AUPNFHR(" D ^DIK
+ I '$D(^AUPNFH(APCDFHI,0)) W !,"Not a valid FAMILY HISTORY ENTRY." K APCDP S APCDFHI=0 D BACK^APCDFH Q
+ D FULL^VALM1
+ W !!
+ S DIC="^AUPNFH(",DR=0,DA=APCDFHI
+ D EN^DIQ
+ W !
+ S DIR(0)="Y",DIR("A")="Are you sure you want to delete this entry",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ I $D(DIRUT) D BACK^APCDFH Q
+ I 'Y D BACK^APCDFH Q
+ S DA=APCDFHI,DIK="^AUPNFH(" D ^DIK K DIK,DA
+ D BACK^APCDFH
+ Q
+ ;
+HS ;EP - called from protocol
+ D FULL^VALM1
+ S X="" I DUZ(2),$D(^APCCCTRL(DUZ(2),0))#2 S X=$P(^(0),U,3) I X,$D(^APCHSCTL(X,0)) S X=$P(^APCHSCTL(X,0),U)
+ I $D(^DISV(DUZ,"^APCHSCTL(")) S Y=^("^APCHSCTL(") I $D(^APCHSCTL(Y,0)) S X=$P(^(0),U,1)
+ S:X="" X="ADULT REGULAR"
+ K DIC,DR,DD S DIC("B")=X,DIC="^APCHSCTL(",DIC(0)="AEMQ" D ^DIC K DIC,DA,DD,D0,D1,DQ
+ I Y=-1 D PAUSE^APCDPL1,BACK^APCDFH Q
+ S APCHSTYP=+Y,APCHSPAT=APCDPAT
+ S APCDHDR="PCC Health Summary for "_$P(^DPT(APCHSPAT,0),U)
+ D VIEWR^XBLM("EN^APCHS",APCDHDR)
+ S (DFN,Y)=APCDPAT D ^AUPNPAT
+ K APCHSPAT,APCHSTYP,APCHSTAT,APCHSMTY,AMCHDAYS,AMCHDOB,APCDHDR
+ D BACK^APCDFH
+ Q
+WTPRE ;EP - CALLED FROM INPUT TEMPLATE
+ W !!,"Patient documented as premenarchal, If they are no longer premenarchal change Patient Premenarchal field response to 'No.'",!,"You can use either the RF or FP mnemonics to change the value to 'No'.",!
  Q

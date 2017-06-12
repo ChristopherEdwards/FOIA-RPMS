@@ -1,5 +1,5 @@
-LA7VORU2 ;VA/DALOI/JMC - LAB ORU (Result) message builder cont'd ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VORU2 ;VA/DALOI/JMC - LAB ORU (Result) message builder cont'd ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,1018,64,1027,68,1033**;NOV 01, 1997
  ;
 AP ; Observation/Result segment for Lab AP Results
  ;
@@ -12,22 +12,10 @@ AP ; Observation/Result segment for Lab AP Results
  D NTE^LA7VORU
  ;
 APORM ; Entry point when building OBX segments for ORM message
- S LA7OBXSN=0
+ ; Process AP subscripts
  ;
- ; Surgical pathology (SP) subscript reports
- I LRSS="SP" D SP
- ;
- ; Cytology (CY) subscript reports
- I LRSS="CY" F LRSB=.012,.013,.014,.015,.016,1,1.1,1.2,1.4 D OBX^LA7VORU1
- ;
- ; Cytology (EM) subscript reports
- I LRSS="EM" F LRSB=.012,.013,.014,.015,.016,1.1,1.2,1.4 D OBX^LA7VORU1
- ;
- Q
- ;
- ;
-SP ; Process "SP" subscript
  N LA7ORG,LA7P,LA7SR,LA7SS
+ S LA7OBXSN=0
  ;
  ; Process main report
  I LA7NVAF'=1 F LRSB=.012,.013,.014,.015,.016,1,1.1,1.3,1.4 D OBX^LA7VORU1
@@ -46,11 +34,11 @@ SP ; Process "SP" subscript
  F  S LA7ORG=$O(^LR(LRDFN,LRSS,LRIDT,2,LA7ORG)) Q:'LA7ORG  D
  . N LA7IDT
  . S LRSB=10,LA7IDT=LRIDT_","_LA7ORG D OBX^LA7VORU1
- . S LRSB="10,2",LA7IDT=LRIDT_","_LA7ORG D OBX^LA7VORU1
+ . I LRSS="SP" S LRSB="10,2",LA7IDT=LRIDT_","_LA7ORG D OBX^LA7VORU1
  . ; Procedures
- . S LA7P=0,LRSB="10,1.5"
- . F  S LA7P=$O(^LR(LRDFN,LRSS,LRIDT,2,LA7ORG,4,LA7P)) Q:'LA7P  D
- . . S LA7IDT=LRIDT_","_LA7ORG_","_LA7P D OBX^LA7VORU1
+ . ;S LA7P=0,LRSB="10,1.5"
+ . ;F  S LA7P=$O(^LR(LRDFN,LRSS,LRIDT,2,LA7ORG,4,LA7P)) Q:'LA7P  D
+ . ;. S LA7IDT=LRIDT_","_LA7ORG_","_LA7P D OBX^LA7VORU1
  . ; Special studies
  . S LA7SS=0,LRSB="10,5"
  . F  S LA7SS=$O(^LR(LRDFN,LRSS,LRIDT,2,LA7ORG,5,LA7SS)) Q:'LA7SS  D
@@ -60,14 +48,13 @@ SP ; Process "SP" subscript
  ;
  ;
 SPDOD ; Build OBX segment's to special DoD specifications.
- ;
+ ; Send word-processing fields as series of OBX's for DoD.
+ ; DoD cannot handle formatted text (FT) data type.
  N LA7DA
  ;
  S LRSB=.012 D OBX^LA7VORU1
  ;
- ; Send word-processing fields as series of OBX's for DoD.
- ; DoD cannot handle formatted text (FT) data type.
- F LRSB=.012,.013,.014,.015,.016,1,1.1,1.3,1.4 D
+ F LRSB=.013,.014,.015,.016,1,1.1,1.3,1.4 D
  . N LA7IDT,LA7SB
  . S LA7DA=0,LA7SB=$S(LRSB=.013:.2,LRSB=.014:.3,LRSB=.015:.4,LRSB=.016:.5,1:LRSB)
  . F  S LA7DA=$O(^LR(LRDFN,LRSS,LRIDT,LA7SB,LA7DA)) Q:'LA7DA  D

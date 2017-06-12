@@ -1,5 +1,5 @@
 APCDVLST ; IHS/CMI/LAB - VISIT LIST BY PATIENT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  W:$D(IOF) @IOF W !,"This routine will list all Visits for a Selected Patient in a",!,"specified Posting Date or Visit Date Range.",!
  ;
 RDPV ; Determine to run by Posting date or Visit date
@@ -57,7 +57,7 @@ DISP ;
  W:APCDF !!,"Visits for ",$P(^DPT(AUPNPAT,0),U)," in ",$S(APCDX="P":"Posting",APCDX="V":"Visit",1:"Posting")," date range ",APCDBDD," to ",APCDEDD,!,"Health Record Number: ",APCDHRN,!
  S APCDF=0
  S DA=APCDVDFN,DIC="^AUPNVSIT(",DR="0:VCN" D EN^DIQ
- NEW POV S POV=0 F  S POV=$O(^AUPNVPOV("AD",APCDVDFN,POV)) Q:POV'=+POV  W ?5,$$GET1^DIQ(9000010.07,POV,.01),?14,$$GET1^DIQ(9000010.07,POV,.04),!
+ NEW POV S POV=0 F  S POV=$O(^AUPNVPOV("AD",APCDVDFN,POV)) Q:POV'=+POV  W ?5,$$GET1^DIQ(9000010.07,POV,.01),?15,$$GET1^DIQ(9000010.07,POV,.04),!
  Q
  ;
 P ; Run by Posting date  

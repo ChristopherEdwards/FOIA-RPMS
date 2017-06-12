@@ -1,5 +1,5 @@
-BGOVMSR ; IHS/BAO/TMD - Manage V MEASUREMENTs ;30-Apr-2007 08:20;DKM
- ;;1.1;BGO COMPONENTS;**1,3**;Mar 20, 2007
+BGOVMSR ; IHS/BAO/TMD - Manage V MEASUREMENTs ;17-Oct-2013 13:57;DU
+ ;;1.1;BGO COMPONENTS;**1,3,13**;Mar 20, 2007
  ; Return most recent vitals
  ;  INP = Patient IEN ^ Vital Types ^ Visit IEN
  ; .RET = List of records of format:
@@ -124,8 +124,15 @@ SET(RET,INP) ;EP
  S FDA=$NA(FDA(FNUM,VFIEN_","))
  S @FDA@(.01)="`"_TYPE
  S @FDA@(.04)=VAL
+ I VFNEW D
+ .S @FDA@(1216)="N"
+ .S @FDA@(1217)="`"_DUZ
+ S @FDA@(1218)="N"
+ S @FDA@(1219)="`"_DUZ
  S @FDA@(1201)=$S(DAT:DAT,1:"N")
+ S @FDA@(.07)=$S(DAT:DAT,1:"N")
  S @FDA@(1204)="`"_DUZ
+ S @FDA@(.08)="`"_DUZ
  S RET=$$UPDATE^BGOUTL(.FDA,"E")
  I RET,VFNEW,$$DELETE^BGOUTL(FNUM,VFIEN)
  D:'RET VFEVT^BGOUTL2(FNUM,VFIEN,'VFNEW)

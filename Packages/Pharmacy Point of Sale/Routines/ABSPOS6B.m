@@ -1,5 +1,5 @@
 ABSPOS6B ; IHS/FCS/DRS - user display screen, cont ;  
- ;;1.0;PHARMACY POINT OF SALE;*29,31*;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;*29,31*;JUN 21, 2001;Build 15
  Q
 INFO(PAT,RXI)         ;EP - from ABSPOS6H
  ; IF '$G(RXI), then this is a patient summary line:

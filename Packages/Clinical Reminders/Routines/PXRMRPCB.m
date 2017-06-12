@@ -1,6 +1,6 @@
-PXRMRPCB ; SLC/PJH - Functions returning REMINDER data ;24-Mar-2006 13:15;MGH
- ;;1.5;CLINICAL REMINDERS;**1004**;Jun 19, 2000
- ;IHS/CIA/MGH - 8/11/05 Patch to use correct field number for education outcomes and standards
+PXRMRPCB ; SLC/PJH - Functions returning REMINDER data ;29-Feb-2012 09:26;DU
+ ;;2.0;CLINICAL REMINDERS;**1001**;Feb 04, 2005;Build 21
+ ;IHS/MSC/MGH Patch 1001 Field numbers changed to reflect differences from VA
  Q
  ;
 EDL(ORY,OREM) ;return list of education topics for a reminder
@@ -34,7 +34,7 @@ EDU(ORY,OREDU) ;return education details in WP format
  ;
  N DIC,DR,DA,DIQ
  K ^UTILITY("DIQ1",$J)
- ;IHS/CIA/MGH Field numbers changed to reflect differences in patient education files
+ ;IHS/MSC/MGH Field numbers changed to reflect differences in patient education files
  ;S DR=".01;.04;11;12"
  S DR=".01;.04;1101;1102"
  S DIC=9999999.09

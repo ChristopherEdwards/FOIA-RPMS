@@ -1,5 +1,5 @@
 BQITD06 ;PRXM/HC/ALA-CVD At Risk ; 10 Apr 2006  6:50 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  Q
  ;
 POP(BQARY,TGLOB) ; EP -- By population
@@ -28,7 +28,7 @@ POP(BQARY,TGLOB) ; EP -- By population
  . S SEX=$$GET1^DIQ(2,TDFN,.02,"I")
  . S AGE=$$AGE^BQIAGE(TDFN)
  . ; Factor for CVD At Risk is AGE - as per IHS
- . I SEX="M",AGE'<45 S @TGLOB@(TDFN)="",@TGLOB@(TDFN,"CRITERIA","Age: "_AGE)=""
+ . I SEX="M"!(SEX="U"),AGE'<45 S @TGLOB@(TDFN)="",@TGLOB@(TDFN,"CRITERIA","Age: "_AGE)=""
  . I SEX="F",AGE'<55 S @TGLOB@(TDFN)="",@TGLOB@(TDFN,"CRITERIA","Age: "_AGE)=""
  . ;
  . S QFL=0 F TXDXCT="CVD Known","CVD Highest Risk","CVD Significant Risk" D  Q:QFL
@@ -50,7 +50,7 @@ PAT(DEF,TGLOB,BDFN) ; EP -- By Patient
  S SEX=$$GET1^DIQ(2,BDFN,.02,"I")
  S AGE=$$AGE^BQIAGE(BDFN)
  S FLAG=0
- I SEX="M",AGE'<45 D
+ I SEX="M"!(SEX="U"),AGE'<45 D
  . S FLAG=1
  . ; Factor for CVD At Risk is AGE - as per IHS
  . S @TGLOB@(BDFN,"CRITERIA","Age: "_AGE)=""

@@ -1,8 +1,9 @@
 ABMM2PV5 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12,15**;NOV 12, 2009;Build 251
  ;IHS/SD/SDR - 2.6*12 - Updated FQHC/RHC/Tribal to include Urban
  ;IHS/SD/SDR - 2.6*12 - Made changes for uncompensated care; uncompensated should be a separate detail line
  ;  and should be included in the patient volume total, not as a separate line.  Also initialized ABMFQHC variable.
+ ;IHS/SD/SDR - 2.6*15 - HEAT183289 - Tribal self-insured added to not-met report
  ;
 NOTMET ;EP
  S ABMCNT=0
@@ -87,10 +88,13 @@ NOTMET ;EP
  ..S ABMMCDEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"MCD")),6)
  ..S ABMSCHZP=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ZEROPD",ABMSDT,ABMPRV,"CHIP")),5)
  ..S ABMSCHEN=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM ENR",ABMSDT,ABMPRV,"CHIP")),5)
- ..S ABMUNCOM=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM UNCOMP",ABMSDT,ABMPRV,"UNCOMP")),6)  ;abm*2.6*12
+ ..;S ABMUNCOM=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM UNCOMP",ABMSDT,ABMPRV,"UNCOMP")),6)  ;abm*2.6*12  ;abm*2.6*15 HEAT183289
+ ..S ABMUNCOM=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM UNCOMP",ABMSDT,ABMPRV,"UNCOMP")),4)  ;abm*2.6*15 HEAT183289 shortened to make room for tribal self-insured
+ ..S ABMTSI=$J(+$G(^XTMP("ABM-PVP2",$J,"PRV-NUM TRIBSI",ABMSDT,ABMPRV,"TRIBSI")),2)  ;abm*2.6*15 HEAT183289 tribal self-insured not met
  ..;W !,ABMPD,?15,ABMRT,?20,ABMDEN,?28,ABMNUM,?35,ABMMCDPD,?41,ABMMCDZP,?50,ABMMCDEN,?57,ABMSCHPD,?63,ABMSCHZP,?73,ABMSCHEN  ;abm*2.6*12
  ..W !,ABMPD,?13,ABMRT,?20,ABMDEN,?27,ABMNUM,?34,ABMMCDPD,?41,ABMMCDZP,?48,ABMMCDEN,?55,ABMSCHPD,?62,ABMSCHZP,?67,ABMSCHEN  ;abm*2.6*12
- ..I ABMFQHC=1 W ?74,ABMUNCOM  ;abm*2.6*12
+ ..;I ABMFQHC=1 W ?74,ABMUNCOM  ;abm*2.6*12  ;abm*2.6*15 HEAT183289
+ ..I ABMFQHC=1 W ?74,ABMUNCOM,?78,ABMTSI  ;abm*2.6*15 HEAT183289
  I ABMDTCNT=0 D
  .W !!, "<< NO DATA FOUND FOR SELECTION >>"
  Q
@@ -103,9 +107,11 @@ NMHDR ;EP
  ;W !?21,"inator",?30,"ator",?37,"Paid",?42,"ZeroPd",?49,"Enrolled",?59,"Paid",?64,"ZeroPd",?71,"Enrolled"
  ;end old start new uncomp care
  W !?20,"Denom-",?28,"Numer-",?34,"|    --Medicaid--    | --- Schip --- |"
- I ABMFQHC=1 W ?73,"Uncomp-"
+ ;I ABMFQHC=1 W ?73,"Uncomp-"  ;abm*2.6*15 HEAT183289 tribal self-insured
+ I ABMFQHC=1 W ?73,"Un- |T"  ;abm*2.6*15 HEAT183289 tribal self-insured
  W !,"Report Period",?15,"Rate",?20,"inator",?28,"ator",?34,"|",?38,"Pd",?44,"ZP",?51,"En",?55,"|",?57,"Pd",?63,"ZP",?69,"En|"
- I ABMFQHC=1 W ?73,"ensated"
+ ;I ABMFQHC=1 W ?73,"ensated"  ;abm*2.6*15 HEAT183289 tribal self-insured
+ I ABMFQHC=1 W ?73,"Comp|SI"  ;abm*2.6*15 HEAT183289 tribal self-insured
  ;end new uncomp care
  W !
  F ABM=1:1:80 W "="

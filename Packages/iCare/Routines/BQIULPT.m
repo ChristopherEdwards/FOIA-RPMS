@@ -1,5 +1,5 @@
 BQIULPT ;VNGT/HS/ALA-Patient Data Utilities ; 17 Oct 2005  3:17 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
  ; This is a utility program containing special function calls
  ; needed for patient demographic data.
@@ -97,6 +97,8 @@ CM(DFN) ;EP -- Get patient's case manager
 BPD(DFN,VWIEN) ;EP - Get patient's provider from DSPM
  NEW PROV,VCODE,VCAT,VDN,VDESC,VALUE
  S VCODE=$P(^BQI(90506.1,VWIEN,0),U,1),VCAT=$E(VCODE,4,$L(VCODE))
+ I VCODE="" Q ""
+ I VCAT="" Q ""
  S VDN=$O(^BDPTCAT("C",VCAT,"")),VDESC=$P(^BDPTCAT(VDN,0),U,1)
  D ALLDP^BDPAPI(DFN,VDESC,.VALUE)
  I '$D(VALUE) Q ""
@@ -137,6 +139,16 @@ LVC(DFN) ;EP -- Get patient's last visit clinic
  I CST="" Q ""
  Q $$GET1^DIQ(9000010,VIEN_",",.08,"E")_" "_$$GET1^DIQ(40.7,CST_",",1,"E")
  ;
+LVLC(DFN) ;EP -- Get patient's last visit location
+ ;Input
+ ;  DFN - Patient internal entry number
+ NEW VIEN,CST
+ S VIEN=$$LVD(.DFN)
+ I VIEN="" Q ""
+ S CST=$$GET1^DIQ(9000010,VIEN_",",.06,"E")
+ I CST="" Q "UNKNOWN"
+ Q CST
+ ;
 LVP(DFN) ;EP -- Get patient's last visit primary provider
  ;Input
  ;  DFN - Patient internal entry number
@@ -176,7 +188,9 @@ NAD(DFN) ;EP -- Get patient's next appt date
  ;  DFN - Patient internal entry number
  NEW NAPTM
  S NAPTM=$$NOW^XLFDT()
- Q $$FMTE^BQIUL1($O(^DPT(DFN,"S",NAPTM)))
+ S NAPTM=$O(^DPT(DFN,"S",NAPTM)) I NAPTM="" Q ""
+ I $P(^DPT(DFN,"S",NAPTM,0),"^",2)'="" Q ""
+ Q $$FMTE^BQIUL1(NAPTM)
  ;
 NAPT(DFN) ;EP -- Get patient's next appt
  ;Input
@@ -361,9 +375,6 @@ PER(DFN,MIEN) ;EP -- Get a patient's performance value
  S BQIY=$$LKP^BQIGPUTL(GYR)
  D GFN^BQIGPUTL(BQIH,BQIY)
  S VER=$$VERSION^XPDUTL("BGP")
- I VER<8.0 D
- . S SPIEN=$O(^BQI(90508,BQIH,20,BQIY,20,"B",TIEN,""))
- . S NAFLG=+$P(^BQI(90508,BQIH,20,BQIY,20,SPIEN,0),"^",4)
  I VER>7.0 D
  . S NAFLG=$$GET1^DIQ(BQIMEASF,TIEN_",",1704,"I")
  . S NAFLG=$S(NAFLG="Y":1,1:0)
@@ -434,3 +445,10 @@ LVDPCP(DFN) ;EP - Last visit with the DPCP
  . Q:"DXCTI"[$P(^AUPNVSIT(VISIT,0),U,7)
  . S VSDT=$P(^AUPNVSIT(VISIT,0),U,1)\1,QFL=1
  Q $$FMTE^BQIUL1(VSDT)
+ ;
+COD(DFN) ;EP - Cause of Death
+ NEW DN
+ S DN=$P($G(^AUPNPAT(DFN,11)),U,14)
+ I DN="" Q ""
+ I $$VERSION^XPDUTL("AICD")>3.51 Q $$VST^ICDCODE(DN,"",80)_" ["_$$CODEC^ICDCODE(DN,80)_"]"
+ Q $P(^ICD9(DN,0),U,3)_" ["_$P(^ICD9(DN,0),U,1)_"]"

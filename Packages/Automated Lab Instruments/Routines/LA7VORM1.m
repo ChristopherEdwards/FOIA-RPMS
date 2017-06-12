@@ -1,5 +1,5 @@
-LA7VORM1 ;VA/DALOI/DLR - LAB ORM (Order) message builder ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,51,46,61,64,1027**;NOV 01, 1997;Build 9
+LA7VORM1 ;VA/DALOI/DLR - LAB ORM (Order) message builder ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,51,46,61,1018,64,1027,68,1033**;NOV 01, 1997;Build 9
  ;
 BUILD(LA7628) ;
  ; Call with LA7628 = ien of entry in file #62.8 Shipping Manifest

@@ -1,5 +1,5 @@
 APCLTAX ; IHS/CMI/LAB - REPORT FOR ANMC ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
 INFORM ;
@@ -7,7 +7,7 @@ INFORM ;
  W !!,?20,"*********HOSPITAL DISCHARGE BY RANGE OF TAXONOMY*******",!
  W !!,?40,"TEMPLATE CREATION",!!
  W !!,"This is a special report written to create a patient search template.",!,"The patients selected will be based on the following criteria:",!,?5,"- living patients with a discharge in a user defined time frame"
- W !?5,"- excluding patients discharged before they were 10 days old",!?5,"- excluding patients whose LOS was less than 1",!?5,"- excluding patietns whose primary dx is not in a user selected taxonomy",!
+ W !?5,"- excluding patients discharged before they were 10 days old",!?5,"- excluding patients whose LOS was less than 1",!?5,"- excluding patients whose primary dx is not in a user selected taxonomy",!
 GETDATES ;
 BD ;get beginning date
  W ! S DIR(0)="D^:DT:EP",DIR("A")="Enter beginning Discharge Date for Search" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
@@ -67,7 +67,7 @@ DXHIT ;
  I '$D(APCLP) S APCLP=$O(^AUPNVPOV("AD",APCLVSIT,0))
  Q:'$D(APCLP)  ;NO POV
  Q:APCLP=""
- Q:'$$ICD^ATXCHK($P(^AUPNVPOV(APCLP,0),U),APCLTAX,9)
+ Q:'$$ICD^ATXAPI($P(^AUPNVPOV(APCLP,0),U),APCLTAX,9)
  S APCLPCNT=APCLPCNT+1
  S ^DIBT(APCLSRCH,1,DFN)=""
  W "."

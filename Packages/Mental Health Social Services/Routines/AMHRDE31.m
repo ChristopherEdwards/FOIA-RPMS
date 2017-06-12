@@ -1,5 +1,5 @@
 AMHRDE31 ; IHS/CMI/LAB - list DEPRESSION screenings ;
- ;;4.0;IHS BEHAVIORAL HEALTH;;MAY 14, 2010
+ ;;4.0;IHS BEHAVIORAL HEALTH;**6**;JUN 02, 2010;Build 10
  ;
  ;
 PROC ;
@@ -49,22 +49,25 @@ BHALCS(P,BDATE,EDATE) ;
  ..I $D(AMHRPROV),X="" Q  ;want only certain primary providers on visit
  ..I $D(AMHRPROV),'$D(AMHRPROV(X)) Q  ;want one provider and it's not this one
  ..I AMHRPPUN,X'="" Q  ;want only unknown and this one has a primary provider
- ..;get measurements AUDC, AUDT, CRFTT
+ ..;get measurements PHQ
  ..S X=0 F  S X=$O(^AMHRMSR("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VAL^XBDIQ1(9002011.12,X,.01)
- ...I M="PHQ2"!(M="PHQ9") D
+ ...I M="PHQ2"!(M="PHQ9")!(M="PHQT") D
  ....S E=$P($G(^AMHRMSR(X,12)),U,4)
  ....I $D(AMHRSPRV),E="" Q  ;want only certain SCR providers on visit
  ....I $D(AMHRSPRV),'$D(AMHRSPRV(E)) Q  ;want one provider and it's not this one
  ....I AMHRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ....;check result
  ....S E=$P(^AMHRMSR(X,0),U,4)
- ....I M="PHQ2",E="",'$D(AMHRREST(5)) Q
+ ....I M="PHQ2",E="",'$D(AMHRREST(6)) Q
  ....I M="PHQ2",E<3,'$D(AMHRREST(1)) Q
  ....I M="PHQ2",E>2,'$D(AMHRREST(2)) Q
- ....I M="PHQ9",E="",'$D(AMHRREST(5)) Q
+ ....I M="PHQ9",E="",'$D(AMHRREST(6)) Q
  ....I M="PHQ9",E<5,'$D(AMHRREST(1)) Q
  ....I M="PHQ9",E>4,'$D(AMHRREST(2)) Q
+ ....I M="PHQT",E="",'$D(AMHRREST(6)) Q
+ ....I M="PHQT",E<11,'$D(AMHRREST(1)) Q
+ ....I M="PHQT",E>10,'$D(AMHRREST(2)) Q
  ....S R=$$BHRT(V,M,$P(^AMHRMSR(X,0),U,4),P,$$VALI^XBDIQ1(9002011.12,X,1204))
  ..I R]"" Q
  ..;get exam
@@ -75,7 +78,8 @@ BHALCS(P,BDATE,EDATE) ;
  ..I AMHRRES="POSITIVE",'$D(AMHRREST(2)) G BHHF
  ..I AMHRRES["REFUSED",'$D(AMHRREST(3)) G BHHF  ;do not want refusals
  ..I AMHRRES["UNABLE",'$D(AMHRREST(4)) G BHHF  ;do not want unables
- ..I AMHRRES="",'$D(AMHRREST(5)) G BHHF
+ ..I AMHRRES["REFERRAL",'$D(AMHRREST(5)) G BHHF  ;don't want referrals
+ ..I AMHRRES="",'$D(AMHRREST(6)) G BHHF
  ..S E=$P($G(^AMHREC(V,14)),U,4)
  ..I $D(AMHRSPRV),E="" G BHHF  ;want only certain SCR providers on visit
  ..I $D(AMHRSPRV),'$D(AMHRSPRV(E)) G BHHF  ;want one provider and it's not this one
@@ -83,11 +87,11 @@ BHALCS(P,BDATE,EDATE) ;
  ..S R=$$BHRT(V,"DEPRESSION SCREENING",$$VAL^XBDIQ1(9002011,V,1403),P,$P($G(^AMHREC(V,14)),U,4),$P($G(^AMHREC(V,16)),U,1))
  ..I R]"" Q
 BHHF ..;
- ..I $D(AMHRREST(5)) S X=0 F  S X=$O(^AMHRPRO("AD",V,X)) Q:X'=+X!(R]"")  D
+ ..I $D(AMHRREST(6)) S X=0 F  S X=$O(^AMHRPRO("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VAL^XBDIQ1(9002011.01,X,.01)
  ...I M="14.1"!(M="V79.0") S R=$$BHRT(V,M,"",P,$$VALI^XBDIQ1(9002011.01,X,1204))
  ..I R]"" Q
- ..I $D(AMHRREST(5)) S X=0 F  S X=$O(^AMHREDU("AD",V,X)) Q:X'=+X!(R]"")  D
+ ..I $D(AMHRREST(6)) S X=0 F  S X=$O(^AMHREDU("AD",V,X)) Q:X'=+X!(R]"")  D
  ...S M=$$VAL^XBDIQ1(9002011.05,X,.01)
  ...I M="DEP-SCR" S R=$$BHRT(V,M,"",P,$$VALI^XBDIQ1(9002011.05,X,.04),$P($G(^AMHREDU(V,11)),U,1))
  ..I R]"" Q
@@ -150,19 +154,22 @@ PCCSCR(V) ;is there a screening?  return in R
  S D=$P($P(^AUPNVSIT(V,0),U),".")
  S X=0 F  S X=$O(^AUPNVMSR("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9000010.01,X,.01)
- .I M="PHQ2"!(M="PHQ9") D
+ .I M="PHQ2"!(M="PHQ9")!(M="PHQT") D
  ..S E=$P($G(^AUPNVMSR(X,12)),U,4)
  ..I $D(AMHRSPRV),E="" Q  ;want only certain SCR providers on visit
  ..I $D(AMHRSPRV),'$D(AMHRSPRV(E)) Q  ;want one provider and it's not this one
  ..I AMHRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVMSR(X,0),U,4)
- ..I M="PHQ2",E="",'$D(AMHRREST(5)) Q
+ ..I M="PHQ2",E="",'$D(AMHRREST(6)) Q
  ..I M="PHQ2",E<3,'$D(AMHRREST(1)) Q
  ..I M="PHQ2",E>2,'$D(AMHRREST(2)) Q
- ..I M="PHQ9",E="",'$D(AMHRREST(5)) Q
+ ..I M="PHQ9",E="",'$D(AMHRREST(6)) Q
  ..I M="PHQ9",E<5,'$D(AMHRREST(1)) Q
  ..I M="PHQ9",E>4,'$D(AMHRREST(2)) Q
+ ..I M="PHQT",E="",'$D(AMHRREST(6)) Q
+ ..I M="PHQT",E<11,'$D(AMHRREST(1)) Q
+ ..I M="PHQT",E>10,'$D(AMHRREST(2)) Q
  ..S T=D_U_M_U_$$VAL^XBDIQ1(9000010.01,X,.04)_U_V_U_9000010.01_U_X
  ..S R=$$PCCV^AMHRDE1(T,P)
  I R]"" Q R
@@ -176,21 +183,22 @@ PCCSCR(V) ;is there a screening?  return in R
  ..I AMHRSPUN,E'="" Q  ;want only unknown and this one has a SCR provider
  ..;check result
  ..S E=$P(^AUPNVXAM(X,0),U,4)
- ..I E="",'$D(AMHRREST(5)) Q
+ ..I E="",'$D(AMHRREST(6)) Q
  ..I E="N",'$D(AMHRREST(1)) Q
  ..I E="PO",'$D(AMHRREST(2)) Q
+ ..I E="RF",'$D(AMHRREST(5)) Q
  ..S T=D_U_M_U_$$VAL^XBDIQ1(9000010.13,X,.04)_U_V_U_9000010.13_U_X
  ..S R=$$PCCV^AMHRDE1(T,P)
  I R]"" Q R
  ;get pov
- I $D(AMHRREST(5)) S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
+ I $D(AMHRREST(6)) S X=0 F  S X=$O(^AUPNVPOV("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9000010.07,X,.01)
  .I M="V79.0" D
  ..S T=D_U_M_U_U_V_U_9000010.07_U_X
  ..S R=$$PCCV^AMHRDE1(T,P)
  I R]"" Q R
  ;get education
- I $D(AMHRREST(5)) S X=0 F  S X=$O(^AUPNVPED("AD",V,X)) Q:X'=+X  D
+ I $D(AMHRREST(6)) S X=0 F  S X=$O(^AUPNVPED("AD",V,X)) Q:X'=+X  D
  .S M=$$VAL^XBDIQ1(9000010.16,X,.01)
  .I M="DEP-SCR" D
  ..S T=D_U_M_U_U_V_U_9000010.16_U_X

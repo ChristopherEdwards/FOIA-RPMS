@@ -1,9 +1,12 @@
 XINDX4 ;ISC/REL,GRK - PROCESS DO, GO TO, WRITE & FOR COMMANDS ;08/05/08  13:59
- ;;7.3;TOOLKIT;**20,61,68,110**;Apr 25, 1995;Build 16
- ;DO and GO
+ ;;7.3;TOOLKIT;**20,61,68,110,128,133**;Apr 25, 1995;Build 16
+ ; Per VHA Directive 2004-038, this routine should not be modified.
+ ;DO and GO; IND("DO1") checks if we already checked a DO at this level
 DG1 I ARG="" S:'IND("DO1") IND("DO")=IND("DO")+1,IND("DO1")=1 Q
 DG S (LBL,PGM,OFF,PRM)="",S=1,L="+^:," S:$E(ARG,1,2)="@^" S=3
  D LOOP S LBL=$E(ARG,1,I-1)
+ ;Cache Object method contain ".", check if label is an object or begins with ##
+ I $P(LBL,"(")["."!($E(LBL,1,2)="##") Q
  I CH="+" S (J,S)=I+1,ERR=30 D ^XINDX1:$E(ARG)'="@" S:$E(ARG,I)="^" S=I+1 D LOOP S OFF=$E(ARG,J,I-1) I OFF'?.N S GRB=GRB_$C(9)_OFF
  I CH="^" S S=I+1 D LOOP S PGM=$E(ARG,S,I-1)
  I CH=":" S S=I+1,L="," D LOOP S S=$E(ARG,S,I-1) I S'="" S GRB=GRB_$C(9)_S
@@ -13,6 +16,7 @@ DG S (LBL,PGM,OFF,PRM)="",S=1,L="+^:," S:$E(ARG,1,2)="@^" S=3
  I LBL[")" S PRM=$$INSIDE(LBL,"(",")"),LBL=$P(LBL,"(")
  I PGM[")" S PRM=$$INSIDE(PGM,"(",")"),PGM=$P(PGM,"(")
  I $L(PRM) S GRB=GRB_$C(9)_$$PRUNE($$CNG(PRM,",,",","),",") ;strip null parameters
+ I $G(IND("DOL")),CM="G",PGM]"" D E^XINDX1(63) ;can't goto another routine out of block structure
  S:OFF'="" LBL=LBL_"+"_OFF
  S S="",LOC="I" I PGM'="" S S=PGM_" ",LOC="X"
  S:LBL_PGM["&" LOC="X"
@@ -75,8 +79,8 @@ LO ;Lock -- Look for timeouts
  . Q
  S GRB=GRB_$C(9)_ARG,ARG=""
  Q
-Q ;QUIT
- I $E(ARG)=";" S ARG="",ERR=9 G ^XINDX1 ;Quit followed by a comment
+Q ;QUIT followed by comment or in structure Do or For loop, must have 2 spaces
+ I $E(ARG)=";"!$G(IND("DOL"))!$G(IND("F")) S ARG="",ERR=9 G ^XINDX1
  Q
 PT(X) ;Tag for parameter passing
  S ^UTILITY($J,1,RTN,"P",LAB)=X

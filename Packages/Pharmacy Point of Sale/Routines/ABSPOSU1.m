@@ -1,5 +1,5 @@
 ABSPOSU1 ; IHS/FCS/DRS - copied for POS ;   [ 09/04/2002  12:58 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Standard Date Functions

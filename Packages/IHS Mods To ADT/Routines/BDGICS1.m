@@ -1,8 +1,8 @@
 BDGICS1 ; IHS/ANMC/LJF - INPATIENT CODING STATUS ;  [ 04/08/2004  4:02 PM ]
- ;;5.3;PIMS;**1010**;APR 26, 2002
- ;
+ ;;5.3;PIMS;**1010,1018**;MAY 28, 2004;Build 27
  ;
  ;cmi/anch/maw 10/20/2008 PATCH 1010 changed export date field from .14 to 1106
+ ;IHS/OIT/CLS  03/31/2015 PATCH 1018 changed '=' to '[' DAY SURGERY to allow for subspecialties 
  ;
  NEW BDGBM,BDGEM
  S BDGBM=$$READ^BDGF("DO^::EP","Select Beginning Month") Q:BDGBM<1
@@ -44,7 +44,8 @@ INIT ; -- init variables and list array
  ... ;
  ... S ADM=$$GET1^DIQ(405,IEN,.14,"I")                     ;adm ien
  ... I $$LASTSRVN^BDGF1(ADM,DFN)["OBSERVATION" Q           ;inpt only
- ... ;
+ ... I $$LASTSRVN^BDGF1(ADM,DFN)["DAY SURGERY" Q           ;inpt only CHANGED FOR DAY SURGERY IHS/OCAO/CPC - 20140310
+ ... ;IHS/OIT/CLS 03/31/2015 patch 1018
  ... ;increment # discharged per month
  ... S COUNT(MONTH,"DSC")=$G(COUNT(MONTH,"DSC"))+1
  ... ;

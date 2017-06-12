@@ -1,10 +1,11 @@
-BEHOTIU ;MSC/IND/DKM - TIU extensions;01-Dec-2009 12:24;MGH
- ;;1.1;BEH COMPONENTS;**015002**;Sep 18, 2007
+BEHOTIU ;MSC/IND/DKM - TIU extensions;09-Jan-2014 16:23;DU
+ ;;1.1;BEH COMPONENTS;**015002,015003**;Sep 18, 2007
  ;=================================================================
  ; RPC: Returns true if document has an associated diagnosis
 HASDX(DATA,DOCIEN,DXS,ONEONLY) ;EP
- N VIEN,LP1,LP2,NAR1,NAR2,NAR3,ICD,X,Y
+ N VIEN,LP1,LP2,NAR1,NAR2,NAR3,ICD,X,Y,VDATE
  S DATA=0,ONEONLY=$G(ONEONLY,1),VIEN=$P($G(^TIU(8925,+DOCIEN,0)),U,3)
+ S VDATE=$P($G(^AUPNVSIT(VIEN,0)),U,1)
  Q:'VIEN
  S LP1=0,DXS=""
  F  S DXS=$O(DXS(DXS)) Q:'$L(DXS)  D
@@ -13,10 +14,17 @@ HASDX(DATA,DOCIEN,DXS,ONEONLY) ;EP
  F  S LP1=$O(^AUPNVPOV("AD",VIEN,LP1)) Q:'LP1  D  Q:DATA
  .S X=$G(^AUPNVPOV(LP1,0))
  .Q:'X
- .S NAR1=$P(X,U,4)
- .S:NAR1 NAR1=$P($G(^AUTNPOV(NAR1,0)),U)
- .S X=$G(^ICD9(+X,0)),NAR3=$G(^(1))
- .S ICD=$P(X,U),NAR2=$P(X,U,3)
+ .;Changes made for ICD-10
+ .;S NAR1=$P(X,U,4)
+ .S NAR1=$$GET1^DIQ(9000010.07,LP1,.04)
+ .;S:NAR1 NAR1=$P($G(^AUTNPOV(NAR1,0)),U)
+ .I $$AICD^BEHOENPC D
+ ..S ICD=$P($$ICDDX^ICDEX(X,VDATE),U,2)
+ ..S NAR3=$$SD^ICDEX(80,X,VDATE)
+ ..S NAR2=$$LD^ICDEX(80,X,VDATE)
+ .E  D
+ ..S X=$G(^ICD9(+X,0)),NAR3=$G(^(1))
+ ..S ICD=$P(X,U),NAR2=$P(X,U,3)
  .S DXS=""
  .F  S DXS=$O(DXS(DXS)) Q:'$L(DXS)  D  Q:DATA
  ..S X=DXS(DXS)

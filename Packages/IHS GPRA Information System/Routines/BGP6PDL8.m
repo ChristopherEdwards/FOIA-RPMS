@@ -1,14 +1,14 @@
 BGP6PDL8 ; IHS/CMI/LAB - print ind 1 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;16.1;IHS CLINICAL REPORTING;;MAR 22, 2016;Build 170
  ;
  ;
 I1AGEP ;EP
  S X="CURRENT REPORT PERIOD" D S(X,1,1) S X=" " D S(X,1,1)
  S X=BGPHD2 D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAC(X),U) S Y=V D S(Y,,X+1)
- S X="# w/Tobacco Screening" D S(X,1,1)
+ S X="# w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAC(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/Tobacco Screening" D S(X,1,1)
+ S X="% w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAC(X),U,3) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="# Tobacco Users" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAC(X),U,4) S Y=V D S(Y,,X+1)
@@ -31,13 +31,15 @@ I1AGEP ;EP
  S X="% ETS/Smk Home w/ % of Total Screened" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAC(X),U,13) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
 PR ; 
- S X=^BGPINDS(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDM(BGPIC,53,1,0) D S(X,1,1)
+ S X=" " D S(X,2,1)
+ ;D H3
  S X=" " D S(X,1,1) S X="PREVIOUS YEAR PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAP(X),U) S Y=V D S(Y,,X+1)
- S X="# w/Tobacco Screening" D S(X,1,1)
+ S X="# w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAP(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/Tobacco Screening" D S(X,1,1)
+ S X="% w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAP(X),U,3) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="# Tobacco Users" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAP(X),U,4) S Y=V D S(Y,,X+1)
@@ -63,7 +65,7 @@ PR ;
 PB ;
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM PREV YR %" D S(X,1,1)
- S X="w/Tobacco Screening" D S(X,1,1)
+ S X="w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAP(X),U,3) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  S X="Tobacco Users" D S(X,1,1)
  F X=1:1:6 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAP(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
@@ -76,13 +78,13 @@ PB ;
  S X="ETS" D S(X,1,1)
  F X=1:1:6 S N=$P(BGPDAC(X),U,13),O=$P(BGPDAP(X),U,13) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
 BL ;
- S X=^BGPINDS(BGPIC,53,1,0) D S(X,1,1) D H3
+ ;S X=^BGPINDM(BGPIC,53,1,0) D S(X,1,1) D H3
  S X=" " D S(X,1,1) S X="BASELINE REPORT PERIOD" D S(X,1,1)
  S X=" " D S(X,1,1) S X=BGPHD2 D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAB(X),U) S Y=V D S(Y,,X+1)
- S X="# w/Tobacco Screening" D S(X,1,1)
+ S X="# w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAB(X),U,2) S Y=V D S(Y,,X+1)
- S X="% w/Tobacco Screening" D S(X,1,1)
+ S X="% w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAB(X),U,3) S Y=$$SB($J(V,6,1)) D S(Y,,X+1)
  S X=" " D S(X,1,1) S X="# Tobacco Users" D S(X,1,1)
  F X=1:1:6 S V=$P(BGPDAB(X),U,4) S Y=V D S(Y,,X+1)
@@ -107,7 +109,7 @@ BL ;
 BP ;
  ;percentage changes
  S X=" " D S(X,1,1) S X="CHANGE FROM BASE YR %" D S(X,1,1)
- S X="w/Tobacco Screening" D S(X,1,1)
+ S X="w/ Tobacco Screening" D S(X,1,1)
  F X=1:1:6 S N=$P(BGPDAC(X),U,3),O=$P(BGPDAB(X),U,3) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  S X="Tobacco Users" D S(X,1,1)
  F X=1:1:6 S N=$P(BGPDAC(X),U,5),O=$P(BGPDAB(X),U,5) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
@@ -121,9 +123,9 @@ BP ;
  F X=1:1:6 S N=$P(BGPDAC(X),U,13),O=$P(BGPDAB(X),U,13) S Y=$$SB($J((N-O),6,1)) D S(Y,,X+1)
  Q
 SETN ;set numerator fields
- S BGPCYN=$$V(1,BGPRPT,N,P)
- S BGPPRN=$$V(2,BGPRPT,N,P)
- S BGPBLN=$$V(3,BGPRPT,N,P)
+ S BGPCYN=$$V^BGP6DP1C(1,BGPRPT,N,P)
+ S BGPPRN=$$V^BGP6DP1C(2,BGPRPT,N,P)
+ S BGPBLN=$$V^BGP6DP1C(3,BGPRPT,N,P)
  S BGPCYP=$S(BGPCYD:((BGPCYN/BGPCYD)*100),1:"")
  S BGPPRP=$S(BGPPRD:((BGPPRN/BGPPRD)*100),1:"")
  S BGPBLP=$S(BGPBLD:((BGPBLN/BGPBLD)*100),1:"")
@@ -131,15 +133,15 @@ SETN ;set numerator fields
 V(T,R,N,P) ;EP
  I $G(BGPAREAA) G VA
  NEW X
- I T=1 S X=$P($G(^BGPGPDCS(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=2 S X=$P($G(^BGPGPDPS(R,N)),U,P) Q $S(X]"":X,1:0)
- I T=3 S X=$P($G(^BGPGPDBS(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=1 S X=$P($G(^BGPGPDCM(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=2 S X=$P($G(^BGPGPDPM(R,N)),U,P) Q $S(X]"":X,1:0)
+ I T=3 S X=$P($G(^BGPGPDBM(R,N)),U,P) Q $S(X]"":X,1:0)
  Q ""
 VA ;
  NEW X,V,C S X=0,C="" F  S X=$O(BGPSUL(X)) Q:X'=+X  D
- .I T=1 S C=C+$P($G(^BGPGPDCS(X,N)),U,P)
- .I T=2 S C=C+$P($G(^BGPGPDPS(X,N)),U,P)
- .I T=3 S C=C+$P($G(^BGPGPDBS(X,N)),U,P)
+ .I T=1 S C=C+$P($G(^BGPGPDCM(X,N)),U,P)
+ .I T=2 S C=C+$P($G(^BGPGPDPM(X,N)),U,P)
+ .I T=3 S C=C+$P($G(^BGPGPDBM(X,N)),U,P)
  .Q
  Q $S(C:C,1:0)
 C(X,X2,X3) ;
@@ -162,14 +164,14 @@ CALC(N,O) ;
  S Z=N-O,Z=$FN(Z,"+,",1)
  Q Z
 H3 ;EP
- S X="Age specific Tobacco Use" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
+ ;S X="Age specific Tobacco Use" D S(X,1,1) S Y=" " D S(Y,1,1) S X=BGPHD1 D S(X,1,1) S Y=" " D S(Y,1,1)
  S X="Age Distribution" D S(X,1,1) S X=" " D S(X,1,1)
- S Y="5-13" D S(Y,1,2)
+ S Y=" 5-13" D S(Y,1,2)
  S Y="14-17" D S(Y,,3)
  S Y="18-24" D S(Y,,4)
  S Y="25-44" D S(Y,,5)
  S Y="45-64" D S(Y,,6)
- S Y="65 AND OLDER" D S(Y,,7)
+ S Y="65+" D S(Y,,7)
  Q
 SB(X) ;EP - Strip leading and trailing blanks from X.
  X ^DD("FUNC",$O(^DD("FUNC","B","STRIPBLANKS",0)),1)

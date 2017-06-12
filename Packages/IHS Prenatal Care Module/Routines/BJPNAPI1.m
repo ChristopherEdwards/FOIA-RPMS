@@ -1,5 +1,5 @@
 BJPNAPI1 ;GDIT/HS/BEE-Prenatal Care Module API Calls (Cont.) ; 08 May 2012  12:00 PM
- ;;1.0;PRENATAL CARE MODULE;;Dec 06, 2012;Build 61
+ ;;2.0;PRENATAL CARE MODULE;;Feb 24, 2015;Build 63
  ;
  Q
  ;
@@ -196,3 +196,114 @@ VFADD(TARGET,PIPIEN,VIEN,APCDALVR) ;PEP - Add entry to the V OB file and update 
 XVFADD ;Restore original APCDALVR
  K APCDALVR M APCDALVR=APCDTMP
  Q "~@"_$NA(@TARGET)
+ ;
+PROC(PRBIEN,BPIEN,ASTS,PARM,PCNT,II,TYPE,TMP,RESULT) ;EP - Process one entry
+ ;
+ ;Called from APIP^BJPNAPI
+ ;
+ NEW DEL,STRM,PNR,OEDT,OEBY,CNT,WRAP,PDSP,STS,LINE,BGO,SMD
+ NEW X1,X2,BRNG,ERNG,X,DEDD,API,NVDT,NPDT,NHYP,NEDT,SPACE
+ ;
+ S $P(SPACE," ",80)=" "
+ S PARM=$G(PARM)
+ ;
+ ;Definitive EDD date range check
+ D GETPAR^CIAVMRPC(.NEDT,"BJPN POST DEDD DAYS","SYS",1,"I","")
+ ;
+ ;If blank default to 70
+ I +$G(NEDT)<1 S NEDT=70
+ ;
+ ;Define formatting parameters
+ S NVDT=$S(PARM["V":1,1:"")
+ S NPDT=$S(PARM["P":1,1:"")
+ S NHYP=$S(PARM["H":1,1:"")
+ ;
+ ;Skip deletes
+ S DEL=$$GET1^DIQ(90680.01,BPIEN_",",2.01,"I") Q:DEL]""
+ S DEL=$$GET1^DIQ(9000011,PRBIEN_",",2.02,"I") I DEL]"" Q  ;IPL Delete
+ ;
+ ;Retrieve the entry from the API results
+ S BGO=$O(@TMP@("P",PRBIEN,"")) Q:BGO=""   ;Quit if no IPL entry
+ S API=$G(@TMP@("P",PRBIEN,BGO)) Q:API=""
+ ;
+ ;Status - Active Only
+ S STS=$$GET1^DIQ(90680.01,BPIEN_",",.08,"I")
+ I '$G(ASTS),STS'="A" Q
+ ;
+ ;Provider Text
+ S PNR=$P(API,U,8)
+ ;
+ ;Tack on Inactive
+ I STS'="A" S PNR="(i)"_PNR
+ ;
+ ;Original Entry Date
+ S OEDT=$$FMTE^XLFDT($$GET1^DIQ(9000011,PRBIEN_",",.08,"I"),"2D")
+ ;
+ ;Original Entry By
+ S OEBY=$$GET1^DIQ(9000011,PRBIEN_",",1.03,"E")
+ ;
+ ;Problem Count
+ S PCNT=$G(PCNT)+1 I PCNT>1 S II=II+1,RESULT(II)=" "
+ S PDSP=PCNT_") ",PDSP=$E(PDSP,1,4)
+ ;
+ ;Handle Wrapping
+ D WRAP^BJPNPRNT(.WRAP,PNR,76)
+ ;
+ ;Process each wrapped line
+ S WRAP="" F LINE=1:1 S WRAP=$O(WRAP(WRAP)) Q:WRAP=""  D
+ . S II=II+1,RESULT(II)=$S(LINE=1:PDSP,1:($E(SPACE,1,4)))_WRAP(WRAP)
+ ;
+ ;Tack on Date/By
+ S II=II+1,RESULT(II)=$E(SPACE,1,5)_"(Entered"_$S(NPDT:"",1:" "_OEDT)_$S(OEBY]"":" by ",1:"")_OEBY_")"
+ ;
+ ;Pull Definitive EDD
+ S DEDD=$$GET1^DIQ(90680.01,BPIEN_",",.09,"I")
+ S X1=DEDD,X2=-280 D C^%DTC S BRNG=X
+ S X1=DEDD,X2=NEDT D C^%DTC S ERNG=X
+ ;
+ ;Loop through Visit Instructions (Return All)
+ S BGO="" F  S BGO=$O(@TMP@("I",PRBIEN,BGO)) Q:BGO=""  D
+ . ;
+ . NEW APIRES,NIEN,IENS,DA,SCO,WRAP
+ . NEW DTTM,MDBY,ILMBY,NOTE,NSTS,SIGN,VSIT
+ . ;
+ . S SIGN=""
+ . S APIRES=$G(@TMP@("I",PRBIEN,BGO,0)) Q:APIRES=""
+ . ;
+ . ;Get note date/time entered and by
+ . S (DTTM,ILMBY)=""
+ . ;
+ . ;Note IEN
+ . S NIEN=$P(APIRES,U,2) Q:NIEN=""
+ . ;
+ . ;Get note date/time entered and by - V VISIT INSTRUCTIONS
+ . S (DTTM,ILMBY)=""
+ . S DTTM=$$GET1^DIQ(9000010.58,NIEN_",",1216,"I")
+ . S ILMBY=$$GET1^DIQ(9000010.58,NIEN_",",1217,"I")
+ . S SIGN=$P(APIRES,U,13)
+ . ;
+ . Q:DTTM=""
+ . S MDBY=$$GET1^DIQ(200,ILMBY_",",".01","E")
+ . ;
+ . ;Get Note
+ . S NOTE=$P($G(@TMP@("I",PRBIEN,BGO,1)),U,2)
+ . Q:NOTE=""
+ . ;
+ . ;Note Status
+ . S NSTS="A"
+ . I DEDD]"",DTTM'<BRNG,DTTM'>ERNG S NSTS="C"
+ . S NSTS=$S(VIEN]"":" ",TYPE="C":" ",1:" ("_NSTS_") ")
+ . ;
+ . ;Determined signed/unsigned
+ . S SIGN=$S(SIGN]"":"S",1:"U") Q:SIGN="U"
+ . ;
+ . ;Set up record
+ . ;
+ . ;Handle Wrapping
+ . D WRAP^BJPNPRNT(.WRAP,$S(NHYP:"",1:"-")_NSTS_NOTE_" ("_$S('NVDT:$$FMTE^XLFDT(DTTM,"2D")_" ",1:"")_$S(MDBY]"":"by ",1:"")_MDBY_")",72,2)
+ . ;
+ . ;Process each wrapped line
+ . S WRAP="" F LINE=1:1 S WRAP=$O(WRAP(WRAP)) Q:WRAP=""  D
+ .. S II=II+1,RESULT(II)=$E(SPACE,1,5)_WRAP(WRAP)
+ ;
+ Q

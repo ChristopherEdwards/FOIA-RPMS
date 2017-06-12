@@ -1,6 +1,14 @@
-TIULA ; SLC/JER - Interactive Library functions ;01-Aug-2011 11:30;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**79,113,1009**;Jun 20, 1997;Build 22
+TIULA ; SLC/JER - Interactive Library functions ;11-Nov-2013 14:45;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**79,113,1009,250,1013**;Jun 20, 1997;Build 33
+ ;
  ;IHS/MSC/MGH Use IHS divisions
+ ; ICR #10142    - EN^DDIOL Routine
+ ;     #10006    - DIC Routine & DIC, X, & Y local vars
+ ;     #10026    - DIR Routine & DIR, X, & Y local vars
+ ;     #10112    - $$PRIM^VASITE, $$SITE^VASITE Routines
+ ;     #664      - DIVISION^VAUTOMA Routine & VAUTD local var
+ ;     #10140    - XQORM, EN^XQORM Routine & XQORM local var
+ ;
 PATIENT(TIUSSN) ; Select a patient
  N X,DIC,Y S:$G(TIUSSN)]"" X=TIUSSN
  S DIC=2,DIC(0)=$S($G(TIUSSN)']"":"AEMQ",1:"MX") D ^DIC
@@ -11,6 +19,7 @@ SELDIV ; Get document division(s)
  ;                   0= institution file pointer missing for
  ;                      division entry
  ;                   1= successful division selection
+ ;          BADDIV    = comma-delimited list of bad divisions (if any)
  ;          TIUDI(  undefined= user <cr> for all divisions or ^ at prompt
  ;                             if multidivisional
  ;                  defined= user selected one or more divisions if
@@ -18,24 +27,25 @@ SELDIV ; Get document division(s)
  ;                           division file entry if not multidivisional;
  ;                           i.e.: TIUDI(file #40.8 ien)= Institution
  ;                           file pointer for file #40.8 entry
- N TIUI,IHSDIV K SELDIV,TIUDI
+ N TIUI,VAUTD,Y
+ K SELDIV,TIUDI,IHSDIV,BADDIV
  ; -- Determine if facility is multidivisional
  ;I $P($G(^DG(43,1,"GL")),U,2) D       ;IHS/MSC/MGH Use IHS division 1008
  D DIVGET^XUSRB2(.IHSDIV,DUZ)          ;IHS/MSC/MGH Use IHS division 1008
- I $G(IHSDIV(2))>1 D                       ;IHS/MSC/MGH Use IHS division 1008
+ I $G(IHSDIV(2))>1 D                   ;IHS/MSC/MGH Use IHS division
  . D DIVISION^VAUTOMA
  . I Y<0 S SELDIV=-1 Q
  . I VAUTD=1 S SELDIV=1 Q
- . S TIUI=0 F  S TIUI=$O(VAUTD(TIUI)) Q:'TIUI  D ONE(TIUI)
+ . S TIUI=0 F  S TIUI=$O(VAUTD(TIUI)) Q:'TIUI  D ONE(TIUI,.VAUTD)
  E  D
- . S TIUI=$$PRIM^VASITE D ONE(TIUI)
+ . S TIUI=$$PRIM^VASITE D ONE(TIUI,.VAUTD)
  Q
-ONE(TIUI) ; Input - TIUI  Medical Center Division file (#40.8) IEN
+ONE(TIUI,VAUTD) ; Input - TIUI  Medical Center Division file (#40.8) IEN
  N TIUIFP
  S TIUIFP=$P($$SITE^VASITE(,TIUI),U) I TIUIFP>0 D
  . S TIUDI(TIUI)=TIUIFP,SELDIV=1
  E  D
- . S SELDIV=0
+ . S SELDIV=0,BADDIV=$G(BADDIV)_$S($L($G(BADDIV)):", ",1:"")_$G(VAUTD(TIUI))
  Q
  ;
 SELSVC(TIUSVCS) ;Select Services
@@ -89,7 +99,7 @@ SELSTAT(Y,PARM,DEF) ; Select Signature status
  I +$G(Y)=1,(+$G(Y(1))=7) S Y=2,Y(2)="8^4843^amended^8"
 STATX Q TIUY
 SELSCRN(DEF) ; Select Review Screen
- N DIC,XQORM,X
+ N DIC,XQORM,X,Y
  S DIC=101,DIC(0)="X",X="TIU REVIEW SCREEN MENU" D ^DIC
  I +Y>0 D
  . S XQORM=+Y_";ORD(101,",XQORM(0)="1A",XQORM("A")="Select Category: "

@@ -1,12 +1,14 @@
-TIUALRT ; SLC/JER,AJB - Notify Author and Attending. ;02-Mar-2012 10:13;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**21,84,79,88,58,61,151,158,175,1009**;Jun 20, 1997;Build 22
+TIUALRT ; SLC/JER,AJB - Notify Author and Attending. ;10-Mar-2014 15:28;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**21,84,79,88,58,61,151,158,175,1009,221,1011,227,259,1013**;Jun 20, 1997;Build 33
  ;IHS/ITSC/LJF 02/21/2003
  ; -- changed SSN to HRCN
  ; -- removed code forcing attending to be cosigner
 SEND(DA,OVERDUE) ; Generate "available for signature" alert
- N TIU0,TIU12,TIU13,TIU14,TIU15,TIUESNR,TIUPNM,TIUECSNR,TIUSIG,TIUDPRM
+ ;ICR 10035  ^DPT(  .01    NAME   0;1  Direct Global Read
+ N TIU0,TIU12,TIU13,TIU14,TIU15,TIUDATE,TIUESNR,TIUPNM,TIUECSNR,TIUSIG,TIUDPRM
  N TIUCOSG,TIUEDT,TIUSSN,TIU,TIUTYP,XQA,XQAKILL,XQAMSG,XQAROU,XQAID
  N XQAFLG,STATUS,SIGACT,ECSNRFLG
+ N XQADATA ;259
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
  I '$D(TIUTMP("NODEL")) D ALERTDEL(DA)
  S TIU0=$G(^TIU(8925,+DA,0)),TIU12=$G(^(12)),TIU13=$G(^(13))
@@ -18,6 +20,8 @@ SEND(DA,OVERDUE) ; Generate "available for signature" alert
  ; per NOIS DUR-0101-32087
  ; I +$$ISADDNDM^TIULC1(DA),($P($G(^TIU(8925,+$P(TIU0,U,6),0)),U,5)<7) Q
  I '+$P(TIUPRM1,U,7)!(+$P(TIU12,U)<+$P(TIUPRM1,U,7)) Q
+ ;VMP/ELR  PATCH 221  DO NOT SEND ALERTS FOR RETRACTED DOCUMENTS
+ I +$P(TIU0,U,5)=15 Q
  ; If third party alert from TIUALFUN **158**
  I $D(TIUTMP("THIRD PARTY ALERTS")) G THIRD
  ; If document is completed, jump to additional signers
@@ -45,7 +49,7 @@ SEND(DA,OVERDUE) ; Generate "available for signature" alert
  ;. S DIE=8925,DR="1208////^S X=TIUECSNR" D ^DIE
  ;IHS/ITSC/LJF 02/21/2003 end of commented out code
  ;
- ;If first signature required and the expected signer is authorized
+ ; If first signature required and the expected signer is authorized
  ; to sign this record, and the record is not yet signed
  ; ** Set AUTHOR as recipient
  I '+$G(TIUSIG),(+TIUESNR>0),(+$P(TIUDPRM(0),U,4)>0) S XQA(TIUESNR)=""
@@ -61,7 +65,8 @@ SEND(DA,OVERDUE) ; Generate "available for signature" alert
  . I '+$P(TIUDPRM(0),U,20),'+$G(TIUSIG),+$P(TIUDPRM(0),U,4) Q  ; **84,112/151**
  . S XQA(TIUECSNR)="",ECSNRFLG=1 ; **151**
 ADDSNR ; Send addendum alerts, check for additional signers
- I +$$ISADDNDM^TIULC1(DA) D SENDADD(DA)
+ ;VMP/ELR PATCH 221  DO NOT SEND AMENDMENT ALERT IF CAUSED BY A DELINQUENT ADDITIONAL SIGNER
+ I +$$ISADDNDM^TIULC1(DA),$G(TIUADDL)'=1 D SENDADD(DA)
  ; If additional signers have been designated, alert them too
  I +$O(^TIU(8925.7,"B",DA,0)),(+$P(TIU0,U,5)>5) D
  . N TIUXTRA,TIUI D XTRASGNR^TIULG(.TIUXTRA,DA) Q:+$D(TIUXTRA)'>9
@@ -76,14 +81,19 @@ THIRD ; **158**
  S TIUTYP=$$PNAME^TIULC1(+$G(TIU0))
  D PATVADPT^TIULV(.TIU,+$P(TIU0,U,2))
  ;
- ;S TIUSSN=$E(TIUPNM,1)_$P($G(TIU("SSN")),"-",3)   ;IHS/ITSC/LJF 02/21/2003
- S TIUSSN=$G(TIU("HRCN"))                          ;IHS/ITSC/LJF 02/21/2003
- ;
+ ;S TIUSSN=$E(TIUPNM,1)_$P($G(TIU("SSN")),"-",3) ;IHS/ITSC/LJF 02/21/2003
+ S TIUSSN=$G(TIU("HRCN"))           ;IHS/ITSC/LJF 02/21/2003
  S XQAID="TIU"_+DA,STATUS=$$UP^XLFSTR($$GET1^DIQ(8925,DA,.05)) ; **175** $$STATUS^TIULC(DA))
  S SIGACT=$S(STATUS="UNSIGNED":"SIGNATURE",STATUS="UNCOSIGNED":"COSIGNATURE",1:"ADD'L SIGNATURE")
  I $G(ECSNRFLG),$P(TIU0,U,5)=5 S STATUS="UNSIG/UNCOS'D" ; **151**
+ ;I STATUS="UNCOSIGNED" S STATUS="UNCOS'D"
+ ;I $G(OVERDUE) S TIUTYP=$E(TIUTYP,1,42-$L(STATUS))
  S XQAMSG=TIUPNM_" ("_TIUSSN_"): "_STATUS_" "_$S($P(TIU0,U,9)="P":"STAT ",1:"")_TIUTYP
- I +$G(OVERDUE) S XQAMSG=XQAMSG_" OVERDUE for "_SIGACT_"." G ENDMSG
+ ;I +$G(OVERDUE) S XQAMSG=XQAMSG_" OVERDUE for "_SIGACT_"." G ENDMSG
+ I +$G(OVERDUE) D  G ENDMSG ; TIU,259
+ . S TIUDATE=$$DATE^TIULS(+TIU13)
+ . S XQAMSG=XQAMSG_" Dated "_TIUDATE_" OVERDUE for "_SIGACT_"."
+ . ;S XQAMSG=XQAMSG_": "_TIUDATE_" OVERDUE for "_SIGACT_"."
  S XQAMSG=XQAMSG_" available for "_SIGACT_"."
 ENDMSG ;
  S XQAROU="ACT^TIUALRT",XQADATA=+DA_U
@@ -104,6 +114,7 @@ ACT ; Act on alerts
 SENDTRAN(DA) ; Generate "Send back to transcription" alert
  N TIUEDT,TIU0,TIUPNM,TIUSSN,TIUTRAN,TIU,XQA,XQAMSG,TIUMSG
  N TIUESNR,TIU12,TIU13,TIU14,TIU15,TIUTYP
+ N XQAID ;259
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
  D ALERTDEL(DA)
  ; Don't send if notifications not enabled
@@ -116,9 +127,10 @@ SENDTRAN(DA) ; Generate "Send back to transcription" alert
  S TIUTRAN=$P(TIU13,U,2),TIUESNR=$P(TIU12,U,2) ; **175**
  D PATVADPT^TIULV(.TIU,+$P(TIU0,U,2)) ;Used to get SSN. Date not important.
  ;
- ;S TIUSSN=$E(TIUPNM,1)_$P($G(TIU("SSN")),"-",3)     ;IHS/ITSC/LJF 02/2003
- S TIUSSN=$G(TIU("HRCN"))                            ;IHS/ITSC/LJF 02/21/2003
+ ;S TIUSSN=$E(TIUPNM,1)_$P($G(TIU("SSN")),"-",3)  ;IHS/ITSC/LJF 02/21/2003
+ S TIUSSN=$G(TIU("HRCN"))               ;IHS/ITSC/LJF 02/21/2003
  ;I $D(^VA(200,+TIUTRAN,0)) S XQA(TIUTRAN)=""
+ I $$PROVIDER^XUSER(TIUTRAN) S XQA(TIUTRAN)="" ;ICR #2343 In file 200 & not terminated
  Q:$D(XQA)'>9
  S TIUMSG=$S(TIUTRAN=TIUESNR:" needs editing",1:" needs retranscription.")
  S XQAID="TIU"_+DA
@@ -128,6 +140,7 @@ SENDTRAN(DA) ; Generate "Send back to transcription" alert
 SENDADD(DA) ; Generates "Addendum added" alert
  N TIU12,TIU13,TIU14,TIU15,TIU0,TIUPNM,TIUSSN,TIUTRAN,TIU,TIUTITLE,TIUDPRM
  N XQA,XQAMSG,XQAFLG,XQADATA,XQAROU,TIUESNR,TIUDATE,TIUESNM,TIUO0,TIUO12,TIUO13
+ N XQAID,TIUECSNR ;P259
  I '$D(TIUPRM0)!'$D(TIUPRM1) D SETPARM^TIULE
  D ADDENDEL(DA)
  ; Don't send if notifications not enabled
@@ -151,7 +164,8 @@ SENDADD(DA) ; Generates "Addendum added" alert
  ; Not entered by Expected Signer: SET Expected Signer as recipient
  I TIUESNR'=TIUTRAN,$D(^VA(200,+TIUESNR,0)) S XQA(TIUESNR)=""
  ; Not entered by Expected Cosigner: SET Expected Cosigner as recipient
- I +TIUECSNR>0,(TIUECSNR'=TIUTRAN),$D(^VA(200,+TIUECSNR,0)) S XQA(TIUECSNR)=""
+ ; VMP/RJT - *227 - If user is the expected cosigner, do not send alert
+ I +TIUECSNR>0,(TIUECSNR'=DUZ),(TIUECSNR'=TIUTRAN),$D(^VA(200,+TIUECSNR,0)) S XQA(TIUECSNR)=""
  Q:$D(XQA)'>9
  S XQAID="TIUADD"_+DA,XQADATA=+DA_U,XQAROU="ACTADD^TIUALRT"
  S XQAMSG=TIUPNM_" ("_TIUSSN_"): ADDENDUM to "_TIUTITLE_" of "_TIUDATE_" by "_TIUESNM

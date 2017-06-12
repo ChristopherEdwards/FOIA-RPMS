@@ -1,5 +1,5 @@
 APCDCHKP ; IHS/CMI/LAB - I-LINK REPORT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;IHS/ANMC/LJF 8/4/97 modified for ANMC use
  ;
  U IO
@@ -35,7 +35,7 @@ PRNP ;
  W !,"IN-HOSP:  DATE: [",APCDRD,"] NAME: [",$P(^DPT($P(APCDIV,U,5),0),U),"]  TYPE: [",$P(APCDIV,U,3),"]"
  W !,"          LOCATION: [",$S($D(^DIC(4,$P(APCDIV,U,6),0)):$P(^(0),U),1:"UNKNOWN"),"] DEPENDENT ENTRY CNT: [",$P(APCDIV,U,9),"]"
  ;W !?10,"Procedure: ",$P(^ICD0($P(APCDPDFN,U),0),U),?30,"Provider Narr: ",$P(^AUTNPOV($P(APCDPDFN,U,4),0),U)
- W !?10,"Procedure: ",$P($$ICDOP^ICDCODE($P(APCDPDFN,U),$$VD^APCLV($P(APCDPDFN,U,3))),U,2),?30,"Provider Narr: ",$P(^AUTNPOV($P(APCDPDFN,U,4),0),U)
+ W !?10,"Procedure: ",$P($$ICDOP^ICDEX($P(APCDPDFN,U),$$VD^APCLV($P(APCDPDFN,U,3)),,"I"),U,2),?30,"Provider Narr: ",$P(^AUTNPOV($P(APCDPDFN,U,4),0),U)
  Q
 PRNH ;
  S APCDHV=^AUPNVSIT(APCDH,0) S:'$P(APCDHV,U,6) $P(APCDHV,U,6)=0 S APCDTYPE=$P(APCDHV,U,3)

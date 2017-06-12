@@ -1,5 +1,5 @@
 ABSPOSAS ; IHS/FCS/DRS - Low-level SEND claim ;   [ 08/21/2002  9:13 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**2**;JUN 21, 2001;Build 15
  Q
  ;
  ;  Modem - low-level message send

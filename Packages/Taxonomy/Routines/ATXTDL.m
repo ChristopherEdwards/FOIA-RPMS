@@ -1,5 +1,5 @@
 ATXTDL ; IHS/OHPRD/TMJ -  DELETES PATIENT LIST AND TAXONOMY ENTRY IN PT TAXONOMY FLE ; 
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;5.1;TAXONOMY;**11**;FEB 04, 1997;Build 48
  ; ACC 1/24/94 added set and kill of ATXDEL, which were missing
  ;
  S U="^"

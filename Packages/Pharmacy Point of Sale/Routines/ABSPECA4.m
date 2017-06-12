@@ -1,5 +1,5 @@
 ABSPECA4 ; IHS/FCS/DRS - Parse Claim Response ;    [ 08/09/2002  11:08 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,42**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Parse ASCII Response Claim Record and Sup FDATA() Array

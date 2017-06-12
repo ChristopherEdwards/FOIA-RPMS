@@ -1,5 +1,5 @@
 ABSPOSHR ; IHS/SD/lwj - 3.2 to 5.1 clm reversal format ; [ 10/24/2002  8:18 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;
  ;-------------------------------------------------------
  ; IHS/SD/lwj 10/22/02 NCPDP 5.1 changes

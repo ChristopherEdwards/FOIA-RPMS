@@ -1,73 +1,73 @@
-PXRMRLST ; SLC/PKR - Clinical Reminder list option routine ;02/07/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMRLST ; SLC/PKR - Clinical Reminder definition list. ;01/03/2005
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
- ;===================================================================== 
+ ;================================================== 
  ;Build the criteria for which reminders to list.
-LIST N ALL,CRITERIA,DIR,IND,LOCAL,LPREFIX,NCRIT,PREFIX,SORT,STATUS,X,Y
+LIST N ALL,CRITERIA,DIR,DIROUT,DIRUT,DTOUT,DUOUT,IND
+ N LOCAL,LPREFIX,NCRIT,PREFIX,SORT,STATUS,X,Y
 START S (ALL,LOCAL,NCRIT)=0
  S (PREFIX,STATUS)=""
  ;
-ALLQ K DIR,DIRUT,DTOUT,DUOUT
- S DIR(0)="YAO"
+ALLQ S DIR(0)="YAO"
  S DIR("A")="List all reminders? "
  S DIR("B")="Y"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) Q
+ I $D(DIROUT)!$D(DIRUT) Q
+ I $D(DTOUT)!$D(DUOUT) Q
  S ALL=Y
  S NCRIT=NCRIT+1
  S CRITERIA(NCRIT)=DIR("A")_" "_Y(0)
  I ALL G ACTIVEQ
  ;
-LOCALQ K DIR,DIRUT,DTOUT,DUOUT
+LOCALQ K DIR,DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="YAO"
  S DIR("A")="List all local reminders? "
  S DIR("B")="Y"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) G ALLQ
+ I $D(DTOUT) Q
+ I $D(DUOUT)!$D(DIROUT) G ALLQ
  S LOCAL=Y
  S NCRIT=NCRIT+1
  S CRITERIA(NCRIT)=DIR("A")_" "_Y(0)
  I LOCAL G ACTIVEQ
  ;
-PREFIXQ K DIR,DIRUT,DTOUT,DUOUT
+PREFIXQ K DIR,DIROUT,DIRUT,DTOUT,DUOUT
  S PREFIX=""
  S DIR(0)="FAO"_U_"1:30"
  S DIR("A")="List only reminders starting with (prefix)? "
  S DIR("B")="VA-"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) G LOCALQ
+ I $D(DTOUT) Q
+ I $D(DUOUT)!$D(DIROUT) G LOCALQ
  S PREFIX=Y
  S LPREFIX=$L(Y)
  S NCRIT=NCRIT+1
  S CRITERIA(NCRIT)=DIR("A")_" "_PREFIX
  ;
-ACTIVEQ K DIR,DIRUT,DTOUT,DUOUT
+ACTIVEQ K DIR,DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="SAO"_U_"A:Active;I:Inactive;B:Both"
  S DIR("A")="List Active (A), Inactive (I), Both (B)? "
  S DIR("B")="B"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) G START
+ I $D(DTOUT) Q
+ I $D(DUOUT)!$D(DIROUT) G START
  S STATUS=Y
  S NCRIT=NCRIT+1
  S CRITERIA(NCRIT)=DIR("A")_" "_Y(0)
  ;
-SORTQ K DIR,DIRUT,DTOUT,DUOUT
+SORTQ K DIR,DIROUT,DIRUT,DTOUT,DUOUT
  S SORT="N"
  S DIR(0)="SAO"_U_"N:Name (.01);P:Print name"
  S DIR("A")="Sort list by Name (N), Print Name (P)? "
  S DIR("B")="N"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) G ACTIVEQ
+ I $D(DTOUT) Q
+ I $D(DUOUT)!$D(DIROUT) G ACTIVEQ
  S SORT=Y_U_Y(0)
  S NCRIT=NCRIT+1
  S CRITERIA(NCRIT)=DIR("A")_" "_Y(0)
@@ -78,14 +78,14 @@ SORTQ K DIR,DIRUT,DTOUT,DUOUT
  . W !,?2,CRITERIA(IND)
  ;
  K CRITERIA
- K DIR,DIRUT,DTOUT,DUOUT
+ K DIR,DIROUT,DIRUT,DTOUT,DUOUT
  S DIR(0)="YAO"
  S DIR("A")="Is this correct? "
  S DIR("B")="Y"
  W !
  D ^DIR
- I $D(DTOUT)!($D(DIROUT)) Q
- I $D(DUOUT) G START
+ I $D(DTOUT) Q
+ I $D(DUOUT)!$D(DIROUT) G START
  I 'Y G START
  ;
  ;Build the list of reminders based on the input critera.
@@ -114,7 +114,7 @@ SORTQ K DIR,DIRUT,DTOUT,DUOUT
  K ^TMP($J,"DEFLIST")
  Q
  ;
- ;===================================================================== 
+ ;================================================== 
 ALLS(NODE0,STATUS) ;Screen based on all reminders and status.
  I STATUS="B" Q 1
  N INFLAG
@@ -123,7 +123,7 @@ ALLS(NODE0,STATUS) ;Screen based on all reminders and status.
  I (STATUS="I")&(INFLAG) Q 1
  Q 0
  ;
- ;===================================================================== 
+ ;================================================== 
 LOCALS(NODE0,STATUS) ;Screen based on all local reminders and status.
  N NAME
  S NAME=$P(NODE0,U,1)
@@ -135,7 +135,7 @@ LOCALS(NODE0,STATUS) ;Screen based on all local reminders and status.
  I (STATUS="I")&(INFLAG) Q 1
  Q 0
  ;
- ;===================================================================== 
+ ;================================================== 
 PREFIXS(NODE0,STATUS,PREFIX,LPREFIX) ;Screen based on .01 prefix and status.
  N NAME,PRE
  S NAME=$P(NODE0,U,1)

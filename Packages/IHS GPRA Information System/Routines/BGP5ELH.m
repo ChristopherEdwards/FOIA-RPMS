@@ -1,5 +1,5 @@
 BGP5ELH ; IHS/CMI/LAB - cover page for ELDER 25 Jun 2010 10:20 AM ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  ;
  I $G(BGPAREAA) D AREACP Q
@@ -17,19 +17,12 @@ BGP5ELH ; IHS/CMI/LAB - cover page for ELDER 25 Jun 2010 10:20 AM ;
  W !!,"Population: ",$S(BGPBEN=1:"AI/AN Only (Classification 01)",BGPBEN=2:"non AI/AN Only (Classification NOT 01)",BGPBEN=3:"All (Both AI/AN and non AI/AN)",1:"")
  D ENDTIME
  D ELDERHDR
- I $G(BGPEXPT) W !!,"A file will be created called BG150",$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
+ I $G(BGPEXPT) W !!,"A file will be created called BG151",$P(^AUTTLOC(DUZ(2),0),U,10)_".EL"_BGPRPT,".",!,"It will reside in the public/export directory.",!,"This file should be sent to your Area Office.",!
  I BGPROT'="P",'$D(BGPGUI) W !!,"A delimited output file called ",BGPDELF,!,"has been placed in the "_$$GETDEDIR^BGP5UTL2()_" directory for your use in Excel or some",!,"other software package.",!,"See your site manager to access this file.",!
  I $G(BGPALLPT) W !!,"All Communities Included.",!
  I '$G(BGPALLPT),'$G(BGPSEAT) W !!?10,"Community Taxonomy Name: ",$P(^ATXAX(BGPTAXI,0),U)
  I '$G(BGPALLPT),'$G(BGPSEAT) W !!?10,"The following communities are included in this report:",! D
  .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(BGPTAX(BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_BGPZZ
- .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
- ..I $Y>(BGPIOSL-3) D EOP
- ..W !?10,$E($P(Y,";",BGPZZ),1,20),?30,$E($P(Y,";",(BGPZZ+1)),1,20),?60,$E($P(Y,";",(BGPZZ+2)),1,20)
- ..Q
- I $G(BGPMFITI) W !!?10,"MFI Visit Location Taxonomy Name: ",$P(^ATXAX(BGPMFITI,0),U)
- I $G(BGPMFITI) W !!?10,"The following locations are used for patient visits in this report:",! D
- .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(^ATXAX(BGPMFITI,21,"B",BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P($G(^DIC(4,BGPZZ,0)),U)
  .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
  ..I $Y>(BGPIOSL-3) D EOP
  ..W !?10,$E($P(Y,";",BGPZZ),1,20),?30,$E($P(Y,";",(BGPZZ+1)),1,20),?60,$E($P(Y,";",(BGPZZ+2)),1,20)
@@ -86,11 +79,6 @@ AREACP ;EP - area cover page
  .S BGPXX=0,BGPXN=0,BGPXY="" F  S BGPXX=$O(^BGPELDCK(BGPX,9999,BGPXX)) Q:BGPXX'=+BGPXX  S BGPXN=BGPXN+1,BGPXY=BGPXY_$S(BGPXN=1:"",1:";")_$P(^BGPELDCK(BGPX,9999,BGPXX,0),U)
  .S BGPX1=0,C=0 F BGPX1=1:3:BGPXN D
  ..W !?10,$E($P(BGPXY,";",BGPX1),1,20),?30,$E($P(BGPXY,";",(BGPX1+1)),1,20),?60,$E($P(BGPXY,";",(BGPX1+2)),1,20)
- .I $O(^BGPELDCK(BGPX,1111,0)) D
- ..W !!?5,"MFI Visit Locations: " S BGPXX=0,BGPXN=0,BGPXY="" F  S BGPXX=$O(^BGPELDCK(BGPX,1111,BGPXX)) Q:BGPXX'=+BGPXX  S BGPXN=BGPXN+1,BGPXY=BGPXY_$S(BGPXN=1:"",1:";")_$P(^BGPELDCK(BGPX,1111,BGPXX,0),U)
- ..S BGPX1=0,C=0 F BGPX1=1:3:BGPXN W !?10,$E($P(BGPXY,";",BGPX1),1,18),?30,$E($P(BGPXY,";",(BGPX1+1)),1,20),?60,$E($P(BGPXY,";",(BGPX1+2)),1,18)
- .Q
- W ! ;S X=" " D W^BGP5DP(X,0,1,BGPPTYPE)
  K BGPX,BGPQUIT
  Q
 CTR(X,Y) ;EP - Center X in a field Y wide.

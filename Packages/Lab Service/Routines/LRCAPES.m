@@ -1,14 +1,16 @@
-LRCAPES ;DALOI/FHS/KLL -MANUAL PCE CPT WORKLOAD CAPTURE ;07/30/04
- ;;5.2;LAB SERVICE;**1030,1031**;NOV 1, 1997
- ;
- ;;VA LR Patche(s): 274,259,349,308
+LRCAPES ;DALOI/FHS/KLL -MANUAL PCE CPT WORKLOAD CAPTURE ; 22-Oct-2013 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**274,1018,259,1030,349,308,1031,1033**;NOV 1, 1997
  ;
  ;Reference to $$GET^XUA4A72 - Supported by DBIA #1625
 EN ; EP
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  D EN^LRCAPES1
  Q
  ;
 EX1 ;Parse the read entry
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N LRXY,LRACTV,LRXY1,LRXY2,LRD2,LRNR,LRWL2,LRINA2,LRREL2,LRQ
  Q:'$L($G(LRX))
  ;Edit on 5-digit code entry
@@ -56,7 +58,10 @@ END ;
  Q
  ;
 WLN ;Interactive entry point
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  D KVA^VADPT
+ ;
  K DIC,DIR
  K LREND,LRUID,DIC,DIR,LRVBY
  K ^TMP("LR",$J,"LRLST")
@@ -72,6 +77,8 @@ WLN ;Interactive entry point
  . W !?5,"This accession is corrupt",!
  ;
 LCK ;
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  L +^LRO(68,LRAA,1,LRAD,1,LRAN):10 I '$T D  Q
  . W !?5,"Someone else is editing this accession",!
  . S LRNOP=1
@@ -93,6 +100,8 @@ LCK ;
  D DEM^LRCAPES1
  ;
 PRO ;Get provider,patient/location information
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  S LREND=0
  D
  . N LRPRONM,DIR,DIRUT,DUOUT,X,Y
@@ -118,6 +127,8 @@ LOC ;Reporting Location
  I $L(LRLLOC) S LRLLOC=+$$FIND1^DIC(44,"","OM",LRLLOC)
  ;
 ASKLOC ;Check to see if outpatient location
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  I '$D(^SC(+$G(LRLLOC),0))#2 D
  . N DIR,X,Y
  . S LRLLOC=""
@@ -132,11 +143,15 @@ ASKLOC ;Check to see if outpatient location
  Q
  ;
 ES() ; EP - Entry point for front end application.
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N DFN,LRESCPT,LRDFN,LRLLOC,LRLLOCX,LRNINS,LRTST,LRENCDT,LRDUZ
  K LRES,LRESCPT
  S LRES=1
  ;
 ASK ; Option entry point - Check and setup PCE reporting variables
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  D EN^LRCAPES1
  N X,Y,T1
  S LREND=0
@@ -151,6 +166,8 @@ PKG ;Check to see if Lab Package is installed
  . W !?5,"LAB SERVICE PACKAGE is not loaded",!
  ;
 PCE ;Check to see if PCE is turned on
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  S X="PXAI" X ^%ZOSF("TEST") I '$T D:'$G(LRES)  D WKL Q
  . W !?5,"PCE Is not installed",!
  S LRPCEON=$$PKGON^VSIT("PX")
@@ -159,6 +176,8 @@ PCE ;Check to see if PCE is turned on
  S LRDLOC=+$$GET1^DIQ(69.9,"1,",.8,"I")
  ;
 OOS ;Check to see if the LRDLOC is an OOS location
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  I $G(LRES),$P($G(^SC(LRDLOC,0)),U)'["LAB DIV " D  D WKL Q
  . W !?5,"DEFAULT LAB OOS LOCATION is not defined correctly",!
  S LRESCPT=1
@@ -166,18 +185,29 @@ OOS ;Check to see if the LRDLOC is an OOS location
  I $G(LRES) Q $G(LRESCPT)
  ;
 LOOP ;
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  Q:$G(LREND)
  F  D WLN Q:$G(LREND)  I '$G(LRNOP) D CPTEN Q:$G(LREND)
  D CLEAN Q
  ;
 CPTEN ; EP - Entry point from CPT API call
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
  ;
-WKL S (LRNOP,LREND)=0 D READ^LRCAPES1
+ ;
+WKL ; S (LRNOP,LREND)=0 D READ^LRCAPES1  ; IHS/MSC/MKK - LR*5.2*1033
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
+ S (LRNOP,LREND)=0 D READ^LRCAPES1
+ ;
  D DIS^LRCAPES1
  I '$O(^TMP("LR",$J,"LRLST",0)) D END Q
  ;
 LOAD ;Setup ^TMP("LRPXAPI" to load CPT workload
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  K LRXCPT,LRXTST,^TMP("LRPXAPI",$J)
+ ;
  S LRDUZ=LRPRO
  I '$G(LRESCPT) S LRNOP="3^PCE Workload Capture Not Setup"
  I $G(LRNOP) D  D SENDWKL Q
@@ -193,12 +223,16 @@ LOAD ;Setup ^TMP("LRPXAPI" to load CPT workload
  . D ADDPREV
  ;
 SENDWKL ; Store LMIP workload
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  D SEND^LRCAPES1
  L -^LRO(68,LRAA,1,LRAD,1,LRAN)
  S LRNOP=0
  Q
  ;
 ADDPREV ;Add CPT quantities from PCE to current totals
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  N LRSTR2,LRIEN2,LRPX,LRCPT,LRXX,LRCPT2,LRCPT1,LRX1,LRQ1,LRQ2,LRQT,LRCT
  S LRSTR2=$G(^LRO(68,LRAA,1,LRAD,1,LRAN,"PCE"))
  Q:'LRSTR2
@@ -242,6 +276,8 @@ CLEAN ;Final Cleanup
  Q
  ;
 CPT(LRAA,LRAD,LRAN,LRPRO) ;AP Release entry point
+ Q:$$PATCH^BLRUTIL4("PX*1.0*197")<1    ; IHS/MSC/MKK - LR*5.2*1033
+ ;
  ;LRAA=accession area, LRAD=accession date, LRAN=accession number
  ;LRPRO=provider
  N X,Y,I,LRI,LREDT,LRCDT,LRIDT,LRLLOCX,LRSPECID,DIC,LRNOP,LREND,LRES

@@ -1,7 +1,5 @@
-LR7OSAP1 ;slc/dcm/wty/kll - Silent AP rpt cont. ;3/28/2002
- ;;5.2;LAB SERVICE;**1003,1030,1031**;NOV 1, 1997
- ;
- ;;VA LR Patche(s): 121,227,230,259,317,315
+LR7OSAP1 ;slc/dcm/wty/kll - Silent AP rpt cont. ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**1003,121,227,230,259,1030,317,315,1031,1034**;NOV 1, 1997;Build 88
  ;
  Q:'$D(^XUSEC("LRLAB",DUZ))
  D LN
@@ -19,7 +17,8 @@ LR7OSAP1 ;slc/dcm/wty/kll - Silent AP rpt cont. ;3/28/2002
  N LRX
  S C=0
  F  S C=$O(^LR(LRDFN,LRSS,LRI,3,C)) Q:'C  S LRX=+^(C,0) D
- . S LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ . ; S LRX=$$ICDDX^ICDCODE(LRX,,,1)
+ . S LRX=$$ICDDX^ICDEX(LRX,,,"I")  ; IHS/MSC/MKK - LR*5.2*1034
  . I +LRX=-1 Q
  . D LN
  . S ^TMP("LRC",$J,GCNT,0)=$$S^LR7OS(1,CCNT,"ICD code: "_$P(LRX,"^",2))

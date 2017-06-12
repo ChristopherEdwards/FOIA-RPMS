@@ -1,0 +1,338 @@
+BLRSGNSY ; IHS/OIT/MKK - IHS Lab SiGN or SYmptom ; 31-Jul-2015 06:30 ; MKK
+ ;;5.2;IHS LABORATORY;**1033,1034,1035**;NOV 1, 1997;Build 5
+ ;
+ ; Looks to the patient's problem list (if it exists) to display selection.
+ ; Only displays those problems that have SNOMED codes.
+ ;
+ ; If the patient does not have a problem list, or if all the problems in the
+ ; list do not have SNOMED codes, the routine will require text input and
+ ; retrieve matches from the BSTS terminology server.
+ ;
+PEP ; EP
+EP ; EP
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+ ; Required variables are:
+ ;     (1) DFN     -- Patient Pointer to file 2
+ ;     (2) LRORD   -- Order Number
+ ;     (3) LRODT   -- Order Date
+ ;     (4) LRSP    -- Order Specimen #
+ ;     (5) LRTST   -- Lab Order Test
+ ;
+GETSDIAG(DFN,LRORD,LRODT,LRSP,LRTST,BAILOUT) ; EP - Get & Store Diagnosis
+ NEW (BAILOUT,DFN,DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRORD,LRODT,LRSP,LRTST,PNM,HRCN,U,XPARSYS,XQXFLG)
+ ;
+ S LRDFN=+$G(^DPT(DFN,"LR"))
+ ;
+ S PROBSTR=$$CHKITOUT^BLRSGNSU(DFN,LRODT)
+ ;
+ I PROBSTR="BAILOUT" S BAILOUT=1  Q 1
+ ;
+ S RELCINFO=""
+ ;
+ D STORDIAG(DFN,LRORD,LRODT,LRSP,LRTST,PROBSTR,RELCINFO)
+ ;
+ K ^TMP("BLR SNOMED GET",$J,"HDR")
+ Q 0
+ ;
+ALLTESTS(DFN,LRORD,LRODT) ; EP - Get & Store Single Diagnosis for *ALL* tests on an Order with Multiple Tests
+ NEW (DFN,DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,LRORD,LRODT,PNM,HRCN,U,XPARSYS,XQXFLG)
+ ;
+ S BAILOUT=0
+ ;
+ S LRDFN=+$G(^DPT(DFN,"LR"))
+ ;
+ S PROBSTR=$$CHKITOUT^BLRSGNSU(DFN,LRODT)
+ Q:PROBSTR="BAILOUT" 1
+ ;
+ S RELCINFO=""
+ ;
+ S LRSP=.9999999
+ F  S LRSP=$O(^LRO(69,"C",LRORD,LRODT,LRSP))  Q:LRSP<1  D
+ . S LRSPTST=.9999999
+ . F  S LRSPTST=$O(^LRO(69,LRODT,1,LRSP,2,LRSPTST)) Q:LRSPTST<1  D STORDIAG(DFN,LRORD,LRODT,LRSP,LRSPTST,PROBSTR,RELCINFO)
+ ;
+ K ^TMP("BLR SNOMED GET",$J,"HDR")
+ Q 0
+ ;
+STORDIAG(DFN,LRORD,LRODT,LRSP,LRSPTST,PROBSTR,RELCINFO) ; EP - Store the responses on the test
+ NEW DESCPROB,ICDSTR,ICDCODE,ICDSTR,IENS,LRTSTF60,SNOMED
+ ;
+ S SNOMED=$P(PROBSTR,"^")                   ; SNOMED
+ S DESCPROB=$P(PROBSTR,"^",2)               ; Description of the "Problem"
+ S ICDCODE=$P(PROBSTR,"^",3)                ; ICD
+ ;
+ ; Make sure description has no '(disorder)', etc type of addendum.
+ S:DESCPROB["(" DESCPROB=$$TRIM^XLFSTR($P(DESCPROB,"("),"LR"," ")
+ ;
+ D ENTRYAUD^BLRUTIL("STORDIAG^BLRSGNSY 1.0")
+ ;
+ D ^XBFMK
+ K FDA,ERRS,IENS
+ S IENS=LRSPTST_","_LRSP_","_LRODT_","
+ ;
+ S FDA(69.03,IENS,9999999.1)=DESCPROB
+ S:$L(SNOMED) FDA(69.03,IENS,9999999.2)=SNOMED
+ S:$L($G(RELCINFO)) FDA(69.03,IENS,9999999.3)=RELCINFO
+ D FILE^DIE("EKS","FDA","ERRS")
+ ; I $D(ERRS) D ERRMSG^BLRSGNSP("STORDIAG: FILE^DIE")
+ I $D(ERRS) D ERRMSG^BLRSGNS3("STORDIAG: FILE^DIE")   ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ ; Q:$$UP^XLFSTR($$ICDDX^ICDCODE(ICDCODE))["INVALID"    ; Do not Store 'Invalid Coding System'
+ ;
+ Q:$$INACTDT^BLRICDU0(ICDCODE,$$DT^XLFDT)    ; IHS/MSC/MKK - LR*5.2*1034 -- Do Not Store if ICD currently inactive
+ ;
+ K FDA,ERRS
+ S IENS=LRSPTST_","_LRSP_","_LRODT_","
+ ;
+ I $D(ICDCODE) D
+ . S ICDIEN=$$FIND1^DIC(80,,"M",ICDCODE_" ")
+ E  S ICDIEN=0
+ ;
+ K ERRS
+ S FDA(69.05,"?+1,"_IENS,.01)=ICDCODE
+ D UPDATE^DIE("EKS","FDA",,"ERRS")
+ ;
+ I ICDIEN,$D(ERRS) D  ; Try using ICD's IEN, if it exists
+ . K FDA,ERRS
+ . S FDA(69.05,"?+1,"_IENS,.01)=ICDIEN
+ . D UPDATE^DIE("S","FDA",,"ERRS")
+ ;
+ ; I $D(ERRS) D ERRMSG^BLRSGNSP("STORDIAG: UPDATE^DIE")
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1034
+ ; I $D(ERRS) D ERRMSG^BLRSGNSP("STORDIAG: UPDATE^DIE","BLRSGNSY")
+ I $D(ERRS) D ERRMSG^BLRSGNS3("STORDIAG: UPDATE^DIE","BLRSGNSY")     ; IHS/MSC/MKK - LR*5.2*1035
+ ;
+ D STORDIAG^BLRUTIL6(LRODT,LRSP,LRSPTST,ICDIEN)
+ ;
+ D ADBLRRLO^BLRUTIL6(LRODT,LRSP,LRSPTST)
+ ; ----- END IHS/MSC/MKK - LR*5.2*1034
+ Q
+ ;
+LISTMSEL() ; EP - LIST Manager to SELect entry
+ K SNOMED
+ S (BAILOUT,WHICHONE)=0
+ F  Q:WHICHONE!(BAILOUT)  D
+ . D EN^BLRSM(1)
+ . I WHICHONE<1 D NEWLIST
+ ;
+ Q $S(BAILOUT:"BAILOUT",1:$G(SNOMED(WHICHONE)))
+ ;
+NEWLIST ; EP - Ask user if they want to create a new listing
+ NEW ONETEST
+ ;
+ S ONETEST=+$G(^TMP("BLRDIAG",$J,"ORDER","ADDTST"))
+ ;
+ S (BAILOUT,Y)=0
+ F  Q:Y!(BAILOUT)  D
+ . W !
+ . D ^XBFMK
+ . S DIR(0)="YO"
+ . S DIR("A")="Create new Listing of SNOMED codes (Y/N)"
+ . S DIR("B")="YES"
+ . S DIR("T")=1800      ; IHS/MSC/MKK - LR*5.2*1035 - Wait 30 Minutes
+ . D ^DIR
+ . Q:+$G(DIRUT)<1&(+$G(Y))
+ . ;
+ . ; User has entered ^ (up-hat) or "NO".  One more check
+ . D ^XBFMK
+ . S DIR(0)="Y"
+ . S DIR("A")="Delete "_$S(ONETEST:"Test",1:"Order")_" (Y/N)"
+ . S DIR("T")=1800      ; IHS/MSC/MKK - LR*5.2*1035 - Wait 30 Minutes
+ . D ^DIR
+ . I +$G(Y) S BAILOUT=1  Q
+ . S Y=0
+ ;
+ Q:BAILOUT
+ ;
+ I Y<1!(+$G(DIRUT)) D  Q
+ . W !,"You MUST Select an appropriate SNOMED code from the list."
+ . D PRESSKEY^BLRGMENU(9)
+ D GETDIAG^BLRSGNSU(LRODT)
+ Q
+ ;
+RESETSCR ; EP - Reset the screen after a crash
+ D CLEAR^VALM1
+ Q
+ ;
+GETVALUE(PROBLIEN) ; EP - Get the value to store from the Problem List
+ S ICDPROB=+$G(^AUPNPROB(PROBLIEN,0))
+ ; S ICDSTR=$$ICDDX^ICDCODE(ICDPROB)       ; Currently, ICD Description & Code
+ S ICDSTR=$$ICDDX^ICDEX(ICDPROB)       ; Currently, ICD Description & Code
+ S ICDCODE=$P(ICDSTR,"^",2),ICDDESC=$P(ICDSTR,"^",4)
+ Q ICDDESC_"^"_ICDCODE
+ ;
+RELCINFO() ; EP - Relevant Clinical Information -- Currently (01/27/2014), not used
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S RELCINFO=""
+ W !!
+ D ^XBFMK
+ S DIR(0)="FO"
+ S DIR("A")="Relevant Clinical Information (RETURN Exits)"
+ S DIR("T")=1800      ; IHS/MSC/MKK - LR*5.2*1035 - Wait 30 Minutes
+ D ^DIR
+ ;
+ S RELCINFO=$G(X)
+ ;
+ Q RELCINFO
+ ;
+PROVNARR ; EP - List ALL current Provider Narratives for all tests for the order
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ S ORDERN=$G(^TMP("BLRDIAG",$J,"ORDER"))
+ Q:ORDERN<1
+ ;
+ S (CNT,LRODT)=0
+ F  S LRODT=$O(^LRO(69,"C",ORDERN,LRODT))  Q:LRODT<1  D
+ . S LRSP=0
+ . F  S LRSP=$O(^LRO(69,"C",ORDERN,LRODT,LRSP))  Q:LRSP<1  D
+ .. S LROTST=0
+ .. F  S LROTST=$O(^LRO(69,LRODT,1,LRSP,2,LROTST))  Q:LROTST<1  D
+ ... S IENS=LROTST_","_LRSP_","_LRODT
+ ... S F60DESC=$$GET1^DIQ(69.03,IENS,"TEST/PROCEDURE")
+ ... S PROVNARR=$$GET1^DIQ(69.03,IENS,"PROVIDER NARRATIVE")
+ ... S LRSNOMED=$$GET1^DIQ(69.03,IENS,"SNOMED")
+ ... Q:$L(PROVNARR)<1&($L(LRSNOMED)<1)
+ ... S CNT=CNT+1
+ ... W:CNT=1 "Other Tests' Provider Narrative:",!
+ ... W ?4,"TEST: ",F60DESC,!
+ ... W ?9,"PROVIDER NARRATIVE:"
+ ... D LINEWRAP^BLRGMENU(30,PROVNARR,50)
+ ... W !
+ ... W ?9,"SNOMED: ",LRSNOMED,!
+ ... ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1035
+ ... S ICD=$$GET1^DIQ(69.05,"1,"_IENS,.01)  ; Get 1st ICD code for the test
+ ... W:$L(ICD) ?9,"ICD: ",ICD,!
+ ... ; ----- END IHS/MSC/MKK - LR*5.2*1035
+ Q
+ ;
+DEBUG ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S DFN=11189
+ S PNM="DEMO,ALISTER LANE"
+ S HRCN=124625
+ S LRORD=82
+ S LRODT=3130801
+ S LRSP=1
+ S LRTST=1
+ S X=$$GETSDIAG(DFN,LRORD,LRODT,LRSP,LRTST)
+ Q
+ ;
+XTMPMENU ; EP - Menu of XTMP Reports
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,X,XPARSYS,XQXFLG)
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S BLRVERN2="XTMPMENU"
+ ;
+ D ADDTMENU^BLRGMENU("XTMPRPT^BLRSGNSY","Date/Time Report")
+ D ADDTMENU^BLRGMENU("XTMPORPT^BLRSGNSY","Date/Time Report by Order Number")
+ D ADDTMENU^BLRGMENU("XTMPORDR^BLRSGNSY","Detail data by Order Number")
+ ;
+ ; Main Menu driver
+ D MENUDRVR^BLRGMENU("RPMS Lab Developer Programs","^XTMP(""BLRSGNSY"" Routines")
+ Q
+ ;
+XTMPRPT ; EP - Report on ^XTMP("BLRSGNSY" data
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ I $D(^XTMP("BLRSGNSY"))<1 D  Q
+ . W !!,"No data in ^XTMP(""BLRSGNSY"".  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ D XTMPRPTI
+ ;
+ ; Reverse $ORDER sort
+ F  S DATETIME=$O(^XTMP("BLRSGNSY",DATETIME),-1)  Q:DATETIME<1!(QFLG="Q")  D
+ . S MSG="ZZZZ"
+ . F  S MSG=$O(^XTMP("BLRSGNSY",DATETIME,MSG),-1)  Q:MSG=""!(QFLG="Q")  D XTMPRPTL
+ ;
+ D:QFLG'="Q" PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+XTMPRPTI ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="Selection of SNOMED Codes"
+ S HEADER(2)="Errors Report"
+ ;
+ D HEADERDT^BLRGMENU
+ D HEADONE^BLRGMENU(.HDRONE)
+ ;
+ S HEADER(3)=" "
+ S $E(HEADER(4),17)="Date/Time"
+ S $E(HEADER(4),35)="Message"
+ ;
+ S MAXLINES=20,LINES=MAXLINES+10
+ S (CNT,PG)=0
+ S QFLG="NO"
+ S DATETIME="A"
+ Q
+ ;
+XTMPRPTL ; EP - Line of Data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,.HDRONE)  Q:QFLG="Q"
+ ;
+ W DATETIME,?16,$$FMTE^XLFDT(DATETIME,"5MZ")
+ I $L(MSG)<55 W ?34,MSG
+ E  D LINEWRAP^BLRGMENU(34,MSG,46)
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ Q
+ ;
+XTMPORPT ; EP - Report on ^XTMP("BLRSGNSY" data by Order Number
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ I $D(^XTMP("BLRSGNSY"))<1 D  Q
+ . W !!,"No data in ^XTMP(""BLRSGNSY"".  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ D XTMPORPI
+ ;
+ S ORDERNUM="A"
+ F  S ORDERNUM=$O(^XTMP("BLRSGNSY","D",ORDERNUM),-1)  Q:ORDERNUM<1!(QFLG="Q")  D
+ . S DATETIME="A"
+ . F  S DATETIME=$O(^XTMP("BLRSGNSY","D",ORDERNUM,DATETIME),-1)  Q:DATETIME<1!(QFLG="Q")  D
+ .. S MSG="ZZZZ"
+ .. F  S MSG=$O(^XTMP("BLRSGNSY",DATETIME,MSG),-1)  Q:MSG=""!(QFLG="Q")  D XTMPORPL
+ ;
+ D:QFLG'="Q" PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+XTMPORPI ; EP - Initialization
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ ;
+ S HEADER(1)="Selection of SNOMED Codes"
+ S HEADER(2)="Errors Report"
+ ;
+ D HEADERDT^BLRGMENU
+ D HEADONE^BLRGMENU(.HDRONE)
+ ;
+ S HEADER(3)=$$CJ^XLFSTR("By Reverse Order Number",IOM)
+ S HEADER(4)=" "
+ S HEADER(5)="Order #"
+ S $E(HEADER(5),10)="FileMan Dt/Time"
+ S $E(HEADER(5),27)="External Dt/Time"
+ S $E(HEADER(5),45)="Message"
+ ;
+ S MAXLINES=20,LINES=MAXLINES+10
+ S (CNT,PG)=0
+ S QFLG="NO"
+ S DATETIME="A"
+ Q
+ ;
+XTMPORPL ; EP - Line of Data
+ I LINES>MAXLINES D HEADERPG^BLRGMENU(.PG,.QFLG,.HDRONE)  Q:QFLG="Q"
+ ;
+ W ORDERNUM,?9,DATETIME,?26,$$FMTE^XLFDT(DATETIME,"5MZ")
+ I $L(MSG)<45 W ?44,MSG
+ E  D LINEWRAP^BLRGMENU(44,MSG,35)
+ W !
+ S LINES=LINES+1
+ S CNT=CNT+1
+ Q

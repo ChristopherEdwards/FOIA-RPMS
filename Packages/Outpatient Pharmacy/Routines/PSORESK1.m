@@ -1,5 +1,6 @@
-PSORESK1 ;BHAM ISC/SAB - return to stock continued ;06/03/97 10:12
- ;;7.0;OUTPATIENT PHARMACY;**9,201**;DEC 1997
+PSORESK1 ;BHAM ISC/SAB - return to stock continued ;17-Jan-2014 11:18;DU
+ ;;7.0;OUTPATIENT PHARMACY;**9,201,1018**;DEC 1997;Build 21
+ ;IHS/MSC/MGH entry point CHECK ADDED 01/07/2014
 HP W !!,"Wand the barcode number of the Rx or manually key in",!,"the number below the barcode or the Rx number."
  W !,"The barcode number format is - 'NNN-NNNNNNN'",!!,"Press 'ENTER' to process Rx or ""^"" to quit"
  Q
@@ -27,3 +28,23 @@ CMOP1 ; REFILL released by CMOP?  Called by PSORESK
  I  W !,?20," to stock at this facility." Q
  K PSXREL
  Q
+CHECK(RX) ;IHS/MSC/MGH Check and update the expiration date as needed
+ N EXP,OLDEXP,REF,REMFILL
+ S OLDEXP=$$GET1^DIQ(52,RX,26,"I")
+ S REF=$$GET1^DIQ(52,RX,9)
+ I REF=0 S EXP=$$CHANGE(RX)    ;This is an original fill, change expiration date back after RTS
+ E  D
+ .S REMFILL=$$RMNRFL^APSPFUNC(RX)
+ .I REMFILL>1 S EXP=OLDEXP     ;There are still more refills left, keep original expiration date
+ .E  S EXP=$$CHANGE(RX)        ;One or no fills left, change expiration date back after RTS
+ Q EXP
+CHANGE(RX) ;Change the expiration date back based on issue date and other logic
+ N EXPDTE,CS,DRG,EXTEXP,ISSDT
+ S DRG=$$GET1^DIQ(52,RX,6,"I")
+ S CS=$$ISSCH^APSPFNC2(DRG,"2345")
+ S $P(CS,U,2)=$$ISSCH^APSPFNC2(DRG,"2")
+ S EXTEXP=$$GET1^DIQ(50,DRG,9999999.08,"I")
+ S ISSDT=$$GET1^DIQ(52,RX,1,"I")
+ S X2=$S(EXTEXP:EXTEXP,$P(CS,U,2):184,CS:184,1:366)
+ S EXPDTE=$$FMADD^XLFDT(ISSDT,X2)
+ Q EXPDTE

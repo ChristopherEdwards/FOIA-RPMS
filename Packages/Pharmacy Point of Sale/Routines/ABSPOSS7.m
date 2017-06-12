@@ -1,5 +1,5 @@
 ABSPOSS7 ; IHS/FCS/DRS - Summary of POS insurers ; 
- ;;1.0;PHARMACY POINT OF SALE;**16,21**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**16,21**;JUN 21, 2001;Build 15
  ;IHS/SD/RLT - 3/3/06 - Patch 16
  ;             Created new ABSP INSURERS 2 sort template
  ;             with NDC BIN Number sort level added.

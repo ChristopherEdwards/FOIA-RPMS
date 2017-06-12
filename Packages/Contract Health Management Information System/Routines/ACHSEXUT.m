@@ -1,5 +1,5 @@
 ACHSEXUT ; IHS/ITSC/PMF - GENERIC PRE EXPORT (SPLIT-OUT) PROCESSING PROGRAM ;   [ 12/06/2002  10:36 AM ]
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,22**;JUN 11, 2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**5,22**;JUN 11, 2001;Build 37
  ;IHS/SET/GTH ACHS*3.1*5 12/06/2002 - Clarify error message. Remove ref to non-package global.
  ;ACHS*3.1*22 OS test when writing to the directory
  ;

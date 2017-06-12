@@ -1,7 +1,5 @@
 LRVR3 ;DALOI/CJS/JAH - LAB ROUTINE DATA VERIFICATION ;8/10/04
- ;;5.2;LAB SERVICE;**1027,1031**;NOV 1, 1997
- ;
- ;;VA LR Patch(s): 42,121,153,286,291
+ ;;5.2;LAB SERVICE;**42,121,153,1018,286,1027,291,1031,1038**;NOV 1, 1997;Build 6
  ;
  D V1
  I $D(LRLOCKER)#2 L -@(LRLOCKER) K LRLOCKER
@@ -49,7 +47,17 @@ EDIT I $D(^LAH(LRLL,1,LRSQ,0)) D
  I '$P($G(LRLABKY),U) W !,$C(7),"ENTERED BUT NOT APPROVED" QUIT
  N CNT S CNT=1
 AGAIN ;
- R !,"Approve for release by entering your initials: ",LRINI:DTIME
+ ; R !,"Approve for release by entering your initials: ",LRINI:DTIME
+ ;
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1038 -- Mask User input.
+ D  ; DO Statement used to ensure variables ANSWER, STEP, & TEXT are strictly local
+ . NEW ANSWER,STEP,TEXT
+ . W !,"Approve for release by entering your initials: "
+ . S ANSWER=""
+ . F STEP=1:1:4  R TEXT#1  S:TEXT="^" ANSWER="^"  Q:TEXT="^"!(TEXT="")  S ANSWER=ANSWER_TEXT  W $C(8),"*"
+ . S LRINI=ANSWER
+ ; ----- END IHS/MSC/MKK - LR*5.2*1038
+ ;
  I $E(LRINI)="^" W !!?5,$C(7),"Nothing verified!" D READ Q
  I LRINI'=LRUSI,$$UP^XLFSTR(LRINI)=$$UP^XLFSTR(LRUSI) S LRINI=LRUSI
  I $S($E(LRINI)="?":1,LRINI'=LRUSI&(CNT<2):1,1:0) W !,$C(7),"Please enter your correct initials" S:$E(LRINI)="?" CNT=0 S CNT=CNT+1 G AGAIN

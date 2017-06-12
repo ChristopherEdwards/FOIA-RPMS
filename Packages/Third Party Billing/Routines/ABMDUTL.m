@@ -1,5 +1,5 @@
-ABMDUTL ; IHS/ASDST/DMJ - UTILITY FOR 3P BILLING PACKAGE ;     
- ;;2.6;IHS 3P BILLING SYSTEM;**6**;NOV 12, 2009
+ABMDUTL ; IHS/SD/SDR - UTILITY FOR 3P BILLING PACKAGE ;     
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,15**;NOV 12, 2009;Build 251
  ; IHS/SD/SDR - v2.5 p9 - IM12408 - Added code for inactive CPTs to check visit date
  ; IHS/SD/SDR - v2.5 p9 - IM16660 - Coded for 4-digit revenue codes
  ; IHS/SD/SDR - v2.5 p10 - IM20454 - Fix xref on .03 field
@@ -7,6 +7,7 @@ ABMDUTL ; IHS/ASDST/DMJ - UTILITY FOR 3P BILLING PACKAGE ;
  ;
  ; IHS/SD/SDR - v2.6 CSV
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added new call BDT for complete date, includ. seconds
+ ;IHS/SD/SDR - 2.6*15 - HEAT188548 - added code to make length of time 6 characters
  ;
 SDT(X) ;EP - Y is set to the printable date ##/##/#### from X (fileman date)
  N Y
@@ -35,11 +36,18 @@ CDT(X) ;EP - Y= date/time ##/##/####@##:## from X (fm date) for display in claim
  ;start new code abm*2.6*6 5010
 BDT(X) ;EP - Y= date/time ##/##/####@##:##:## from X (fm date) for display in claim editor
  N Y
+ N ABMTEST,A  ;abm*2.6*15 HEAT188548
  I '+X S Y="" Q Y
  S Y=$E(X,4,5)_"/"_$E(X,6,7)_"/"_($E(X,1,3)+1700)
  I '$P(X,".",2) Q Y
  S ABMTIME=$P(X,".",2)
- S ABMTIME=ABMTIME_"00"
+ ;S ABMTIME=ABMTIME_"00"  ;abm*2.6*15 HEAT188548
+ ;start new abm*2.6*15 HEAT188548
+ I $L(ABMTIME<6) D
+ .S ABMTEST=$L(ABMTIME)
+ .F A=1:1:(6-ABMTEST) S ABMTIME=ABMTIME_"0"
+ ;end new HEAT188548
+ I $L(ABMTIME<6) D
  S Y=Y_"@"_$E(ABMTIME,1,2)_":"_$E(ABMTIME,3,4)_":"_$E(ABMTIME,5,6)
  Q Y
  ;end new code 5010

@@ -1,5 +1,5 @@
 AMER3 ; IHS/ANMC/GIS - MORE DISCHARGE QUESTIONS ;  
- ;;3.0;ER VISIT SYSTEM;;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**6**;MAR 03, 2009;Build 30
  ;
 QD10 ; ER PROCEDURES
  N AMERNONE S AMERNONE=$$OPT^AMER0("NONE","ER PROCEDURES")
@@ -88,11 +88,32 @@ QD15 ; OTHER FACILITIES
  Q
  ;
 QD16 ; DISCHARGE INSTRUCTIONS
- S DIC("A")="Follow up instructions: " K DIC("B")
- I $D(^TMP("AMER",$J,2,16)) S %=+^(16),DIC("B")=$P(^AMER(3,%,0),U)
- E  S DIC("B")="RTC PRN"
- S DIC="^AMER(3,",DIC("S")="I $P(^(0),U,2)="_$$CAT^AMER0("FOLLOW UP INSTRUCTIONS"),DIC(0)="AEQ"
- D ^DIC K DIC
+ NEW FIIEN,CNT,FI,DIR,%,INS
+ ;
+ ;Get the default entry
+ I $G(^TMP("AMER",$J,2,16))]"" S %=+^(16) S:%]"" DIR("B")=$$GET1^DIQ(9009083,%_",",.01,"I")
+ ;
+ S CNT=0
+ S DIR(0)="SO^"
+ S FIIEN=$O(^AMER(2,"B","FOLLOW UP INSTRUCTIONS",""))
+ S FI="" F  S FI=$O(^AMER(3,"AC",FIIEN,FI)) Q:FI=""  D
+ . NEW INSNM
+ . S CNT=CNT+1
+ . S INSNM=$$GET1^DIQ(9009083,FI_",",".01","I") Q:INSNM=""
+ . S INS(CNT)=INSNM_U_FI
+ . S DIR(0)=DIR(0)_$S(CNT>1:";",1:"")_CNT_":"_INSNM
+ . I INSNM="RTC PRN, INSTRUCTIONS GIVEN",'$D(DIR("B")) S DIR("B")=INSNM
+ ;
+ S DIR("A")="Follow up instructions"
+ D ^DIR
+ ;
+ ;Process invalid entries
+ I +Y<1,X'="@" S X="^",Y="^" D OUT^AMER Q
+ ;
+ ;Handle proper selection
+ I +Y>0 S Y=$P(INS(+Y),U,2)
+ ;
+ I X="@" S X="",Y=""
  D OUT^AMER
  Q
  ;

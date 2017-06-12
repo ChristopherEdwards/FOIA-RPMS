@@ -1,5 +1,5 @@
-LA7VOBX2 ;VA/DALOI/JMC - LAB OBX Segment message builder (AP subscripts) cont'd ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,64,1027**;NOV 01, 1997
+LA7VOBX2 ;VA/DALOI/JMC - LAB OBX Segment message builder (AP subscripts) cont'd ; 13-Aug-2013 09:09 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**46,1018,64,1027,68,1033**;NOV 01, 1997
  ;
 AP ; Build OBX segments for resultss that are anatomic/surgical pathology subscripts
  ; Called by LA7VOBX
@@ -31,19 +31,18 @@ AP ; Build OBX segments for resultss that are anatomic/surgical pathology subscr
  ;
  ; Value type
  S LA7X=LA7SUBFL,LA7Y=LRSB
- I LRSS="SP" D
- . I LRSB=1.2 S LA7X=63.817,LA7Y=1
- . I LRSB="10,1.5" S LA7X=63.82,LA7Y=.01
- . I LRSB="10,2" S LA7X=63.12,LA7Y=2
- . I LRSB="10,5" S LA7X=63.819,LA7Y=1
+ I LRSB=1.2 S LA7X=$S(LRSS="SP":63.817,LRSS="CY":63.907,LRSS="EM":63.207,1:""),LA7Y=1
+ I LRSB="10,1.5" S LA7X=$S(LRSS="SP":63.82,LRSS="CY":63.982,LRSS="EM":63.282,1:""),LA7Y=.01
+ I LRSB="10,2",LRSS="SP" S LA7X=63.12,LA7Y=2
+ I LRSB="10,5" S LA7X=$S(LRSS="SP":63.819,LRSS="CY":63.919,LRSS="EM":63.219,1:""),LA7Y=1
  S LA7OBX(2)=$$OBX2^LA7VOBX(LA7X,LA7Y)
  ;
  ; Observation identifier
- S LA7OBX(3)=$$OBX3^LA7VOBX($P(LA7CODE,"!",2),$P(LA7CODE,"!",3),"",LA7FS,LA7ECH)
+ S LA7OBX(3)=$$OBX3^LA7VOBX($P(LA7CODE,"!",2),$P(LA7CODE,"!",3),"",LA7FS,LA7ECH,$G(LA7INTYP))
  ;
  ; Observation sub-ID
  ; Create sub-ID for supplementary reports and special studies
- I LRSS="SP" D SUBID
+ D SUBID
  ;
  ; Build result field
  I LRSB=.012 D
@@ -52,28 +51,30 @@ AP ; Build OBX segments for resultss that are anatomic/surgical pathology subscr
  . F  S LA7I=$O(^LR(LRDFN,LRSS,LRIDT,.1,LA7I)) Q:'LA7I  D
  . . S LA7X=$G(^LR(LRDFN,LRSS,LRIDT,.1,LA7I,0))
  . . S LA7Y(LA7I)=$P(LA7X,"^")
+ . . S LA7OBX(2)="CE" ; Override DD to conform to HL7 standard
  . S LA7OBX(5)=$$OBX5R^LA7VOBX(.LA7Y,LA7OBX(2),LA7FS,LA7ECH)
  ;
  I LRSB'=.012 D
- . I LRSS="SP",$P(LRSB,",")=10,LRSB'="10,5" Q
+ . I $P(LRSB,",")=10,LRSB'="10,5" Q
  . I LA7NVAF=1 D DOD Q
- . I LRSS="SP",LRSB=1.2 N LRSB S LA7SUBFL=63.817,LRSB=1
- . I LRSS="SP",LRSB="10,5" N LRSB S LA7SUBFL=63.819,LRSB=1
+ . I LRSB=1.2 N LRSB S LA7SUBFL=$S(LRSS="SP":63.817,LRSS="CY":63.907,LRSS="EM":63.207,1:""),LRSB=1
+ . I LRSB="10,5" N LRSB S LA7SUBFL=$S(LRSS="SP":63.819,LRSS="CY":63.919,LRSS="EM":63.219,1:""),LRSB=1
  . D OBX5M^LA7VOBX(LA7SUBFL,LA7IENS,LRSB,.LA7WP,LA7FS,LA7ECH)
  . D BUILDSEG^LA7VHLU(.LA7WP,.LA7OBX5M,"")
  . M LA7OBX(5)=LA7OBX5M
  ;
- I LRSS="SP",$P(LRSB,",")=10 D
- . N LA7VAL,X
- . I LRSB=10 D
- . . S LA7VAL=$$GET1^DIQ(63.12,LA7IENS,.01)
- . . S X=$$GET1^DIQ(63.12,LA7IENS,".01:2")
- . . I $L(X) S LA7VAL=$S($E(X,1,2)="T-":"",1:"T-")_X_"^"_LA7VAL_"^SNM"
- . . S LA7OBX(5)=$$OBX5^LA7VOBX(LA7VAL,LA7OBX(2),LA7FS,LA7ECH)
- . I LRSB="10,2" D
+ I $P(LRSB,",")=10,LRSB'="10,5" D
+ . N LA7VAL,LA7SUBFL,X
+ . I LRSS="SP",LRSB="10,2" D  Q
  . . S LA7VAL=$$GET1^DIQ(63.12,LA7IENS,2)
  . . S LA7OBX(5)=$$OBX5^LA7VOBX(LA7VAL,LA7OBX(2),LA7FS,LA7ECH)
- . . S LA7OBX(6)=$$OBX6^LA7VOBX("g","",LA7FS,LA7ECH)
+ . . S LA7OBX(6)=$$OBX6^LA7VOBX("g","",LA7FS,LA7ECH,$G(LA7INTYP))
+ . I LRSB=10 S LA7SUBFL=$S(LRSS="SP":63.12,LRSS="CY":63.912,LRSS="EM":63.212,1:"")
+ . I LRSB="10,1.5" S LA7SUBFL=$S(LRSS="SP":63.82,LRSS="CY":63.982,LRSS="EM":63.282,1:"")
+ . S LA7VAL=$$GET1^DIQ(LA7SUBFL,LA7IENS,.01)
+ . S X=$$GET1^DIQ(LA7SUBFL,LA7IENS,".01:2")
+ . I X'="" S LA7VAL=$S($E(X,1,2)="T-":"",1:"T-")_X_"^"_LA7VAL_"^SNM",LA7OBX(2)="CE"
+ . S LA7OBX(5)=$$OBX5^LA7VOBX(LA7VAL,LA7OBX(2),LA7FS,LA7ECH)
  ;
  ; Don't build this segment if no results/value to send
  I $G(LA7OBX(5,0))="",$G(LA7OBX(5))="" Q
@@ -90,7 +91,8 @@ AP ; Build OBX segments for resultss that are anatomic/surgical pathology subscr
  . I $P(LA7SUB(0),"^",15) S LA7OBX(11)="C"
  . E  S LA7OBX(11)="F"
  ;
- I $P(LA7SUB(0),"^",13),$$DIV4^XUSER(.LA7DIV,$P(LA7SUB(0),"^",2)) S LA7DIV=$O(LA7DIV(0))
+ S LA7DIV=$P($G(^LR(LRDFN,LRSS,LRIDT,"RF")),"^")
+ I LA7DIV="",$P(LA7SUB(0),"^",13),$$DIV4^XUSER(.LA7DIV,$P(LA7SUB(0),"^",2)) S LA7DIV=$O(LA7DIV(0))
  ;
  ; Facility that performed the testing
  S LA7OBX(15)=$$OBX15^LA7VOBX(LA7DIV,LA7FS,LA7ECH)
@@ -98,6 +100,13 @@ AP ; Build OBX segments for resultss that are anatomic/surgical pathology subscr
  ; Person that verified the test
  S LA7VP=$P(LA7SUB(0),"^",13)
  I LA7VP S LA7OBX(16)=$$OBX16^LA7VOBX(LA7VP,LA7DIV,LA7FS,LA7ECH)
+ ;
+ ; Performing organization name/address
+ I LA7DIV'="" D
+ . N LA7DT
+ . S LA7OBX(23)=$$OBX23^LA7VOBX(4,LA7DIV,LA7FS,LA7ECH)
+ . S LA7DT=$S($P(LA7SUB(0),"^",11):$P(LA7SUB(0),"^",11),1:$$NOW^XLFDT)
+ . S LA7OBX(24)=$$OBX24^LA7VOBX(4,LA7DIV,LA7DT,LA7FS,LA7ECH)
  ;
  D BUILDSEG^LA7VHLU(.LA7OBX,.LA7ARRAY,LA7FS)
  ;
@@ -119,7 +128,7 @@ SUBID ; Build sub-id for "SP" subscript
  I LRSB=10!(LRSB="10,2") S LA7SUBID="10."_$P(LA7IENS,",")
  I LRSB="10,1.5"!(LRSB="10,5") S LA7SUBID="10."_$P(LA7IENS,",",2)_"."_$P(LA7IENS,",")
  ;
- I $L(LA7SUBID) S LA7OBX(4)=$$OBX4^LA7VOBX(LA7SUBID,LA7FS,LA7ECH)
+ I LA7SUBID'="" S LA7OBX(4)=$$OBX4^LA7VOBX(LA7SUBID,LA7FS,LA7ECH)
  ;
  Q
  ;

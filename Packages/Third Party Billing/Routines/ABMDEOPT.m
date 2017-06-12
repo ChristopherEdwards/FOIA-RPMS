@@ -1,7 +1,8 @@
 ABMDEOPT ; IHS/ASDST/DMJ - EDIT PAGE OPTIONS ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,14**;NOV 12, 2009;Build 238
  ;
  ; IHS/SD/SDR,TPF - v2.5 p8 - added code for pending status (12)
+ ;IHS/SD/SDR - 2.6*14 - ICD10 Added refresh and Ind (Indicator) options for page 5A
  ;
 SEL ;EP for Page Commands, Desired Action Controller
  I $D(ABMP("DDL")),$D(ABMP("QUIT")) S Y="Q" G XIT
@@ -46,7 +47,8 @@ B ;;     Back - Backup to the previous Edit Screen;;Back
 Q ;;     Quit - Stop Editing the Data of this Claim;;Quit
 M ;;     Mode - Change mode of export for this page;;Mode
 F ;;     Pend - Pend the claim and enter Pend Status;;Pend
-R ;;     Review - Review Previous Payments/Adjustments;;Review
+R ;;     Rfsh - For page 5A when ICD9 and ICD10 present;;Rfsh
+I ;;     Ind - Acts as override for ICD9 or ICD10 coding on claim;;Ind
  ;
 FLDS ;EP for Field Edit Controller
  S ABMO("Y")=+$E(Y,2,3) I ABMO("Y")>0&(ABMO("Y")<(ABMP("FLDS")+1)) S Y=ABMO("Y") G EJ

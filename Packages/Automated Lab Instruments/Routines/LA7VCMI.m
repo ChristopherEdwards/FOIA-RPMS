@@ -1,0 +1,396 @@
+LA7VCMI ;IHS/CMI/MAW - Micro Filing Pre LEDI IV ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1033**;NOV 01, 1997
+ ;
+ ;
+ ;borrowed and modified code from david hoak
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**41**;Sep 27, 1994
+ ;
+ ;-->P.R.O.T.O.T.Y.P.E.--P.R.O.T.O.T.Y.P.E--P.R.O.T.O.T.Y.P.E
+ ;
+ ;-------------------------------> MICROSCAN->OBX|1|ST||1|150||||||F
+ ;                      /\
+ ;---------------------------ORGANISM--------------------|
+ ;
+ ;---^LAHM(62.49,61,150,11,0)=OBR|2||^ANTIBIOTIC MIC^VANLT||||19861210083
+ ;--- |||||||||^^BLOOD|||||||||||87993.0000^1
+ ;
+EPI      ;---^LAHM(62.49,61,150,13,0) = OBX|1|ST|81812.0000^Neomycin^VANLT^18^NEO
+ ;---MYCN^VA62.06|||||R
+ ;
+ ;
+ ;--> CONTINUE DOWN LAHM GLOBAL
+ ;
+MI ;
+ ; Don't do anything, for now.
+ ;Q
+ ;
+ ; I $G(^LAHM(62.49,LA76249,0))["IM-VITEK" D MI^LA7ZV3 QUIT
+ K LRISOX
+ ;QUIT
+OBX      ;
+ ;I $G(LA7AN)'>0 D ^AGNQBLOD ;BLOOD CULTURE ACCN AREA
+ ;I $L(LA7AN)=8 S LA7AN=+$E(LA7AN,2,8)/1 D BC^AGNQBLOD
+ ;
+ I $G(LRMIFLAG)=LA7OBR S LA7QUIT=1 D END QUIT
+ ;--> Don't pay for the same realestate twice. gsp
+ K ^TMP("LRISO"),^TMP("LRORG")
+ ;
+ ;ihs/cmi/maw 03/08/2013 added for MU and LEDI III
+ S LRMIFLAG=LA7OBR
+ S LRMIEN=LA762495
+ S LA7OBX=$G(LA7SEG(0))
+ Q:$G(LA7OBX)=""
+ D BUGS
+ D CH1
+ Q
+ ;
+BACK     ;
+ F  S LA762495=$O(^LAHM(62.49,LA76249,150,LA762495)) Q:'LA762495  S LA7OBX=^LAHM(62.49,LA76249,150,LA762495,0) D CHOBR Q:$E(LA7OBX,1,3)'="OBX"  D
+ .  ;
+ .  S LRMIFLAG=LA7OBR
+ .  ;-->MICROSCAN data inovations  OBX|1|ST|DRUG|ORGANISM|MIC|UNITS|||||F
+ .  S LRMIEN=LA762495
+ .  D BUGS ;I '$G(LRORGNM) D CREATE^LA7LOG(52) ;-->NO ORG
+ .  ;D DRUGS
+ ;
+CH1      I $E($G(LA7OBX),1,3)="OBR" G BACK
+ K LA7CNT D END
+ QUIT
+CHOBR    ;
+ ;ZW LRISOX
+ Q:$E(LA7OBX,1,3)'="OBR"
+ I LA7OBX["IM-MISCN" S LRISOX=$P(LA7OBX,U,2)
+ QUIT
+ ;
+ ;
+BUGS     ;
+ ;
+ ; ZW LA7OBX
+ ;  VITEK
+ ; I $G(LRORGNUM) G DRUG
+ ; ***
+ ; I +$P(LA7OBX,LA7FS,5) G DRUG
+ ; LAHM(62.49,1525185,150,5,0) = OBX|1|ST|ISO1||1||||||F
+ I LA7OBX["ISO" S LRISO=+$P(LA7OBX,"ISO",2) D  QUIT
+ .  S LRORG=+$P(LA7OBX,LA7FS,6)
+ .  I '$G(LRISOX) S LRISOX=1
+ .  E  S LRISOX=LRISOX+1
+ .  S ^TMP("LRISO",$J,LRISOX,LRORG,LRISO)=""
+ ; Look in auto inst 62.4 then Get the ien for 61.2
+ ;S LRORG=$P($P($G(LA7OBX),LA7FS,5),LA7CS)  ;ihs/cmi/maw 03/08/2013 for MU orig line
+ ;ihs/cmi/maw MU2 below code for filing MICRO
+ N LA7MRES,LA7MUNIT,LA7MABN,LA7MRS,LA7MRSDT,LA7MPO
+ S (LA7MRES,LRORG)=$P($P($G(LA7OBX),LA7FS,6),LA7CS)  ;ihs/cmi/maw 03/08/2013 for MU
+ S LA7MUNIT=$P($G(LA7OBX),LA7FS,7)
+ I LA7MUNIT]"" S LA7MUNIT=$TR($$TRIM^XLFSTR(LA7MUNIT,"LR"," "),"^","~")
+ S LA7MABN=$P($G(LA7OBX),LA7FS,9)
+ S LA7MRS=$P($G(LA7OBX),LA7FS,12)
+ S LA7MRSDT=$$HL7TFM^XLFDT($$P^LA7VHLU(.LA7SEG,15,LA7FS),"L")
+ S LA7MPO=$P($P($G(LA7OBX),LA7FS,24),LA7CS,10)
+ S LA7MPO=$$RPTFAC(LA7MPO,LA7SFAC,LA7CS)
+ S LRISO=$P(LA7OBX,LA7FS,5)       ; ihs/cmi/maw 03/08/2013 for MU
+ I $P(LA7OBX,LA7FS,3)="SN" D  Q   ; ihs/cmi/maw MU2 these are drugs so dont worry about the org here
+ . ;S LA7MRES=$P($P($G(LA7OBX),LA7FS,6),LA7CS,2)
+ . S LA7MRES=$TR($P($G(LA7OBX),LA7FS,6),LA7CS,"")
+ . S LRISO=LA7MPN  ;this is the parent node in OBR
+ . D DRUGS
+ ;ihs/cmi/maw MU2 end of mods
+ I +LRORG>0 S LRORGNUM=$O(^LAB(62.4,LA7624,7,1,1,"C",LRORG,0)) D
+ .  Q:'LRORGNUM  ;62.4,3,7,1,1=ORGS 62.4,3,7,1,2=DRUGS
+ .  ;
+ .  S LRORGNUM=+$G(^LAB(62.4,LA7624,7,1,1,LRORGNUM,0)) D
+ ..  I LRORGNUM S LRORGNM=$P($G(^LAB(61.2,LRORGNUM,0)),U)
+ N LA7VRS
+ S LA7VRS=$P(LA7OBX,LA7FS,12)  ;result status
+ D FILE Q     ; ihs/cmi/maw 03/08/2013 for MU
+ I +$G(LRORGNUM)>0 G MSCAN QUIT
+ ;
+BU1      Q:$G(LRORG)=""  S LRORGNUM=$O(^LAB(61.39,1,1,"B",LRORG,0)) D
+ .  Q:'LRORGNUM
+ .  I LRORGNUM S LRORGNUM=$G(^LAB(61.39,1,1,LRORGNUM,1)) D
+ ..  I LRORGNUM S LRORGNM=$P($G(^LAB(61.2,LRORGNUM,0)),U)
+ ;I $D(^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)) D
+ ; .  ;***
+ ; .  ;S LRISO=LRISO+1 S ^TMP("LRISO",$J,LRISO)=""
+ ;***
+ ;I LRISO>1 Q:LRORGNUM=+$G(^LAH(LA7LWL,1,LA7ISQN,3,LRISO-1,0))
+MSCAN    ;
+ ;  The microscan sends a number for the organism.
+ ;  1 of two possible conditions may exist for the Microscan
+ ;  1 the OBX is an ISOn or a DRUG
+ ;I '$G(LRISO) S LRISO=$O(^TMP("LRISO",$J,0))
+ ;I '$G(LRISO) S LRISO=1
+ ;I LRORG S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=$G(LRORG)_U_U D
+ ; .  S ^TMP("LRISO",$J,LRISO,LRORG)=""
+ ; .  S ^TMP("LRORG",$J,LRORG,LRISO)=""
+ ;
+ ;Q:+$G(LRORGNUM)>0  ; --This segment has an org in 4th piece
+ ;
+ Q:LA7OBX["ISO"
+DRUG     ; -->VITEK
+ ;
+ Q:'+$P(LA7OBX,LA7FS,5)
+ ;
+ ;
+SETISO   ;I '$O(^TMP("LRISO",$J,LRISO)) S LRIS0=0 D
+ ; . F  S LRISO=$O(^TMP("LRISO",$J,LRISO)) Q:+LRISO
+ ;
+ S LRORG=$P(LA7OBX,LA7FS,5)
+ ;S LRISO=$O(^TMP("LRORG",$J,LRORG,0))
+ ;
+ ;
+ ;
+ I $P(LA7OBX,LA7FS,5) I LRORG'=$P($P($G(LA7OBX),LA7FS,5),LA7CS) S LRORG=$P($P($G(LA7OBX),LA7FS,5),LA7CS) I $D(LRORG) G BU1
+ ;
+ ;I LRISO>1 I LRORGNUM=+$G(^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)) D  QUIT
+ ; . K ^LAH(LA7LWL,1,LA7ISQN,3,LRISO)
+ ;
+ ;  ^LAB(61.39,1,2,"B","cec",100)
+ ;    -->OBX|1|ST|Gm|126|4|ug/ml||||F
+ S LRD1=$P($P($G(LA7OBX),LA7FS,4),LA7CS)
+ S LRD=$O(^LAB(61.39,1,2,"B",LRD1,0)) ;-->LIC FILE
+ ;I $G(LRD) S LRDNUM=$G(^LAB(61.39,1,2,LRD,1)) D
+ ;.  S LRMIC=$P($G(LA7OBX),LA7FS,6)
+ ;.  S LRINTRP=$P(LA7OBX,LA7FS,9)
+ ;.  S LRDNODE=$P(^LAB(62.06,LRDNUM,0),U,2) ; Pull out drug node (n.xxxx)
+ ;.  D INTERP
+ ;
+ I '$G(LRD) D DRUGS
+ QUIT  ;ihs/cmi/maw 03/08/2013 for MU removed quit
+ ;
+ ;---^LAHM(62.49,61,150,9,0) = OBX|1|CE|87993.0000^BACTERIOLOGY CULTURE^
+ ;---VANLT|1|^ESCHERICHIA COLI
+ ;
+ ;
+ ;  OBX|1|ST|126^^^||||||||F
+ ;  OBX-1 = 1
+ ;  OBX-2 = ST
+ ;  OBX-3 = 126^^^
+ ;  OBX-3-1 = 126
+ ;  OBX-11 = F
+ ;  OBR|2|3207||||||||||||||||MSCAN||||||||^1
+ ;  OBR-1 = 2
+ ;  OBR-2 = 3207
+ ;  OBR-18 = MSCAN
+ ;  OBR-26 = ^1
+ ;  OBR-26-2 = 1
+ ;  OBX|1|ST|Gm|126|4|ug/ml||||F
+ ;
+ ;
+ I $E(LA7OBX,1,3)="OBX",$P(LA7OBX,LA7FS,3)="CWE" D  QUIT  ;--ledi
+ .  S LRMIOBX=LA7OBX S LRORG=$P($P(LA7OBX,LA7FS,6),LA7CS) ;-->NLT^Name
+ .  ;
+ .  I $G(LRORG)'="" S LRORGNM=LRORG D ORG
+ ;
+ ;--->accomadate multiple life forms----\/
+ ;
+ ;
+ ;I $E(LA7OBX,1,3)="OBX",+$P(LA7OBX,LA7FS,6) S LRORGX=+$P(LA7OBX,LA7FS,6) D
+ ;
+ ;-->MICROSCAN data innovations  OBX|1|ST|ORGANISM|||||F
+ ;
+ ; check for culture ID only
+ I $E(LA7OBX,1,3)="OBX",+$P(LA7OBX,LA7FS,4) D  QUIT
+ . S LRORGX=+$P(LA7OBX,LA7FS,4)
+ . I $G(LRORGX),$D(^LAB(61,2,LRORGX,0)) D LRORGX
+ ;
+ ;
+ ;
+ ;
+ ; These bugs have susceptabilities
+ I $E(LA7OBX,1,3)="OBX",+$P(LA7OBX,LA7FS,5) D
+ . S LRORGX=+$P(LA7OBX,LA7FS,5)
+ . I $G(LRORGX),$D(^LAB(61,2,LRORGX,0)) D LRORGX
+ ;
+ ;
+ ;
+ QUIT
+ ;
+DRUGS    ;
+ ;---> all forms of HL7 can use this format
+ ;
+ ;  OBX|1|ST|Gm|126|4|ug/ml||||F
+ I $E(LA7OBX,1,3)="OBX",$P(LA7OBX,LA7FS,3)="SN" D
+ .  S LRAB=$P(LA7OBX,LA7FS,4) ;-->NLT^Name
+ .  Q:$G(LRAB)["ISO"
+ .  S LRMIC=$P(LA7OBX,LA7FS,6),LRINTRP=$P(LA7OBX,LA7FS,9)
+ .  I LRMIC="" D CREATE^LA7LOG(51)
+ .  ;I LRAB'="" D AB  ihs/cmi/maw MU2 orig code
+ .  I LRAB'="" D MS  ;ihs/cmi/maw MU2 lets try to get the drug
+ QUIT
+END      ;
+ K LRORG,LRORGX,LRORGNM,LRORGNUM,LRDNODE,LA7OBX,LRMIC,LRAB,LRINTRP,J,MIC,ISOL
+ K LRISO,LRMIFLAG,K1,ORG,LRSP
+ S LA7QUIT=1
+ QUIT
+ ;
+ORG      ;
+ ;***S LRISO=$P(LA7OBX,LA7FS,2)
+ ; ^LAB(61.2,1,64) = 923 ---> NLT for E.COLI
+ ; ^LAB(61.2,"NLT","87016.0000",1)
+ ;
+ ;---^LAH(65,1,12,0) = 1^1^12^2970000^6^^VITEK^6 --> set in LA7UIIN1
+ ;---^LAH(65,1,12,2,2) = CARD^gns-f6 ---> NA for Microscan
+ ;
+ ;---^LAH(65,1,12,3,4,0) = 1^^gns-f6 ---> organism
+ ;---^LAH(65,1,12,3,4,1,0) = ^F  --> status
+ ;
+NLT      S LRNLT=+LRORGNM I LRNLT S LRORGNUM=$O(^LAB(61.2,"NLT",LRNLT,0)) D
+ .  I LRORGNUM S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=LRORGNUM_U_U
+ Q:$G(LRORGNUM)
+ ;
+LIC      ;
+ S LRORGN=LRORGNM
+ I LRORGN S LRORGN=$O(^LAB(61.39,1,1,"B",LRORGN,0))
+ I LRORGN S LRORGNUM=^LAB(61.39,1,1,LRORGN,1) ; IEN ETIOLOGY FIELD
+ I $G(LRORGNUM),$D(^LAB(61.2,LRORGNUM,0)) D  QUIT
+ .  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=LRORGNUM_U_U
+ ;
+FILE     ;
+ S LRORGN=$G(LRORGNM)
+ I $D(LRORGN) S LRORGNUM=$O(^LAB(61.2,"B",LRORGN,0))
+LRORGX   I $G(LRORGNUM),$D(^LAB(61.2,LRORGNUM,0)) D  QUIT
+ .  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=LRORGNUM_U_U_U
+ .  S ^LAH(LA7LWL,1,LA7ISQN,"IHS")=$G(LA7VRS)  ;result status
+ .  ; D MKKDEBUG(LA7OBX,LA7MABN,"LRORGX")
+ .  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,"IHSOBX")=LA7MRES_U_LA7MUNIT_U_LA7MABN_U_LA7MRS_U_LA7MRSDT_U_LA7MPO_U_$G(LA7MPN)_U_$G(LA7PMD)
+ ;
+ ;
+ QUIT
+AB       ;
+ ;---^LAHM(62.49,61,150,13,0) = OBX|1|ST|81812.0000^Neomycin^VANLT^18^NEO
+ ;---MYCN^VA62.06||MIC|||R
+ ;
+NLTA     ;
+ S LRABNLT=$P(LRAB,U) Q:LRABNLT=""  ;  ---> Need nlt error code here?
+ ;---^LAB(62.06,"NLT","81098.0000",1)
+ I +LRABNLT S LRDRUG=$O(^LAB(62.06,"NLT",LRABNLT,0))
+ I $G(LRDRUG) S LRDNODE=$P(^LAB(62.06,LRDRUG,0),U,2) D  QUIT
+ . I LRDNODE D INTERP
+ ;
+ ;
+LIC1     ;
+ ;--> checks the LIC file for translation like for the Vitek
+ ;***** CHANGE----\/ To a variable
+ I '$P(LRAB,LA7CS,5) D MS QUIT
+ I '$D(^LAB(61.39,1,2,"B",$P(LRAB,LA7CS,5))) D MS QUIT
+ S LRAB=$P(LRAB,LA7CS,5)
+ S LRAB=$O(^LAB(61.39,1,2,"B",LRAB,""))
+ I +LRAB S LRAB=^LAB(61.39,1,2,LRAB,1) ; IEN ANTIMICROBIAL SUSCEP
+ S LRDNODE=$P(^LAB(62.06,LRAB,0),U,2) ; Pull out drug node (n.xxxx)
+ I LRDNODE D INTERP QUIT
+ ;
+ ;
+MS       ;
+ ;
+ I '$O(^LAB(62.4,LA7624,7,1,2,0)) D LAB6204 QUIT
+ S LRAB=$P(LRAB,U)
+ ; LA7624 = ien of instrument in file #62.4
+ ;---> ^LAB(62.4,LA7624,7,1,2,40,0) = 67^2.00693023^^AmS^9
+ ;--->  OBX|1|ST|A/S^^^||<8/4|ug/ml|||||F
+ S LRTIC=0
+ ;---------------->TEST TEST\/
+ S LRABIEN=$O(^LAB(62.4,LA7624,7,1,2,"C",LRAB,0))
+ I LRABIEN S LRNODE=LRABIEN ;D INTERP
+ Q:'LRABIEN  ;->FIX DRUG TX
+ S LRABIEN=+$G(^LAB(62.4,LA7624,7,1,2,LRABIEN,0))
+ S LRDNODE=$P($G(^LAB(62.06,LRABIEN,0)),U,2)
+ I LRDNODE D GETM
+ ;
+ ;
+ QUIT
+ F  S LRTIC=$O(^LAB(62.4,LA7624,7,1,2,LRTIC)) Q:+LRTIC'>0  S LRN=^(LRTIC,0) D
+ .  I $P(LRN,U,4)=LRAB S LRDNODE=$P(LRN,U,2) D
+ ..  I LRDNODE D GETM
+ ;
+ QUIT
+LAB6204  ;
+ ;
+ S LRN=$P(LRAB,LA7CS,5)
+ S LRNONDE=$P(^LAB(62.04,$O(^LAB(62.04,"B",LRN,0)),0),U,2)
+ ;---> LA7LOG LOGS THE ERRORS
+ ;
+ ;
+INTERP   ;------->all drugs go through here
+ ;------------------------------------------------------------------
+ ;---^LAH(65,1,12,3,4,2.0012) = 2^S^A  --->DRUG  MIC^INTERP^DISPLAY
+ ;
+ ;---> Need to apply the 69.9 challenge here...not for prototype.
+ ;  --> ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=$G(LRORGNUM)_U_U
+ ;
+ ;I '$G(LRORGNUM) S LRORGNUM=$O(^LAB(61.2,"B",LRORGNM,0))
+ ;S LRISO=0
+ ;F  S LRISO=$O(^TMP("LRISO",$J,LRISO)) Q:+LRISO'>0  D GETM
+ D GETM
+ Q
+GETM     ;
+ ;I ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=$G(^LAH(LA7LWL,1,LA7ISQN,3,LRISO-1,0))
+ ;  stop if no inter in la7obx
+ ;  OBX|1|ST|Ak|620|<=16|ug/ml||S||F
+ I $P(LA7OBX,LA7FS,6)'="" Q:$P(LA7OBX,LA7FS,9)=""
+ S LRORG=$P(LA7OBX,LA7FS,5)
+ S LA7ICNT=LA7ICNT+1
+ ;S LRISO=$O(^TMP("LRISO",$J,LRISOX,LRORG,0))
+ ;I '$G(LRISO) S LRISO=$O(^TMP("LRISO",$J,0))
+ ;I '$G(LRISO) S LRISO=1
+ D MKKDEBUG(LA7OBX,LA7MABN,"GETM")
+ S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,"ISO",LA7ICNT)=$G(LRABIEN)_U_$G(LRDNODE)_U
+ S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,"ISO","IHSOBX",LA7ICNT)=LA7MRES_U_LA7MUNIT_U_LA7MABN_U_LA7MRS_U_LA7MRSDT_U_LA7MPO_U_$G(LA7MPN)_U_$G(LA7PMD)
+ QUIT
+ ; .  S ^TMP("LRISO",$J,LRISO,LRORG)=""
+ ; .  S ^TMP("LRORG",$J,LRORG,LRISO)=""
+ K MIC
+ S LRSP=LA761
+ ;I '$G(LRORGNUM) D
+ ; .  I $G(LRORGNUM)'=$P(LA7OBX,LA7FS,5) S LRORGNUM=$P(LA7OBX,LA7FS,5) D
+ ; ..  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=LRORGNUM_U_U
+ ;I '$D(LRORGNUM) D CREATE^LA7LOG(52) ;-->NO ORG
+ ;I '$D(LRDNODE) D CREATE^LA7LOG(53) ;-->NO DRUG
+ S K1=$G(LRMIC)
+ Q:'$G(LRISO)
+ S ISOL=+$G(^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0))
+ ;
+ ;
+ Q:ISOL'>0
+ Q:'$G(LRDNODE)
+ ;S ORG(ISOL)=$P($G(^LAB(61.2,ISOL,0)),U)
+ S ORG(ISOL)=ISOL
+ S MIC(ISOL,LRDNODE)=$G(LRMIC)
+ S J=0
+ ;QUIT
+ F  S J=$O(MIC(ISOL,J)) Q:J<1  D
+ .  S K=MIC(ISOL,J)_"^"
+ .  D INTRP^LAMIVTE6 D  QUIT  ;--> Franko's interp program.
+ ..  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,J)=LRMIC_"^"_S
+ ..  S LA7INTRP=$P(LA7OBX,"|",9),LA7MIC=$P(LA7OBX,"|",6)
+ ..  S ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,J)=LA7MIC_U_LA7INTRP
+ ;
+ ;I LRISO>1 I ^LAH(LA7LWL,1,LA7ISQN,3,LRISO,0)=$G(^LAH(LA7LWL,1,LA7ISQN,3,LRISO-1,0)) K ^LAH(LA7LWL,1,LA7ISQN,3,LRISO)
+ QUIT
+ ;
+RPTFAC(LA7PRDID,LA7SFAC,LA7CS) ; Process/Store Producer's ID
+ ; Store where test was performed.
+ ; Call with LA7PRDID = Producer's ID field
+ ;            LA7SFAC = sending facility
+ ;              LA7CS = component encoding character
+ ;
+ N LA74,LA7X,LA7Y
+ ;
+ ;S LA7X=$P(LA7PRDID,LA7CS,2),LA74=""
+ S LA7X=LA7PRDID,LA74=""
+ ;
+ I $P(LA7PRDID,LA7CS,3)="99VA4" S LA74=$$FIND1^DIC(4,"","OMX",$P(LA7PRDID,LA7CS))
+ I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7PRDID,LA7CS),1,1)
+ ;I 'LA74 S LA74=$$FINDSITE^LA7VHLU2($P(LA7SFAC,LA7CS),1,1)
+ ;
+ ; Store producer's id in LAH global with results.
+ ;I LA74 S $P(^LAH(LA7LWL,1,LA7ISQN,LA76304),"^",9)=LA74
+ ;
+ Q $G(LA74)
+ ;
+MKKDEBUG(OBXSEG,ABNFLG,LABEL)  ; EP - DEBUG
+ Q    ; Don't use except during development
+ ;
+ S ^XTMP("LA7VCMI",$$HTE^XLFDT($H,"2MZ"),$J,LABEL,"ABNFLG")=ABNFLG
+ S ^XTMP("LA7VCMI",$$HTE^XLFDT($H,"2MZ"),$J,LABEL,"OBXSEG")=OBXSEG
+ Q

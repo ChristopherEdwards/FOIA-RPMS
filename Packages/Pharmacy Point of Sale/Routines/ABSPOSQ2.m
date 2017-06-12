@@ -1,5 +1,5 @@
 ABSPOSQ2 ; IHS/FCS/DRS - form transmission packets ;  [ 11/07/2002  6:57 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,31,42**;JUN 01, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,31,42**;JUN 01, 2001;Build 15
  ;
  ;  Status comes in as 30. Or as 31.
  ;  Status set to 40 which PACKET() is in progress.

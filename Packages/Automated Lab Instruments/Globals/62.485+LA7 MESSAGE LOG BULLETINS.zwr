@@ -1,6 +1,6 @@
-LA7 MESSAGE LOG BULLETINS
-ZWR
-^LAHM(62.485,0)="LA7 MESSAGE LOG BULLETINS^62.485^120^68"
+OSEHRA ZGO Export: LA7 MESSAGE LOG BULLETINS
+12-JUN-2017 09:47:54 ZWR
+^LAHM(62.485,0)="LA7 MESSAGE LOG BULLETINS^62.485^121^69"
 ^LAHM(62.485,1,0)="1^Rejected Message Number |1| in file 772 because there was no configuration named |2| in the Message Parameter file (62.48).^1"
 ^LAHM(62.485,1,1)="S LA7TXT(1)=$G(HLDA),LA7TXT(2)=$G(LA7CFIG)"
 ^LAHM(62.485,2,0)="2^HL7 package called ORU with message number |1| in file (772).^1"
@@ -137,6 +137,8 @@ ZWR
 ^LAHM(62.485,119,1)="S LA7TXT(1)=$G(LA76249),LA7TXT(2)=$P($G(LRX),""^"")"
 ^LAHM(62.485,120,0)="120^Msg #|1|, Order NLT code |2| not linked to a test in LOAD/WORK LIST |3| profile |4| for HL7 specimen type |5|.^1"
 ^LAHM(62.485,120,1)="S LA7TXT(1)=$G(LA76249),LA7TXT(2)=$G(LRY),LA7TXT(3)=$P($G(LRLL(0)),""^""),LA7TXT(4)=$P($G(LRPROF(0)),""^""),LA7TXT(5)=$S($G(LROSPEC)'="""":LROSPEC,1:""UNKNOWN"")"
+^LAHM(62.485,121,0)="121^FileMan DBS call is reporting error |1| with text '|2|' for data name |3|.^1"
+^LAHM(62.485,121,1)="S LA7TXT(1)=LA7DDERR(""DIERR"",1),LA7TXT(2)=LA7DDERR(""DIERR"",1,""TEXT"",1),LA7TXT(3)=LRSB"
 ^LAHM(62.485,"B",1,1)=""
 ^LAHM(62.485,"B",2,2)=""
 ^LAHM(62.485,"B",3,3)=""
@@ -205,3 +207,4 @@ ZWR
 ^LAHM(62.485,"B",118,118)=""
 ^LAHM(62.485,"B",119,119)=""
 ^LAHM(62.485,"B",120,120)=""
+^LAHM(62.485,"B",121,121)=""

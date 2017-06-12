@@ -1,5 +1,5 @@
 BQIIPPNL ;GDIT/HS/ALA-Panel Aggregate ; 09 Sep 2011  12:17 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
  ;
  ;
 EN(DATA,OWNR,PLIEN,PLIST) ;EP - BQI GET IPC PROV AGG
@@ -60,7 +60,8 @@ EN(DATA,OWNR,PLIEN,PLIST) ;EP - BQI GET IPC PROV AGG
  . S NUM=$G(@TDATA@(ORD,"NUM"))
  . S DEN=$G(@TDATA@(ORD,"DEN"))
  . S DEC=$G(@TDATA@(ORD,"DEC"))
- . I $P(IDATA,U,5)'="B" S DEN=DEN+TNDA
+ . S NDA=$G(@TDATA@(ORD,"NDA"))
+ . I $P(IDATA,U,5)'="B" S DEN=DEN+NDA
  . I +DEN=0 S MET="0%"
  . I +DEN'=0,+NUM=0 S MET="0%"
  . I +NUM'=0 S MET=$J((NUM/DEN)*100,3,0),MET=$$TRIM^BQIUL1(MET," ")_"%"
@@ -120,7 +121,7 @@ RPT(DFN) ;  Get the CRS Clinical Performance information
  .. I TYP'="G" Q
  .. S BQIND=$O(^BQIPAT(DFN,30,"B",CODE,"")) I BQIND="" D  Q
  ... S @TDATA@("NDA",DFN)=1
- ... ;S DEN=1,NUM=0 D STOR(ORD)
+ ... S NDA=1,DEN=0,NUM=0 D STOR(ORD)
  .. S BQMEAS=$P(^BQIPAT(DFN,30,BQIND,0),U,1),VALUE=$P(^(0),U,2),NUM=$P(^(0),U,3),DEN=$P(^(0),U,4)
  .. ;
  .. D STOR(ORD)
@@ -129,6 +130,7 @@ RPT(DFN) ;  Get the CRS Clinical Performance information
 STOR(ORD) ;EP
  S @TDATA@(ORD,"NUM")=$G(@TDATA@(ORD,"NUM"))+NUM
  S @TDATA@(ORD,"DEN")=$G(@TDATA@(ORD,"DEN"))+DEN
+ S @TDATA@(ORD,"NDA")=$G(@TDATA@(ORD,"NDA"))+NDA
  Q
  ;
 CK ;Check and store

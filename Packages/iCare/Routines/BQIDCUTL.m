@@ -1,5 +1,5 @@
 BQIDCUTL ;VNGT/HS/ALA-Definition Utility ; 12 Sep 2008  1:43 PM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;**2**;Apr 01, 2015;Build 10
  ;
 LAB(BQDFN,TEST) ;EP - Check for most recent result of a specified Lab test
  ;
@@ -9,16 +9,17 @@ LAB(BQDFN,TEST) ;EP - Check for most recent result of a specified Lab test
  ;
  NEW LIEN,QFL,RES,TIEN,VALUE,VIEN,VSDTM,UID
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TEMP=$NA(^TMP("BQIVLAB",UID)) K @TEMP
+ S TEMP=$NA(^TMP(UID,"BQIVLAB")) K @TEMP
  S LIEN="",QFL=0,RES=0
  F  S LIEN=$O(^AUPNVLAB("AC",BQDFN,LIEN),-1) Q:LIEN=""  D  Q:QFL
  . S TIEN=$P($G(^AUPNVLAB(LIEN,0)),U,1) I TIEN="" Q
  . I TIEN'=TEST Q
  . S VALUE=$P(^AUPNVLAB(LIEN,0),U,4) I VALUE="" Q
  . S VIEN=$P(^AUPNVLAB(LIEN,0),U,3) I VIEN="" Q
- . S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
  . ; quit if deleted flag
- . I $P(^AUPNVSIT(VIEN,0),U,11)=1 Q
+ . I $P($G(^AUPNVSIT(VIEN,0)),"^",11)=1 Q
+ . ;S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ . S VSDTM=$P($G(^AUPNVSIT(VIEN,0)),"^",1)\1 I VSDTM=0 Q
  . S @TEMP@(VSDTM,VIEN,LIEN)=VALUE
  ;
  S VSDTM=$O(@TEMP@(""),-1)
@@ -38,7 +39,7 @@ MEAS(BQDFN,MEAS) ;EP - Find most recent value for a measurement
  ;
  NEW LIEN,QFL,RES,TIEN,VALUE,VIEN,VSDTM,TEMP,UID
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TEMP=$NA(^TMP("BQIVMSR",UID)) K @TEMP
+ S TEMP=$NA(^TMP(UID,"BQIVMSR")) K @TEMP
  ;
  I MEAS'?.N S MEAS=$$FIND1^DIC(9999999.07,,"MX",MEAS)
  I MEAS=0 Q 0
@@ -50,9 +51,10 @@ MEAS(BQDFN,MEAS) ;EP - Find most recent value for a measurement
  . I $$VFIELD^DILFD(9000010.01,2) Q:$$GET1^DIQ(9000010.01,LIEN_",",2,"I")=1
  . S VALUE=$P(^AUPNVMSR(LIEN,0),U,4) I VALUE="" Q
  . S VIEN=$P(^AUPNVMSR(LIEN,0),U,3) I VIEN="" Q
- . S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
  . ; quit if deleted flag
- . I $P(^AUPNVSIT(VIEN,0),U,11)=1 Q
+ . I $P($G(^AUPNVSIT(VIEN,0)),"^",11)=1 Q
+ . ;S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ . S VSDTM=$P($G(^AUPNVSIT(VIEN,0)),"^",1)\1 I VSDTM=0 Q
  . S @TEMP@(VSDTM,VIEN,LIEN)=VALUE
  ;
  S VSDTM=$O(@TEMP@(""),-1)
@@ -72,7 +74,7 @@ HMEAS(BQDFN,MEAS) ;EP - Find highest value for a measurement
  ;
  NEW LIEN,QFL,RES,TIEN,VALUE,VIEN,VSDTM,TEMP,UID
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TEMP=$NA(^TMP("BQIVMSR",UID)) K @TEMP
+ S TEMP=$NA(^TMP(UID,"BQIVMSR")) K @TEMP
  I MEAS'?.N S MEAS=$$FIND1^DIC(9999999.07,,"MX",MEAS)
  I MEAS=0 Q 0
  S LIEN="",QFL=0,RES=0
@@ -83,9 +85,10 @@ HMEAS(BQDFN,MEAS) ;EP - Find highest value for a measurement
  . I $$VFIELD^DILFD(9000010.01,2) Q:$$GET1^DIQ(9000010.01,LIEN_",",2,"I")=1
  . S VALUE=$P(^AUPNVMSR(LIEN,0),U,4) I VALUE="" Q
  . S VIEN=$P(^AUPNVMSR(LIEN,0),U,3) I VIEN="" Q
- . S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
  . ; quit if deleted flag
- . I $P(^AUPNVSIT(VIEN,0),U,11)=1 Q
+ . I $P($G(^AUPNVSIT(VIEN,0)),"^",11)=1 Q
+ . ;S VSDTM=$$GET1^DIQ(9000010,VIEN_",",.01,"I")\1 I VSDTM=0 Q
+ . S VSDTM=$P($G(^AUPNVSIT(VIEN,0)),"^",1)\1 I VSDTM=0 Q
  . S @TEMP@(VALUE,VSDTM,VIEN,LIEN)=""
  ;
  S VALUE=$O(@TEMP@(""),-1)
@@ -111,7 +114,7 @@ VISIT(BQDFN,FREF,TXRY,SERV,CLNRY,PRIM,TEMP) ; EP - Get Last Visit
  NEW TREF,IEN,TAX,TIEN,VISIT,VSDTM,CLINIC,CLN,GREF,OPRM,VSERV
  S GREF=$$ROOT^DILFD(FREF,"",1),PRIM=$G(PRIM,0)
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TREF=$NA(^TMP("BQITAX",UID))
+ S TREF=$NA(^TMP(UID,"BQITAX"))
  K @TREF,TEMP
  ; Check for a list of taxonomies
  D
@@ -124,19 +127,26 @@ VISIT(BQDFN,FREF,TXRY,SERV,CLNRY,PRIM,TEMP) ; EP - Get Last Visit
  . ; Check if the record has an applicable taxonomy entry
  . I '$D(@TREF@(TIEN)) Q
  . S VISIT=$$GET1^DIQ(FREF,IEN,.03,"I") Q:VISIT=""
- . I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ . ;I $$GET1^DIQ(9000010,VISIT,.11,"I")=1 Q
+ . I $P($G(^AUPNVSIT(VISIT,0)),"^",11)=1 Q
+ . ; If dependent count is one, quit
+ . I $P($G(^AUPNVSIT(VISIT,0)),"^",9)=1 Q
  . ; If the V File reference is V POV and the primary diagnosis flag is defined
  . ; check if the value is a primary diagnosis
  . I FREF=9000010.07,PRIM,$P(@GREF@(IEN,0),U,12)'="P" S OPRM=0 D  Q:'OPRM
  .. I $O(@GREF@("AD",VISIT,""))=IEN S OPRM=1
- . S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:'VSDTM
+ . ;S VSDTM=$$GET1^DIQ(9000010,VISIT,.01,"I")\1 Q:'VSDTM
+ . S VSDTM=$P($G(^AUPNVSIT(VISIT,0)),"^",1)\1 I VSDTM=0 Q
  . ;I $G(TMFRAME)'="",VSDTM<ENDT Q
  . ; If service categories, check the visit for the service category
- . S VSERV=$$GET1^DIQ(9000010,VISIT,.07,"I")
+ . ;S VSERV=$$GET1^DIQ(9000010,VISIT,.07,"I")
+ . S VSERV=$P($G(^AUPNVSIT(VISIT,0)),"^",7)
  . I $G(SERV)'="",SERV'[VSERV Q
  . ; If locations, check the visit for a matching location
- . S CLN=$$GET1^DIQ(9000010,VISIT,.08,"I")
- . S CLINIC=$$GET1^DIQ(40.7,CLN_",",1,"E")
+ . ;S CLN=$$GET1^DIQ(9000010,VISIT,.08,"I")
+ . S CLN=$P($G(^AUPNVSIT(VISIT,0)),"^",8),CLINIC=""
+ . ;S CLINIC=$$GET1^DIQ(40.7,CLN_",",1,"E")
+ . I CLN'="" S CLINIC=$P($G(^DIC(40.7,CLN,0)),"^",2)
  . I CLINIC'="",$D(CLNRY),'$D(CLNRY(CLINIC)) Q
  . S TEMP(VSDTM,IEN)=VISIT
  Q
@@ -149,7 +159,7 @@ PROB(BQDFN,TXRY,TEMP) ; EP - Get Last Problem
  ;
  NEW TREF,IEN,TAX,TIEN,PRDTM
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TREF=$NA(^TMP("BQITAX",UID))
+ S TREF=$NA(^TMP(UID,"BQITAX"))
  K @TREF,TEMP
  ; Check for a list of taxonomies
  D
@@ -174,7 +184,7 @@ HF(BQDFN,HFACT) ;EP - Find most recent value for a Health Factor
  ;
  NEW VISIT,HIEN,VSDTM,TEMP,UID,RESULT,ATRDT
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
- S TEMP=$NA(^TMP("BQIVHF",UID)) K @TEMP
+ S TEMP=$NA(^TMP(UID,"BQIVHF")) K @TEMP
  ;
  S RESULT=""
  I HFACT'?.N S HFACT=$$FIND1^DIC(9999999.64,,"MX",HFACT)

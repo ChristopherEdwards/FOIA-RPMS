@@ -1,5 +1,5 @@
 ABSPOSP ; IHS/FCS/DRS - Pharm POS pay/adj batches ;    [ 09/12/2002  10:17 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ; main entry points and some callable utilities are in here
  Q
 TEST ;

@@ -1,20 +1,22 @@
-BTIULO10 ; MSC/IHS/MGH - Outside Meds ;25-Sep-2009 10:41;MGH
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006**;NOV 04, 2004
+BTIULO10 ; MSC/IHS/MGH - Outside Meds ;10-Mar-2014 15:24;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1013**;NOV 04, 2004;Build 33
  Q
  ;
  ; Created Outside med object
  ;
 ACTHMMD(DFN) ; EP Logic taken from PSOP2 retrieve non-VA meds
  ;
+ N TITLE
+ S TITLE=$$GET^XPAR("ALL","BEHORX NONVA LABEL")
  Q:$G(DFN)="" "No DFN"
  Q:'$D(^DPT(DFN,0)) "No patient"
- Q:'$O(^PS(55,DFN,"NVA",0)) "No Outside Medications"
+ Q:'$O(^PS(55,DFN,"NVA",0)) "No "_TITLE_" Medications"
  N HOMMD,CNT,MCNT,OUTMED,PPP,NVA,NVAOR,PCNT
  K PQT S CNT=0,PCNT=1
  K ^TMP($J,"ACTIVE-OUTSIDE-MEDS")
  S HOMMD="^TMP($J,""ACTIVE-OUTSIDE-MEDS"")"
  S CNT=CNT+1
- S @HOMMD@(CNT,0)="   Active OUTSIDE Medications"
+ S @HOMMD@(CNT,0)="   Active "_TITLE_" Medications"
  S CNT=CNT+1
  S @HOMMD@(CNT,0)="==============================================="
  S MCNT=0
@@ -31,7 +33,7 @@ ACTHMMD(DFN) ; EP Logic taken from PSOP2 retrieve non-VA meds
  .;S CNT=CNT+1,@HOMMD@(CNT,0)=" "
  .Q
  I $D(^TMP($J,"ACTIVE-OUTSIDE-MEDS",4)) Q "~@"_$NA(@HOMMD)
- E  Q "No Home Medications"
+ E  Q "No "_TITLE_" Meds"
  Q
  ;
  ; *****************************

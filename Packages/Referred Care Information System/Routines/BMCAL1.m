@@ -1,5 +1,5 @@
 BMCAL1 ; IHS/OIT/FCJ-RCIS LIST FOR ALERT; 20-SEP-2007
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006;Build 51
  ; New routine for patch 3 to send a Physician Alert
  ;
 EN ; -- main entry point for BMC ALERT REC DISPLAY

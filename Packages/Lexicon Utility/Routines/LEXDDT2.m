@@ -1,6 +1,12 @@
-LEXDDT2 ; ISL Display Defaults - Concatenate Text  ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
- ;
+LEXDDT2 ;ISL/KER - Display Defaults - Concatenate Text ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
+ ;               
+ ; Global Variables
+ ;    None
+ ;               
+ ; External References
+ ;    None
+ ;               
 CONCAT ; Concatenation of Data Elements
  N LEXTI,LEXTL,LEXTP
 PHRASE ; Get Phrase and Parse into Words
@@ -16,7 +22,7 @@ PHRASE ; Get Phrase and Parse into Words
  . . S:$E(LEXTSTR,$L(LEXTSTR))["," LEXTSTR=$E(LEXTSTR,1,($L(LEXTSTR)-1))
  . D WORD I $L(LEXTSTR)>LEXSTLN D SET S LEXTSTR=""
  I $D(LEX(LEXT,"T")) D
- . F  Q:$E(LEXTSTR,$L(LEXTSTR))'?1P  S LEXTSTR=$E(LEXTSTR,1,($L(LEXTSTR)-1)) Q:$E(LEXTSTR,$L(LEXTSTR))'?1P
+ . F  Q:$E(LEXTSTR,$L(LEXTSTR))'?1P  S LEXTSTR=$E(LEXTSTR,1,($L(LEXTSTR)-1)) Q:$E(LEXTSTR,$L(LEXTSTR))'?1P 
  . S LEXTP=LEX(LEXT,"T"),LEXTI=0 D WORD
  S LEXTSTR=$$TRIM(LEXTSTR)
  Q

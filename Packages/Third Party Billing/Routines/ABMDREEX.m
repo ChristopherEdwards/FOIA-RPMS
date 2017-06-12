@@ -1,10 +1,12 @@
 ABMDREEX ; IHS/SD/SDR - Re-Create batch of Selected Bills ;    
- ;;2.6;IHS Third Party Billing System;**2,3,4,6**;NOV 12, 2009
- ; IHS/SD/SDR-abm*2.6*2-FIXPMS10005 - New routine
- ; IHS/SD/SDR-abm*2.6*3-RPMS10005#2 - mods to make Submission date of 3P Tx status file work correctly
- ; IHS/SD/SDR-abm*2.6*3-FIXPMS10005 - mods to create 1 file for each 1000 bills
- ; IHS/SD/SDR-abm*2.6*4-NOHEAT - if create and re-export are done on same day it will have duplicates
- ; IHS/SD/SDR-abm*2.6*6-HEAT28632 - <SUBSCR>CHECKBAL+17^ABMDREEX error when parent/satellite present
+ ;;2.6;IHS Third Party Billing System;**2,3,4,6,10,14**;NOV 12, 2009;Build 238
+ ;IHS/SD/SDR-abm*2.6*2-FIXPMS10005 -New routine
+ ;IHS/SD/SDR-abm*2.6*3-RPMS10005#2 -mods to make Submission date of 3P Tx status file work correctly
+ ;IHS/SD/SDR-abm*2.6*3-FIXPMS10005 -mods to create 1 file for each 1000 bills
+ ;IHS/SD/SDR-abm*2.6*4-NOHEAT -if create and re-export are done on same day it will have duplicates
+ ;IHS/SD/SDR-abm*2.6*6-HEAT28632 -<SUBSCR>CHECKBAL+17^ABMDREEX error when parent/satellite present
+ ;IHS/SD/SDR-2.6*14-HEAT136160 re-wrote to sort by ins/vloc/vtyp/expmode.  Wasn't creating enough files.  Didn't label all
+ ;   changes because there were so many.
  ;
 EN K ABMT,ABMREX,ABMP,ABMY
  K ^TMP($J,"ABM-D"),^TMP($J,"ABM-D-DUP"),^TMP($J,"D")  ;abm*2.6*4 NOHEAT
@@ -30,13 +32,10 @@ SEL ;
  S ABMT=$G(ABMT)+1
  S ABM("E")=$E(ABMT,$L(ABMT))
  S DIC("A")="Select "_ABMT_$S(ABMT>3&(ABMT<21):"th",ABM("E")=1:"st",ABM("E")=2:"nd",ABM("E")=3:"rd",1:"th")_" BILL to Re-Print: "
- ;start old code abm*2.6*3 FIXPMS10005
- ;S DIC("S")="I $P(^(0),U)'=+^(0),""BTCP""[$P(^(0),""^"",4),$P(^(0),""^"",6)"
- ;S:ABMT>1 DIC("S")=DIC("S")_",$P(ABMT(""FORM""),""^"",1)[$P(^(0),""^"",6),(ABMT(""INS"")=$P(^(0),""^"",8))"
- ;end old code start new code FIXPMS10005
+ ;start new abm*2.6*3 FIXPMS10005
  S DIC("S")="I $P(^(0),U)'=+^(0),""BTCP""[$P(^(0),""^"",4),$P(^ABMDEXP($P(^(0),""^"",6),0),U)[""837"",($$CHECKBAL^ABMDREEX(Y)=1)"
  S:ABMT>1 DIC("S")=DIC("S")_",$P(ABMT(""FORM""),""^"",1)[$P(^(0),""^"",6),($$CHECKBAL^ABMDREEX(Y)=1),(ABMT(""INS"")=$P(^(0),""^"",8)),($P(^(0),U,7)=ABMT(""VTYP""))"
- ;end new code FIXPMS10005
+ ;end new FIXPMS10005
  D BENT^ABMDBDIC
  G XIT:$D(DUOUT)!$D(DTOUT)
  I '$G(ABMP("BDFN")) G ZIS:ABMT>1,XIT
@@ -86,10 +85,38 @@ EXPMODE D ^XBFMK
  I $D(DUOUT) K ABMREX("ENDDT") G ENDDT  ;abm*2.6*3 NOHEAT
  S ABMREX("SELEXP")=$S(+Y>0:+Y,1:"")  ;they can select all exp modes by leaving prompt blank
  I (ABMREX("BEGDT")>(ABMREX("ENDDT"))) W !!,"Beginning Export Date must be before Ending Export Date" H 1 G UNPD
+ ;
  S ABMBDT=(ABMREX("BEGDT")-.5)
  S ABMEDT=(ABMREX("ENDDT")+.999999)
- S ABMBCNT=0,ABMTAMT=0
- S ABMFCNT=1  ;file cnt  ;abm*2.6*3 FIXPMS10005
+ ;start old HEAT136160
+ ;S ABMBCNT=0,ABMTAMT=0
+ ;S ABMFCNT=1  ;file cnt  ;abm*2.6*3 FIXPMS10005
+ ;F  S ABMBDT=$O(^ABMDTXST(DUZ(2),"B",ABMBDT)) Q:(+ABMBDT=0!(ABMBDT>ABMEDT))  D
+ ;.S ABMIEN=0
+ ;.F  S ABMIEN=$O(^ABMDTXST(DUZ(2),"B",ABMBDT,ABMIEN)) Q:+ABMIEN=0  D
+ ;..I $P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,4)'=ABMREX("SELINS") Q  ;not our ins
+ ;..I ABMREX("SELEXP")'="",($P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2)'=(ABMREX("SELEXP"))) Q  ;they selected one & this isn't it
+ ;..I ABMREX("SELEXP")="",($P($G(^ABMDEXP($P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),0)),U)'[("837")) Q  ;they didn't answer so deflt to all 837s
+ ;..S ABMBIEN=0
+ ;..S ABMFBCNT=0  ;cnt bills in file ;abm*2.6*3 FIXPMS10005
+ ;..F  S ABMBIEN=$O(^ABMDTXST(DUZ(2),ABMIEN,2,ABMBIEN)) Q:+ABMBIEN=0  D
+ ;...I $P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,4)="X" Q  ;skip cancelled bills
+ ;...S ABMBALCK=$$CHECKBAL(ABMBIEN)
+ ;...I ABMBALCK=0 Q  ;has been posted to
+ ;...;cnt tot bills & amt
+ ;...S ABMBCNT=+$G(ABMBCNT)+1
+ ;...S ABMTAMT=+$G(ABMTAMT)+($P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U))
+ ;...;cnt bills not cancelled or posted to in export
+ ;...S ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)=+$G(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN))+1
+ ;...S $P(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN),U,2)=+$P($G(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)),U,2)+($P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U))
+ ;...S ABMREX("EXPS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)=""  ;capture what export IENs to do
+ ;...;start new abm*2.6*3 FIXPMS10005
+ ;...S ^TMP($J,"ABM-D",ABMFCNT,$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN,ABMBIEN)=""
+ ;...S ^TMP($J,"ABM-D-DUP",ABMBIEN)=+$G(^TMP($J,"ABM-D-DUP",ABMBIEN))+1  ;cnt # of times bill in select exports  ;abm*2.6*3
+ ;...S ABMFBCNT=+$G(ABMFBCNT)+1
+ ;...I ABMFBCNT>1000 S ABMFCNT=+$G(ABMFCNT)+1,ABMFBCNT=0
+ ;...;end new abm*2.6*3 FIXPMS10005
+ ;end old start new HEAT136160
  F  S ABMBDT=$O(^ABMDTXST(DUZ(2),"B",ABMBDT)) Q:(+ABMBDT=0!(ABMBDT>ABMEDT))  D
  .S ABMIEN=0
  .F  S ABMIEN=$O(^ABMDTXST(DUZ(2),"B",ABMBDT,ABMIEN)) Q:+ABMIEN=0  D
@@ -97,24 +124,22 @@ EXPMODE D ^XBFMK
  ..I ABMREX("SELEXP")'="",($P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2)'=(ABMREX("SELEXP"))) Q  ;they selected one & this isn't it
  ..I ABMREX("SELEXP")="",($P($G(^ABMDEXP($P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),0)),U)'[("837")) Q  ;they didn't answer so deflt to all 837s
  ..S ABMBIEN=0
- ..S ABMFBCNT=0  ;cnt bills in file ;abm*2.6*3 FIXPMS10005
+ ..S ABMFBCNT=0
  ..F  S ABMBIEN=$O(^ABMDTXST(DUZ(2),ABMIEN,2,ABMBIEN)) Q:+ABMBIEN=0  D
  ...I $P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,4)="X" Q  ;skip cancelled bills
  ...S ABMBALCK=$$CHECKBAL(ABMBIEN)
  ...I ABMBALCK=0 Q  ;has been posted to
- ...;cnt tot bills & amt
+ ...S ABMVLOC=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,3)
+ ...S ABMVTYP=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,7)
+ ...S ABMEXP=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,6)
+ ...S ABMINS=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,8)
+ ...S ^TMP($J,"ABM-REEX",ABMINS,ABMVLOC,ABMVTYP,ABMEXP,ABMBIEN)=""  ;use this for export
  ...S ABMBCNT=+$G(ABMBCNT)+1
- ...S ABMTAMT=+$G(ABMTAMT)+($P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U))
- ...;cnt bills not cancelled or posted to in export
- ...S ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)=+$G(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN))+1
- ...S $P(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN),U,2)=+$P($G(ABMREX("CNTS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)),U,2)+($P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U))
- ...S ABMREX("EXPS",$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN)=""  ;capture what export IENs to do
- ...;start new abm*2.6*3 FIXPMS10005
- ...S ^TMP($J,"ABM-D",ABMFCNT,$P($G(^ABMDTXST(DUZ(2),ABMIEN,0)),U,2),ABMIEN,ABMBIEN)=""
- ...S ^TMP($J,"ABM-D-DUP",ABMBIEN)=+$G(^TMP($J,"ABM-D-DUP",ABMBIEN))+1  ;cnt # of times bill in select exports  ;abm*2.6*3
- ...S ABMFBCNT=+$G(ABMFBCNT)+1
- ...I ABMFBCNT>1000 S ABMFCNT=+$G(ABMFCNT)+1,ABMFBCNT=0
- ...;end new abm*2.6*3 FIXPMS10005
+ ...S ABMTAMT=+$G(ABMTAMT)+$P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U)  ;total bill cnt, amt
+ ...S ABMREX("CNTS",ABMEXP,ABMIEN)=+$G(ABMREX("CNTS",ABMEXP,ABMIEN))+1
+ ...S $P(ABMREX("CNTS",ABMEXP,ABMIEN),U,2)=+$P(ABMREX("CNTS",ABMEXP,ABMIEN),U,2)+$P($G(^ABMDBILL(DUZ(2),ABMBIEN,2)),U)
+ ...S ^TMP($J,"ABM-D-DUP",ABMBIEN)=+$G(^TMP($J,"ABM-D-DUP",ABMBIEN))+1
+ ;end new HEAT136160
  W !!,"A total of "_ABMBCNT_" "_$S(ABMBCNT=1:"bill ",1:"bills ")_"for $"_$J(ABMTAMT,1,2)_" have been located."
  I ABMBCNT>0 D
  .W !?8,"Export mode",?25,"Export Dt/Tm",?50,"#Bills",?60,"Total Amt"
@@ -134,8 +159,11 @@ ZIS ;EP
  S DIR(0)="Y"
  S DIR("A",1)=""
  S DIR("A",2)=""
- I $G(ABMREX("SELINS"))'="" S DIR("A",3)="One file will be created for each export mode with a maximum of 1000 bills in each file"  ;abm*2.6*3 FIXPMS10005
- I $G(ABMREX("SELINS"))="" S DIR("A",3)="A file will be created for the bills selected"
+ I $G(ABMREX("SELINS"))'="" D
+ .S DIR("A",3)="One file will be created for each visit location/visit type/export mode"
+ .S DIR("A",4)="combination with a maximum of 1000 bills in each file"
+ .S DIR("A",5)=""
+ I $G(ABMREX("SELINS"))="" S DIR("A",3)="A file will be created for the bills selected",DIR("A",4)=""
  S DIR("A")="Proceed"
  S DIR("B")="YES"
  D ^DIR
@@ -150,6 +178,7 @@ ZIS ;EP
  .S DIR("B")="NO"
  .D ^DIR
  .K DIR
+ ;
  ;selected bills-one filename
  I $G(ABMREX("SELINS"))="" D
  .S ABMEXP=ABMT("EXP")
@@ -166,40 +195,37 @@ ZIS ;EP
  ..S ^TMP($J,"D",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"),ABMY("EXP"),ABMREX("BDFN"))=""
  .;end new abm*2.6*3  ;abm*2.6*3 FIXPMS10005
  .D CREATEN
+ .;
  ;exports selected - one filename for each export
  I $G(ABMREX("SELINS"))'="" D
  .S ABMREX("BATCHSELECT")=1
- .;start old code abm*2.6*3 FIXPMS10005
- .;S ABMEXP=0,ABMECNT=0
- .;F  S ABMEXP=$O(ABMREX("EXPS",ABMEXP)) Q:(+$G(ABMEXP)=0)  D
- .;.S ABMREX("EDFN")=0
- .;.F  S ABMREX("EDFN")=$O(ABMREX("EXPS",ABMEXP,ABMREX("EDFN"))) Q:(+$G(ABMREX("EDFN"))=0)  D
- .;..S ABMECNT=+$G(ABMECNT)+1
- .;..W !!,"Creating file # ",ABMECNT,?20,$P(^ABMDEXP(ABMEXP,0),U),?40,$$CDT^ABMDUTL($P($G(^ABMDTXST(DUZ(2),ABMREX("EDFN"),0)),U)),?60,+$G(ABMREX("CNTS",ABMEXP,ABMREX("EDFN"))),?70,$J(+$P($G(ABMREX("CNTS",ABMEXP,ABMREX("EDFN"))),U,2),1,2)
- .;..I $P($G(^ABMDTXST(DUZ(2),ABMREX("EDFN"),0)),U,9)'=($P($G(ABMREX("CNTS",ABMEXP,ABMREX("EDFN"))),U)) D CREATEN
- .;..I $P($G(^ABMDTXST(DUZ(2),ABMREX("EDFN"),0)),U,9)=($P($G(ABMREX("CNTS",ABMEXP,ABMREX("EDFN"))),U)) D USEORIG
- .;end old start new abm*2.6*3 FIXPMS10005
- .S ABMFCNT=0
- .F  S ABMFCNT=$O(^TMP($J,"ABM-D",ABMFCNT)) Q:+$G(ABMFCNT)=0  D
- ..W !!,"Creating file # ",ABMFCNT
- ..S ABMEXP=0
- ..F  S ABMEXP=$O(^TMP($J,"ABM-D",ABMFCNT,ABMEXP)) Q:(+$G(ABMEXP)=0)  D
- ...S ABMEDFN=0
- ...F  S ABMEDFN=$O(^TMP($J,"ABM-D",ABMFCNT,ABMEXP,ABMEDFN)) Q:(+$G(ABMEDFN)=0)  D
- ....W !,?20,$P(^ABMDEXP(ABMEXP,0),U),?40,$$CDT^ABMDUTL($P($G(^ABMDTXST(DUZ(2),ABMEDFN,0)),U)),?60,+$G(ABMREX("CNTS",ABMEXP,ABMEDFN)),?70,$J(+$P($G(ABMREX("CNTS",ABMEXP,ABMEDFN)),U,2),1,2)
- ...S ABMEDFN=0
- ...F  S ABMEDFN=$O(^TMP($J,"ABM-D",ABMFCNT,ABMEXP,ABMEDFN)) Q:(+$G(ABMEDFN)=0)  D
- ....S ABMREX("BDFN")=0,ABMY("TOT")=0
- ....F  S ABMREX("BDFN")=$O(^TMP($J,"ABM-D",ABMFCNT,ABMEXP,ABMEDFN,ABMREX("BDFN"))) Q:(+$G(ABMREX("BDFN"))=0)  D
- .....S ABMY("INS")=$S($G(ABMREX("SELINS")):ABMREX("SELINS"),1:ABMT("INS"))
- .....S ABMY("VTYP")=$P($G(^ABMDBILL(DUZ(2),ABMREX("BDFN"),0)),U,7)
- .....S ABMY("EXP")=$P($G(^ABMDBILL(DUZ(2),ABMREX("BDFN"),0)),U,6)
- .....S ABMY("LOC")=$P($G(^AUTTLOC(DUZ(2),0)),U,2)  ;abm*2.6*3 FIXPMS10005
- .....S ABMY("TOT")=+$G(ABMY("TOT"))+$P($G(^ABMDBILL(DUZ(2),ABMREX("BDFN"),2)),U)  ;abm*2.6*3 FIXPMS10005
- .....S ^TMP($J,"D",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"),ABMY("EXP"),ABMREX("BDFN"))=""  ;abm*2.6*3 FIXPMS10005
- ....K ABMXMTDT  ;abm*2.6*3 5PMS10005#2
- ...D CREATEN
- ...K ^TMP($J,"D")
+ .;start new abm*2.6*3 FIXPMS10005
+ .S ABMFCNT=1
+ .S ABMY("INS")=0
+ .F  S ABMY("INS")=$O(^TMP($J,"ABM-REEX",ABMY("INS"))) Q:'ABMY("INS")  D
+ ..S ABMINS("IEN")=ABMY("INS")
+ ..S ABMY("LOC")=0
+ ..F  S ABMY("LOC")=$O(^TMP($J,"ABM-REEX",ABMY("INS"),ABMY("LOC"))) Q:'ABMY("LOC")  D
+ ...S ABMY("LOC1")=$P($G(^AUTTLOC(ABMY("LOC"),0)),U,2)_"@"_ABMY("LOC")
+ ...S ABMY("VTYP")=0
+ ...F  S ABMY("VTYP")=$O(^TMP($J,"ABM-REEX",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"))) Q:'ABMY("VTYP")  D
+ ....S ABMY("EXP")=0
+ ....F  S ABMY("EXP")=$O(^TMP($J,"ABM-REEX",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"),ABMY("EXP"))) Q:'ABMY("EXP")  D
+ .....S ABMEXP=ABMY("EXP")
+ .....S ABMBDFN=0
+ .....S ABMCNT=0
+ .....S ABMY("TOT")=0
+ .....F  S ABMBDFN=$O(^TMP($J,"ABM-REEX",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"),ABMY("EXP"),ABMBDFN)) Q:'ABMBDFN  D
+ ......S ABMCNT=+$G(ABMCNT)+1
+ ......S ABMY("TOT")=+$G(ABMY("TOT"))+$P($G(^ABMDBILL(DUZ(2),ABMBDFN,2)),U)
+ .....S ABMREX("CNTS",ABMY("EXP"),ABMCNT)=""
+ .....W !!,"Creating file # ",ABMFCNT
+ .....S ABMFCNT=+$G(ABMFCNT)+1
+ .....M ^TMP($J,"D",ABMY("INS"),ABMY("LOC1"),ABMY("VTYP"),ABMY("EXP"))=^TMP($J,"ABM-REEX",ABMY("INS"),ABMY("LOC"),ABMY("VTYP"),ABMY("EXP"))
+ .....W !,?15,$P(^ABMDEXP(ABMY("EXP"),0),U),?35,"VISIT TYPE: "_ABMY("VTYP"),?55,ABMCNT_" "_$S(ABMCNT=1:"Bill",1:"Bills"),?68,$J($FN(ABMY("TOT"),",",2),10)
+ .....K ABMXMTDT  ;abm*2.6*3 5PMS10005#2
+ .....D CREATEN
+ .....K ^TMP($J,"D")
  .;end new abm*2.6*3 FIXPMS10005
  S DIR(0)="E"
  D ^DIR
@@ -213,30 +239,6 @@ XIT ;
  K ABMP,ABMY,DIQ,ABMT,ABMREX
  Q
 CHECKBAL(ABMBIEN) ;
- ;start old IHS/SD/SDR HEAT28632
- ;S ABMDUZ2=DUZ(2)
- ;S ABMBALCK=0
- ;S ABMP("LDFN")=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,3)
- ;S ABMP("DOS")=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,7)),U)
- ;S ABMARPS=$P($G(^ABMDPARM(DUZ(2),1,4)),U,9)    ;Use A/R parent/sat
- ;;Use A/R par/sat is yes & visit loc not defined under parent
- ;;in A/R Par/Sat file.
- ;I ABMARPS,'$D(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)) S ABMDUZ2=ABMP("LDFN")
- ;;Use A/R parent/sat is yes, but DUZ(2) is not the parent for this
- ;;visit loc
- ;I ABMARPS,$P($G(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)),U,3)'=DUZ(2) S ABMDUZ2=ABMP("LDFN")
- ;I ABMARPS,$P($G(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)),U,6)>ABMP("DOS") S ABMDUZ2=ABMP("LDFN")
- ;I ABMARPS,$P($G(^BAR(90052.05,DUZ(2),ABMP("LDFN"),0)),U,7),$P(^(0),U,7)<ABMP("DOS") S ABMDUZ2=ABMP("LDFN")
- ;S ABMHOLD=DUZ(2)
- ;S DUZ(2)=ABMDUZ2
- ;S ABMARBIL=$O(^BARBL(DUZ(2),"B",$P($G(^ABMDBILL(ABMHOLD,ABMBIEN,0)),U)))
- ;S ABMARIEN=$O(^BARBL(DUZ(2),"B",ABMARBIL,0))
- ;S ABMARBAL=$$GET1^DIQ(90050.01,ABMARIEN,15)
- ;I ABMARBAL'=($P($G(^ABMDBILL(ABMHOLD,ABMBIEN,2)),U)) S ABMBALCK=0
- ;I ABMARBAL=($P($G(^ABMDBILL(ABMHOLD,ABMBIEN,2)),U)) S ABMBALCK=1
- ;S DUZ(2)=ABMHOLD
- ;Q ABMBALCK
- ;end old start new HEAT28632
  S ABMBALCK=0
  S ABMHOLD=DUZ(2)
  S BARSAT=$P($G(^ABMDBILL(DUZ(2),ABMBIEN,0)),U,3)  ;Satellite=3P Visit loc
@@ -263,17 +265,18 @@ CHECKBAL(ABMBIEN) ;
  I ABMARBAL=($P($G(^ABMDBILL(ABMHOLD,ABMBIEN,2)),U)) S ABMBALCK=1
  S DUZ(2)=ABMHOLD
  Q ABMBALCK
- ;end new HEAT28632 
 CREATEN ;
  S ABMSEQ=1
  S ($P(ABMER(ABMSEQ),U,3),ABMP("EXP"))=ABMEXP
- S ABMLOC=$P($G(^AUTTLOC(DUZ(2),0)),U,2)
+ ;S ABMLOC=$P($G(^AUTTLOC(DUZ(2),0)),U,2)  ;HEAT136160
+ S ABMLOC=$P($G(^AUTTLOC(ABMY("LOC"),0)),U,2)  ;HEAT136160
  S ABMY("INS")=$S($G(ABMREX("SELINS")):ABMREX("SELINS"),1:ABMT("INS"))
  S ABMINS("IEN")=ABMY("INS")  ;ins
  S $P(ABMER(ABMSEQ),U)=ABMINS("IEN")  ;abm*2.6*3 FIXPMS10005
  S $P(ABMER(ABMSEQ),U,2)=ABMY("VTYP")  ;abm*2.6*3 FIXPMS10005
  S $P(ABMER(ABMSEQ),U,5)=ABMY("TOT")  ;abm*2.6*3 FIXPMS10005
- S ABMITYP=$P($G(^AUTNINS(ABMY("INS"),2)),U)  ;ins typ
+ ;S ABMITYP=$P($G(^AUTNINS(ABMY("INS"),2)),U)  ;ins typ  ;abm*2.6*10 HEAT73780
+ S ABMITYP=$$GET1^DIQ(9999999.181,$$GET1^DIQ(9999999.18,ABMY("INS"),".211","I"),1,"I")  ;ins typ  ;abm*2.6*10 HEAT73780
  ;# forms & tot chgs
  I $G(ABMP("SELINS"))="" S $P(ABMER(ABMSEQ),U,4)=+$G(ABMBCNT)
  I $G(ABMP("SELINS"))'="" S $P(ABMER(ABMSEQ),U,4)=+$G(ABMREX("CNTS",ABMEXP,ABMREX("EDFN")))

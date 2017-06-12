@@ -1,5 +1,5 @@
 BMCFYP ; IHS/PHXAO/TMJ - Print Routine for FY PO Cost Analysis ; 
- ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006
+ ;;4.0;REFERRED CARE INFO SYSTEM;**3**;JAN 09, 2006;Build 51
  ;4.0*3 10.25.2007 IHS/OIT/FCJ ADDED CSV CHANGES
  ;
 PRINT W:$D(IOF) @IOF,?20,"***** FREQUENCY OF DIAGNOSIS REPORT *****",!!
@@ -18,7 +18,7 @@ SHOW ;
  .W !?6,$P(^BMCTSORT(BMCI,0),U),":  "
  .K BMCQ S BMCY=0,C=0 K BMCQ F  S BMCY=$O(^BMCRTMP(BMCRPT,11,BMCI,11,"B",BMCY)) S C=C+1 W:C'=1&(BMCY'="") " ; " Q:BMCY=""!($D(BMCQ))  S X=BMCY X:$D(^BMCTSORT(BMCI,2)) ^(2) W X
  K BMCQ
-COUNT ;if COUNTING entries only   
+COUNT ;if COUNTING entries only
  I $Y>(IOSL-5) D PAUSE^BMCRL01 W:$D(IOF) @IOF
  I $D(BMCALL) W !!?5,"ALL (Primary and Secondary) POV's included.",!
  I $D(BMCPRIM) W !!?5,"PRIMARY POV's Only",!
@@ -39,7 +39,7 @@ PPOV I $E(IOST)="C",IO=IO(0),$Y>(IOSL-4) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y
  .;I BMCCHRT="L" W !?3,I,".",?7,$P(^ICD9(BMCPOV,0),U),?15,$P(^ICD9(BMCPOV,0),U,3),"  (",@A,")" Q
  .I BMCCHRT="L" W !?3,I,".",?7,$P($$ICDDX^ICDCODE(BMCPOV,0),U,2),?15,$P($$ICDDX^ICDCODE(BMCPOV,0),U,4),"  (",@A,")" Q
  .;W !,$E($P(^ICD9(BMCPOV,0),U,3),1,17),?18," (",$P(^ICD9(BMCPOV,0),U),")",?27,"|" S L=+(@A),D=L\BMCDASH F %=1:1:D W "*"
- .W !,$E($P($$ICDDX^ICDCODE(BMCPOV,0),U,4),1,17),?18," (",$P($$ICDDX^ICDCODE(BMCPOV,0),U,2),")",?27,"|" S L=+(@A),D=L\BMCDASH F %=1:1:D W "*"
+ .W !,$E($P($$ICDDX^ICDCODE(BMCPOV,,,"I"),U,4),1,17),?18," (",$P($$ICDDX^ICDCODE(BMCPOV,,,"I"),U,2),")",?27,"|" S L=+(@A),D=L\BMCDASH F %=1:1:D W "*"
  .W " ",+(@A)
  .Q
  G:$D(BMCQUIT) PEXIT

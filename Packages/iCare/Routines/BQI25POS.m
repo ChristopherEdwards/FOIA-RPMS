@@ -1,0 +1,117 @@
+BQI25POS ;GDIT/HS/ALA-Post Install for Version 2.5 ; 05 Jan 2015  12:39 PM
+ ;;2.5;ICARE MANAGEMENT SYSTEM;;May 24, 2016;Build 27
+ ;
+ ;
+EN ;EP
+ ;Set the version number
+ NEW DA
+ S DA=$O(^BQI(90508,0))
+ S BQIUPD(90508,DA_",",.08)="2.5.0.5"
+ S BQIUPD(90508,DA_",",.09)="2.5.0.5"
+ S BQIUPD(90508,DA_",",16.04)="T-12M"
+ S BQIUPD(90508,DA_",",16.05)="T-365"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ ;
+ ;Turn off Ordered field for CMET
+ NEW BTWN
+ S BTWN=$O(^BQI(90506.1,"B","BTPWFUOR","")) I BTWN'="" D
+ . S BQIUPD(90506.1,BTWN_",",.1)=1
+ . I $P(^BQI(90506.1,BTWN,0),U,11)="" S BQIUPD(90506.1,BTWN_",",.11)=DT
+ . D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; Set BTPWRPC and BUSARPC into BQIRPC
+ NEW IEN,DA,X,DIC,Y
+ S DA(1)=$$FIND1^DIC(19,"","B","BQIRPC","","","ERROR"),DIC="^DIC(19,"_DA(1)_",10,",DIC(0)="LMNZ"
+ I $G(^DIC(19,DA(1),10,0))="" S ^DIC(19,DA(1),10,0)="^19.01IP^^"
+ S X="BTPWRPC"
+ D ^DIC I +Y<1 K DO,DD D FILE^DICN
+ NEW IEN,DA,X,DIC,Y
+ S DA(1)=$$FIND1^DIC(19,"","B","BQIRPC","","","ERROR"),DIC="^DIC(19,"_DA(1)_",10,",DIC(0)="LMNZ"
+ I $G(^DIC(19,DA(1),10,0))="" S ^DIC(19,DA(1),10,0)="^19.01IP^^"
+ S X="BUSARPC"
+ D ^DIC I +Y<1 K DO,DD D FILE^DICN
+ ;
+ D ^BQI25PU1
+ D ^BQI25PU
+ ;
+ NEW DA
+ F DA=4,7,26 S BQIUPD(90506.5,DA_",",.16)=1
+ D FILE^DIE("","BQIUPD","ERROR")
+ ;
+ ; Add Diabetes to Filter Source for Lab tests
+ S ^BQI(90506.3,2,7,0)="^90506.38P^2^2"
+ S ^BQI(90506.3,2,7,2,0)=7
+ S ^BQI(90506.3,2,7,"B",7,2)=""
+ S $P(^BQI(90507,6,0),"^",17)="Diabetes"
+ ;
+ ;DM Audit
+ S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,15)
+ S ZTDESC="Turn on DM Audit",ZTRTN="DMA^BQI25POS",ZTIO=""
+ D ^%ZTLOAD
+ K ZTDESC,ZTRTN,ZTIO,ZTDTH,ZTSK
+ ;
+ ;Turn on Immunization Forecaster as Reminders
+ S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,25)
+ S ZTDESC="IZ Forecaster",ZTRTN="IZF^BQI25POS",ZTIO=""
+ D ^%ZTLOAD
+ K ZTDESC,ZTRTN,ZTIO,ZTDTH,ZTSK
+ ;
+MC ;Add Matched Criteria type
+ NEW BI,TEXT,IEN
+ F BI=1:1 S TEXT=$P($T(MCT+BI),";;",2) Q:TEXT=""  D
+ . S IEN=$P(TEXT,"|",1),VAL=$P(TEXT,"|",2)
+ . I $G(^BQI(90506.5,IEN,0))'="" S $P(^BQI(90506.5,IEN,0),"^",17)=VAL
+ ;
+ ;Check for bad records in CMET
+ NEW IEN,PREVT
+ S IEN=0
+ F  S IEN=$O(^BTPWP(IEN)) Q:'IEN  I $G(^BTPWP(IEN,0))="" K ^BTPWP(IEN)
+ ;
+ S IEN=0
+ F  S IEN=$O(^BTPWP(IEN)) Q:'IEN  S PREVT=$P(^BTPWP(IEN,0),"^",14) I PREVT'="",$P(^BTPWP(IEN,0),"^",5)="" D
+ . S $P(^BTPWP(IEN,0),"^",5)=$P($G(^BTPWQ(PREVT,0)),"^",5)
+ Q
+ ;
+DMA ;EP - Turn on DM Audit
+ NEW CIEN
+ S CIEN=$O(^BQI(90506.5,"B","DM Audit","")) I CIEN="" Q
+ I $P(^BQI(90506.5,CIEN,0),"^",10)="" Q
+ S BQIUPD(90506.5,CIEN_",",.1)="@"
+ I $O(^ACM(41.1,"B","IHS DIABETES",""))'="" D
+ . S BQIUPD(90508,"1,",21.02)="IHS DIABETES"
+ I $O(^ACM(41.1,"B","IHS DIABETES",""))="" D
+ . NEW N,NAME,UNAME,FLG,RNAME
+ . S N=0,FLG=0 F  S N=$O(^ACM(41.1,N)) Q:'N  D
+ .. S NAME=$P(^ACM(41.1,N,0),"^",1),UNAME=$$UP^XLFSTR(NAME)
+ .. I UNAME'["DIABET" Q
+ .. I UNAME="IHS PRE-DIABETES" Q
+ .. S FLG=1,RNAME=NAME
+ . I FLG S BQIUPD(90508,"1,",21.02)=RNAME
+ D FILE^DIE("E","BQIUPD","ERROR")
+ D DMA^BQINIGH2
+ Q
+ ;
+IZF ;EP - Turn on Immunization Forecaster
+ NEW ITM,RVDT,PTNAM,BQDFN
+ S ITM=$O(^BQI(90506.1,"B","IZ_")) I $P(ITM,"_",1)="IZ" Q
+ S TJOB="Weekly",SOURCE="Reminders"
+ D IFR^BQIRMDR2
+ S RVDT=""
+ F  S RVDT=$O(^TMP("BIDUL",$J,1,RVDT)) Q:RVDT=""  D
+ . S PTNAM="" F  S PTNAM=$O(^TMP("BIDUL",$J,1,RVDT,PTNAM)) Q:PTNAM=""  D
+ .. S BQDFN="" F  S BQDFN=$O(^TMP("BIDUL",$J,1,RVDT,PTNAM,BQDFN)) Q:BQDFN=""  D IZ^BQIRMDR2(BQDFN)
+ K TJOB,SOURCE
+ Q
+ ;
+MCT ;EP
+ ;;27|LAB
+ ;;28|PROB
+ ;;29|MED
+ ;;30|ALGY
+ ;;31|INP
+ ;;32|CPT
+ ;;33|ERV
+ ;;34|EDUC
+ ;;35|REM
+ ;;42|REG

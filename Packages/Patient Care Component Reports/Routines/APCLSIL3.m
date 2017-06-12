@@ -1,5 +1,5 @@
 APCLSIL3 ; IHS/CMI/LAB - ili surveillance ;
- ;;3.0;IHS PCC REPORTS;**24,26,27,28,29**;FEB 05, 1997;Build 35
+ ;;3.0;IHS PCC REPORTS;**24,26,27,28,29,30**;FEB 05, 1997;Build 27
  ;
  ;
 INFORM ;
@@ -16,7 +16,7 @@ INFORM ;
  W !?5," - must have at least one diagnosis that is contained in the "
  W !?8,"SURVEILLANCE ILI taxonomy with a temperature recorded on the visit"
  W !?8,"with a value >=100 OR there must be at least one diagnosis in the"
- W !?8,"SURVEILLANCE ILI NO TMP NEEDED taxonomy (487*, 488*)"
+ W !?8,"SURVEILLANCE ILI NO TMP NEEDED taxonomy."
  W !?5," - if ambulatory, must be to a clinic in the SURVEILLANCE ILI CLINICS taxonomy"
  W !?8,"or the provider must be a PHN"
  W !?5," - the patient's name must not contain 'DEMO,PATIENT' (demo patients"
@@ -26,7 +26,7 @@ INFORM ;
  S APCLCTAX=$O(^ATXAX("B","SURVEILLANCE ILI CLINICS",0))  ;clinic taxonomy
  S APCLDTAX=$O(^ATXAX("B","SURVEILLANCE ILI",0))  ;dx taxonomy
  S APCLTTAX=$O(^ATXAX("B","SURVEILLANCE ILI NO TMP NEEDED",0))
- I 'APCLDTAX W !!,"SURVEILLANCE ILI icd-9 taxonomy missing...cannot continue." D EXIT Q
+ I 'APCLDTAX W !!,"SURVEILLANCE ILI ICD taxonomy missing...cannot continue." D EXIT Q
  I 'APCLCTAX W !!,"SURVEILLANCE ILI CLINICS taxonomy missing...cannot continue." D EXIT Q
  I 'APCLTTAX W !!,"SURVEILLANCE ILI NO TMP NEEDED taxonomy missing...cannot continue." D EXIT Q
  ;
@@ -92,8 +92,8 @@ P ..S DFN=$P(^AUPNVSIT(APCLV,0),U,5)
  ..S G=0
  ..S X=0 F  S X=$O(^AUPNVPOV("AD",APCLV,X)) Q:X'=+X  D
  ...S T=$P(^AUPNVPOV(X,0),U)
- ...I $$ICD^ATXCHK(T,APCLTTAX,9) S G=1
- ...I $$ICD^ATXCHK(T,APCLDTAX,9),$$TMP100^APCLSILI(APCLV) S G=1
+ ...I $$ICD^APCLSILU(T,APCLTTAX,9) S G=1
+ ...I $$ICD^APCLSILU(T,APCLDTAX,9),$$TMP100^APCLSILI(APCLV) S G=1
  ..Q:'G  ;no diagnosis
  ..;
  ..D SET

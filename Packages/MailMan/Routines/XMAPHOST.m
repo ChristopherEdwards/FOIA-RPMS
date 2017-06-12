@@ -1,5 +1,5 @@
 XMAPHOST ;ISC-SF/GMB-Print to Message (P-MESSAGE) ;07/29/2003  14:36
- ;;8.0;MailMan;**2,17,21**;Jun 28, 2002
+ ;;8.0;MailMan;**2,17,21,28,33**;Jun 28, 2002;Build 1
  ;Was (WASH ISC)/KMB/CAP before extensive rework.
  ;
  ;This routine handles printing to P-MESSAGE.
@@ -66,9 +66,10 @@ EN ; Entry from pre-open execute of P-MESSAGE entry in DEVICE file.
  ; (the pre-open execute of the DEVICE file entry) to execute when
  ; the task starts up.
  K ^TMP("XM-MESS",$J)
- Q:$D(ZTQUEUED)!$G(XMQUIET)
+ N %H
+ Q:$D(ZTQUEUED)!$G(XMQUIET)!$D(DDS)
  N XMAPHOST,XMABORT
- D SETUP(.XMAPHOST,.XMABORT) I XMABORT S POP=1 Q
+ D SETUP(.XMAPHOST,.XMABORT) I XMABORT S (POP,DUOUT,%ZISQUIT)=1 K IO("Q") Q
  M ^TMP("XM-MESS",$J,"XMY")=^TMP("XMY",$J)
  M ^TMP("XM-MESS",$J,"XMY0")=^TMP("XMY0",$J)
  M ^TMP("XM-MESS",$J,"XMAPHOST")=XMAPHOST
@@ -147,7 +148,7 @@ READ ; Entry from close-execute of P-MESSAGE entry in TERMINAL TYPE file.
  ; Read record from file.
  ; Each time <CR> is found in record it ends a message line.
  N X,XMNULCNT,XMLEN,XMZZ,XMREC,XMI,XMLIMIT,XMAPHOST,XMINSTR,XMABORT
- I '$D(^TMP("XM-MESS",$J)) D   Q:XMABORT
+ I '$D(^TMP("XM-MESS",$J)) D  Q:XMABORT
  . D SETUP(.XMAPHOST,.XMABORT)
  E  D
  . M ^TMP("XMY",$J)=^TMP("XM-MESS",$J,"XMY")

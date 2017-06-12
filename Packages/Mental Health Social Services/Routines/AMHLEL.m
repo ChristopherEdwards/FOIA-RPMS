@@ -1,5 +1,5 @@
 AMHLEL ; IHS/CMI/LAB - GETLAYS DAILY ACTIVITY RECORDS ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**1**;JUN 18, 2010;Build 8
+ ;;4.0;IHS BEHAVIORAL HEALTH;**1,5**;JUN 02, 2010;Build 18
  ;
  ;CMI/TUCSON/LAB - 10/01/97 - patch 1 - reformatted display to put back in activity time in minutes
  ;Display all records for the provider, program, on this date.
@@ -60,7 +60,7 @@ REC ;
 GETPROB ;
  S AMHP=$O(^AMHRPRO("AD",AMHV,0)),AMHPREC=^AMHRPRO(AMHP,0)
  S X=$P(^AMHPROB($P(AMHPREC,U),0),U),X=$$LBLK(X,6)_" "
- S X=X_$S($P(AMHPREC,U,4)]"":$P(^AUTNPOV($P(AMHPREC,U,4),0),U),1:"<provider narrative missing>")
+ S X=X_$$GET1^DIQ(9002011.01,AMHP,.04)
  S AMHX=AMHX_" "_X
  Q
 GETHRN ;

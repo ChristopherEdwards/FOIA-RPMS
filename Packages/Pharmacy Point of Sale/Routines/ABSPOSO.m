@@ -1,5 +1,5 @@
 ABSPOSO ; IHS/FCS/DRS - "O" is for Override NCPDP field values ;  [ 08/20/2002  8:46 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,6,23**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,6,23**;JUN 21, 2001;Build 15
  ; 
  ; File 9002313.511 ABSP NCPDP OVERRIDE
  ; It acts like an extension of the ^PSRX entry,

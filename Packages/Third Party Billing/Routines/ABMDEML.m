@@ -1,31 +1,32 @@
 ABMDEML ; IHS/SD/SDR - Edit Utility - FOR MULTIPLES ;   
- ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9,10,11,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing;**1,2,3,6,8,9,10,11,13,14,18**;NOV 12, 2009;Build 289
  ;
- ; IHS/ASDS/DMJ - 09/07/01 - V2.4 Patch 7 - NOIS HQW-0701-100066
+ ; IHS/ASDS/DMJ - V2.4 Patch 7 - NOIS HQW-0701-100066
  ;     Modifications made related to Medicare Part B.
- ; IHS/ASDS/LSL - 10/29/01 - V2.4 Patch 9 - NOIS HQW-0701-100066
- ;     The above change doesn't work as ABMP("HCFA") is undefined.
- ;     Changed code back to listing HCFA modes of export.
+ ; IHS/ASDS/LSL - V2.4 Patch 9 - NOIS HQW-0701-100066
+ ;     The above change doesn't work as ABMP("HCFA") is undefined. Changed code back to listing HCFA modes of export.
  ;
- ; IHS/SD/SDR - 11/19/2003 - v2.5 p4 - IM11671
- ;     Added 837 format to list so it would inquire for corresponding
- ;     diagnosis
- ; IHS/SD/SDR - V2.5 p5 - 5/18/04 - Modified to put POS and TOS by line item
- ; IHS/SD/SDR - v2.5 p8 - 7/9/04 - IM14079 - Edited code to not do TOS prompt if 837 format
- ; IHS/SD/SDR - v2.5 p8 - IM12246 - Added In-House and Reference LAB CLIA prompts
- ; IHS/SD/SDR - v2.5 p8 - task 6 - Added code to populate mileage on page 3A when A0425/A0888 are used
- ; IHS/SD/SDR - v2.5 p9 - task 1 - Coded for new line item provider multiple
- ; IHS/SD/SDR - v2.5 p10 - IM20346 - Variables getting carried over for Stuff tag
- ; IHS/SD/SDR - v2.5 p10 - IM21539 - Made OBSTETRICAL? question be asked in correct place
- ; IHS/SD/SDR - v2.5 p13 - POA changes
+ ; IHS/SD/SDR - v2.5 p4 - IM11671
+ ;     Added 837 format to list so it would inquire for corresponding diagnosis
+ ;IHS/SD/SDR - V2.5 p5 - Modified to put POS and TOS by line item
+ ;IHS/SD/SDR - v2.5 p8 - IM14079 - Edited code to not do TOS prompt if 837 format
+ ;IHS/SD/SDR - v2.5 p8 - IM12246 - Added In-House and Reference LAB CLIA prompts
+ ;IHS/SD/SDR - v2.5 p8 - task 6 - Added code to populate mileage on page 3A when A0425/A0888 are used
+ ;IHS/SD/SDR - v2.5 p9 - task 1 - Coded for new line item provider multiple
+ ;IHS/SD/SDR - v2.5 p10 - IM20346 - Variables getting carried over for Stuff tag
+ ;IHS/SD/SDR - v2.5 p10 - IM21539 - Made OBSTETRICAL? question be asked in correct place
+ ;IHS/SD/SDR - v2.5 p13 - POA changes
  ;
- ; IHS/SD/SDR - v2.6 CSV
- ; IHS/SD/SDR - abm*2.6*1 - HEAT6566 - populate anes based on MCR/non-MCR
- ; IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - modified to call ABMFEAPI
- ; IHS/SD/SDR - abm*2.6*3 - HEAT11696 - added 36415 to use lab prompts
- ; IHS/SD/SDR - abm*2.6*3 - HEAT12742 - removed HEAT6566 changes
- ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added prompt for 2400 DTP test date
+ ;IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - abm*2.6*1 - HEAT6566 - populate anes based on MCR/non-MCR
+ ;IHS/SD/SDR - abm*2.6*2 - 3PMS10003A - modified to call ABMFEAPI
+ ;IHS/SD/SDR - abm*2.6*3 - HEAT11696 - added 36415 to use lab prompts
+ ;IHS/SD/SDR - abm*2.6*3 - HEAT12742 - removed HEAT6566 changes
+ ;IHS/SD/SDR - abm*2.6*6 - 5010 - Added prompt for 2400 DTP test date
  ;IHS/SD/SDR - 2.6*13 - added check for new export mode 35 and to populate DATE OF FIRST SYMPTOM and INJURY DATE based on occurrence code 11
+ ;IHS/SD/SDR - 2.6*14 - ICD10 - 002F and 002H - when adding DX or PX to claim, populated PRIORITY and ICD INDICATOR accordingly
+ ;IHS/SD/SDR - 2.6*14 - HEAT165301 - Removed link between page 9A and page 3 questions introduced in patch13
+ ;IHS/SD/SDR - 2.6*18 - HEAT240919 - Added Provider Narrative default for DX and PX.  Was missing default after switch to ICD10.
  ; *********************************************************************
  ;
 A1 ;
@@ -73,7 +74,8 @@ A1 ;
  I $D(ABMZ("DICS")) S DIC("S")=ABMZ("DICS")
  E  S ABMX("DICS")="9002274.30"_ABMZ("SUB") X:$D(^DD(ABMX("DICS"),.01,12.1)) ^DD(ABMX("DICS"),.01,12.1)
  S DIC=$S($D(ABMZ("DICI")):ABMZ("DICI"),1:ABMZ("DIC"))
- S DIC(0)="QEAM"
+ ;S DIC(0)="QEAM"  ;abm*2.6*14
+ S DIC(0)="QEAMI"  ;abm*2.6*14
  S DIC("A")="Select "_ABMZ("ITEM")_": "
  S:$D(ABMZ("DICW")) DIC("W")=ABMZ("DICW")
  ;
@@ -108,6 +110,8 @@ MOD ;
  ;If provider narrative. . . Ask it . . . add to DR string
  I $D(ABMZ("NARR")) D
  .S ABMX("DICB")=$P(@(ABMZ("DIC")_ABMX("Y")_",0)"),U,$P(ABMZ("NARR"),U,2))
+ .I ABMZ("SUB")=17 S ABMX("DICB")=$P($$DX^ABMCVAPI(ABMX("Y"),ABMP("VDT"),"",""),U,4)  ;abm*2.6*18 IHS/SD/SDR HEAT235867 and 240919
+ .I ABMZ("SUB")=19 S ABMX("DICB")=$P($$ICDOP^ABMCVAPI(ABMX("Y"),ABMP("VDT"),"",""),U,5)  ;abm*2.6*18 IHS/SD/SDR HEAT235867 and 240919
  .D NARR^ABMDEMLC
  .I $G(ABMZ("SUB"))=17&($P($G(^ABMDPARM(ABMP("LDFN"),1,2)),U,13)="Y")&(($E(ABMP("BTYP"),1,2)=11)!($E(ABMP("BTYP"),1,2)="12")) S ABMZ("DR")=ABMZ("DR")_";.05//"
  .S ABMZ("DR")=ABMZ("DR")_$P(ABMZ("NARR"),U)_+Y
@@ -176,12 +180,25 @@ STUFF ;FILE MULTIPLE
  .S DIC="^ABMDCLM(DUZ(2),"_DA(1)_","_ABMZ("SUB")_","
  .S DIC("DR")=$P(ABMZ("DR"),";",2,99)
  .S DIC(0)="LE"
- .S:$D(ABMZ("DR2")) DIC("DR")=DIC("DR")_ABMZ("DR2")
+ .;S:$D(ABMZ("DR2")) DIC("DR")=DIC("DR")_ABMZ("DR2")  ;abm*2.6*14 ICD10 002F and 002H
+ .;start new code abm*2.6*14 ICD10 002F and 002H
+ .I (ABMZ("SUB")=17) D
+ ..I ($P($$DX^ABMCVAPI(+X,ABMP("VDT")),U,20)=30)&(ABMP("ICD10")<ABMP("VDT")) S DIC("DR")=DIC("DR")_ABMZ("DR2")
+ ..;I ($P($$DX^ABMCVAPI(X,ABMP("VDT")),U,20)=1)&(ABMP("ICD10")>ABMP("VDT")) S DIC("DR")=DIC("DR")_ABMZ("DR2")
+ ..I ($P($$DX^ABMCVAPI(+X,ABMP("VDT")),U,20)'=30)&(ABMP("ICD10")>ABMP("VDT")) S DIC("DR")=DIC("DR")_ABMZ("DR2")
+ ..I ($P($$DX^ABMCVAPI(+X,ABMP("VDT")),U,20)=30) S DIC("DR")=DIC("DR")_";.06////1"
+ .I (ABMZ("SUB")=19) D
+ ..I ($P($$ICDOP^ABMCVAPI(+X,ABMP("VDT")),U,15)=31)&(ABMP("ICD10")<ABMP("VDT")) S DIC("DR")=DIC("DR")_ABMZ("DR2")
+ ..I ($P($$ICDOP^ABMCVAPI(+X,ABMP("VDT")),U,15)'=31)&(ABMP("ICD10")>ABMP("VDT")) S DIC("DR")=DIC("DR")_ABMZ("DR2")
+ ..I ($P($$ICDOP^ABMCVAPI(+X,ABMP("VDT")),U,15)=31) S DIC("DR")=DIC("DR")_";.06////1"
+ .I "^17^19^"'[("^"_ABMZ("SUB")_"^") D
+ ..S:$D(ABMZ("DR2")) DIC("DR")=DIC("DR")_ABMZ("DR2")
+ .;end new code 002F and 002H 
  .S:+$G(ABMZ("NUM"))=0 ^ABMDCLM(DUZ(2),DA(1),ABMZ("SUB"),0)="^9002274.30"_ABMZ("SUB")_"P^^"
  .K DD,DO
  .D FILE^DICN
  .S ABMOIEN=ABMX("Y")  ;abm*2.6*13
- .I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE(ABMOIEN,0)),U)_"^") D OCCURCD  ;for new export mode 35  abm*2.6*13
+ .;I ABMZ("SUB")=51,"^01^11^"[("^"_$P($G(^ABMDCODE(ABMOIEN,0)),U)_"^") D OCCURCD  ;for new export mode 35  abm*2.6*13  ;abm*2.6*14 HEAT165301
 PROV ;
  ;I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43) D  ;abm*2.6*10
  I ABMZ("SUB")=21!(ABMZ("SUB")=23)!(ABMZ("SUB")=27)!(ABMZ("SUB")=35)!(ABMZ("SUB")=37)!(ABMZ("SUB")=39)!(ABMZ("SUB")=43)!(ABMZ("SUB")=47) D  ;abm*2.6*10
@@ -223,16 +240,17 @@ MILEAGE ;
  .I $P($$CPT^ABMCVAPI(ABMX("Y"),ABMP("VDT")),U,2)="A0888" S DR=".129////"_$S(+$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9)=0:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),ABMZ("SUB"),ABMIEN,0)),U,3),1:$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),12)),U,9))  ;CSV-c
  .D ^DIE
  Q
+ ;abm*2.6*14 HEAT165301 removed below code
  ;start new code abm*2.6*13 new export mode
-OCCURCD ;
+ ;OCCURCD ;
  ;populated page3 DATE OF FIRST SYMPTOM if occurrence code 11 is entered
- I ABMZ("SUB")=51 D
- .S ABMP("ACDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U,2)
- .S ABMTEST=$P(^ABMDCODE($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U),0),U)
- .S DIE="^ABMDCLM(DUZ(2),"
- .S DA=ABMP("CDFN")
- .I ABMTEST="01" S DR=".82////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
- .I ABMTEST=11 S DR=".86////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
- .D ^DIE K DR
- Q
+ ;I ABMZ("SUB")=51 D
+ ;.S ABMP("ACDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U,2)
+ ;.S ABMTEST=$P(^ABMDCODE($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),51,ABMOIEN,0)),U),0),U)
+ ;.S DIE="^ABMDCLM(DUZ(2),"
+ ;.S DA=ABMP("CDFN")
+ ;.I ABMTEST="01" S DR=".82////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
+ ;.I ABMTEST=11 S DR=".86////"_$S(+$G(ABMDEL)=1:"@",1:ABMP("ACDT"))
+ ;.D ^DIE K DR
+ ;Q
  ;end new code abm*2.6*13

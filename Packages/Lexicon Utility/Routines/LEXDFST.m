@@ -1,6 +1,12 @@
-LEXDFST ; ISL Default Filter - Semantic Types      ; 09-23-96
- ;;2.0;LEXICON UTILITY;;Sep 23, 1996;Build 15
- ;
+LEXDFST ;ISL/KER - Default Filter - Semantic Types ;04/21/2014
+ ;;2.0;LEXICON UTILITY;**80**;Sep 23, 1996;Build 10
+ ;               
+ ; Global Variables
+ ;    None
+ ;               
+ ; External References
+ ;    ^DIR                ICR  10026
+ ;               
  ; Entry:  S X=$$EN^LEXDFST
  ;
  ; LEXFIL    Filter (executable)

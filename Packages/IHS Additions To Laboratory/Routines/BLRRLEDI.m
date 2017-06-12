@@ -1,6 +1,5 @@
-BLRRLEDI ;cmi/flag/maw - BLR REFERENCE LAB LEDI UTILITIES ;11/14/2012 7:51:37 AM
- ;;5.2;IHS LABORATORY;**1027,1031**;NOV 01, 1997;Build 185
- ;
+BLRRLEDI ;cmi/flag/maw - BLR REFERENCE LAB LEDI UTILITIES ; 02-Nov-2015 13:43 ; MAW
+ ;;5.2;IHS LABORATORY;**1027,1031,1033,1034,1035,1037**;NOV 01, 1997;Build 4
  ;
  ;
 ORD(OR,PAT) ;-- lets create the order stub here
@@ -19,24 +18,66 @@ ACC(AC,OR,PAT,CDT) ;-- add the accession number to the order
  S FI=$O(^BLRRLO("B",OR,0))
  I '$G(FI) S FI=$$ORD(OR,PAT)
  I '$G(FI) Q ""
+ I $P($G(^BLRRLO(FI,0)),U,4)'=PAT Q ""
  S FIENS=FI_","
- S FDA(9009026.33,"+2,"_FIENS,.01)=AC
+ S FDA(9009026.33,"?+2,"_FIENS,.01)=AC
  D UPDATE^DIE("","FDA","FIENS","FERR(1)")
  I $D(FERR(1)) W !,"Error adding accession number "_AC_" to Order "_OR_" in the Reference Lab Order file" Q ""
  Q $G(FI)
  ;
 DX(OR) ;-- lets add/edit diagnosis here
+ ;need to modify this here to look and see if there are diagnosis already here and if so bring them up to modify 
  N ORI
+ K BLRDFLG
  S ORI=$O(^BLRRLO("B",OR,0))
- I $O(^BLRRLO(ORI,1,"B",0)) S BLRDXS=1
+ I $O(^BLRRLO(ORI,1,"B",0)) D
+ . S BLRDXS=1
+ . S BLRDFLG=$$DXV(ORI)
+ I $G(BLRDFLG)]"",$G(BLRDFLG)="D" D DELDX,DX(OR)
+ I $G(BLRDFLG)]"",$G(BLRDFLG)'="A" Q
  S DA(1)=ORI
  S DIC(0)="AELMQZ"
  S DIC("A")="Enter ICD Diagnosis code for billing: "
  S DIC="^BLRRLO("_ORI_",1,"
+ S DIC("DR")="1////"_$G(BLRTS)
  D ^DIC
  Q:Y<0
  S BLRDXS=1
  D DX(OR)  ;allow adding until they ^ out
+ Q
+ ;
+DXV(RI) ;-- display the diagnosis and ask if they want to delete or add
+ N RDA,RCNT,RDATA,RDX
+ S RCNT=0
+ K BLRRLDAT
+ W !,"There are existing Diagnosis attached to this order",!
+ S RDA=0 F  S RDA=$O(^BLRRLO(ORI,1,RDA)) Q:'RDA  D
+ . S RCNT=RCNT+1
+ . S RDATA=$G(^BLRRLO(ORI,1,RDA,0))
+ . S BLRRLDAT(RCNT)=RDA
+ . ;remove comments below for proposed change 1034
+ . I $D(^ICDS(0)) S RDX=$$ICDDX^ICDEX($P(RDATA,U),DT)
+ . I '$D(^ICDS(0)) S RDX=$$ICDDX^ICDCODE($P(RDATA,U),DT)
+ . ;W !,RCNT_") Dx: "_$$GET1^DIQ(80,$P(RDATA,U),.01),?15,"Test: "_$$GET1^DIQ(60,$P(RDATA,U,2),.01)
+ . W !,RCNT_") Dx: "_$P(RDX,U,2),?15,"Text: "_$P(RDX,U,4)
+ K DIR
+ S DIR(0)="S^A:Add a New DX;D:Delete an Existing DX;U:Use existing DX",DIR("A")="Select an Option"
+ S DIR("B")="U"
+ D ^DIR
+ Q:$D(DIRUT) 0
+ Q Y
+ ;
+DELDX ;-- delete an existing dx in the file
+ N DXD,DAT
+ K DIR
+ S DIR(0)="N^1:"_$O(BLRRLDAT(""),-1),DIR("A")="Delete which DX"
+ D ^DIR
+ Q:$D(DIRUT)
+ S DAT=+Y
+ S DA=+$G(BLRRLDAT(DAT))
+ S DIK="^BLRRLO("_ORI_",1,"
+ S DA(1)=ORI
+ D ^DIK
  Q
  ;
 CLIENT(OR,AC) ;client account number
@@ -75,6 +116,7 @@ CLIENTG(OR,AC) ;store client account number (GUI)
  S BLRRLCLA=1
  N FDA,FIENS,FERR,FI
  S FI=$O(^BLRRLO("B",OR,0))
+ Q:$P($G(^BLRRLO(FI,0)),U,3)]""
  S FIENS=FI_","
  S FDA(9009026.3,FIENS,.03)=$G(BLRRL("CLIENT"))
  D FILE^DIE("K","FDA","FERR(1)")
@@ -93,7 +135,7 @@ BTP(OR,BT) ;-- file the bill type
  N FI,FIENS,FDA,FERR
  S FI=$O(^BLRRLO("B",OR,0))
  S FIENS=FI_","
- I $G(BT)-"" S BT="C"
+ I $G(BT)="" S BT="C"
  S FDA(9009026.3,FIENS,.05)=BT
  D FILE^DIE("K","FDA","FERR(1)")
  I $D(FERR(1)) W !,"Error adding bill type "_BT_" to Order "_OR_" in the Reference Lab Order file" Q ""
@@ -101,7 +143,8 @@ BTP(OR,BT) ;-- file the bill type
  ;
 BILL(BTP,OR,AC,CDT) ;-- this is where we ask billing type
  I $G(BLRGUI) D  Q
- .I $G(BLRRL("BILL TYPE"))="" I "CTP"[$G(BLRBT) S BLRRL("BILL TYPE")=BLRBT,BLRINS=1 S BT=$$BTP(OR,BTP) Q
+ .; I $G(BLRRL("BILL TYPE"))="" I "CTP"[$G(BLRBT) S BLRRL("BILL TYPE")=BLRBT,BLRINS=1 S BT=$$BTP(OR,BTP) Q
+ .I $G(BLRRL("BILL TYPE"))="" I $L($G(BLRBT)),"CTP"[$G(BLRBT) S BLRRL("BILL TYPE")=BLRBT,BLRINS=1 S BT=$$BTP(OR,BTP) Q    ; IHS/MSC/MKK - LR*5.2*1034
  .I $G(BLRRL("BILL TYPE"))="" S BLRRL("BILL TYPE")=$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)
  .S:$G(BLRRL("BILL TYPE"))'="" BLRINS=1
  Q:$G(BLRGUI)
@@ -110,13 +153,15 @@ BILL(BTP,OR,AC,CDT) ;-- this is where we ask billing type
  I '$G(CDT) S CDT=DT
  I BTP'="T" D  Q
  . S BT=$$BTP(OR,BTP)
+ K DIR,DIRUT,DTOUT,DUOUT   ; Clear DIR array and special FileMan variables - IHS/MSC/MKK - LR*5.2*1034
  S DIR(0)="S^C:Client;T:Third Party;P:Patient"
  S DIR("A")="Which Party is Responsible for Billing: "
  S DIR("B")=$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)
  D ^DIR
+ I $D(DIRUT) K Y  S Y="C",Y(0)="Client"     ; If user exits or Times Out, reset Y variable - IHS/MSC/MKK - LR*5.2*1034
  S BLRRL("BILL TYPE")=Y(0)
  S BT=$$BTP(OR,$G(Y))
- I $D(DIRUT) S BLRRL("BILL TYPE")="Client"
+ ;I $D(DIRUT) S BLRRL("BILL TYPE")="Client"      ; Comment out line - IHS/MSC/MKK LR*5.2*1034
  K DIR
  I $E(BLRRL("BILL TYPE"),1,1)="T" D
  . S ORI=$O(^BLRRLO("B",OR,0))
@@ -130,28 +175,30 @@ BILL(BTP,OR,AC,CDT) ;-- this is where we ask billing type
 INS(OR,AC,PAT,CD,ED) ;-- lets get a list of selectable insurances for the patient and if set for auto select pick the first one in sequence
  ;we must also setup the BLRRL insurance array and diagnosis array for GIS
  N INSS,BT,BDA,BDAC,BLRRLDA,BLRNUM
+ K AGINS,AGINSNN,AGINSN  ;ihs/cmi/maw 07/24/2013 patch 1033
  S BDAC=0
  S DFN=PAT
  D ^AGINS
- I '$D(AGINS(1)) D  Q
- . W !,"Patient has No Insurance on file, changing Bill Type to Patient"
- . S BT=$$BTP(OR,"P")
+ I '$D(AGINS(1)),$E($G(BLRRL("BILL TYPE")),1,1)="T" D  Q
+ . W !,"Patient has No Insurance on file, changing Bill Type to Client"
+ . S BT=$$BTP(OR,"C")
  I $P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,21) D  Q  ;get flag for insurance
  . W !,"Now applying Sequenced Insurer to Accession"
  . I '$G(CD) S CD=DT
  . D SEQINS(.AGINS,PAT,CD)
  . I '$D(BLRSEQ(1)) D  Q
- .. W !,"Patient Insurance has not been Sequenced, changing Bill Type to Patient"
- .. S BT=$$BTP(OR,"P")
+ .. W !,"Patient Insurance has not been Sequenced, changing Bill Type to Client"
+ .. S BT=$$BTP(OR,"C")
  . S BDA=0 F  S BDA=$O(BLRSEQ(BDA)) Q:'BDA!(BDAC>3)  D
  .. S BDAC=BDAC+1
  .. S INSS=$TR($G(BLRSEQ(BDA)),"^","~")  ;have to switch to ~ for filing
  .. D UPINS(OR,AC,PAT,INSS)
  S BLRRLDA=0 F  S BLRRLDA=$O(AGINS(BLRRLDA)) Q:'BLRRLDA  D
  . S BLRNUM=BLRRLDA
- . W !,BLRRLDA_")"_$P(AGINS(BLRRLDA),U)
+ . W !,BLRRLDA_")"_$P(AGINS(BLRRLDA),U)_$S($P(AGINS(BLRRLDA),U,4)]"":"("_$E($P(AGINS(BLRRLDA),U,4),1,2)_")",1:"")
  . W ?30,"Policy #: "_$P(AGINS(BLRRLDA),U,9)
  . W ?50,"Elg/Exp Date: "_$S($P(AGINS(BLRRLDA),U,5)>0:$$FMTE^XLFDT($P(AGINS(BLRRLDA),U,5)),1:"")_"/"_$S($P(AGINS(BLRRLDA),U,6)>0:$$FMTE^XLFDT($P(AGINS(BLRRLDA),U,6)),1:"")
+ K DIR,DIRUT,DTOUT,DUOUT
  S DIR(0)="N"_$S(ED:"O",1:"")_"^1:"_+$G(BLRNUM),DIR("A")="Select the insurer for this accession: "
  D ^DIR
  Q:$D(DIRUT)
@@ -174,6 +221,7 @@ UPINS(O,A,P,S) ;-- update the entry in the BLR REFERENCE LAB ORDER/ACCESSION fil
  ;
 SEQINS(BINS,PT,RLCDT) ;-- lets go through sequencing insurers
  Q:'$O(BINS(""))
+ K BLRSEQ  ;ihs/cmi/maw 10/07/2013 patch 1033
  N BDA
  S BDA=0 F  S BDA=$O(BINS(BDA)) Q:'BDA  D
  . N BINI,SEQ,POLI

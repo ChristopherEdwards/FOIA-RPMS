@@ -1,5 +1,5 @@
 ABSPECA5 ; IHS/FCS/DRS - Parse Claim Response ;   [ 09/12/2002  9:57 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**1,3,39**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**1,3,39**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;File FDATA() Array Data in Claim Response File (9002313.03)

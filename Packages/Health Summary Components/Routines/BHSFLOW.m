@@ -1,5 +1,5 @@
-BHSFLOW ;IHS/CIA/MGH - Health Summary for Flowsheets ;06-May-2009 12:40;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**2**;March 17, 2006
+BHSFLOW ;IHS/CIA/MGH - Health Summary for Flowsheets ;02-Jan-2014 14:31;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**2,9**;March 17, 2006;Build 16
  ;===================================================================
  ; Taken from APCHS12
  ; IHS/TUCSON/LAB - PART 12 OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;
@@ -59,7 +59,7 @@ PVCH ;IHS/CMI/LAB - now check for dx in past year per Bill and Charlton by pcp
  .;S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($G(^ICD9(BHSCM,0)),U) I BHSCM]"" D CHKCODE
  .N APCHSVDT
  .S APCHSVDT=$P(+V,".")
- .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($$ICDDX^ICDCODE(BHSCM,APCHSVDT),U,2) I BHSCM]"" D CHKCODE
+ .S (D,Y)=0 F  S Y=$O(^AUPNVPOV("AD",V,Y)) Q:Y'=+Y!(D)  S BHSCM=$P($G(^AUPNVPOV(Y,0)),U) I BHSCM S BHSCM=$P($$ICDDX^ICDEX(BHSCM,APCHSVDT),U,2) I BHSCM]"" D CHKCODE
  .Q:'D
  .S Y=$$PRIMPROV^APCLV(V,"F")
  .Q:'Y
@@ -71,7 +71,7 @@ PVCH ;IHS/CMI/LAB - now check for dx in past year per Bill and Charlton by pcp
 FLOWCP ;
  S BHSP=^AUPNPROB(BHSPI,0) Q:$P(BHSP,U,12)'="A"
  ;S BHSCM=$P(^ICD9(+$P(BHSP,U,1),0),U,1)
- S BHSCM=$P($$ICDDX^ICDCODE(+$P(BHSP,U,1),0),U,2) ;code set versioning
+ S BHSCM=$P($$ICDDX^ICDEX(+$P(BHSP,U,1),0),U,2) ;code set versioning
  F BHSCI=0:0 S BHSCI=$O(^APCHSFLC(BHSFDF,2,BHSCI)) Q:'BHSCI  D FLOWCR Q:BHSFOK
  Q
 FLOWCR ;

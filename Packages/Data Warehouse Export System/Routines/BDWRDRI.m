@@ -1,9 +1,10 @@
 BDWRDRI ; IHS/CMI/LAB - INIT FOR DW ;
- ;;1.0;IHS DATA WAREHOUSE;**1,2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**1,2,4**;JAN 23, 2006;Build 24
  ;
 START ;
  D BASICS ;      Set variables like U,DT,DUZ(2) etc.
  D CHKSITE ;     Make sure Site file has correct fields.
+ D CLNADWO ;     Clean out ADWO cross references that have a time stamp
  Q:BDW("QFLG")
  ;
  D:BDWO("RUN")="NEW" ^BDWRDRI2 ;  Do new run initialization.
@@ -37,6 +38,14 @@ CHKSITE ;EP
  I $D(^BDWTMP(X)) W:'$D(ZTQUEUED) !!,"previous DW export not written to host file" S BDW("QFLG")=4 Q
  K ^BDWTMP(X)
  Q
+CLNADWO ;EP cleanup ADWO cross references that are invalid
+ W:'$D(ZTQUEUED) !,"Checking ADWO cross reference for invalid data"
+ N BDWDA,BDWDIEN
+ S BDWDA=0 F  S BDWDA=$O(^AUPNVSIT("ADWO",BDWDA)) Q:'BDWDA  D
+ . S BDWDIEN=0 F  S BDWDIEN=$O(^AUPNVSIT("ADWO",BDWDA,BDWDIEN)) Q:'BDWDIEN  D
+ .. I $L(BDWDA)'=7 K ^AUPNVSIT("ADWO",BDWDA,BDWDIEN) W "."
+ Q
+ ;
 QUEUE ;EP
  K ZTSK
  S DIR(0)="Y",DIR("A")="Do you want to QUEUE this to run at a later time",DIR("B")="N" D ^DIR K DIR S:$D(DUOUT) DIRUT=1

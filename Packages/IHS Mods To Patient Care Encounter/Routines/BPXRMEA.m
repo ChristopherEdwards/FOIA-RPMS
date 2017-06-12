@@ -1,105 +1,88 @@
-BPXRMEA ; IHS/CIA/MGH - Handle measurement findings. ;11-Jan-2012 11:31;MGH
- ;;1.5;CLINICAL REMINDERS;**1001,1003,1004,1008**;Jun 19, 2000;Build 25
- ;COPY OF PXRMMEAS using IHS V Measurement file instead of VA Vitals app
+BPXRMEA ; IHS/MSC/MGH - Handle V Measurement findings. ;08-Nov-2013 12:59;DU
+ ;;2.0;CLINICAL REMINDERS;**1001**;Feb 04, 2005;Build 21
  ;
- ;=======================================================================
-EVALFI(DFN,FIEVAL) ;EP Evaluate vitals/measurement findings.
- ;Use the most recent measurement.
- N FIND0,FIND3,FINDING,MTYPE,INVDATE
- S MTYPE=""
- F  S MTYPE=$O(^PXD(811.9,PXRMITEM,20,"E","AUTTMSR(",MTYPE)) Q:+MTYPE=0  D
- . S INVDATE=$O(^AUPNVMSR("AA",DFN,MTYPE,""))
- . S FINDING=""
- . F  S FINDING=$O(^PXD(811.9,PXRMITEM,20,"E","AUTTMSR(",MTYPE,FINDING)) Q:+FINDING=0  D
- .. S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
- .. S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
- .. D FIEVAL(DFN,MTYPE,INVDATE,FIND0,FIND3,"","",FINDING,.FIEVAL)
+ ;=============================================================
+EVALFI(DFN,DEFARR,ENODE,FIEVAL) ;Evaluate V measurement findings.
+ D EVALFI^PXRMINDX(DFN,.DEFARR,ENODE,.FIEVAL)
  Q
  ;
- ;=======================================================================
-EVALTERM(DFN,FINDING,TERMIEN,TFIEVAL) ;EP Evaluate vitals/measurement terms.
- ;Use the most recent measurement.
- N FIND0,FIND3,MTYPE,TFIND0,TFIND3,TFINDING,INVDATE
- S FIND0=^PXD(811.9,PXRMITEM,20,FINDING,0)
- S FIND3=$G(^PXD(811.9,PXRMITEM,20,FINDING,3))
- S MTYPE=""
- F  S MTYPE=$O(^PXRMD(811.5,TERMIEN,20,"E","AUTTMSR(",MTYPE)) Q:+MTYPE=0  D
- . S INVDATE=$O(^AUPNVMSR("AA",DFN,MTYPE,""))
- . S TFINDING=""
- . F  S TFINDING=$O(^PXRMD(811.5,TERMIEN,20,"E","AUTTMSR(",MTYPE,TFINDING)) Q:+TFINDING=0  D
- .. S TFIND0=^PXRMD(811.5,TERMIEN,20,TFINDING,0)
- .. S TFIND3=$G(^PXRMD(811.5,TERMIEN,20,TFINDING,3))
- .. D FIEVAL(DFN,MTYPE,INVDATE,FIND0,FIND3,TFIND0,TFIND3,TFINDING,.TFIEVAL)
+ ;=============================================================
+EVALPL(FINDPA,ENODE,TERMARR,PLIST) ;Evaluate V measurement findings
+ ;for patient lists.
+ D EVALPL^PXRMINDL(.FINDPA,ENODE,.TERMARR,PLIST)
  Q
  ;
- ;=======================================================================
-FIEVAL(DFN,MTYPE,INVDATE,FIND0,FIND3,TFIND0,TFIND3,FINDING,FIEVAL) ;
- ;Use the most recent measurement.
- N VALID,CONVAL,TEMP,RSLT,VIEN,DATE,ERR,GMRVSTR,IC,IEN,SAVE
- S SAVE=0
- I INVDATE="" S FIEVAL(FINDING)=0 Q
- S IEN=$C(1) F  S IEN=$O(^AUPNVMSR("AA",DFN,MTYPE,INVDATE,IEN),-1) Q:IEN=""!(SAVE=1)  D
- .;Quit if entered in error patch 1008
- .I +$P($G(^AUPNVMSR(IEN,2)),U,1) S FIEVAL(FINDING)=0
- .E  D
- ..S SAVE=1
- ..S TEMP=$G(^AUPNVMSR(IEN,0))
- ..S RSLT=$P(TEMP,U,4)
- ..S VIEN=$P(TEMP,U,3)
- ..S DATE=$P($G(^AUPNVMSR(IEN,12)),U,1)    ;Get date entered
- ..I DATE="" S DATE=$$VDATE^PXRMDATE(VIEN) ;else get visit date
- ..;Save the rest of the finding information.
- ..S FIEVAL(FINDING)=1
- ..S FIEVAL(FINDING,"DATE")=DATE
- ..S FIEVAL(FINDING,"FINDING")=MTYPE_";AUTTMSR(,"
- ..S FIEVAL(FINDING,"SOURCE")=IEN_";AUTTVMSR(,"
- ..S FIEVAL(FINDING,"RATE")=RSLT
- ..S FIEVAL(FINDING,"VALUE")=RSLT
- ..S FIEVAL(FINDING,"VIEN")=VIEN
- ..;If this is being called as part of a term evaluation we are done.
- ..I TFIND0'="" Q
- ..;Determine if the finding has expired.
- ..S VALID=$$VALID^PXRMDATE(FIND0,TFIND0,DATE)
- ..I 'VALID D  Q
- ...S FIEVAL(FINDING)=0
- ...S FIEVAL(FINDING,"EXPIRED")=""
- ..;If there is a condition for this finding evaluate it.
- ..S CONVAL=$$COND^PXRMUTIL(FIND3,TFIND3,RSLT)
- ..I CONVAL'="" D
- ...I CONVAL D
- ....S FIEVAL(FINDING)=CONVAL
- ....S FIEVAL(FINDING,"CONDITION")=CONVAL
- ...E  D
- ....K FIEVAL(FINDING)
- ....S FIEVAL(FINDING)=0
+ ;=============================================================
+EVALTERM(DFN,FINDPA,ENODE,TERMARR,TFIEVAL) ;Evaluate V measurement terms.
+ D EVALTERM^PXRMINDX(DFN,.FINDPA,ENODE,.TERMARR,.TFIEVAL)
  Q
  ;
- ;=======================================================================
-OUTPUT(NLINES,TEXT,FINDING,FIEVAL) ;Produce the clinical
+ ;=============================================================
+GETDATA(DAS,FIEVT) ;Return data, for a specified V measurement entry.
+ N MEADATA,EM,IND,STOP
+ D VMEA^BPXRMPX(.MEADATA,DAS,"I")
+ I $P(MEADATA(1),U,1)=-1 D  Q
+ . S ^TMP("PXRMXMZ",$J,1,0)="Found V MEASURMENT entry "_DAS_" in the index, but not in the V measurement file"
+ . D SEND^PXRMMSG("Bad entry in MeasurementASSOC PROBLEM index.")
+ Q:$D(MEADATA(11))>10
+ S FIEVT("TYPE")=$$EXTERNAL^DILFD(9999999.07,.03,"",MEADATA(3),.EM)
+ S TEMP=$S(+MEADATA(5)'=0:^SC(MEADATA(5),0),1:"")
+ S FIEVT("HOSPITAL LOCATION")=$P(TEMP,U,1)
+ S FIEVT("LOCATION TYPE")=$P(TEMP,U,3)
+ S STOP=$P(TEMP,U,7)
+ I +MEADATA(6) D
+ .S FIEVT("ENTERED BY")=$P(^VA(200,MEADATA(6),0),U,1)
+ S (FIEVT("RATE"),FIEVT("VALUE"))=$P(MEADATA(7),U,1)
+ S IND=0
+ ;Load the external form of the qualifiers.
+ F  S IND=$O(MEADATA(12,IND)) Q:IND=""  D
+ . S TEMP=$P(MEADATA(12,IND),U,1)
+ .I TEMP'="" S FIEVT("QUALIFIER",IND)=$P($G(^GMRD(120.52,+TEMP,0)),U,1)
+ I STOP'="" S FIEVT("STOP CODE")=$P(^DIC(40.7,STOP,0),U,1,2)
+ E  S FIEVT("STOP CODE")=""
+ Q
+ ;
+ ;=============================================================
+MHVOUT(INDENT,IFIEVAL,NLINES,TEXT) ;Produce the MHV output.
+ N EM,FIEN,IND,JND,NAME,NOUT,PNAME,RESULT,TEMP,TEXTOUT,VDATE
+ S FIEN=$P(IFIEVAL("FINDING"),";",1)
+ S TEMP=^AUTTMSR(FIEN,0)
+ S PNAME=$P(TEMP,U,1)
+ S NAME=$$INSCHR^PXRMEXLC(INDENT," ")_"Vital: "_PNAME_" = "
+ S IND=0
+ F  S IND=+$O(IFIEVAL(IND)) Q:IND=0  D
+ . S RESULT=$G(IFIEVAL(IND,"VALUE"))
+ . ;I RESULT'="" S RESULT=$$EXTERNAL^DILFD(9000010.01,.04,"",RESULT,.EM)
+ . S VDATE=IFIEVAL(IND,"DATE")
+ . S TEMP=NAME_RESULT_" ("_$$EDATE^PXRMDATE(VDATE)_")"
+ . D FORMATS^PXRMTEXT(INDENT+2,PXRMRM,TEMP,.NOUT,.TEXTOUT)
+ . F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ S NLINES=NLINES+1,TEXT(NLINES)=""
+ Q
+ ;
+ ;=============================================================
+OUTPUT(INDENT,IFIEVAL,NLINES,TEXT) ;Produce the clinical
  ;maintenance output.
- N DATA,DATE,EM,FIEN,MNAME,MTYPE,RATE,TEMP
- S FIEN=$P(FIEVAL(FINDING,"FINDING"),";",1)
- S DATE=FIEVAL(FINDING,"DATE")
- S RATE=$G(FIEVAL(FINDING,"VALUE"))
- S TEMP=$$EDATE^PXRMDATE(DATE)
- S TEMP=TEMP_" Measurement: "
- S MTYPE=$P(FIEVAL(FINDING,"FINDING"),";",1)
- S MNAME=$$GET1^DIQ(9999999.07,MTYPE,.01,"","","","ERR")
- S TEMP=TEMP_MNAME
- I $L(RATE)>0 D
- . S TEMP=TEMP_"; rate - "
- . S TEMP=TEMP_RATE
- ;Check for abnormal measurement.
- S TEMP=TEMP_$P(DATA,U,12)
- ;If the finding has expired add "EXPIRED"
- I $D(FIEVAL(FINDING,"EXPIRED")) S TEMP=TEMP_" - EXPIRED"
- ;If the finding is false because of the value add the reason.
- I $G(FIEVAL(FINDING,"CONDITION"))=0 S TEMP=TEMP_$$ACTFT^PXRMOPT
+ N EM,FIEN,IND,JND,NOUT,PNAME,RESULT,TEMP,TEXTOUT,VDATE
+ S FIEN=$P(IFIEVAL("FINDING"),";",1)
+ S PNAME=$P(^AUTTMSR(FIEN,0),U,1)
  S NLINES=NLINES+1
- S TEXT(NLINES)=TEMP
- I $D(PXRMDEV) D
- . N UID
- . S UID="MEAS "_MNAME
- . S ^TMP(PXRMPID,$J,PXRMITEM,UID)=TEMP
+ S TEXT(NLINES)=$$INSCHR^PXRMEXLC(INDENT," ")_"Vital: "_PNAME
+ S IND=0
+ F  S IND=+$O(IFIEVAL(IND)) Q:IND=0  D
+ . S VDATE=IFIEVAL(IND,"DATE")
+ . S TEMP=$$EDATE^PXRMDATE(VDATE)
+ . S RESULT=$G(IFIEVAL(IND,"VALUE"))
+ . I RESULT'="" D
+ .. S TEMP=TEMP_" result - "_RESULT
+ .. ;S TEMP=TEMP_$$EXTERNAL^DILFD(9000010.01,.04,"",RESULT,.EM)
+ . D FORMATS^PXRMTEXT(INDENT+2,PXRMRM,TEMP,.NOUT,.TEXTOUT)
+ . F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ . ;I IFIEVAL(IND,"COMMENTS")'="" D
+ . ;S TEMP="Comments: "_IFIEVAL(IND,"COMMENTS")
+ . ;D FORMATS^PXRMTEXT(INDENT+3,PXRMRM,TEMP,.NOUT,.TEXTOUT)
+ . ;F JND=1:1:NOUT S NLINES=NLINES+1,TEXT(NLINES)=TEXTOUT(JND)
+ S NLINES=NLINES+1,TEXT(NLINES)=""
  Q
  ;
+SEVALFI(FILENUM,SNODE,DFN,ITEM,NGET,SDIR,BDT,EDT,NFOUND,FLIST) ;Find data

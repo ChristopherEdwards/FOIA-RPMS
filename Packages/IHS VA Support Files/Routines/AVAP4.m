@@ -1,5 +1,5 @@
 AVAP4 ;IHS/ORDC/LJF - CLEANUP PROVIDER CLASS ENTRIES; [ 05/11/94  2:57 PM ]
- ;;93.2;VA SUPPORT FILES;**4,5,6**;JUL 01, 1993
+ ;;93.2;VA SUPPORT FILES;**4,5,6**;JUL 01, 1993;Build 8
  ;cleanup rtn for patches #4, 5, & 6
  ;
  Q  ;can only execute from line label

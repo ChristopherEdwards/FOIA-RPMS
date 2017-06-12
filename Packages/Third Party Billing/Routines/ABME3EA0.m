@@ -1,5 +1,5 @@
 ABME3EA0 ; IHS/ASDST/DMJ - HFCA-1500 NSF 3.01 EA0 (Claim Record) ;      
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ ;;2.6;IHS 3P BILLING SYSTEM;**14**;NOV 12, 2009;Build 238
  ;Original;DMJ;
  ;
  ; IHS/ASDS/DMJ - 09/06/01 - V2.4 Patch 7 - NOIS HQW-0701-100066
@@ -11,6 +11,7 @@ ABME3EA0 ; IHS/ASDST/DMJ - HFCA-1500 NSF 3.01 EA0 (Claim Record) ;
  ;     Added new block 19 stuff
  ;
  ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - Updated DX^ABMCVAPI call to be numeric
  ;
  ; *********************************************************************
  ;
@@ -64,7 +65,8 @@ LOOP ;LOOP HERE
  Q
 80 ;34-38 Ext Cause OF Accident
  S ABMR(40,80)=$P($G(^ABMDBILL(DUZ(2),ABMP("BDFN"),8)),U,12)
- S:ABMR(40,80) ABMR(40,80)=$P($$DX^ABMCVAPI(ABMR(40,80),ABMP("VDT")),U,2)  ;CSV-c
+ ;S:ABMR(40,80) ABMR(40,80)=$P($$DX^ABMCVAPI(ABMR(40,80),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 updated API call
+ S:ABMR(40,80) ABMR(40,80)=$P($$DX^ABMCVAPI(+ABMR(40,80),ABMP("VDT")),U,2)  ;CSV-c  ;abm*2.6*14 updated API call
  S ABMR(40,80)=$TR(ABMR(40,80),".")
  S ABMR(40,80)=$$FMT^ABMERUTL(ABMR(40,80),5)
  Q

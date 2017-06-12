@@ -1,5 +1,5 @@
-BEHOPTPL ;MSC/IND/DKM - Patient List Management ;16-Feb-2008 17:26;DKM
- ;;1.1;BEH COMPONENTS;**004004**;Mar 20, 2007
+BEHOPTPL ;MSC/IND/DKM - Patient List Management ;15-Sep-2014 22:13;PLS
+ ;;1.1;BEH COMPONENTS;**004004,004010**;Mar 20, 2007
  ;=================================================================
  ; Lookup by full or partial SSN
 LOOKUP(DATA,ID) ;
@@ -35,9 +35,8 @@ DOBLKP(DATA,DOB) ;
  ...S:$$ISACTIVE^BEHOPTCX(DFN,.QUALS) CNT=CNT+1,@DATA@(CNT)=DFN_U_$P(^DPT(DFN,0),U)_U_$$HRN^BEHOPTCX(DFN)_"   "_$$DOB^DPTLK1(DFN)
  Q
  ; Return formatted SSN for patient
-SSN(DFN) N SSN
- S SSN=$$SSN^DPTLK1(DFN)
- Q $S(SSN?9N.1"P":$E(SSN,1,3)_"-"_$E(SSN,4,5)_"-"_$E(SSN,6,10),1:"")
+SSN(DFN) ;EP-
+ Q $$FMTSSN^BEHOPTCX($P($G(^DPT(DFN,0)),U,9))  ;P14
  ; Return a bolus of patient names
 LISTALL(DATA,FROM,DIR,MAX) ;
  N CNT,IEN,MAX,GBL,QUALS,DEMO

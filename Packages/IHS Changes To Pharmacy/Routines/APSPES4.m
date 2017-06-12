@@ -1,5 +1,5 @@
-APSPES4 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;28-Aug-2013 13:04;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1016**;Sep 23, 2004;Build 74
+APSPES4 ;IHS/MSC/PLS - SureScripts HL7 interface - con't;19-Oct-2015 14:30;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1016,1017,1018,1020**;Sep 23, 2004;Build 7
  ; Return array of message data
  ; Input: MIEN - IEN to HLO MESSAGES and HLO MESSAGE BODY files
  ; Output: DATA
@@ -42,10 +42,10 @@ CMP ; Get compound data
  .S STR=$$GET1^DIQ(50,CDRUG,901,"E")
  .D SET(.ARY,STR,5,1)    ;Strength
  .D SET(.ARY,SUNIT,6,1)  ;Strength Units
- .I CNDC'="" D
- ..S RXNORM=$$RXNORM^APSPFNC1(CNDC)
- ..D SET(.ARY,RXNORM,7,1)     ;RxNorm as alt id
- ..D SET(.ARY,"RXNORM",7,3)   ;Code List
+ .;I CNDC'="" D
+ .S RXNORM=$$RXNORDRG^APSPFNC1(DIEN)
+ .D SET(.ARY,RXNORM,7,1)     ;RxNorm as alt id
+ .D SET(.ARY,"RXNORM",7,3)   ;Code List
  .S RXCOM=$$ADDSEG^HLOAPI(.HLST,.ARY)
  Q
 AL1 ;EP Send an AL1 segment
@@ -73,14 +73,22 @@ AL1 ;EP Send an AL1 segment
  Q
  ; Create DG1 segment
 DG1 ;EP
- N CICODE,CITXT,DG1
+ N CICODE,CITXT,DG1,ICDNAME,ICDTYPE,Z
  S CICODE=$$GET1^DIQ(52,RXIEN,9999999.22)  ; Clinical Indicator code
  Q:'$L(CICODE)
+ S CICODE=$P(CICODE,";")  ;P1020 - use first ICD
  D SET(.ARY,"DG1",0)
  D SET(.ARY,"1",1)
  D SET(.ARY,CICODE,3)
- D SET(.ARY,$$GET1^DIQ(52,RXIEN,9999999.21),3,2)  ; Clinical Indicator text
- D SET(.ARY,"I9",3,3)  ; Name of coding system
+ I $$AICD D
+ .S Z=$$ICDDX^ICDEX(CICODE,DT)
+ .S ICDNAME=$P(Z,U,4)
+ .S ICDTYPE=$S($P(Z,U,20)=1:"I9",$P(Z,U,20)=30:"I10",1:"")
+ E  D
+ .S ICDNAME=$P($$ICDDX^ICDCODE(CICODE,DT),U,4)
+ .S ICDTYPE="I9"
+ D SET(.ARY,ICDNAME,3,2)  ; Clinical Indicator text
+ D SET(.ARY,ICDTYPE,3,3)  ; Name of coding system
  D SET(.ARY,"RX",6)  ; Diagnosis type - Prescription (RX)
  S DG1=$$ADDSEG^HLOAPI(.HLST,.ARY)
  Q
@@ -229,6 +237,11 @@ CHKDRG(MSGIEN,RXIEN) ;Check the drug
  S DRG=$P($G(^PSRX(RXIEN,0)),U,6)
  S RXOI=$$FNDOI(DRG)
  Q $S(RXOI=HLOI:RXOI,1:0)
+ ; APSPES4 SNDE900 RPC Support
+SNDE900(RET,RRIEN) ;EP-
+ D ERR900($P(RRIEN,":",2),"Request has already been viewed.")
+ S RET=1
+ Q
  ; Send error message back
 ERR900(RR,MSGTXT) ;EP-
  N PARMS,ACK,ERR,HLMSGIEN,HLMSTATE,ACT,SEG
@@ -363,17 +376,23 @@ BADORP ; EP - Send bulletin regarding bad ORP acknowledgement message
  ; Input: RXN = IEN to Prescription File
  ;        MSG = Main message
  ;      ALRTD = Alert data
-NOTIF(RXN,MSG,ALRTD) ;EP
- N DFN,PNAM,PVDIEN,RET
+ ;        DFN = Patient IEN (optional)
+ ;     PVDIEN = Provider to received notification (optional)
+ ;       OIEN = Order File IEN
+NOTIF(RXN,MSG,ALRTD,DFN,PVDIEN) ;EP
+ N PNAM,RET
  N XQA,XQAID,XQADATA,XQAMSG
- S DFN=+$$GET1^DIQ(52,RXN,2,"I")
- S PNAM=$E($$GET1^DIQ(52,RXN,2)_"         ",1,9)
+ S:'$G(DFN) DFN=+$$GET1^DIQ(52,$G(RXN),2,"I")
+ Q:'DFN
+ S PNAM=$E($$GET1^DIQ(2,DFN,.01)_"         ",1,9)
  S XQAMSG=PNAM_" "_"("_$$HRC^APSPFUNC(DFN)_")"
- S PVDIEN=$$GET1^DIQ(52,RXN,4,"I")  ;TODO - change to Entering Person?
+ S:'$G(PVDIEN) PVDIEN=$$GET1^DIQ(52,RXN,4,"I")  ;TODO - change to Entering Person?
  Q:'PVDIEN
  S XQA(PVDIEN)=""
  S XQAMSG=XQAMSG_$G(MSG)
  S XQAID="OR"_","_DFN_","_99003
- S XQADATA=$$GET1^DIQ(52,RXN,39.3,"I")_"@"_$G(ALRTD)
+ S XQADATA=$$GET1^DIQ(52,$G(RXN),39.3,"I")_"@"_$G(ALRTD)
  D SETUP^XQALERT
  Q
+AICD() ;EP
+ Q $S($$VERSION^XPDUTL("AICD")="4.0":1,1:0)

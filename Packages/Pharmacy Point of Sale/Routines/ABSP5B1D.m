@@ -1,5 +1,5 @@
 ABSP5B1D ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for 5.1 (DURR,CLINICAL,COMPOUND, and COUPON segments)
- ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42,43**;JUN 21, 2001;Build 15
 DURRPPS ;EP CALLED FROM ABSP5B1 to set up DURR/PPS SEGMENT  (Repeating Fields Segment treated Differently)
  Q:$D(SUPRESSG("DURR/PPS"))
  N RECCNT,DUR

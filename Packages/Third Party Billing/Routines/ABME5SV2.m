@@ -1,6 +1,7 @@
 ABME5SV2 ; IHS/ASDST/DMJ - 837 SV2 Segment 
- ;;2.6;IHS Third Party Billing System;**6,8,9**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing System;**6,8,9,10,20**;NOV 12, 2009;Build 317
  ;Transaction Set Header
+ ;IHS/SD/SDR - 2.6*20 - HEAT262141 - Made units print 1 and nothing in SV02 for AZ Medicaid visit type 997 pharmacy
  ;
 EP ;EP
  K ABMREC("SV2"),ABMR("SV2")
@@ -39,9 +40,15 @@ LOOP ;LOOP HERE
  ..S $P(ABMR("SV2",30),":",J)=$P(ABMRV(ABMI,ABMJ,ABMK),U,I)
  .;SV202-7 Description (Not used)
  I $P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)'="" S $P(ABMR("SV2",30),":",7)=$P($G(ABMRV(ABMI,ABMJ,ABMK)),U,39)  ;abm*2.6*9 NARR
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999,(ABMP("VTYP")=997) S ABMR("SV2",30)=""  ;abm*2.6*20 IHS/SD/SDR HEAT262141
  Q
 40 ;SV203 - Monetary Amount (Charges)
  S ABMR("SV2",40)=$P(ABMRV(ABMI,ABMJ,ABMK),U,6)
+ ;start new code abm*2.6*10 COB billing
+ I ABMPSQ'=1,$D(ABMP("FLAT")) D
+ .I ABMPSQ'=1,(+$P(ABMB2,U,3)'=0) S ABMR("SV2",40)=$P(ABMB2,U,3)
+ .I ABMPSQ'=1,(+$P(ABMB2,U,7)>+$P(ABMB2,U,3)) S ABMR("SV2",40)=+$P(ABMB2,U,7)
+ ;end new code COB billing
  S ABMR("SV2",40)=$$TRIM^ABMUTLP($J(ABMR("SV2",40),0,2),"L","0")
  Q
 50 ;SV204 - Unit or Basis for Measurement Code
@@ -50,6 +57,7 @@ LOOP ;LOOP HERE
  Q
 60 ;SV205 - Quantity
  S ABMR("SV2",60)=$P(ABMRV(ABMI,ABMJ,ABMK),U,5)
+ I $$RCID^ABMERUTL(ABMP("INS"))=99999,(ABMP("VTYP")=997) S ABMR("SV2",60)=1  ;abm*2.6*20 IHS/SD/SDR HEAT262141
  Q
 70 ;SV206 - Unit Rate
  S ABMR("SV2",70)=""

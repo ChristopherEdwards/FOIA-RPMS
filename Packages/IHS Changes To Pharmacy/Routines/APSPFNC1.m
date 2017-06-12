@@ -1,5 +1,5 @@
-APSPFNC1 ;IHS/CIA/DKM/PLS - Supporting calls for EHR and Pharmacy;15-Apr-2013 22:22;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1016**;Sep 23, 2004;Build 74
+APSPFNC1 ;IHS/CIA/DKM/PLS - Supporting calls for EHR and Pharmacy;12-Mar-2014 16:06;DU
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1004,1006,1016,1017,1018**;Sep 23, 2004;Build 21
  ;=================================================================
  ; RPC: APSPFNC GETRXS
  ; Fetch list of current prescriptions
@@ -180,9 +180,59 @@ ACTLOG(DATA,RX) ;EP
  .S DATA(CNT)=AIEN_U_A0
  Q
  ; Return RXNORM value for associated NDC
-RXNORM(NDC) ;EP-
- N RXNORM
+ ; Patch 1017 changed to use Apelon lookup for RxNorm code
+RXNORM(NDC,FLG) ;EP-
+ N RXNORM,IN,ZDATA
+ S RXNORM="",FLG=$G(FLG)
  S NDC=$TR($G(NDC),"-","")
  Q:NDC="" ""
- S RXNORM=$O(^C0CRXN(176.002,"NDC",NDC,0))
- Q $$GET1^DIQ(176.002,RXNORM,.01)
+ S IN=NDC_"^N"
+ S ZDATA=$$DI2RX^BSTSAPI(IN)
+ S RXNORM=$P(ZDATA,U,1)
+ I FLG S RXNORM=RXNORM_U_$P(ZDATA,U,5)
+ Q RXNORM
+ ;Patch 1017 Return RXNORM value for indicated drug
+ ;Check the drug file or else lookup in Apelon tool
+RXNORDRG(DRUG) ;EP -
+ N RXNORM
+ S RXNORM=""
+ ;S RXNORM=$$GET1^DIQ(50,DRUG,9999999.27)
+ I RXNORM="" S RXNORM=$$SQUERY^APSPRCUI(DRUG,1)
+ Q RXNORM
+GETNDC(DRUG,PICKUP) ;EP -
+ N NDC
+ Q:PICKUP="" ""
+ S NDC=$S(PICKUP="E":$$NAT(DRUG),PICKUP="P":$$NAT(DRUG),1:$$LOCAL(DRUG))
+ Q NDC
+LOCAL(DRG) ;Use drug NDC code
+ N NDC
+ S NDC=$$NDCFMT^PSSNDCUT($$GET1^DIQ(50,DRG,31)) I NDC'="" Q NDC
+ ; - National Drug File NDC
+ S NDC=$$NDC^APSPES4(DRG) S NDC=$$NDCFMT^PSSNDCUT(NDC)
+ Q NDC
+NAT(DRG) ;Use national NDC code
+ N NDC,NDF
+ ; - National Drug File NDC
+ S NDC=$$NDC^APSPES4(DRG) S NDC=$$NDCFMT^PSSNDCUT(NDC) I NDC'="" Q NDC
+ S NDC=$$NDCFMT^PSSNDCUT($$GET1^DIQ(50,DRG,31))
+ Q NDC
+ ; Return Dispense SIG in RXD segment of APSP REFILL REQUEST entry
+SSDSIG(REFREQ) ;EP-
+ N HLECH,DEL,I
+ S HLECH="^~\&"
+ F I=1:1:4 D
+ .S HLECH(I)=$E(HLECH,I)
+ S DEL="|"
+ S HLMSG=$$GHLDAT^APSPESG1(REFREQ)
+ Q:'$L(HLMSG) ""
+ Q $P($P($$GETSEG^APSPESG(.HLDATA,"RXD"),DEL,10),HLECH(1),1)
+ ; Return Notes to Pharmacist in RXD segment of APSP REFILL REQUEST entry
+SSDNTP(REFREQ) ;EP-
+ N HLECH,DEL,I
+ S HLECH="^~\&"
+ F I=1:1:4 D
+ .S HLECH(I)=$E(HLECH,I)
+ S DEL="|"
+ S HLMSG=$$GHLDAT^APSPESG1(REFREQ)
+ Q:'$L(HLMSG) ""
+ Q $P($P($$GETSEG^APSPESG(.HLDATA,"RXD"),DEL,16),HLECH(1),2)

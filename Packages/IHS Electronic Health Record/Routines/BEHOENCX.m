@@ -1,5 +1,5 @@
-BEHOENCX ;MSC/IND/DKM - Encounter Context Support ;12-Aug-2013 13:09;DU
- ;;1.1;BEH COMPONENTS;**005003,005004,005007,005010**;Sep 18, 2007;Build 1
+BEHOENCX ;MSC/IND/DKM - Encounter Context Support ;27-May-2014 14:53;DU
+ ;;1.1;BEH COMPONENTS;**005003,005004,005007,005010,005011**;Sep 18, 2007;Build 1
  ;=================================================================
  ; RPC: Fetch visit data given visit file IEN
  ; Returns hosp loc^visit date^service category^dfn^visit id^locked
@@ -223,15 +223,17 @@ INPLOC(DATA,FROM,DIR,MAX) ;EP
  ;  LOC = If not specified, return all locations and all active appointments
  ;        If <0, return all locations and all appointments (except checked-in)
  ;        If >0, return only specified location and only active appointments
- ;SCEXC = Contains service category types to exclude (defaults to HXI)
+ ;  SCEXC = Contains service category types to exclude (defaults to HXI)
+ ;  IGPFLG = Ignore pending check-in appointments
  ; .DATA= List of results in format:
  ;        VSTR^LOCNAME^DATE^STATUS^LOCKED^PRV^PRVNM^STANDALONE
-VISITLST(DATA,DFN,BEG,END,LOC,SCEXC) ;EP
+VISITLST(DATA,DFN,BEG,END,LOC,SCEXC,IGPFLG) ;EP
  N VAERR,VASD,CNT,IDT,IDT2,STS,DTM,LOCNAM,LOCIEN,VSTR,IEN,LP,XI,XE,X
  S CNT=0,DATA=$$TMPGBL^CIAVMRPC,LOC=+$G(LOC)
  S SCEXC=$G(SCEXC,"X")  ;p9 removed H, p12 removed I
  S:'$G(BEG) BEG=$$DTSTART
  S:'$G(END) END=$$DTSTOP+.9
+ S:'$G(IGPFLG) IGPFLG=0
  ; Return list of visits for a patient
  S IDT2=9999999-(BEG\1)+.9,IDT=9999999-(END\1)
  F  Q:'IDT!(IDT>IDT2)  D  S IDT=$O(^AUPNVSIT("AA",DFN,IDT))
@@ -248,6 +250,7 @@ VISITLST(DATA,DFN,BEG,END,LOC,SCEXC) ;EP
  ..I X="I"&(+LOCIEN>0) S CNT=CNT+1,@DATA@(-DTM,CNT)=VSTR_U_LOCNAM_U_DTM_U_STS_U_$$ISLOCKED(IEN)_U_PRV_U_'$D(^SCE("AVSIT",IEN))
  ..E  S:SCEXC'[X CNT=CNT+1,@DATA@(-DTM,CNT)=VSTR_U_LOCNAM_U_DTM_U_STS_U_$$ISLOCKED(IEN)_U_PRV_U_'$D(^SCE("AVSIT",IEN))
  Q:LOC>0
+ Q:IGPFLG>0
  ; Get appointments pending check-in
  S VASD("F")=$S(LOC<0:BEG,BEG<DT:DT,1:BEG)
  S VASD("T")=END
@@ -364,4 +367,8 @@ DTSTOP() ;EP
 ENINQ(DATA,VIEN) ;
  S DATA=$$TMPGBL^CIAVMRPC
  D CAPTURE^CIAUHFS($TR($$GET^XPAR($$ENT^CIAVMRPC("BEHOENCX DETAIL REPORT"),"BEHOENCX DETAIL REPORT"),"~",U),DATA,80)
+ Q
+ ; Return boolean value represent if location is linked to stop code.
+ISSTOPCD(DATA,LOCIEN,STOPCODE) ;EP-
+ S DATA=$$GET1^DIQ(40.7,$$GET1^DIQ(44,LOCIEN,8,"I"),1)=STOPCODE
  Q

@@ -1,5 +1,5 @@
 ABSPECA2 ; IHS/FCS/DRS - Assemble formatted claim ;  [ 09/12/2002  9:57 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Put together ascii formatted record via NCPDP Record definition

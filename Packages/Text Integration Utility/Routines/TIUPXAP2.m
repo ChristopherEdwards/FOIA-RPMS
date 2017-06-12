@@ -1,5 +1,5 @@
-TIUPXAP2 ; SLC/JER - More code for the workload capture ;12/4/02@07:54:52 [9/13/04 11:25am]
- ;;1.0;TEXT INTEGRATION UTILITIES;**20,67,82,107,126,124,149,179**;Jun 20, 1997
+TIUPXAP2 ; SLC/JER - More code for the workload capture ;12/4/02@07:54:52 [1/18/05 9:27am]
+ ;;1.0;TEXT INTEGRATION UTILITIES;**20,67,82,107,126,124,149,179,190**;Jun 20, 1997;Build 1
 TEST ; Test the PXAPI Data Capture dialogs
  N CPT,DFN,ICD,ICDARR,CPTARR,SC,DTOUT,TIU,TIUOK
  S DFN=+$$PATIENT^TIULA
@@ -170,9 +170,12 @@ CHKWKL(TIUDA,TIUDPRM) ;Check if workload data should be entered
  S TIUARRAY(2)=TIUHL
  S TIUARRAY(4)=TIUDFN
  S TIUARRAY("SORT")="P"
- S TIUARRAY("FLDS")="2;3;10;12;22"
+ S TIUARRAY("FLDS")="22"
+ S TIUARRAY("MAX")=1
  S TIUCNT=$$SDAPI^SDAMA301(.TIUARRAY)
+ I TIUCNT=-1 K ^TMP($J,"SDAMA301") Q +$G(TIUWKLF)
  S STATUS=+$P($G(^TMP($J,"SDAMA301",TIUDFN,TIUEDT)),U,22)
+ K ^TMP($J,"SDAMA301")
  ;Check the status of the appointment.  If the appointment can be
  ;checked-out, workload can be entered.
  I $D(^SD(409.63,"ACO",1,STATUS)) S TIUWKLF=1

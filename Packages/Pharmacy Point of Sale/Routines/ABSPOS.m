@@ -1,5 +1,5 @@
 ABSPOS ; IHS/FCS/DRS - Table of Contents, etc ;        
- ;;1.0;PHARMACY POINT OF SALE;**11**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**11**;JUN 21, 2001;Build 15
  ;---------------------------------------------------------
  ;IHS/SD/lwj 10/05/04 patch 11
  ; the location of the status field within the prescription

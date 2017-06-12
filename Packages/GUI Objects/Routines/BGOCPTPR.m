@@ -1,5 +1,5 @@
-BGOCPTPR ; IHS/BAO/TMD - CPT PREFERENCES MANAGER ;05-Feb-2008 11:28;DKM
- ;;1.1;BGO COMPONENTS;**1,3,5**;Mar 20, 2007
+BGOCPTPR ; IHS/BAO/TMD - CPT PREFERENCES MANAGER ;13-Jul-2015 09:16;MGH
+ ;;1.1;BGO COMPONENTS;**1,3,5,14,15**;Mar 20, 2007
  ; Validates a CPT code
 VALIDATE(RET,IEN,CODE) ;EP
  I 'IEN,$G(CODE)'="" D
@@ -47,7 +47,9 @@ GETITEMS(RET,INP) ;EP
  .S VPX=0
  .F  S VPX=$O(^AUPNVCPT("AD",VIEN,VPX)) Q:'VPX  D
  ..S I=$G(^AUPNVCPT(VPX,0))
- ..S:$L(I) VPX(+I,+$P(I,U,4))=VPX
+ ..;IHS/MSC/MGH changed p15 because of items with no display text
+ ..;S:$L(I) VPX(+I,+$P(I,U,4))=VPX
+ ..S:$L(I) VPX(+I)=VPX
  S (CNT,RANK)=0
  S I=$P($G(^AUPNVSIT(+VIEN,0)),U,6)
  S:'I I=+$G(DUZ(2))
@@ -83,7 +85,7 @@ GP1 N N0,CPTIEN,TXT,CPT,PX,FEE,ADA,FREQVAL,ASSOC
  S ASSOC=''$O(^BGOCPTPR(CAT,1,IEN,1,1))
  S:FREQ RANK=RANK+1
  S CNT=CNT+1
- S @RET@(CNT)=CPTIEN_U_CPT_U_PX_U_TXT_U_FREQVAL_U_$G(VPX(CPTIEN,TXT(0)))_U_FEE_U_$TR($J(RANK,4,0)," ",0)_U_IEN_U_ASSOC_U_LONG
+ S @RET@(CNT)=CPTIEN_U_CPT_U_PX_U_TXT_U_FREQVAL_U_$G(VPX(CPTIEN))_U_FEE_U_$TR($J(RANK,4,0)," ",0)_U_IEN_U_ASSOC_U_LONG
  Q
  ; Return list of managers associated with a specified category
 GETMGRS(RET,CAT) ;EP
@@ -98,6 +100,13 @@ SETCAT(RET,INP) ;EP
  ;  INP = Category IEN [1] ^ CPT IEN [2] ^ Display Text [3] ^ Delete [4] ^ CPT Code [5] ^ Frequency [6] ^
  ;        Allow Dups [7] ^ Item IEN [8]
 SETITEM(RET,INP) ;EP
+ ;IHS/MSC/MGH P14 don't import inactive codes
+ N CPTDATA,CPT,CPTIEN
+ S CPT=$P(INP,U,5)
+ I CPT'="" D
+ .S CPTIEN=$$CODEN^ICPTCOD(CPT)
+ .S CPTDATA=$$CPT^ICPTCOD(CPTIEN,$$NOW^XLFDT)
+ .I '$P(CPTDATA,U,7) S RET="-1^CPT "_CPT_" is inactive and will not be stored" Q
  D SETITEM^BGOPFUTL(.RET,INP,90362.31)
  Q
  ; Add or remove a manager from a category

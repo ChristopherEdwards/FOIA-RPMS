@@ -1,6 +1,7 @@
-ORWDX2 ; SLC/JM/AGP - Order dialog utilities ;11/09/2006
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**246,243**;Dec 17, 1997;Build 242
+ORWDX2 ; SLC/JM/AGP - Order dialog utilities ;20-Jun-2014 09:43;DU
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**246,243,1013**;Dec 17, 1997;Build 242
  ;Per VHA Directive 2004-038, this routine should not be modified.
+ ;IHS/MSC/MGH Modified XROOT for ICD codes for ICD-10 Patch 1013
  ;
  Q
  ;
@@ -16,23 +17,41 @@ EXTVAL(IVAL,DLG) ; External value given a dlg ptr
  Q $$EXT^ORCD(DLG,1)  ; all others
  ;
 XROOT ; Part of LOADRSP^ORWDX - moved here because of routine size
- N CHKDOSE,DOSE,INSTR
+ N CHKDOSE,DOSE,INSTR,SAVCLIN,SAVSNO
+ S SAVCLIN="",SAVSNO=""
  S (ILST,I)=0,CHKDOSE=$$CHKDOSES
+ S CNT=0
  F  S I=$O(@ROOT@(I)) Q:I'>0  D
  . S DLG=$P(@ROOT@(I,0),U,2),INST=$P(^(0),U,3)
+ . Q:'DLG
  . S ID=$P($G(^ORD(101.41,DLG,1)),U,3)
  . I '$L(ID) S ID="ID"_DLG
  . S VAL=$G(@ROOT@(I,1))
+ . S CNT=CNT+1
  . I $P($G(^ORD(101.41,DLG,0)),U)="OR GTX ADDITIVE" S ID="ADDITIVE"
  . I $E(RSPID)="C",(ID="START"),VAL Q  ; skip literal start time on copy
+ . I $P($G(^ORD(101.41,DLG,0)),U)="OR GTX CLININD2" S SAVCLIN="~"_DLG_U_INST_U_ID Q   ;IHS/MSC/MGH Patch 1013
  . S LST($$NXT)="~"_DLG_U_INST_U_ID
  . I $L(VAL) D
  .. S LST($$NXT)="i"_VAL,LST($$NXT)="e"_$$EXTVAL(VAL,DLG)
  .. I CHKDOSE D DOSEINFO
+ . I $P($G(^ORD(101.41,DLG,0)),U)="OR GTX SNMDCNPTID" S SAVSNO=VAL  ;IHS/MSC/MGH Patch 1013
  . I $D(@ROOT@(I,2))>1 D
  .. I $E(RSPID)?1U,'$G(TRANS),ID="COMMENT",'$$DRAFT(RSPID) D FORMID^ORWDX(.X,+$E(RSPID,2,99)) Q:X=140
  .. S J=0 F  S J=$O(@ROOT@(I,2,J)) Q:J'>0  D
  ... S LST($$NXT)="t"_$G(@ROOT@(I,2,J,0))
+ ;IHS/MSC/MGH Patch 1013 changes
+ I SAVSNO'="" D
+ .S ^TMP("MGH","SNO")=SAVSNO
+ .S VAL=$P($$CONC^BSTSAPI(SAVSNO_"^^^1"),U,5)
+ .I SAVCLIN="" D
+ ..S DLG=$O(^ORD(101.41,"B","OR GTX CLININD2",""))
+ ..S ID=$P($G(^ORD(101.41,DLG,1)),U,3)
+ ..S INST=1
+ ..S LST($$NXT)="~"_DLG_U_INST_U_ID
+ .E  S LST($$NXT)=SAVCLIN
+ .S LST($$NXT)="i"_VAL,LST($$NXT)="e"_VAL
+ ;END MOD
  I CHKDOSE D FIXDOSES
  I $E(ROOT,1,4)="^TMP" K ^TMP("ORWDXMQ",$J)
  Q
@@ -72,8 +91,8 @@ FIXDOSES ; Update doses for those saved before PSS*1*78 was installed
  ... F IDX=0:1:1 D
  .... S $P(LST(DOSE(IIDX)+IDX),"&",5)=NEWDOSE
  Q
- ;       
-DCREASON(LST)   ; Return a list of DC reasons
+ ;
+DCREASON(LST) ; Return a list of DC reasons
  N ARRAY,CNT,ERROR,IEN,ILST,NAME,SEQARR,X
  S ILST=1,LST(ILST)="~DCReason"
  S IEN=0 F  S IEN=$O(^ORD(100.03,IEN)) Q:'IEN  S X=^(IEN,0) D

@@ -1,5 +1,7 @@
-TIUFD2 ; SLC/MAM - LM Template D (Display) Action Edit Basics ;5/1/97  21:36
- ;;1.0;TEXT INTEGRATION UTILITIES;**13,64**;Jun 20, 1997
+TIUFD2 ; SLC/MAM - LM Template D (Display) Action Edit Basics ;02/16/06
+ ;;1.0;TEXT INTEGRATION UTILITIES;**13,64,211**;Jun 20, 1997;Build 26
+ ;
+ ;*** INCLUDES JOEL'S MODS FOR VUID PATCH ***
  ;
 EDBASICS ; Template D (Display) Action Edit Basics
  ; Requires TIUFTMPL.
@@ -24,7 +26,7 @@ EDBASICS ; Template D (Display) Action Edit Basics
  L +^TIU(8925.1,FILEDA):1 I '$T W !!," Another user is editing this entry.",! H 2 G EDBAX
  S PFILEDA=+$O(^TIU(8925.1,"AD",FILEDA,0))
  D  G:'$D(FIELDS)!$D(DTOUT) EDBAX
- . S ALLFLDS=";.01;.02;.03;.04;.05;.06;.07;.1;.13;3.02;3.03;"
+ . S ALLFLDS=";.01;.02;.03;"_$S(TYPE="DOC":"1501;",1:"")_".04;.05;.06;.07;.1;.13;3.02;3.03;"
  . I $P(NODE0,U,10),'$$PERSOWNS^TIUFLF2(FILEDA,DUZ) S FIELDS=";.05;.06;" W !!," Edit Owner only: only an Owner can edit a Shared Component.",! Q
  . ; Natl entry, nonnat user => protocol screens out all except titles;
  . ;edit status & abbrev only, quit:
@@ -48,7 +50,7 @@ EDBASICS ; Template D (Display) Action Edit Basics
  . . I TIUFWHO="N" S FIELDS=FIELDS_"3.02;"
  . . W !!,MSG
  . I $P(NODE0,U,10),'$$CANEDIT^TIUFLF6(FILEDA) S FIELDS=";.05;.06;" W !!," Edit Owner only: Shared Component with parent that isn't Inactive" Q
- . I TIUFWHO="C" S FIELDS=";.02;.03;.05;.06;.07;" Q
+ . I TIUFWHO="C" S FIELDS=";.02;.03;"_$S(TYPE="DOC":"1501;",1:"")_";.05;.06;.07;" Q
  . I TYPE="O" S FIELDS=";.01;.02;.03;.05;.06;.07;3.02;" Q
  . S FIELDS=ALLFLDS
  D ASKFLDS^TIUFLF1(FILEDA,FIELDS,PFILEDA,.NEWSTAT) G:$D(DTOUT) EDBAX

@@ -1,6 +1,6 @@
-CIANBUTL ;MSC/IND/DKM - MSC RPC Broker Utilities ;09-Jul-2008 10:37;PLS
- ;;1.1;CIA NETWORK COMPONENTS;**001007**;Sep 18, 2007
- ;;Copyright 2000-2008, Medsphere Systems Corporation
+CIANBUTL ;MSC/IND/DKM/PLS - MSC RPC Broker Utilities ;15-Oct-2015 08:51;PLS
+ ;;1.1;CIA NETWORK COMPONENTS;**001007,001011,001012**;Sep 18, 2007
+ ;;Copyright 2000-2015, Medsphere Systems Corporation
  ;=================================================================
  ; Cleanup stray global nodes
 CLEANUP ;EP
@@ -80,8 +80,8 @@ PARAM(PAR,MIN,MAX) ;EP
  ; Return free resource device
 RESDEV() ;EP
  N RD,MX,SL,UID,X,C
- S MX=$$PARAM("CIANB RESOURCE DEVICE COUNT",1,20)
- S SL=$$PARAM("CIANB RESOURCE DEVICE SLOTS",1,20)
+ S MX=$$PARAM("CIANB RESOURCE DEVICE COUNT",1,40)
+ S SL=$$PARAM("CIANB RESOURCE DEVICE SLOTS",1,40)
  F  Q:'$$NXTUID(.UID)  D
  .S RD=$$GETVAR("RDEV",,,UID)
  .S:RD RD(RD)=$G(RD(RD))+1
@@ -92,7 +92,7 @@ RESDEV() ;EP
  ; Set maximum slots for resource devices
 SETSLOTS(CNT) ;EP
  N RES,IEN,FDA,X,Y
- Q:CNT<2!(CNT>20)
+ Q:CNT<2!(CNT>40)
  D FIND^DIC(3.5,,"@","UP","CIANB THREAD RESOURCE #",,"B")
  F RES=0:0 S RES=$O(^TMP("DILIST",$J,RES)) Q:'RES  S IEN=+$G(^(RES,0)) D:IEN
  .S FDA(3.5,IEN_",",35)=CNT

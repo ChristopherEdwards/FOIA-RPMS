@@ -1,5 +1,5 @@
 BQITDUTL ;APTIV/HC/ALA-Diagnostic Tag Utilities ; 25 Feb 2008  2:30 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
 CMP(BQIDFN,BQITAG) ;EP - Compare data
  NEW BQIFN,BQIFAC,BQIDID,BQIRN,BQIREC,BQIRDT,BQIREX,BQIIEN,ADD
@@ -71,7 +71,7 @@ NCR(BQIDFN,BQITAG) ;EP - If no criteria found, check if patient is already
  . ; If CVD At Risk not met criteria but exists and higher hierarchy is not active, it
  . ; needs to go back to 'Accepted' status because user had manually entered or met with
  . ; original DOB and the DOB has been modified
- . I BQITAG=9,HOK,$P(HOK,U,3)'=1 D EN^BQITDPRC(.TGDATA,BQIDFN,BQITAG,"A",,"SYSTEM UPDATE",5) Q
+ . ;I BQITAG=9,HOK,$P(HOK,U,3)'=1 D EN^BQITDPRC(.TGDATA,BQIDFN,BQITAG,"A",,"SYSTEM UPDATE",5) Q
  . D EN^BQITDPRC(.TGDATA,BQIDFN,BQITAG,"V",,"SYSTEM UPDATE",3)
  Q
  ;
@@ -206,3 +206,22 @@ ORG(BQIDFN,BQIREG) ;EP - On register
  I PSTAT="" Q RESULT
  I PSTAT'="A" Q RESULT
  Q 1
+ ;
+FDX(BQDFN,TAX,POV) ;EP - First Diagnosis
+ NEW TREF,N,RESULT,VIS,VSDTM,IEN,DATE,RES
+ S TREF=$NA(^TMP($J,"BQIFDX")) K @TREF
+ I $G(TAX)'="" D BLD^BQITUTL(TAX,.TREF)
+ I $G(TAX)="",$G(POV)'="" S @TREF@(POV)=$$CODEC^ICDCODE(POV,80)
+ S N="" F  S N=$O(@TREF@(N)) Q:N=""  D
+ . S IEN="" F  S IEN=$O(^AUPNVPOV("AC",BQDFN,IEN)) Q:IEN=""  D
+ .. I $P(^AUPNVPOV(IEN,0),"^",1)'=N Q
+ .. S VIS=$P(^AUPNVPOV(IEN,0),"^",3),VSDTM=$P($G(^AUPNVSIT(VIS,0)),"^",1)\1
+ .. S RESULT(VSDTM,"V",VIS)=IEN
+ . S IEN="" F  S IEN=$O(^AUPNPROB("AC",BQDFN,IEN)) Q:IEN=""  D
+ .. I $P(^AUPNPROB(IEN,0),"^",1)'=N Q
+ .. S VSDTM=$$PROB^BQIUL1(IEN),RESULT(VSDTM,"P",IEN)=IEN
+ ;
+ S RES="",DATE=""
+ S DATE=$O(RESULT(DATE)) I DATE'="" D
+ . S RES=DATE_"^"_$O(RESULT(DATE,""))
+ Q RES

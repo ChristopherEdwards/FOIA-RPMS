@@ -1,5 +1,5 @@
 APCDCAFA ; IHS/CMI/LAB - report on T/C VISITS WITH ANCILLARY ;
- ;;2.0;IHS PCC SUITE;**2,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,8,11,13**;MAY 14, 2009;Build 9
  ;IHS/CMI/LAB - patch 1 Y2K
  ;
  ;
@@ -47,9 +47,9 @@ PROCESS ;EP - called from XBDBQUE
  ... S I=$P(^AUPNVPOV(X,0),U)
  ... Q:'I
  ... Q:'$D(^ICD9(I,0))
- ... S I=$P($$ICDDX^ICDCODE(I),U,2)
- ... I I="V65.49"!(I="V65.19") S V=1
- ... I I'="V65.49",I'="V65.19" S O=1
+ ... S I=$P($$ICDDX^ICDEX(I),U,2)
+ ... I I="V65.49"!(I="V65.19")!(I="Z71.0")!(I="Z71.89") S V=1
+ ... I I'="V65.49",I'="V65.19",I'="Z71.0",I'="Z71.89" S O=1
  .. I O Q
  .. I 'V Q
  .. D ^XBFMK
@@ -149,10 +149,10 @@ INFORM ;let user know what is gong on
 INTRO ;;
  ;;This option is used to automatically COMPLETE/REVIEW all"
  ;;visits in a date range that meet the following criteria:
- ;;    - POV is V65.49 or V65.19
+ ;;    - POV is V65.49 (ICD9), V65.19 (ICD9), Z71.0 (ICD10) or Z71.89 (ICD10)
  ;;    - there is no Medication dispensed
  ;;    - Clinic is 39 - Pharmacy
- ;;    - there is no other Purpose of visit/diagnosis
+ ;;    - there are no other Purpose of visits/diagnoses
  ;;    - there is a primary provider
  ;;
  ;;A list of visits will be provided.

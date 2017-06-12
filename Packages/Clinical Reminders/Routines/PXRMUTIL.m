@@ -1,25 +1,7 @@
-PXRMUTIL ; SLC/PKR - Utility routines for use by PXRM. ;08/27/2001
- ;;1.5;CLINICAL REMINDERS;**2,5,7**;Jun 19, 2000
+PXRMUTIL ;SLC/PKR/PJH - Utility routines for use by PXRM. ;02/05/2013
+ ;;2.0;CLINICAL REMINDERS;**4,6,11,12,17,18,24,26**;Feb 04, 2005;Build 404
  ;
- ;=======================================================================
-ANTON(ANUM) ;Convert an alphabetic number to its decimal form. This is the
- ;inverse of NTOAN.
- N INT
- S INT("A")=0,INT("B")=1,INT("C")=2,INT("D")=3,INT("E")=4,INT("F")=5
- S INT("G")=6,INT("H")=7,INT("I")=8,INT("J")=9,INT("K")=10,INT("L")=11
- S INT("M")=12,INT("N")=13,INT("O")=14,INT("P")=15,INT("Q")=16
- S INT("R")=17,INT("S")=18,INT("T")=19,INT("U")=20,INT("V")=21
- S INT("W")=22,INT("X")=23,INT("Y")=24,INT("Z")=25
- ;
- N LEN,NUMBR,P26,PWR
- S LEN=$L(ANUM),NUMBER=0,P26=1
- F DC=LEN:-1:1 D
- . S DIGIT=$E(ANUM,DC)
- . S NUMBER=NUMBER+(P26*INT(DIGIT))
- . S P26=26*P26
- Q NUMBER
- ;
- ;=======================================================================
+ ;=================================
 ATTVALUE(STRING,ATTR,SEP,AVSEP) ;STRING contains a list of attribute value
  ;pairs. Each pair is separated by SEP and the attribute value pair
  ;is separated by AVSEP. Return the value for the attribute ATTR.
@@ -31,11 +13,16 @@ ATTVALUE(STRING,ATTR,SEP,AVSEP) ;STRING contains a list of attribute value
  . I AVPAIR[ATTR S VALUE=$P(AVPAIR,AVSEP,2)
  Q VALUE
  ;
- ;=======================================================================
-AWRITE(REF) ;Write all the descendants of the array reference.
- ;REF is the starting array reference, for example A or ^TMP("PXRM",$J).
- N DONE,IC,IND,LEN,PROOT,ROOT,START,TEMP
+ ;=================================
+ACOPY(REF,OUTPUT) ;Copy all the descendants of the array reference into a linear
+ ;array. REF is the starting array reference, for example A or
+ ;^TMP("PXRM",$J). OUTPUT is the linear array for the output. It
+ ;should be in the form of a closed root, i.e., A() or ^TMP($J,).
+ ;Note OUTPUT cannot be used as the name of the output array.
+ N DONE,IND,LEN,NL,OROOT,OUT,PROOT,ROOT,START,TEMP
  I REF="" Q
+ S NL=0
+ S OROOT=$P(OUTPUT,")",1)
  S PROOT=$P(REF,")",1)
  ;Build the root so we can tell when we are done.
  S TEMP=$NA(@REF)
@@ -43,67 +30,179 @@ AWRITE(REF) ;Write all the descendants of the array reference.
  S REF=$Q(@REF)
  I REF'[ROOT Q
  S DONE=0
- F IC=0:0 Q:(REF="")!(DONE)  D
+ F  Q:(REF="")!(DONE)  D
  . S START=$F(REF,ROOT)
  . S LEN=$L(REF)
  . S IND=$E(REF,START,LEN)
- . W !,PROOT_IND,"=",@REF
+ . S NL=NL+1
+ . S OUT=OROOT_NL_")"
+ . S @OUT=PROOT_IND_"="_@REF
  . S REF=$Q(@REF)
  . I REF'[ROOT S DONE=1
  Q
  ;
- ;=======================================================================
-COND(FIND3,TFIND3,V) ;Evaluate the finding condition. TFIND3 will be defined
- ;if this is being called from a term evaluation. V is the value.
- N CASESEN,COND,CONVAL
- S CONVAL=""
- S COND=$P(TFIND3,U,1)
- S CASESEN=$P(TFIND3,U,2)
- I COND="" D
- . S COND=$P(FIND3,U,1)
- . S CASESEN=$P(FIND3,U,2)
- . I CASESEN="" S CASESEN=2
- I $L(COND)>0 D
- . S V=$TR(V," ","~")
- . I 'CASESEN D
- .. S COND=$$UP^XLFSTR(COND)
- .. S V=$$UP^XLFSTR(V)
- . X COND
- . S CONVAL=$T
- Q CONVAL
- ;
- ;=======================================================================
-DIWPS(DIWF,DIWL,DIWR) ;Setup the formatting for the DIWP call. The variables
- ;should be NEWED by the caller.
- S DIWF="C70",DIWL=0,DIWR=70
-DIWPK ;
- K ^UTILITY($J,"W")
+ ;=================================
+APRINT(REF) ;Write all the descendants of the array reference.
+ ;REF is the starting array reference, for example A or
+ ;^TMP("PXRM",$J).
+ N DONE,IND,LEN,LN,PROOT,ROOT,START,TEMP,TEXT
+ I REF="" Q
+ S LN=0
+ S PROOT=$P(REF,")",1)
+ ;Build the root so we can tell when we are done.
+ S TEMP=$NA(@REF)
+ S ROOT=$P(TEMP,")",1)
+ S REF=$Q(@REF)
+ I REF'[ROOT Q
+ S DONE=0
+ F  Q:(REF="")!(DONE)  D
+ . S START=$F(REF,ROOT)
+ . S LEN=$L(REF)
+ . S IND=$E(REF,START,LEN)
+ . S LN=LN+1,TEXT(LN)=@REF
+ . S REF=$Q(@REF)
+ . I REF'[ROOT S DONE=1
+ D MES^XPDUTL(.TEXT)
  Q
  ;
- ;=======================================================================
+ ;=================================
+AWRITE(REF) ;Write all the descendants of the array reference, including the
+ ;array. REF is the starting array reference, for example A or
+ ;^TMP("PXRM",$J).
+ N DONE,IND,LEN,LN,PROOT,ROOT,START,TEMP,TEXT
+ I REF="" Q
+ S LN=0
+ S PROOT=$P(REF,")",1)
+ ;Build the root so we can tell when we are done.
+ S TEMP=$NA(@REF)
+ S ROOT=$P(TEMP,")",1)
+ S REF=$Q(@REF)
+ I REF'[ROOT Q
+ S DONE=0
+ F  Q:(REF="")!(DONE)  D
+ . S START=$F(REF,ROOT)
+ . S LEN=$L(REF)
+ . S IND=$E(REF,START,LEN)
+ . S LN=LN+1,TEXT(LN)=PROOT_IND_"="_@REF
+ . S REF=$Q(@REF)
+ . I REF'[ROOT S DONE=1
+ D MES^XPDUTL(.TEXT)
+ Q
+ ;
+ ;=================================
+BORP(DEFAULT) ;Ask the user if they want to browse or print.
+ N DIR,POP,X,Y
+ S DIR(0)="SA"_U_"B:Browse;P:Print"
+ S DIR("A")="Browse or Print? "
+ S DIR("B")=DEFAULT
+ D ^DIR
+ I $D(DIROUT) S DTOUT=1
+ I $D(DTOUT)!($D(DUOUT)) Q ""
+ Q Y
+ ;
+ ;=================================
+DELTLFE(FILENUM,NAME) ;Delete top level entries from a file.
+ N FDA,IENS,MSG
+ S IENS=+$$FIND1^DIC(FILENUM,"","BXU",NAME)
+ I IENS=0 Q
+ S IENS=IENS_","
+ S FDA(FILENUM,IENS,.01)="@"
+ D FILE^DIE("","FDA","MSG")
+ Q
+ ;
+ ;=================================
+DIP(VAR,IEN,PXRMROOT,FLDS) ;Do general inquiry for IEN return formatted
+ ;output in VAR. VAR can be either a local variable or a global.
+ ;If it is a local it is indexed for the broker. If it is a global
+ ;it should be passed in closed form i.e., ^TMP("PXRMTEST",$J).
+ ;It will be returned formatted for ListMan i.e.,
+ ;^TMP("PXRMTEST",$J,N,0).
+ N %ZIS,ARRAY,BY,DC,DHD,DIC,DONE,FF,FILENAME,FILESPEC,FR,GBL,HFNAME
+ N IND,IOP,L,NOW,PATH,SUCCESS,TO,UNIQN
+ S BY="NUMBER",(FR,TO)=+$P(IEN,U,1),DHD="@@"
+ ;Make sure the PXRM WORKSTATION device exists.
+ D MKWSDEV^PXRMHOST
+ ;Set up the output file before DIP is called.
+ S PATH=$$PWD^%ZISH
+ S NOW=$$NOW^XLFDT
+ S NOW=$TR(NOW,".","")
+ S UNIQN=$J_NOW
+ S FILENAME="PXRMWSD"_UNIQN_".DAT"
+ S HFNAME=PATH_FILENAME
+ S IOP="PXRM WORKSTATION;80"
+ S %ZIS("HFSMODE")="W"
+ S %ZIS("HFSNAME")=HFNAME
+ S L=0,DIC=PXRMROOT
+ D EN1^DIP
+ ;Move the host file into a global.
+ S GBL="^TMP(""PXRMUTIL"",$J,1,0)"
+ S GBL=$NA(@GBL)
+ K ^TMP("PXRMUTIL",$J)
+ S SUCCESS=$$FTG^%ZISH(PATH,FILENAME,GBL,3)
+ ;Look for a form feed, remove it and all subsequent lines.
+ S FF=$C(12)
+ I $G(VAR)["^" D
+ . S VAR=$NA(@VAR)
+ . S VAR=$P(VAR,")",1)
+ . S VAR=VAR_",IND,0)"
+ . S (DONE,IND)=0
+ . F  Q:DONE  S IND=$O(^TMP("PXRMUTIL",$J,IND)) Q:+IND=0  D
+ .. I ^TMP("PXRMUTIL",$J,IND,0)=FF S DONE=1 Q
+ .. S @VAR=^TMP("PXRMUTIL",$J,IND,0)
+ E  D
+ . S (DONE,IND)=0
+ . F  Q:DONE  S IND=$O(^TMP("PXRMUTIL",$J,IND)) Q:+IND=0  D
+ .. S VAR(IND)=^TMP("PXRMUTIL",$J,IND,0)
+ .. I VAR(IND)=FF K ARRAY(IND) S DONE=1
+ K ^TMP("PXRMUTIL",$J)
+ ;Delete the host file.
+ S FILESPEC(FILENAME)=""
+ S SUCCESS=$$DEL^%ZISH(PATH,$NA(FILESPEC))
+ Q
+ ;
+ ;=================================
 FNFR(ROOT) ;Given the root of a file return the file number.
  Q +$P(@(ROOT_"0)"),U,2)
  ;
- ;=======================================================================
-MATCH(N1,ARRAY1,KEY1,N2,ARRAY2,KEY2,NMAT,MARRAY) ;Given two sorted
- ;arrays look for matches between the KEY1 piece of ARRAY1 and the KEY2
- ;piece of ARRAY2. Return ARRAY1_U_ARRAY2 matches in MARRAY.
- ;Initialize the number of matches to 0.
- S NMAT=0
- I (N1'>0)!(N2'>0) Q
- N A1,A2,IC,JC
- S (IC,JC)=1
-ML ;
- S A1=$P(@ARRAY1@(IC),U,KEY1),A2=$P(@ARRAY2@(JC),U,KEY2)
- I A1=A2 D  Q:IC>N1  Q:JC>N2  G ML
- . S NMAT=NMAT+1
- . S @MARRAY@(NMAT)=@ARRAY1@(IC)_U_@ARRAY2@(JC)
- . S IC=IC+1,JC=JC+1
- I A1<A2 S IC=IC+1 Q:IC>N1  G ML
- S JC=JC+1 Q:JC>N2  G ML
+ ;=================================
+GPRINT(REF) ;General printing.
+ N DIR,IOTP,POP
+ S %ZIS="Q"
+ D ^%ZIS
+ I POP Q
+ I $D(IO("Q")) D  Q
+ . N ZTDESC,ZTRTN,ZTSAVE
+ . S ZTSAVE("IO")=""
+ .;Save the evaluated name of REF.
+ . S ZTSAVE("REF")=$NA(@$$CREF^DILF(REF))
+ .;Save the open root form for TaskMan.
+ . S ZTSAVE($$OREF^DILF(ZTSAVE("REF")))=""
+ . S ZTRTN="GPRINTQ^PXRMUTIL"
+ . S ZTDESC="Queued print job"
+ . D ^%ZTLOAD
+ . W !,"Task number ",ZTSK
+ . D HOME^%ZIS
+ . K IO("Q")
+ . H 2
+ ;If this is being called from List Manager go to full screen.
+ I $D(VALMDDF) D FULL^VALM1
+ U IO
+ S IOTP=IOT
+ D APRINT^PXRMUTIL(REF)
+ D ^%ZISC
+ I IOTP["TRM" S DIR(0)="E",DIR("A")="Press ENTER to continue" D ^DIR
+ I $D(VALMDDF) S VALMBCK="R"
  Q
  ;
- ;=======================================================================
+ ;=================================
+GPRINTQ ;Queued general printing.
+ U IO
+ D APRINT^PXRMUTIL(REF)
+ D ^%ZISC
+ S ZTREQ="@"
+ Q
+ ;
+ ;=================================
 NTOAN(NUMBER) ;Given an integer N return an alphabetic string that can be
  ;used for sorting. This will be modulus 26. For example N=0 returns
  ;A, N=26 returns BA etc.
@@ -126,84 +225,86 @@ NTOAN(NUMBER) ;Given an integer N return an alphabetic string that can be
  . S NUM=NUM-(DIGIT*P26(PC))
  Q ANUM
  ;
- ;=======================================================================
-POSTFIX(PFSTACK,EXPR,OPER) ;Given an expression, EXPR, in infix notation
- ;convert it to postfix and return the result in PFSTACK. PFSTACK(0)
- ;will contain the number of elements in PFSTACK. OPER is a
- ;string containing allowable operators.
- N CHAR,IND,LEN,OPERP,PFP,SP,SPACE,STACK,SYM,SYMP,SYMT,TAB,TEMP
- S SPACE=$C(32)
- S TAB=$C(9)
- S TEMP=""
- S OPERP=OPER_"()"
- S SYMP=0
- S LEN=$L(EXPR)
- ;Break the expression into (, ), operators, and operands.
- ;Remove spaces and tabs and put the symbols onto the symbol
- ;stack in left to right order. Symbol number 1 is SYM(1).
- F IND=1:1:LEN D
- . S CHAR=$E(EXPR,IND)
- . I (CHAR=SPACE)!(CHAR=TAB) Q
- . I OPERP[CHAR D
- .. I $L(TEMP)>0 D
- ... S SYMP=SYMP+1
- ... S SYM(SYMP)=TEMP
- ... S TEMP=""
- .. S SYMP=SYMP+1
- .. S SYM(SYMP)=CHAR
- . E  S TEMP=TEMP_CHAR
- . I (IND=LEN)&(TEMP'="") D
- .. S SYMP=SYMP+1
- .. S SYM(SYMP)=TEMP
- ;Process the symbols.
- S (PFP,SP)=0
- S LEN=SYMP
- F SYMP=1:1:LEN D
- . S SYMT=SYM(SYMP)
- .;
- .;Symbol is "("
- . I SYMT="(" D  Q
- .. S SP=SP+1
- .. S STACK(SP)=SYMT
- .;
- .;Symbol is an operator
- . I OPER[SYMT D  Q
- .. S LEN=SP
- .. F IND=LEN:-1:1 S TEMP=STACK(IND) Q:TEMP="("  D
- ...;M has no operator precedence so we don't need to check.
- ... S PFP=PFP+1
- ... S PFSTACK(PFP)=TEMP
- ... K STACK(SP)
- ... S SP=SP-1
- .. S SP=SP+1
- .. S STACK(SP)=SYMT
- .;
- .;Symbol is ")"
- . I SYMT=")" D  Q
- .. S LEN=SP
- .. F IND=LEN:-1:1 S TEMP=STACK(IND) Q:TEMP="("  D
- ... S PFP=PFP+1
- ... S PFSTACK(PFP)=TEMP
- ... K STACK(SP)
- ... S SP=SP-1
- ..;Pop the "(" at the top of the stack.
- .. K STACK(SP)
- .. S SP=SP-1
- .;
- .;If we get to here then symbol is an operand.
- . S PFP=PFP+1
- . S PFSTACK(PFP)=SYMT
+ ;=================================
+OPTION(ACT) ;Disable/enable options.
+ N ACTION,IND,OPT,LIST,RESULT
+ S ACTION=$S(ACT="DISABLE":2,ACT="ENABLE":1,1:1)
+ D BMES^XPDUTL(ACT_" options.")
  ;
- ;Pop and output anything left on the stack.
- F IND=SP:-1:1 D
- . S PFP=PFP+1
- . S PFSTACK(PFP)=STACK(IND)
+ D FIND^DIC(19,"","@;.01","","GMTS","*","B","","","LIST")
+ F IND=1:1:+LIST("DILIST",0) S OPT=LIST("DILIST","ID",IND,.01)
+ S RESULT=$$OPTDE^XPDUTL(OPT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" option "_OPT)
  ;
- ;Save the number of elements in PFSTACK.
- S PFSTACK(0)=PFP
+ K LIST
+ D FIND^DIC(19,"","@;.01","","IBDF PRINT","*","B","","","LIST")
+ F IND=1:1:+LIST("DILIST",0) D
+ . S OPT=LIST("DILIST","ID",IND,.01)
+ . S RESULT=$$OPTDE^XPDUTL(OPT,ACTION)
+ . I RESULT=0 D MES^XPDUTL("Could not "_ACT_" option "_OPT)
+ ;
+ S OPT="OR CPRS GUI CHART"
+ S RESULT=$$OPTDE^XPDUTL(OPT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" option "_OPT)
+ ;
+ S OPT="ORS HEALTH SUMMARY"
+ S RESULT=$$OPTDE^XPDUTL(OPT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" option "_OPT)
+ ;
+ K LIST
+ D FIND^DIC(19,"","@;.01","","PXRM","*","B","","","LIST")
+ F IND=1:1:+LIST("DILIST",0) D
+ . S OPT=LIST("DILIST","ID",IND,.01)
+ . S RESULT=$$OPTDE^XPDUTL(OPT,ACTION)
+ . I RESULT=0 W !,"Could not ",ACTION," option ",OPT
  Q
  ;
- ;=======================================================================
+ ;=================================
+PROTOCOL(ACT) ;Disable/enable protocols.
+ N ACTION,PROT,RESULT
+ S ACTION=$S(ACT="DISABLE":2,ACT="ENABLE":1,1:1)
+ D BMES^XPDUTL(ACT_" protocols.")
+ ;
+ S PROT="ORS HEALTH SUMMARY"
+ S RESULT=$$PRODE^XPDUTL(PROT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" protocol "_PROT)
+ ;
+ S PROT="ORS AD HOC HEALTH SUMMARY"
+ S RESULT=$$PRODE^XPDUTL(PROT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" protocol "_PROT)
+ ;
+ S PROT="PXRM PATIENT DATA CHANGE"
+ S RESULT=$$PRODE^XPDUTL(PROT,ACTION)
+ I RESULT=0 D MES^XPDUTL("Could not "_ACT_" protocol "_PROT)
+ Q
+ ;
+ ;=================================
+RENAME(FILENUM,OLDNAME,NEWNAME) ;Rename entry OLDNAME to NEWNAME in
+ ;file number FILENUM.
+ N DA,DIE,DR,NIEN,PXRMINST
+ S DA=$$FIND1^DIC(FILENUM,"","BXU",OLDNAME)
+ I DA=0 Q
+ S PXRMINST=1
+ S NIEN=$$FIND1^DIC(FILENUM,"","BXU",NEWNAME) I NIEN>0 Q
+ S DIE=FILENUM
+ S DR=".01///^S X=NEWNAME"
+ D ^DIE
+ Q
+ ;
+ ;=================================
+RMEHIST(FILENUM,IEN) ;Remove the edit history for a reminder file.
+ I (FILENUM<800)!(FILENUM>811.9)!(FILENUM=811.8) Q
+ N DA,DIK,GLOBAL,ROOT
+ S GLOBAL=$$GET1^DID(FILENUM,"","","GLOBAL NAME")
+ ;Edit History is stored in node 110 for all files.
+ S DA(1)=IEN
+ S DIK=GLOBAL_IEN_",110,"
+ S ROOT=GLOBAL_IEN_",110,DA)"
+ S DA=0
+ F  S DA=+$O(@ROOT) Q:DA=0  D ^DIK
+ Q
+ ;
+ ;=================================
 SEHIST(FILENUM,ROOT,IEN) ;Set the edit date and edit by and prompt the
  ;user for the edit comment.
  N DIC,DIR,DWLW,DWPK,ENTRY,FDA,FDAIEN,IENS,IND,MSG,SFN,TARGET,X,Y
@@ -236,27 +337,45 @@ SEHIST(FILENUM,ROOT,IEN) ;Set the edit date and edit by and prompt the
  K ^TMP("PXRMWP",$J)
  Q
  ;
- ;=======================================================================
-SORT(N,ARRAY,KEY) ;Sort an ARRAY with N elements into ascending order,
- ;return the number of unique elements. KEY is the piece of ARRAY on
- ;which to base the sort. The default is the first piece.
+ ;=================================
+SETPVER(VERSION) ;Set the package version
+ N DA,DIE,DR
+ S DIE="^PXRM(800,",DA=1,DR="5////"_VERSION
+ D ^DIE
+ Q
  ;
- I (N'>0)!(N=1) Q N
- N IC,IND,TEMP
- I '$D(KEY) S KEY=1
- F IC=1:1:N D
- . S TEMP=@ARRAY@(IC)
- . S ^TMP($J,"SORT",$P(TEMP,U,KEY))=TEMP
- S IND=""
- F IC=1:1 S IND=$O(^TMP($J,"SORT",IND)) Q:IND=""  D
- . S @ARRAY@(IC)=^TMP($J,"SORT",IND)
- K ^TMP($J,"SORT")
- ;Get rid of any redundant elements.
- F IND=IC:1:N K @ARRAY@(IND)
- Q IC-1
+ ;=================================
+SFRES(SDIR,NRES,FIEVAL) ;Save the finding result.
+ I NRES=0 S FIEVAL=0 Q
+ N DATE,IND,OA,SUB,TF
+ F IND=1:1:NRES S OA(FIEVAL(IND,"DATE"),FIEVAL(IND),IND)=""
+ ;If SDIR is positive get the oldest date otherwise get the most
+ ;recent date.
+ S DATE=$S(SDIR>0:$O(OA("")),1:$O(OA(""),-1))
+ ;If there is a true finding on DATE get it.
+ S TF=$O(OA(DATE,""),-1)
+ S IND=$O(OA(DATE,TF,""))
+ S FIEVAL=TF
+ S SUB=""
+ F  S SUB=$O(FIEVAL(IND,SUB)) Q:SUB=""  M FIEVAL(SUB)=FIEVAL(IND,SUB)
+ Q
  ;
- ;=======================================================================
-STRREP(STRING,TS,RS) ;Replace every occurence of the target string (TS)
+ ;=================================
+SSPAR(FIND0,NOCC,BDT,EDT) ;Set the finding search parameters.
+ S BDT=$P(FIND0,U,8),EDT=$P(FIND0,U,11),NOCC=$P(FIND0,U,14)
+ I +NOCC=0 S NOCC=1
+ ;Convert the dates to FileMan dates.
+ S BDT=$S(BDT="":0,BDT=0:0,1:$$CTFMD^PXRMDATE(BDT))
+ I EDT="" S EDT="T"
+ S EDT=$$CTFMD^PXRMDATE(EDT)
+ ;If EDT does not contain a time set it to the end of the day.
+ I (EDT'=-1),EDT'["." S EDT=EDT_".235959"
+ I $G(PXRMDDOC)'=1 Q
+ S ^TMP("PXRMDDOC",$J,$P(FIND0,U,1,11))=BDT_U_EDT
+ Q
+ ;
+ ;=================================
+STRREP(STRING,TS,RS) ;Replace every occurrence of the target string (TS)
  ;in STRING with the replacement string (RS).
  ;Example 9.19 (page 220) in "The Complete Mumps" by John Lewkowicz:
  ;  F  Q:STRING'[TS  S STRING=$P(STRING,TS)_RS_$P(STRING,TS,2,999)
@@ -273,7 +392,26 @@ STRREP(STRING,TS,RS) ;Replace every occurence of the target string (TS)
  S STR=STR_$P(STRING,TS,NPCS)
  Q STR
  ;
- ;=======================================================================
+ ;=================================
+UPEHIST(FILENUM,IEN,TEXT,MSG) ;Update the edit history.
+ N FDA,GBL,IENS,IND,LN,NEXT,SUBFN,TARGET,WPTMP
+ D FIELD^DID(FILENUM,"EDIT HISTORY","","SPECIFIER","TARGET")
+ S SUBFN=+$G(TARGET("SPECIFIER"))
+ I SUBFN=0 Q
+ S GBL=$$GET1^DID(FILENUM,"","","GLOBAL NAME")_IEN_",110)"
+ S NEXT=$O(@GBL@("B"),-1)+1
+ S (IND,LN)=0
+ F  S IND=$O(TEXT(IND)) Q:IND=""  D
+ . S LN=LN+1
+ . S WPTMP(1,2,LN)=TEXT(IND)
+ S IENS="+"_NEXT_","_IEN_","
+ S FDA(SUBFN,IENS,.01)=$$NOW^XLFDT
+ S FDA(SUBFN,IENS,1)=$G(DUZ)
+ S FDA(SUBFN,IENS,2)="WPTMP(1,2)"
+ D UPDATE^DIE("","FDA","","MSG")
+ Q
+ ;
+ ;=================================
 VEDIT(ROOT,IEN) ;This is used as a DIC("S") screen to select which entries
  ;a user can edit.
  N CLASS,ENTRY,VALID

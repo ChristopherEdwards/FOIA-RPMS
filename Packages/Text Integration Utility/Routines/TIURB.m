@@ -1,7 +1,6 @@
-TIURB ; SLC/JER - More Review Screen Actions ;4/11/05
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,32,52,78,58,100,109,155,184**;Jun 20, 1997
- ; **100** Moved DELETE, DEL, DELTEXT, DIK to new rtn TIURB2
- ; DBIA 3576 TIU use of GMRCTIU
+TIURB ; SLC/JER - More Review Screen Actions ;12/11/07
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,32,52,78,58,100,109,155,184,234,232**;Jun 20, 1997;Build 19
+ ; DBIA 3473 TIU use of GMRCTIU
 AMEND ; Amendment action
  N TIUDA,DFN,DIE,DR,TIU,TIUDATA,TIUI,TIUSIG,TIUY,X,X1,Y
  N DIROUT,TIUCHNG,TIUDAARY,TIULST
@@ -44,10 +43,20 @@ AMEND1 ; Single record amend
  . W !?5,$C(7),"Only SIGNED Documents may be amended."
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
  . S TIUCHNG("REFRESH")=1
+ I '$$ISA^USRLM(+$G(DUZ),"PRIVACY ACT OFFICER"),'$$ISA^USRLM(+$G(DUZ),"CHIEF, MIS"),'$$ISA^USRLM(+$G(DUZ),"CHIEF, HIM") D  Q
+ . W !?5,$C(7),"Only Privacy Act Officers or MIS/HIM Chiefs may amend documents."
+ . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
+ . S TIUCHNG("REFRESH")=1
  I +$$HASIMG^TIURB2(TIUDA) D IMGNOTE^TIURB2 Q
- S TIUAMND=$$CANDO^TIULP(TIUDA,"AMENDMENT")
- I +TIUAMND'>0 D  Q
- . W !!,$C(7),$C(7),$C(7),$P(TIUAMND,U,2),!
+ ;S TIUAMND=$$CANDO^TIULP(TIUDA,"AMENDMENT")
+ ;I +TIUAMND'>0 D  Q
+ ;. W !!,$C(7),$C(7),$C(7),$P(TIUAMND,U,2),!
+ ;. S TIUCHNG("REFRESH")=1
+ ;. I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
+ ;VMP/ELR P232. ADDED NEXT PARAGRAPH TO PREVENT AMEND OF NIR OR ANESTHESIA REPORT  MUST USE SURGERY
+ I $$ISSURG^TIULP3(+TIUDA) D  Q
+ . S TIUAMND=$$SURMSG^TIULP3("AMENDMENT")
+ . W !!,$C(7),$C(7),$C(7),$G(TIUAMND),!
  . S TIUCHNG("REFRESH")=1
  . I $$READ^TIUU("EA","Press RETURN to continue...") ; pause
  W !!,"Before proceeding, please enter your Electronic Signature Code..."

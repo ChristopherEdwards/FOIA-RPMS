@@ -1,5 +1,5 @@
-BDMDR4 ; IHS/CMI/LAB - patients w/o TB TX ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8**;JUN 14, 2007;Build 53
+BDMDR4 ; IHS/CMI/LAB - patients w/o TB TX ; 05 Mar 2015  1:11 PM
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**6,8,9**;JUN 14, 2007;Build 78
  ;
  ;
 START ;
@@ -91,7 +91,7 @@ CHK1SET ;
 HASTB(P) ;
  ;positive ppd
  NEW BDMS,E,X
- S BDMS=$P($$PPD^BDMDA18(DFN,DT),"||",2)
+ S BDMS=$P($$PPD^BDMDD18(DFN,DT),"||",2)
  Q BDMS
  ;
 HASTBTX(P) ;

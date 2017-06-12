@@ -1,0 +1,171 @@
+BQITASK7 ;GDIT/HS/ALA-MU Performance Job ; 30 Sep 2011  1:06 PM
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
+ ;
+NIN ;EP -- BQI UPDATE MU Performance monthly
+ ;
+ I $G(DUZ(2))="" D
+ . D DZ^BQITASK1 M DUZ=^XTMP("BQIRMDR","DUZ")
+ ;
+ NEW DESC,BJOB,BCJOB,BQPROH
+ S BQPROH=+$P(^BQI(90508,1,12),U,7)
+ S BQIMUDTM=$$NOW^XLFDT(),BQIMUDT=$P(BQIMUDTM,".",1),BQIMUTIM=$P(BQIMUDTM,".",2)
+ S CDOW=$$DOW^XLFDT(BQIMUDT,1)
+ I CDOW'=6,CDOW'=0,BQPROH,$E(BQIMUTIM,1,2)+1>6,$E(BQIMUTIM,1,2)+1<18 D  Q
+ . S ZTDTH=BQIMUDT_".183"
+ . S ZTDESC="MU Performance Monthly Compile",ZTRTN="NIN^BQITASK7",ZTIO=""
+ . D ^%ZTLOAD
+ . S BQIUPD(90508,"1,",12.06)=ZTSK
+ . D FILE^DIE("","BQIUPD","ERROR")
+ . K ZTDESC,ZTRTN,ZTIO,ZTDTH,ZTSK
+ ;
+ ;   Set the DATE/TIME MU STARTED field
+ NEW DA,BQIMUTIM,BQIMUDT,CDOW,BQIMUDTM,STOP
+ S DA=$O(^BQI(90508,0)) I 'DA Q
+ S BQIUPD(90508,DA_",",8.04)=$$NOW^XLFDT()
+ S BQIUPD(90508,DA_",",8.06)=1
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD
+ K ^XTMP("BQIMUMNPP")
+ S ^XTMP("BQIMUMNPP",0)=$$FMADD^XLFDT(DT,14)_U_DT_U_"Monthly MU Performance Provider List"
+ ;
+ S BGPPROV=$P(^BQI(90508,1,12),U,4),BCJOB=$P(^BQI(90508,1,12),U,6)
+ S STOP=0
+ F  S BGPPROV=$O(^BQI(90508,1,14,"B",BGPPROV)) Q:BGPPROV=""  D  Q:STOP
+ . D PMON^BQIMUPRS(BGPPROV)
+ . S $P(^BQI(90508,1,12),U,4)=BGPPROV
+ . S ^XTMP("BQIMUMNPP",BGPPROV)=$P(^BQI(90508,1,9),U,1)_U_$P(^BQI(90508,1,9),U,2)
+ . ; If not prohibited, keep running
+ . S BQPROH=+$P(^BQI(90508,1,12),U,7)
+ . I 'BQPROH Q
+ . ; If prohibited, check the date and time to see if the job needs to stop
+ . S BQIMUDTM=$$NOW^XLFDT(),BQIMUDT=$P(BQIMUDTM,".",1),BQIMUTIM=$P(BQIMUDTM,".",2)
+ . ; If it is a holiday, keep running
+ . I $D(^HOLIDAY("B",DT)) Q
+ . S CDOW=$$DOW^XLFDT(BQIMUDT,1)
+ . ; If day of week is Saturday, keeping running even if prohibited
+ . I CDOW=6 Q
+ . ; If day of week is Sunday, keeping running even if prohibited
+ . I CDOW=0 Q
+ . ;If the time plus 3 hours is less than 6 am or greater than 6 pm keep going
+ . I $E(BQIMUTIM,1,2)+3<6 Q
+ . I $E(BQIMUTIM,1,2)+3>18 Q
+ . S STOP=1
+ . S ZTDTH=BQIMUDT_".183"
+ . S ZTDESC="MU Performance Continue Monthly Compile",ZTRTN="NIN^BQITASK7",ZTIO=""
+ . D ^%ZTLOAD
+ . S BQIUPD(90508,"1,",12.06)=ZTSK
+ . D FILE^DIE("","BQIUPD","ERROR")
+ . K ZTDESC,ZTRTN,ZTIO,ZTDTH,ZTSK
+ ;
+HOS ; Hospital CQ
+ NEW APCMFAC,PGLOB,PROU
+ S GLOBAL=$NA(^TMP("BQIMUP",$J)) K @GLOBAL
+ S BGPBD=$P(^BQI(90508,1,9),U,1),BGPED=$P(^BQI(90508,1,9),U,2)
+ S APCMED=BGPED,APCMBD=BGPBD,APCMRPT=1
+ S APCMPED=$$FMADD^XLFDT(BGPED,-30),APCMPBD=$$FMADD^XLFDT(BGPBD,-60)
+ K APCMATTE,APCMIND
+ S APCMFAC=$$HME^BQIGPUTL(),BQIPROV(APCMFAC)="",APCMRPTT=2,APCMDEMO="E"
+ K APCMATTE,APCMIND
+ ;F X="S1.009.H","S1.012.H","S1.013.H","S1.014.H","S1.018.H","S1.022.H","S1.023.H","S1.024.H" S APCMATTE(X,APCMFAC)=""
+ ;gather up measures for this report
+ S PGLOB=$$CURPGL^BQIMUTAB()
+ S PROU=$$CURPRT^BQIMUTAB()
+ S X=0 F  S X=$O(@PGLOB@(X)) Q:X'=+X  I $P(@PGLOB@(X,0),U,2)="H" D
+ . S ID=$P(@PGLOB@(X,0),U,1)
+ . I $P(@PGLOB@(X,0),U,6)'="R" Q
+ . S @GLOBAL@(APCMFAC,ID,"CURR")="",@GLOBAL@(APCMFAC,ID,"PREV")="",APCMATTE(ID,APCMFAC)=""
+ . S APCMIND(X)=""
+ ;
+ ; Check if connection to server is working
+ S CONN=1
+ I PGLOB="^APCM24OB" D PHRC^BQIMUPRS I 'CONN D
+ . NEW MN
+ . S MN=$O(@PGLOB@("B","S2.025.H",""))
+ . I MN'="" K APCMIND(MN)
+ ;
+ S APCMWPP=1,APCMMETH="E"
+ ;I $T(BQI^APCM11E1)'="" D BQI^APCM11E1(.GLOBAL,.BQIPROV)
+ D @("BQI^"_PROU_"(.GLOBAL,.BQIPROV)")
+ ;
+ S FAC=$$HME^BQIGPUTL()
+ S BGPBD=$P(^BQI(90508,1,9),U,1),BGPED=$P(^BQI(90508,1,9),U,2)
+ S BQTDT=$E(BGPBD,1,5)_"00"
+ S BQTMN=$O(^BQIFAC(FAC,40,"B",BQTDT,""))
+ I BQTMN="" D UPH
+ ; Already data there, don't recalculate and quit
+ ;I $G(^BQIFAC(FAC,40,BQTMN,1,1,0))'="" Q
+ K CDEN,CNUM,CEXC,PDEN,PNUM,PEXC,CSORT,PSORT,MTOT
+ D STORH(40)
+ K @GLOBAL,CSORT,PSORT
+ ;
+ ;  Set the DATE/TIME MU STOPPED field
+ NEW DA
+ S DA=$O(^BQI(90508,0)) I 'DA Q
+ S BQIUPD(90508,DA_",",8.05)=$$NOW^XLFDT()
+ S BQIUPD(90508,DA_",",8.06)="@"
+ S BQIUPD(90508,DA_",",12.04)=+BGPPROV
+ I +BGPPROV=0 D
+ . S BMDT=$P(^BQI(90508,1,9),U,1),BMDT=$$FMADD^XLFDT(BMDT,1)
+ . S BMDT=$E(BMDT,1,5)_"00"
+ . I $D(^XTMP("BQIMMONP",BMDT)) K ^XTMP("BQIMMONP",BMDT)
+ . S BQIUPD(90508,DA_",",12.06)="@"
+ D FILE^DIE("","BQIUPD","ERROR")
+ K BQIUPD,APCMMETH
+ ; Create and send export files
+ Q
+ ;
+STORH(NODE) ;
+ NEW CVALUE,PVALUE,CT,I,MSN,FAC,PGLOB
+ I '$D(@GLOBAL) Q
+ S FAC=$$HME^BQIGPUTL()
+ S PGLOB=$$CURPGL^BQIMUTAB()
+ ;
+ I NODE=40 D  Q
+ . S ID="",CT=0
+ . F  S ID=$O(@GLOBAL@(FAC,ID)) Q:ID=""  D
+ .. S IIEN=$O(@PGLOB@("B",ID,"")) I IIEN="" Q
+ .. I $P(@PGLOB@(IIEN,0),"^",2)'="H" Q
+ .. S CDEN=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",1),CNUM=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",2)
+ .. S CEXC=$P($G(@GLOBAL@(FAC,ID,"CURR")),"^",3)
+ .. S CT=CT+1,^BQIFAC(FAC,NODE,BQTMN,1,CT,0)=ID_U_CDEN_U_CNUM_U_$$CURREP^BQIMUTAB()
+ .. I CEXC'="" S ^BQIFAC(FAC,NODE,BQTMN,1,CT,1)=CEXC
+ .. S ^BQIFAC(FAC,NODE,BQTMN,1,"B",ID,CT)=""
+ . NEW DIK,DA
+ . S DIK="^BQIFAC(",DA=FAC D IX^DIK
+ Q
+ ;
+MED(ITM,LIST) ;EP - Find Median for LIST
+ ; Input
+ ;    ITM  - Which measure to check list for
+ ;    LIST - By ITM, the list of sorted values
+ NEW CNT,MID,CT,PVAL,VAL,TOT,DFN,MED
+ S CNT=$G(LIST(ITM))
+ I CNT=1 Q $O(LIST(ITM,""))_U_1
+ I CNT=2 D  Q (TOT/CNT)_U_CNT
+ . S TOT=0,VAL=""
+ . F  S VAL=$O(LIST(ITM,VAL)) Q:VAL=""  D
+ .. S DFN="" F  S DFN=$O(LIST(ITM,VAL,DFN)) Q:DFN=""  S TOT=TOT+VAL
+ ;
+ ;S MID=(CNT+1)\2
+ S MID=CNT\2
+ S CT=0,VAL="",QFL=0,MED="",TOT=0
+ F  S VAL=$O(LIST(ITM,VAL)) Q:VAL=""  D  Q:QFL
+ . S DFN=""
+ . F  S DFN=$O(LIST(ITM,VAL,DFN)) Q:DFN=""  D
+ .. S CT=CT+1,NVAL=$O(LIST(ITM,VAL))
+ .. I CT=MID S TOT=TOT+VAL+NVAL,MED=(TOT/2),QFL=1 Q
+ .. S PVAL=VAL
+ Q MED_U_CNT
+ ;
+UPH ;EP Update Hospital
+ NEW BEGDT,ENDT,TMFRAME,XX,V,I,ERROR,BQIUPD
+ S BEGDT=$P($G(^BQI(90508,1,9)),U,1),ENDT=$P($G(^BQI(90508,1,9)),U,2)
+ ;
+ I $G(^BQIFAC(FAC,40,0))="" S ^BQIFAC(FAC,40,0)="^90505.64D^^"
+ S BQDATE=$E(BEGDT,1,5)_"00"
+ NEW DA,X,IENS
+ S DA(1)=FAC,DIC="^BQIFAC("_DA(1)_",40,",X=BQDATE,DIC(0)="LNZ",DLAYGO=90505.64,DIC("P")=DLAYGO
+ D ^DIC
+ S DA=+Y I DA=-1 Q
+ S BQTMN=DA
+ Q

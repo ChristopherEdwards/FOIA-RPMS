@@ -1,5 +1,5 @@
-BGP 07 INDICATORS
-ZWR
+OSEHRA ZGO Export: BGP 07 INDICATORS
+12-JUN-2017 09:47:24 ZWR
 ^BGPINDA(0)="BGP 07 INDICATORS^90530.01I^55^55"
 ^BGPINDA(1,0)="1^1^Diabetes Prevalence^Diabetes Prevalence^DM Prevalence: List of diabetic patients with most recent diagnosis.^1^1^^^^1"
 ^BGPINDA(1,1)="D I1^BGP7D2"

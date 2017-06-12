@@ -1,5 +1,5 @@
-TIUHSV ;;SLC/AJB,AGP Edit Menu for TIUHS Routines;10/25/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**135**;Jun 20, 1997
+TIUHSV ;;SLC/AJB,AGP Edit Menu for TIUHS Routines;06/24/09
+ ;;1.0;TEXT INTEGRATION UTILITIES;**135,249**;Jun 20, 1997;Build 48
 EN(IEN) ; -- main entry point for TIUHSLSV
  N MSG
  K ^TMP("VALMAR",$J)
@@ -87,7 +87,7 @@ HSEDIT ;
 CHHST ;
  N DA,DIC,DIE,DIR,DIROUT,DR,DTOUT,DUOUT,HSIEN,POP,TEXT,X,Y,YESNO
  I $P($G(^GMT(142.5,HSOBJ,0)),U,20)=1 W !,"Can't edit this National Object." H 2 Q
- I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ W !,"Can't edit this HS object:  Only the owner can edit this HS object." H 2 Q
+ I $P($G(^GMT(142.5,HSOBJ,0)),U,17)'=DUZ,'$D(^XUSEC("GMTSMGR",DUZ)) W !,"Can't edit this HS object:  Only the owner can edit this HS object." H 2 Q
  W !,"***WARNING*** Changing the HS Type will change the output data."
  S DIR(0)="YA0"
  S DIR("A")="Continue? "

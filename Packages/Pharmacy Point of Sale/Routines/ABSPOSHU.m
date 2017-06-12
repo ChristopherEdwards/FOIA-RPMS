@@ -1,5 +1,5 @@
 ABSPOSHU ;IHS/SD/lwj - various miscellaneous 5.1 utilities [ 09/04/2002  10:17 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;
  ;--------------------------------------------------------------
  ; Because of SAC routine size limitations, many utilities 

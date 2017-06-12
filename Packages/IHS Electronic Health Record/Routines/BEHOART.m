@@ -1,5 +1,5 @@
-BEHOART ;MSC/IND/DKM - ART Package Interface ;01-May-2012 11:15;PLS
- ;;1.1;BEH COMPONENTS;**045003,045004,045005**;Sep 18, 2007;Build 1
+BEHOART ;MSC/IND/DKM - ART Package Interface ;18-Sep-2014 13:46;DU
+ ;;1.1;BEH COMPONENTS;**045003,045004,045005,045007,045008**;Sep 18, 2007;Build 1
  ;=================================================================
  ; RPC: Lock entry for edit
 LOCK(DATA,IEN) ;
@@ -158,6 +158,8 @@ SAVE(DATA,IEN,DFN,VAL,ACTION) ;
  .E  S:$E(RIEN)'="+" FDA2(120.85,RIEN,.01)="@"
  .D:$D(FDA2) UPDATE^DIE(,"FDA2")
  .D UPDSF(DATA,.AGNT)
+ .;Patch 13 add RxNorm and UNI codes if available
+ .D RXNORM^GMRAZRXU(DATA)
  D CKIN^BEHOARMU(DFN)
  D FIREEVT(DFN,'NEW,DATA)
  Q:NKA
@@ -169,6 +171,7 @@ GMRAAGNT N X
  S AGNT=$$CODE(VAL)
  I '$L(AGNT) D
  .S AGNT=$P($P(VAL,U,3),",")
+ .I AGNT[$C(34) S AGNT=$P(AGNT,$C(34))
  .S:$L(AGNT) AGNT=+VAL_";"_AGNT_","
  S FDA(120.8,IEN,.02)=$P(VAL,U,2)
  S FDA(120.8,IEN,1)=AGNT
@@ -193,6 +196,7 @@ GMRANKA N AIEN
  S FDA(120.86,AIEN,1)=0
  S FDA(120.86,AIEN,2)=DUZ
  S FDA(120.86,AIEN,3)=NOW
+ S FDA(120.86,AIEN,9999999.01)=160244002
  Q
 GMRAOBHX S FDA(120.8,IEN,6)=$S(VAL:"o",1:"h")
  Q
@@ -256,6 +260,8 @@ HASNKA(DFN,CREATE) ;
  .S FDA(120.86,IEN,2)=DUZ
  .S FDA(120.86,IEN,3)=$$NOW^XLFDT
  S FDA(120.86,IEN,1)=AL
+ I AL=1 S FDA(120.86,IEN,9999999.01)="@"
+ I AL=0 S FDA(120.86,IEN,9999999.01)=160244002
  D UPDATE^DIE(,"FDA","IEN")
  Q 'AL
  ; Return last subfile entry for user comment
@@ -303,12 +309,14 @@ FIREEVT(DFN,ACTION,DATA) ;
  D:X EN^XQOR ;Process protocols hanging off this protocol
  Q
  ; Returns agent text as variable pointer if found
+ ; EHR 13 added drug ingredient to the list
 CODE(X) N D,DIC,TRD,Y
  N AGNT
  S AGNT=$P($P(X,U,3),",")
  I AGNT="GMRD(120.82" Q +X_";"_AGNT_","
  I AGNT="PSNDF(50.6" Q +X_";"_AGNT_","
  I AGNT="PS(50.605" Q +X_";"_AGNT_","
+ I AGNT="PS(50.416" Q +X_";"_AGNT_","
  S TRD=$$TTOG^PSNAPIS($P(X,U,2),.TRD)
  Q:TRD $O(TRD(0))_$TR($$NDFREF^GMRAOR,U,";")
  Q ""

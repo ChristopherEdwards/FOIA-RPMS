@@ -1,5 +1,5 @@
-PSORENW4 ;BIR/SAB - rx speed renew ;24-Jun-2013 11:00;PLS
- ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009,148,264,225,301,1014,1016**;DEC 1997;Build 74
+PSORENW4 ;BIR/SAB - rx speed renew ;05-Jun-2014 08:45;DU
+ ;;7.0;OUTPATIENT PHARMACY;**11,23,27,32,37,64,46,75,71,100,130,117,152,1004,1005,1009,148,264,225,301,1014,1016,1017**;DEC 1997;Build 40
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to ^PS(50.7 supported by DBIA 2223
  ;External references L, UL, PSOL, and PSOUL^PSSLOCK supported by DBIA 2789
@@ -8,6 +8,7 @@ PSORENW4 ;BIR/SAB - rx speed renew ;24-Jun-2013 11:00;PLS
  ;            IHS/MSC/PLS - 12/09/10 - Added three lines at PROCESS+35
  ;                          12/05/11 - Line PROCESS+1,PROCESS+3
  ;                          06/24/13 - Line PROCESS+1
+ ;                          06/04/14 - Line PROCESS+33
 SEL K PSODRUG ;PSO*7*301
  I $P(PSOPAR,"^",4)=0 S VALMSG="Renewing is NOT Allowed. Check Site Parameters!",VALMBCK="" Q
  N VALMCNT I '$G(PSOCNT) S VALMSG="This patient has no Prescriptions!",VALMBCK="" Q
@@ -56,6 +57,7 @@ PROCESS ; Process one order at a time
  .S PSORENW("AWP")=$$AWP^APSQDAWP($P($G(PSORENW("RX2")),U,7),$G(PSORENW("DRUG IEN")),.TALK)
  .S PSORENW("BST")=$P($G(^PSRX(PSORENW("OIRXN"),9999999)),U,7)
  .S PSORENW("CM")=$P($G(^PSRX(PSORENW("OIRXN"),9999999)),U,2)
+ K PSORENW("NDC")  ;IHS/MSC/PLS - 06/04/14
  S PSORENW("INS")=$S($G(PSORENW("ENT"))]"":PSORENW("ENT"),1:$G(^PSRX(PSORENW("OIRXN"),"INS")))
  S:$G(PSORENW("ENT"))']"" PSORENW("ENT")=0
  F I=0:0 S I=$O(^PSRX(PSORENW("OIRXN"),6,I)) Q:'I  S DOSE=^PSRX(PSORENW("OIRXN"),6,I,0) D

@@ -1,5 +1,5 @@
 BDMSMU1 ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4**;JUN 14, 2007
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**3,4,9**;JUN 14, 2007;Build 78
  ;
  ;
 GETMEDS(P,BDMMBD,BDMMED,TAXM,TAXN,TAXC,BDMNAME,BDMZ) ;EP
@@ -102,7 +102,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry if patient had this CPT
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^BDMUTL(I,T,1)
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
  .Q
  Q G

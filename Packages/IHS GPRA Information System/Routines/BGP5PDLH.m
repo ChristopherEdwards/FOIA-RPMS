@@ -1,5 +1,5 @@
 BGP5PDLH ; IHS/CMI/LAB - cover page;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
  S X="" D SET(X,1,1)
  S X="Cover Page" D SET(X,1,1)
@@ -45,16 +45,16 @@ N ;
  I BGPRTYPE=7 D ONMHDR
  I BGPRTYPE=6 D PEHDR
  I $G(BGPEXPT),BGPRTYPE=1 D
- .S X="A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_"."_BGPRPT_"." D SET(X,1,1)
  .S X="It will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  S X=" " D SET(X,1,1)
  I $G(BGPEXPT),BGPRTYPE=7 D
- .S X="A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_".ONM"_BGPRPT_"." D SET(X,1,1)
  .S X="It will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  I BGPRTYPE=6,$G(BGPPEEXP) D
- .S X="A file will be created called BG150"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_"." D SET(X,1,1)
+ .S X="A file will be created called BG151"_$P(^AUTTLOC(DUZ(2),0),U,10)_".PED"_BGPRPT_"." D SET(X,1,1)
  .S X="This file will reside in the public/export directory." D SET(X,1,1)
  .S X="This file should be sent to your Area Office." D SET(X,1,1)
  .S X=" " D SET(X,1,1)
@@ -74,12 +74,6 @@ N ;
  ..Q
  S X=" " D SET(X,1,1)
  S X=" " D SET(X,1,1)
- I $G(BGPMFITI) S X="MFI Location Taxonomy Name: "_$P(^ATXAX(BGPMFITI,0),U) D SET(X,1,1)
- I $G(BGPMFITI) S X="The following locations are used for patient visits in this report:" D SET(X,1,1) D
- .S BGPZZ="",N=0,Y="" F  S BGPZZ=$O(^ATXAX(BGPMFITI,21,"B",BGPZZ)) Q:BGPZZ=""  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P($G(^DIC(4,BGPZZ,0)),U)
- .S BGPZZ=0,C=0 F BGPZZ=1:3:N D
- ..S X=$E($P(Y,";",BGPZZ),1,20),$P(X,U,2)=$E($P(Y,";",(BGPZZ+1)),1,20),$P(X,U,3)=$E($P(Y,";",(BGPZZ+2)),1,20) D SET(X,1,1)
- ..Q
  K BGPX,BGPQUIT
  S X=" " D SET(X,1,1)
  I BGPRTYPE'=6 D SET("ENDCOVERPAGE",1,1)
@@ -199,7 +193,7 @@ NA S X="AREA AGGREGATE" D SET(X,1,1)
  .S X="has been placed in the "_$$GETDEDIR^BGP5UTL2()_" directory for your use in Excel or some" D SET(X,1,1) S X="other software package.  See your site manager to access this file." D SET(X,1,1)
  S X=" " D SET(X,1,1)
  I $G(BGPEXCEL),'$G(BGPYGPU),BGPRTYPE=1 D
- .S X="National GPRA Filenames:  " D SET(X,1,1) S X=BGPFGNT1 D SET(X,1,1) S X=BGPFGNT2 D SET(X,1,1) S X=BGPFGNT3 D SET(X,1,1) ;S X=BGPFGNT4 D SET(X,1,1)  ;S X=BGPFN2 D SET(X,1,1) S X=" " D SET(X,1,1)
+ .S X="National GPRA Filenames:  " D SET(X,1,1) S X=BGPFGNT1 D SET(X,1,1) S X=BGPFGNT2 D SET(X,1,1) S X=BGPFGNT3 D SET(X,1,1) S X=BGPFGNT4 D SET(X,1,1)  ;S X=BGPFN2 D SET(X,1,1) S X=" " D SET(X,1,1)
  I BGPRTYPE=7 D
  .S X="Other National Reporting Filenames:  "_$G(BGPFONN1) D SET(X,1,1) S X="^"_BGPFONN2 D SET(X,1,1) S X="^"_BGPFONN3 D SET(X,1,1) S X=" " D SET(X,1,1)
  S X="Report includes data from the following facilities:" D SET(X,1,1)
@@ -216,11 +210,6 @@ NA S X="AREA AGGREGATE" D SET(X,1,1)
  .S X="Community Taxonomy Name: "_$P(^BGPGPDCK(BGPX,0),U,18) D SET(X,1,1)
  .S X=0,N=0,Y="",Z="" F  S X=$O(^BGPGPDCK(BGPX,9999,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPGPDCK(BGPX,9999,X,0),U)
  .S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D SET(Z,1,1)
- .I $O(^BGPGPDCK(BGPX,1111,0))  D
- ..S X=" " D SET(X,1,1)
- ..S X="MFI Site: Locations for visits: " D SET(X,1,1) S X=0,N=0,Y="",Z="" F  S X=$O(^BGPGPDCK(BGPX,1111,X)) Q:X'=+X  S N=N+1,Y=Y_$S(N=1:"",1:";")_$P(^BGPGPDCK(BGPX,1111,X,0),U)
- ..S X=0,C=0 F X=1:3:N S Z=$E($P(Y,";",X),1,20),$P(Z,U,2)=$E($P(Y,";",(X+1)),1,20),$P(Z,U,3)=$E($P(Y,";",(X+2)),1,20) D SET(Z,1,1)
- ..Q
  .S X=" " D SET(X,1,1)
  .Q
  S X="ENDCOVERPAGE" D SET(X,1,1)

@@ -1,7 +1,10 @@
 ABMMUELG ;IHS/SD/SDR - Meaningful Use Report - count patients/eligibility ;
- ;;2.6;IHS 3P BILLING SYSTEM;**5,11,12**;NOV 12, 2009;Build 187
+ ;;2.6;IHS 3P BILLING SYSTEM;**5,11,12,15**;NOV 12, 2009;Build 251
  ;IHS/SD/SDR - 2.6*12 - HEAT120278 - Made change to correct Railroad member#
  ;IHS/SD/SDR - 2.6*12 - VMBP RQMT_103 - Added VA elig to summary and detail
+ ;IHS/SD/SDR - 2.6*15 - HEAT119702 - Updated so both devices would print ok.  Was issue with the summary not printing
+ ;  to the printer.
+ ;IHS/SD/SDR - 2.6*15 - HEAT188548 - Updated so a complete date should be entered for CEMU report.
  ;
  W !!,"The date range selected will be used for: "
  W !,?3,"1. Was the patient's record active during that range"
@@ -15,7 +18,8 @@ DT ;
  W !!," ============ Entry of Date Range =============",!
  D ^XBFMK
  S DIR("A")="Enter STARTING Date"
- S DIR(0)="DO^::EP"
+ ;S DIR(0)="DO^::EP"  ;abm*2.6*15 HEAT188548
+ S DIR(0)="DO^::EPX"  ;abm*2.6*15 HEAT188548
  D ^DIR
  Q:$D(DIRUT)!$D(DIROUT)!$D(DTOUT)!$D(DUOUT)
  S ABMY("DT",1)=Y
@@ -33,22 +37,36 @@ RTYPE ;
  S DIR("A")="SUMMARY OR DETAIL"
  S DIR("B")="SUMMARY"
  D ^DIR K DIR
+ Q:$D(DIROUT)!$D(DUOUT)!$D(DIRUT)!$D(DTOUT)  ;exit from report if '^', timeout, etc  ;abm*2.6*15 HEAT188548
  S ABMSUMDT=Y
+ ;start new abm*2.6*15 HEAT119702
+ W !!,"Searching...."
+ D GETPTS
+ D GETELIG
+ D GETVSTS
+ ;end new HEAT119702
 SEL ;
  ; Select device
  I ABMSUMDT="D" D
  .W !!,"There will be two outputs, one for SUMMARY and one for DETAIL."
  .W !,"The first one should be a terminal or a printer."
  .W !,"The second forces an HFS file because it could be a large file",!
- S %ZIS="NQ"
+ ;S %ZIS="NQ"  ;abm*2.6*15 HEAT119702
  S %ZIS("A")="Enter DEVICE: "
  D ^%ZIS Q:POP
- U IO(0) W !!,"Searching...."
- I IO=IO(0) D TOTALS S DIR(0)="E" D ^DIR K DIR
- I IO'=IO(0) D QUE^ABMMUELG,HOME^%ZIS S DIR(0)="E" D ^DIR K DIR Q
- I $D(IO("S")) S IOP=ION D ^%ZIS
+ ;start old abm*2.6*15 HEAT119702
+ ;U IO(0) W !!,"Searching...."
+ ;I IO=IO(0) D TOTALS S DIR(0)="E" D ^DIR K DIR
+ ;I IO'=IO(0) D QUE^ABMMUELG,HOME^%ZIS S DIR(0)="E" D ^DIR K DIR Q
+ ;I $D(IO("S")) S IOP=ION D ^%ZIS
+ ;D ^%ZISC
+ ;D HOME^%ZIS
+ ;end old start new HEAT119702
+ U IO
+ D TOTALS^ABMMUELG
  D ^%ZISC
- D HOME^%ZIS
+ D HOME^%ZIS S DIR(0)="E" D ^DIR K DIR
+ ;end new HEAT119702
  ;
  I ABMSUMDT="D" D
  .W !!,"Will now write detail to file",!!
@@ -72,6 +90,8 @@ SEL ;
  .D WRTVSTS
  .D CLOSE^%ZISH("ABM")
  .W "DONE"
+XIT1 ;
+ Q
 XIT ;
  K ^TMP($J,"ABM-MURPT")
  K ABMP,ABMY,ABMPTINA,ABMPT,ABMMFLG
@@ -205,9 +225,11 @@ TOTALS ;
  ;# of Unique Patients/Year
  S ABM("HD",0)="Meaningful Use Eligibility Report"
  S ABM("PG")=1
- D GETPTS
- D GETELIG
- D GETVSTS
+ ;start old abm*2.6*15 HEAT119702
+ ;D GETPTS
+ ;D GETELIG
+ ;D GETVSTS
+ ;end old HEAT119702
  D WHD
  W !!,"Practice Demographics"
  W !?2,$J(+$G(^TMP($J,"ABM-MURPT","CNT","PTS")),7)_" Patients"

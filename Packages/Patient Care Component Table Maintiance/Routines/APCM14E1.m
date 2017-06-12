@@ -1,0 +1,221 @@
+APCM14E1 ; IHS/CMI/LAB - IHS MU 24 Feb 2014 10:32 AM ; 
+ ;;1.0;IHS MU PERFORMANCE REPORTS;**5,6**;MAR 26, 2012;Build 65
+ ;
+BQI(BQIGREF,APCMPRV) ;PEP-Call from iCare
+ ; input
+ ; BQIGREF - Global reference
+ ; APCMPRV - Array of providers
+ ;
+PROC ;EP
+ S APCMBT=$H
+ ;D JRNL^APCM1UTL
+ S APCMJ=$J,APCMH=$H
+ D XTMP^APCM1UTL("APCM1D","MU Patient List")
+ ;process each patient
+ ;first gather up provider exclusions
+ I APCMRPTT=2 D  G PROC1  ;hospital report doesn't need this stuff for exclusions
+ .K APCMOFFV
+ .K APCM14ON  ;SMK STATUS EXCL
+ .K APCMIMME  ;IMM EXCL
+ .K APCMHO65  ;ADV DIR EXCL
+ .S X=APCMFAC  S APCMX=$$VSTH(APCMFAC,APCMBD,APCMED,APCMMETH) D
+ ..I '$P(APCMX,U,3) S APCM14ON(X,1)=""  ;SMOKING STATUS EXCL
+ ..I '$P(APCMX,U,1) S APCMOFFV(X,1)=""
+ ..I '$P(APCMX,U,5) S APCMIMME(X,1)=""  ;IMM REG
+ ..I '$P(APCMX,U,7) S APCMHO65(X,1)=""  ;ADV DIR EXCL
+ .;
+ K APCM100R
+ S X=0 F  S X=$O(APCMPRV(X)) Q:X'=+X  I '$$H100(X,APCMBD,APCMED) S APCM100R(X,1)=""  ;S1.003.EP E-RX EXCL, DRUG FORM EXCL
+ K APCMOFFV
+ K APCM14ON
+ K APCMIMME
+ S X=0 F  S X=$O(APCMPRV(X)) Q:X'=+X  S APCMX=$$VST(X,APCMBD,APCMED) D
+ .I '$P(APCMX,U,3) S APCM14ON(X,1)=""  ;SMK STATUS EXCL
+ .I '$P(APCMX,U,1) S APCMOFFV(X,1)=""  ;CLIN SUM EXCL
+ .I '$P(APCMX,U,5) S APCMIMME(X,1)=""  ;IMM REG EXCL
+N1 ;
+ ;any patients 0-5 or >64?
+ S APCMN565(1)=1
+ S P=0 F  S P=$O(^DPT(P)) Q:P'=+P!(APCMN565(1)=0)  D
+ .S X=$$DOD^AUPNPAT(P)
+ .I X,X'>APCMED Q
+ .Q:$$DOB^AUPNPAT(P)>APCMBD  ;born after time period begin date
+ .S X=$P($G(^AUPNPAT(P,41,DUZ(2),0)),U,3)
+ .I X,X'>APCMED Q
+ .S A=$$AGE^AUPNPAT(P,APCMBD)
+ .I A<6 S APCMN565(1)=0 Q
+ .I A>64 S APCMN565(1)=0 Q
+ ;
+PROC1 ;
+ S DFN=0 F  S DFN=$O(^AUPNPAT(DFN)) Q:DFN'=+DFN  D
+ .Q:'$D(^DPT(DFN,0))
+ .;I DUZ=2793 Q:'$D(^DIBT(4723,1,DFN))
+ .;I DUZ=2793 Q:DFN'=5851
+ .Q:$$DEMO^APCLUTL(DFN,$G(APCMDEMO))
+ .D PROCCY
+N ;
+ ;NOW DO ATTESTATION MEASURES
+ D PROCACY
+ S APCMET=$H
+ Q
+ ;
+PROCCY ;EP - current time period
+ K ^TMP($J)
+ Q:'$D(^DPT(DFN,0))
+ Q:$P(^DPT(DFN,0),U,2)=""
+ S APCMEDAT=APCMED,APCMTIME=1,APCMBDAT=APCMBD,APCMGBL="^APCMM14C(",APCMFILN=9001302.0311
+ S APCMAGEB=$$AGE^AUPNPAT(DFN,APCMBDAT)
+ S APCMAGEE=$$AGE^AUPNPAT(DFN,APCMEDAT)
+ S APCMSEX=$P(^DPT(DFN,0),U,2)
+ ;had visit to each provider?
+ D CALCIND
+ K ^TMP($J,"A")
+ Q
+CALCIND ;
+ D CALCIND^APCM14CI
+ Q
+PROCACY ;EP - current time period
+ S APCMEDAT=APCMED,APCMTIME=1,APCMBDAT=APCMBD,APCMGBL="^APCMM14C(",APCMFILN=9001302.0311
+ D CALCINDA^APCM14CI
+ Q
+S(RPT,IND,VALUE,PROV,RT,T,F,NT) ;EP - set counter
+ NEW N,P,Y,J,I,ID
+ I VALUE="" Q  ;no value to add
+ I RT=1 S I=PROV_";VA(200,"
+ I RT=2 S I=PROV_";AUTTLOC("
+ I T=1 D  Q
+ .I $G(BQIGREF)'="" D  Q
+ ..NEW ID
+ ..S ID=$P(^APCM14OB(IND,0),U,1)
+ ..I $P(^APCM14OB(IND,0),U,8)=F S $P(@BQIGREF@(PROV,ID,"CURR"),U,1)=$P($G(@BQIGREF@(PROV,ID,"CURR")),U,1)+VALUE
+ ..I $P(^APCM14OB(IND,0),U,9)=F S $P(@BQIGREF@(PROV,ID,"CURR"),U,2)=$P($G(@BQIGREF@(PROV,ID,"CURR")),U,2)+VALUE
+ ..I $P(^APCM14OB(IND,0),U,11)=F S $P(@BQIGREF@(PROV,ID,"CURR"),U,3)=VALUE
+ ..S $P(@BQIGREF@(PROV,ID,"CURR"),U,4)=$G(APCMVALU)
+ .S Y=$P(^DD(9001302.0311,F,0),U,4)
+ .S N=$P(Y,";")
+ .S P=$P(Y,";",2)
+ .S J=$O(^APCMM14C(RPT,11,"B",I,0))
+ .I 'J W APCMBOMB Q
+ .I VALUE?.N S $P(^APCMM14C(RPT,11,J,N),U,P)=$P($G(^APCMM14C(RPT,11,J,N)),U,P)+VALUE
+ .I VALUE'?.N S $P(^APCMM14C(RPT,11,J,N),U,P)=VALUE
+ .Q
+ Q
+SETLIST ;EP
+ NEW P,APCMX,APCMO
+ Q:APCMTIME'=1
+ Q:'$D(APCMINDL(APCMIC))  ;not a selected topic
+ S APCMX=0 F  S APCMX=$O(APCMINDL(APCMIC,APCMX)) Q:APCMX'=+APCMX  D
+ .X ^APCMM14L(APCMX,12) Q:'$T
+ .S APCMINDL(APCMIC,APCMX,APCMP)=$G(APCMINDL(APCMIC,APCMX,APCMP))+1
+ .S APCMO=$S(APCMRPTT=2:$P(^APCMM14L(APCMX,0),U,6),1:$P(^APCMM14L(APCMX,0),U,5))
+ .S P=$S(APCMRPTT=2:$P(^DIC(4,APCMP,0),U),1:$P(^VA(200,APCMP,0),U))
+ .S ^XTMP("APCM1D",APCMJ,APCMH,"LIST",$P(^APCM14OB(APCMIC,0),U,4),APCMIC,APCMO,APCMX,P,$S($P($G(^AUPNPAT(DFN,11)),U,18)]"":$P(^AUPNPAT(DFN,11),U,18),1:"UNKNOWN"),$P(^DPT(DFN,0),U,2),$$AGE^AUPNPAT(DFN,APCMBDAT),DFN)=$G(APCMVALU)
+ Q
+H100(R,BD,ED) ;
+ NEW ID,C,Y,X,VMED,V
+ S C=0
+ S ID=$$FMADD^XLFDT(BD,-1)
+ F  S ID=$O(^PSRX("AC",ID)) Q:ID'=+ID!(C>100)!(ID>ED)  D
+ .S X=0 F  S X=$O(^PSRX("AC",ID,X)) Q:X'=+X!(C>100)  D
+ ..Q:$P($G(^PSRX(X,0)),U,4)'=R
+ ..Q:$P($G(^PSRX(X,"STA")),"^")=13
+ ..;SKIP ER CLINIC OR H VISIT, GET VISIT FROM V MED
+ ..S VMED=$P($G(^PSRX(X,999999911)),U,1)
+ ..Q:'VMED
+ ..S V=$P($G(^AUPNVMED(VMED,0)),U,3)
+ ..Q:'V
+ ..Q:'$D(^AUPNVSIT(V,0))
+ ..Q:$P(^AUPNVSIT(V,0),U,7)="H"
+ ..Q:$$CLINIC^APCLV(V,"C")=30
+ ..S C=C+1
+ Q $S(C>100:1,1:"")
+VST(R,BD,ED) ;CALCULATE EXCLUSIONS
+ NEW SD,A,B,C,G,V,T
+ S T=$O(^APCMMUCN("B","INTERIM STAGE 1 2014",0))
+ S SD=$$FMADD^XLFDT(BD,-1)
+ S SD=SD_".9999"
+ S G=""
+ F  S SD=$O(^AUPNVSIT("B",SD)) Q:SD'=+SD!($P(SD,".")>ED)!($$GOTALL(G))  D
+ .S V=0 F  S V=$O(^AUPNVSIT("B",SD,V)) Q:V'=+V!($$GOTALL(G))  D
+ ..S B=0,C=0 F  S B=$O(^AUPNVPRV("AD",V,B)) Q:B'=+B  D
+ ...Q:'$D(^AUPNVPRV(B,0))
+ ...Q:$P(^AUPNVPRV(B,0),U,1)'=R
+ ...Q:$P(^AUPNVPRV(B,0),U,4)'="P"
+ ...S C=1
+ ..Q:'C  ;not to this provider
+ ..S C=$$CLINIC^APCLV(V,"C")
+ ..I C=30 Q  ;no ER per Carmen patch 1
+ ..I C=77 Q  ;no case management clinic 77 per Chris
+ ..I C=76 Q  ;no lab
+ ..I C=63 Q  ;no radiology
+ ..I C=39 Q  ;no pharmacy
+ ..S $P(G,U,1)=1  ;has an office visit ;clinic summary excl
+ ..I $$AGE^AUPNPAT($P(^AUPNVSIT(V,0),U,5),$P(BD,"."))>12 S $P(G,U,3)=1  ;SMK STATUS EXCL
+ ..I $D(^AUPNVIMM("AD",V)) S $P(G,U,5)=1  ;not an exclusion for imm reg
+ Q G
+ ;
+GOTALL(%) ;EP
+ NEW Y
+ S Y=$P(%,U,1)+$P(%,U,3)+$P(%,U,5)
+ I Y=3 Q 1
+ Q 0
+VSTH(R,BD,ED,APCMMETH) ;did this HOSPITAL HAVE THESE VISITS
+ NEW SD,A,B,C,G,V,T,O,P,Q,E,J,S
+ S T=$O(^APCMMUCN("B","INTERIM STAGE 1 2014",0))
+ S SD=$$FMADD^XLFDT(BD,-1)
+ S SD=SD_".9999"
+ S G=""
+ F  S SD=$O(^AUPNVSIT("B",SD)) Q:SD'=+SD!($P(SD,".")>ED)!($$GOTALLH(G))  D
+ .S V=0 F  S V=$O(^AUPNVSIT("B",SD,V)) Q:V'=+V!($$GOTALLH(G))  D
+ ..Q:$P(^AUPNVSIT(V,0),U,6)'=R
+ ..I APCMMETH="E" Q:'$$HOSER^APCM24E6(V,R)
+ ..I APCMMETH="O" Q:"OH"'[$P(^AUPNVSIT(V,0),U,7)
+ ..S $P(G,U,1)=1
+ ..S A=$$AGE^AUPNPAT($P(^AUPNVSIT(V,0),U,5),$P(BD,"."))
+ ..I A>12 S $P(G,U,3)=1
+ ..I $D(^AUPNVIMM("AD",V)) S $P(G,U,5)=1  ;not an exclusion for imm reg
+ ..I $P(^AUPNVSIT(V,0),U,7)="H" S A=$$AGE^AUPNPAT($P(^AUPNVSIT(V,0),U,5),$$VD^APCLV(V)) I A>64 S $P(G,U,7)=1
+ Q G
+TIUDCEL(%) ;any electronic dc instruction TIU Notes
+ NEW A,B,C
+ S A=0,B=0 F  S A=$O(^AUPNVNOT("AD",%,A)) Q:A'=+A!(B)  D
+ .S C=$$VAL^XBDIQ1(9000010.28,A,.01)
+ .I $$UP^XLFSTR(C)="E-COPY DISCHARGE INSTR RECEIVED" S B=1 Q
+ .I $$UP^XLFSTR(C)="E-COPY DISCHARGE INSTR NOT RECEIVED" S B=1 Q
+ Q B
+GOTALLH(%) ;EP
+ NEW Y
+ S Y=$P(%,U,1)+$P(%,U,2)+$P(%,U,3)+$P(%,U,4)+$P(%,U,5)+$P(%,U,6)+$P(%,U,7)+$P(%,U,8)+$P(%,U,9)
+ I Y=9 Q 1
+ Q 0
+VDT ;EP - ask additional exclusion questions for PEA
+ S APCMQ=0
+ S APCMY=$O(^APCM14OB("B","S1.020.EP",0))
+ Q:'$D(APCMIND(APCMY))  ;measure not being run
+ K APCMATTE("S1.020.EP.1")
+ ;display exclusion text/narrative
+ I $O(^APCM14OB(APCMY,26,0)) D ET
+ I APCMPLTY="SEL"!(APCMPLTY="TAX") D  G:APCMIND=1 EIND Q
+ .S APCMZ=0 F  S APCMZ=$O(^APCM14OB(APCMY,19,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM14OB(APCMY,19,APCMZ,0)
+ .S APCMQ=0,APCMIND=0
+ .W !!!,"The View, Download, Transmit question above may be addressed as a group or"
+ .W !,"by individual provider. Do you want to answer for all selected providers as a"
+ .S DIR(0)="Y",DIR("A")="group Y/N",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .I 'Y S APCMIND=1 Q
+ .W !!,"Do all selected providers included in this report meet the broadband"
+ .S DIR(0)="Y",DIR("A")="Exclusion",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .I 'Y S APCMIND=1 Q
+ .S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP  S APCMATTE("S1.020.EP.1",APCMP)="Yes"
+EIND ;ask individually
+ S APCMP=0 F  S APCMP=$O(APCMPRV(APCMP)) Q:APCMP'=+APCMP!(APCMQ)  D
+ .S APCMZ=0 F  S APCMZ=$O(^APCM14OB(APCMY,19,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM14OB(APCMY,19,APCMZ,0)
+ .S DIR(0)="Y",DIR("A")="Does "_$E($P(^VA(200,APCMP,0),U,1),1,25)_" meet the broadband exclusion",DIR("B")="YES" KILL DA D ^DIR KILL DIR
+ .I $D(DIRUT) S APCMQ=1 Q
+ .S APCMATTE("S1.020.EP.1",APCMP)=$S(Y:"Yes",1:"No")
+ Q
+ET ;
+ W ! S APCMZ=0 F  S APCMZ=$O(^APCM14OB(APCMY,26,APCMZ)) Q:APCMZ'=+APCMZ  W !,^APCM14OB(APCMY,26,APCMZ,0)
+ W !
+ Q

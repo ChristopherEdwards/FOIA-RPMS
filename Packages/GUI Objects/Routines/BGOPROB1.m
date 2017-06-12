@@ -1,0 +1,380 @@
+BGOPROB1 ; IHS/BAO/TMD - pull patient PROBLEMS ;10-Jun-2016 14:18;MGH
+ ;;1.1;BGO COMPONENTS;**13,14,20,21**;Mar 20, 2007;Build 1
+ ;---------------------------------------------
+ ; Edit a problem entry
+ ;  DFN   = Patient IEN
+ ;  PRIEN = IEN of problem, null if new
+ ;  VIEN  = Needed if asthma DX
+ ;  List(n)
+ ;        "P"[1] ^ SNOMED CT [2] ^ Descriptive CT [3] ^ Provider text [4] ^ Mapped ICD [5]
+ ;        ^ Location [6] ^ Date of Onset [7] ^ Status [8] ^ Class [9] ^ Problem # [10] ^ Priority [11]
+ ;        ^ Inpt Dx  [12] ^ Laterality codes [13]
+ ;        "A"[1] ^ Classification [2] ^ Control [3] ^ V asthma IEN [4]
+ ;        "Q"[1] ^ Type [2] ^ Qualifier IEN [3] ^ Qual SNOMED [4] ^ By [5] ^ When [6] ^DEL [7]
+EDIT(RET,DFN,PRIEN,VIEN,ARRAY) ;EP
+ N CLASS,DIEN,ONSET,NARR,LIEN,PRNUM,LOCN,DMOD,DENT,STAT,IMP,LAT,LATEXT
+ N FDA,IEN,FPNUM,FPIEN,FNUM,IENS,PRNEW,PRIOR,SNOCT,DESCT,XIEN,ERR
+ N ODIEN,ONARR,OCLASS,OSNOCT,ODESCT,OSTAT,OLDLAT,STAT2,SNODATA,VAPR,INPT
+ S FNUM=$$FNUM,RET="",ERR=0
+ S PRIEN=$G(PRIEN),VIEN=$G(VIEN)
+ S (DIEN,SNOCT)=""
+ I '+PRIEN S RET="-1^Problem IEN not sent" Q
+ S XIEN="" F  S XIEN=$O(ARRAY(XIEN)) Q:XIEN=""!(ERR=1)  D
+ .S INP=$G(ARRAY(XIEN))
+ .I $P(ARRAY(XIEN),U,1)="P" D PROB(.RET,INP)
+ .I $P(ARRAY(XIEN),U,1)="A" D ASTHMA(.RET,VIEN,INP,DIEN,DESCT)
+ .I $P(ARRAY(XIEN),U,1)="Q" D QUAL(.RET,INP)
+ Q
+PROB(RET,INP) ;PROBLEM DATA
+ ;Get old data to check what was changed
+ S ODIEN=$$GET1^DIQ(9000011,PRIEN,.01)
+ S ONARR=$$GET1^DIQ(9000011,PRIEN,.05)
+ S OSTAT=$$GET1^DIQ(9000011,PRIEN,.12,"I")
+ S OCLASS=$$GET1^DIQ(9000011,PRIEN,.04)
+ S OSNOCT=$$GET1^DIQ(9000011,PRIEN,80001)
+ S ODESCT=$$GET1^DIQ(9000011,PRIEN,80002)
+ S OLDLAT=$$GET1^DIQ(9000011,PRIEN,.22)
+ S DIEN=$P(INP,U,5)
+ S DIEN=$P($P(INP,U,5),"|",1)
+ S NARR=$P(INP,U,4)
+ S NARR=$TR(NARR,"^|","")
+ S ONSET=$$CVTDATE^BGOUTL($P(INP,U,7))
+ S CLASS=$P(INP,U,9)
+ S SNOCT=$P(INP,U,2)
+ ;IHS/MSC/MGH Changed to new API
+ ;S SNODATA=$$CONC^BSTSAPI(SNOCT_"^^^1")
+ S SNODATA=$$CONC^AUPNSICD(SNOCT_"^^^1")
+ S DIEN=$P($P(SNODATA,U,5),";",1)
+ I DIEN="" D
+ .I $$AICD^BGOUTL2 D
+ ..S IMP=$$IMP^ICDEX("10D",DT)
+ ..I IMP<DT!(IMP=DT) S DIEN="ZZZ.999"
+ ..I IMP>DT S DIEN=".9999"
+ .E  S DIEN=".9999"
+ I DIEN'["." S DIEN=DIEN_"."
+ S DESCT=$P(INP,U,3)
+ S STAT=$P(INP,U,8)
+ S PRNUM=$P(INP,U,10)
+ I '$D(^DPT(DFN,0)) S ERR=1,RET=$$ERR^BGOUTL(1001) Q
+ S PRIOR=$P(INP,U,11)
+ I $$AICD^BGOUTL2 S DIEN=$P($$ICDDX^ICDEX(DIEN,"","","E"),U,1)
+ E  S DIEN=$P($$ICDDX^ICDCODE(DIEN),U,1)
+ I 'DIEN S ERR=1,RET=$$ERR^BGOUTL(1048) Q
+ ;IHS/MSC/MGH update date modified to include time
+ S DMOD=$$NOW^XLFDT,DENT=$S(PRIEN:"",1:DT)
+ ;Provider narrative is now provider text | descriptive SNOMED CT
+ ;Patch 20 provider narrative is now provider text | descriptive SNOMED CT | Laterality
+ S LAT=$P(INP,U,13)
+ ;Do not store unspecified laterality
+ I LAT="272741003|261665006"!(LAT="272741003|") S LAT=""
+ I LAT'="" D
+ .S LATEXT=$$CVPARM^BSTSMAP1("LAT",$P(LAT,"|",2))
+ .S NARR=NARR_"|"_DESCT_"|"_LATEXT
+ E  S NARR=NARR_"|"_DESCT
+ I $L(NARR) D  Q:RET
+ .S RET=$$FNDNARR^BGOUTL2(NARR)
+ .S:RET>0 NARR=RET,RET=""
+ S FPIEN=""
+ S IENS=PRIEN_","
+ S FDA=$NA(FDA(FNUM,IENS))
+ I DIEN'=ODIEN S @FDA@(.01)=DIEN
+ I DMOD'="" S @FDA@(.03)=DMOD
+ S @FDA@(.14)=DUZ
+ I CLASS'=OCLASS S @FDA@(.04)=CLASS
+ I NARR'=ONARR S @FDA@(.05)=NARR
+ S:PRNUM @FDA@(.07)=PRNUM
+ S PRNEW='PRIEN
+ I STAT="" S STAT=$P(SNODATA,U,9)    ;Patch 20
+ S STAT2=$S(STAT="Chronic":"A",STAT="Inactive":"I",STAT="Sub-acute":"S",STAT="Episodic":"E",STAT="Social/Environmental":"O",STAT="Routine/Admin":"R",STAT="Admin":"R",1:"E")
+ I STAT2'=OSTAT D
+ .S @FDA@(.12)=STAT2
+ .I STAT2'="I" D
+ ..S CLASS=""
+ ..S @FDA@(.04)=""
+ I CLASS="P" S @FDA@(.12)="I"
+ S VAPR=$S(STAT2="A":"C",STAT2="S":"C",STAT2="O":"C",STAT2="E":"A",1:"")
+ S @FDA@(1.14)=VAPR
+ S @FDA@(.13)=ONSET
+ ;IHS/MSC/MGH Entered by not part of editing a problem
+ ;S @FDA@(1.03)=DUZ
+ I SNOCT'=OSNOCT S @FDA@(80001)=SNOCT
+ I DESCT'=ODESCT S @FDA@(80002)=DESCT
+ I (OLDLAT'=LAT)&($P(LAT,"|",2)'="") S @FDA@(.22)=LAT
+ S:LAT="" @FDA@(.22)="@"
+ D FILE^DIE("","FDA","ERR")
+ I ERR S RET=-1_U_"Unable to Edit problem"
+ Q:RET
+ D SETICD^BGOPROB1(.RES,PRIEN,$P(SNODATA,U,5),";")
+ D SETPRI^BGOPROB(,PRIEN_U_PRIOR)
+ S:'RET RET=PRIEN
+ D:RET>0 EVT(PRIEN,'PRNEW)
+ ;Set inpt DX
+ N RES1,INPT
+ S INPT=$P(INP,U,12)
+ I INPT=1 S RES1="" D HOSP^BGOHOS(.RES1,PRIEN,VIEN)
+ Q
+ASTHMA(RET,VIEN,INP,DIEN,SNOCT) ;ASTHMA DATA
+ N ACL,ASTHMA,RET2,AIEN,CONTROL,RET3,INP2,IENS,CODE
+ K FDA
+ S FNUM=$$FNUM,RET2=""
+ S IENS=PRIEN_","
+ S FDA=$NA(FDA(FNUM,IENS))
+ Q:'DFN
+ Q:'PRIEN
+ Q:'VIEN
+ S ACL=$P(INP,U,2)
+ Q:ACL=""
+ I DUZ("AG")="I" D
+ . S CODE=$$CODEC^ICDEX(80,DIEN)
+ . S ASTHMA=$$CHECK^BGOASLK(CODE,SNOCT)
+ . I ASTHMA=0 S @FDA@(.15)="@"
+ . I ASTHMA=1 D
+ ..S ACL=$S(ACL="INTERMITTENT":1,ACL="MILD PERSISTENT":2,ACL="MODERATE PERSISTENT":3,ACL="SEVERE PERSISTENT":4,1:"")
+ ..S @FDA@(.15)=ACL
+ ..S RET2=$$UPDATE^BGOUTL(.FDA,,.IEN)
+ ..I RET2 S ERR=1,RET=RET_U_"Error on Asthma Update"
+ ..;Patch 6 check to see if its an asthma diagnosis
+ ..I ASTHMA=1&(ACL="") S RET=RET_U_ASTHMA
+ ..S CONTROL=$P(INP,U,3)
+ ..S AIEN=$P(INP,U,4)
+ ..I AIEN'="" D
+ ...N X,Y
+ ...S X=$O(^AUPNVAST("AD",VIEN,""))
+ ...S Y=$O(^AUPNVAST("AD",AIEN,""))
+ ...I X'=Y S AIEN=""
+ ...E  S AIEN=X
+ ..I CONTROL="NONE RECORDED" S CONTROL=""
+ ..I CONTROL'="" D
+ ...S INP2=AIEN_U_VIEN_U_CONTROL
+ ...D SET^BGOVAST(.RET3,INP2)
+ ...I RET3 S RET=RET_U_RET3
+ Q
+QUAL(RET,INP) ;QUALIFIERS
+ N FNUM,AIEN,QUAL,BY,WHEN,IEN,IEN2,TYPE,DEL,TYPE
+ K FDA
+ S TYPE=$P(INP,U,2)
+ S IEN=$P(INP,U,3)
+ S QUAL=$P(INP,U,4)
+ Q:QUAL=""
+ ;S X=$$DESC^BSTSAPI(QUAL_"^^1")
+ ;S QUAL=$P(X,U,1)
+ S BY=$P(INP,U,5)
+ I BY="" S BY=DUZ
+ S WHEN=$P(INP,U,6)
+ I WHEN="" S WHEN=$$NOW^XLFDT
+ S DEL=$P(INP,U,7)
+ Q:TYPE=""
+ ; "S" for Severity, "F" is Finding Site, "C" is Clinical Course
+ S FNUM=$S(TYPE="S":9000011.13,TYPE="F":9000011.17,TYPE="C":9000011.18,1:"")
+ Q:FNUM=""
+ D CHECK(TYPE,.IEN)
+ I +IEN&(DEL=1) D
+ .D DELQ(.RET,PRIEN,IEN,TYPE)
+ .I TYPE="S" D DELQ(.RET,PRIEN,1,TYPE)
+ E  D STORE
+ I TYPE="C" D DOUBLE(PRIEN)   ;double check
+ Q
+STORE ;Store the qualifier data
+ N AIEN,FDA,IEN2,ERR
+ I IEN="" S AIEN="+1,"_PRIEN_","
+ E  S AIEN=IEN_","_PRIEN_","
+ S QUAL=$TR(QUAL," ","")
+ S FDA(FNUM,AIEN,.01)=QUAL
+ I TYPE="S" D
+ .S FDA(FNUM,AIEN,.02)=BY
+ .S FDA(FNUM,AIEN,.03)=WHEN
+ .I IEN'="" D
+ ..S FDA(FNUM,AIEN,.04)=DUZ
+ ..S FDA(FNUM,AIEN,.05)=$$NOW^XLFDT
+ D UPDATE^DIE(,"FDA","IEN2","ERR")
+ I $G(ERR("DIERR",1)) S RET=-ERR("DIERR",1)_U_ERR("DIERR",1,"TEXT",1)
+ Q
+DELQ(RET,PRIEN,IEN,TYPE) ;Delete a qualifer
+ N ERR,DA,DIK,NODE
+ S ERR=""
+ S NODE=$S(TYPE="S":13,TYPE="F":17,TYPE="C":18)
+ S DA(1)=PRIEN,DA=IEN
+ S DIK="^AUPNPROB(DA(1),"_NODE_","
+ S:DA ERR=$$DELETE^BGOUTL(DIK,.DA)
+ I ERR'="" S RET=RET_"^"_ERR
+ Q
+CHECK(TYPE,IEN) ;Check and see if there are already stored this type
+ ;of qualifier. If not, add the standard SNOMED code
+ N NODE,QUAL
+ S NODE=$S(TYPE="S":13,TYPE="F":17,TYPE="C":18)
+ I '$D(^AUPNPROB(PRIEN,NODE,"B")) D
+ .S IEN=""
+ .S BY=DUZ
+ .S WHEN=$$NOW^XLFDT
+ .S QUAL=$S(TYPE="S":246112005,TYPE="F":363698007,TYPE="C":263502005)
+ .D STORE
+ E  D
+ .I TYPE="S" D
+ ..S IEN=1 S IEN=$O(^AUPNPROB(PRIEN,NODE,IEN))
+ ..I +IEN=0 S IEN=""
+ Q
+DOUBLE(PRIEN) ;Check if there are left-over items
+ N I,Z,ITEM,LCNT
+ S LCNT=0
+ S I=0 F  S I=$O(^AUPNPROB(PRIEN,18,I)) Q:'+I  D
+ .S LCNT=LCNT+1
+ .S ITEM(LCNT)=I
+ I LCNT=1 D
+ .S Z=$G(ITEM(LCNT))
+ .D DELQ(.RET,PRIEN,Z,"C")
+ Q
+ ; Broadcast a problem event
+EVT(PRIEN,OPR,X) ;EP
+ N DFN,DATA
+ S:'$D(X) X=$G(^AUPNPROB(PRIEN,0))
+ S DFN=$P(X,U,2),DATA=PRIEN_U_$G(CIA("UID"))_U_OPR
+ D:DFN BRDCAST^CIANBEVT("PCC."_DFN_".PRB",DATA)
+ Q
+ ; Find family/personal history entry associated with problem
+ ;MSC/IHS/MGH Family history removedin patch 6
+FNDFP(PRIEN,FNUM) ;
+ N DFN,CLASS,DIEN,NIEN,DMOD,GBL,IEN,RET,X
+ S X=$G(^AUPNPROB(PRIEN,0)),DIEN=+X,DFN=$P(X,U,2),DMOD=$P(X,U,3),CLASS=$P(X,U,4),NIEN=$P(X,U,5)
+ S FNUM=$S(CLASS="P":9000013,1:0)
+ Q:'FNUM ""
+ S GBL=$$ROOT^DILFD(FNUM,,1)
+ Q:'$L(GBL) ""  ;P8
+ S IEN=0,RET=""
+ F  S IEN=$O(@GBL@("AC",DFN,IEN)) Q:'IEN  D  Q:RET
+ .S X=$G(@GBL@(IEN,0))
+ .I +X=DIEN,$P(X,U,2)=DFN,$P(X,U,3)\1=DMOD,$P(X,U,4)=NIEN S RET=IEN
+ Q RET
+EDPROB(RET,DFN) ;Get active problems for a patient
+ N IEN,ITM,SNO,CNT,STATUS,STAT,CODE,ICD
+ S CNT=0,STATUS="ASEOR"
+ S RET=$$TMPGBL^BGOUTL
+ S STAT="" F  S STAT=$O(^AUPNPROB("ACTIVE",DFN,STAT)) Q:STAT=""  D
+ .S IEN="" F  S IEN=+$O(^AUPNPROB("ACTIVE",DFN,STAT,IEN)) Q:'IEN  D
+ ..Q:STAT="D"
+ ..Q:STATUS'[STAT
+ ..S ITM=$$GET1^DIQ(9000011,IEN,.05),ICD=+$G(^AUPNPROB(IEN,0))
+ ..I $$AICD^BGOUTL2 S CODE=$P($$ICDDX^ICDEX(ICD,$$NOW^XLFDT,"","I"),U,2)
+ ..E  S CODE=$$GET1^DIQ(80,ICD,.01)
+ ..S SNO=$$GET1^DIQ(9000011,IEN,80001)
+ ..Q:SNO=""
+ ..S CNT=CNT+1
+ ..S @RET@(CNT)=IEN_U_ITM_U_SNO_U_CODE
+ Q
+INPT(RET,DFN) ;Return data for current or more recent inpt stay
+ N INPT,INVST,IEN,INVDT,PRIEN
+ ;Is pt a current inpatient?
+ S RET=$$TMPGBL^BGOUTL
+ S INVST=""
+ S INPT=$G(^DPT(DFN,.105))
+ I +INPT D
+ .S INVST=$$GET1^DIQ(405,INPT,.27)  ;Get visit
+ E  D
+ .;Find most recent visit
+ .S INVDT=0 S INVDT=$O(^DGPM("APID",DFN,INVDT)) Q:'+INVDT  D
+ ..S IEN="" S IEN=$O(^DGPM("APID",DFN,INVDT,IEN)) Q:'+IEN  D
+ ...S INVST=$$GET1^DIQ(405,IEN,.27)
+ I INVST="" S @RET@(1)="No Inpt problems to return" Q
+ S PRIEN=""
+ F  S PRIEN=$O(^AUPNPROB("AC",DFN,PRIEN)) Q:'PRIEN  D
+ .;Check for which statuses to return
+ .S STAT=$P($G(^AUPNPROB(PRIEN,0)),U,12)
+ .Q:STAT="D"
+ .I $D(^AUPNPROB(PRIEN,14,"B",INVST)) D
+ ..D GET^BGOPROB(.RET,DFN)
+ Q
+GETONE(RET,PRIEN,PIP) ;Get ALl the data for one problem
+ N TYP,NUM,ACT,CPTYP,DFN,CNT,PER,CONCT
+ S RET=$$TMPGBL^BGOUTL
+ S PIP=$G(PIP)
+ S DFN=$$GET1^DIQ(9000011,PRIEN,.02,"I")
+ S TYP="ASEOIR",CPTYP="A",PER="P"
+ S NUM=9999999,ACT=1
+ I +PIP S ACT=2          ;P21
+ S CNT=0
+ D GET2^BGOPROB(.RET,PRIEN,DFN,TYP,CPTYP,NUM,ACT,PER,1)
+ Q
+ADDICD(PRIEN) ;Get the additional ICD codes for a problem
+ N ICD,AIEN,CODE,STRING,RET
+ S ICD=0,RET=""
+ I '$D(^AUPNPROB(PRIEN,12)) Q ""
+ F  S ICD=$O(^AUPNPROB(PRIEN,12,ICD)) Q:'+ICD  D
+ .S AIEN=ICD_","_PRIEN_","
+ .S CODE=$$GET1^DIQ(9000011.12,AIEN,.01)
+ .I RET="" S RET=CODE
+ .E  S RET=RET_"|"_CODE
+ Q RET
+SETICD(RES,PRIEN,CODES,DEL) ;Store additional ICD codes for a problem
+ N AIEN,FDA,IEN2,ERR,FNUM,I,NODE
+ S FNUM=9000011.12
+ S NODE=12,RES=""
+ ;First delete the existing additional ICD codes
+ I $D(^AUPNPROB(PRIEN,12)) D
+ .S IEN=0 F  S IEN=$O(^AUPNPROB(PRIEN,12,IEN)) Q:'+IEN  D
+ ..N ERR,DA,DIK
+ ..S ERR=""
+ ..S DA(1)=PRIEN,DA=IEN
+ ..S DIK="^AUPNPROB(DA(1),"_NODE_","
+ ..S:DA ERR=$$DELETE^BGOUTL(DIK,.DA)
+ ..I ERR'="" S RES=RES_"^"_ERR
+ ;Next add in the codes
+ S X=$L(CODES,DEL)
+ F I=2:1:X D
+ .K FDA,AIEN,IEN2,ERR
+ .S AIEN="+1,"_PRIEN_","
+ .S FDA(FNUM,AIEN,.01)=$P(CODES,DEL,I)
+ .D UPDATE^DIE("E","FDA","IEN2","ERR")
+ .I $G(ERR("DIERR",1)) S RES=-ERR("DIERR",1)_U_ERR("DIERR",1,"TEXT",1)
+ Q RES
+USED(PRIEN) ;Check to see if problem has been used as POV in the past
+ N PAST,NUM,X
+ S PAST=0,X=0
+ F  S X=$O(^AUPNPROB(PRIEN,14,X)) Q:X=""!(PAST>0)  D
+ .I $G(^AUPNPROB(PRIEN,14,X,0))'="" S PAST=PAST+1
+ S X=0
+ F  S X=$O(^AUPNPROB(PRIEN,15,X)) Q:X=""!(PAST>0)  D
+ .I $G(^AUPNPROB(PRIEN,15,X,0))'="" S PAST=PAST+1
+ Q PAST
+CKID(RET,INP) ;EP
+ N DFN,SITE,PIEN,IEN,X1,X2
+ S DFN=+INP
+ S X1=$P(INP,U,2),X2=$P(X1,".",2),X1=$P(X1,".")
+ S SITE=+$P(INP,U,3)
+ S PIEN=$P(INP,U,4)
+ S IEN=$O(^AUPNPROB("AA",DFN,SITE," "_$E("000",1,4-$L(X1)-1)_X1_"."_X2_$E("00",1,3-$L(X2)-1),0))
+ I IEN,IEN'=PIEN S RET=$$ERR^BGOUTL(1047)
+ E  S RET=$S(PIEN:IEN=PIEN,1:"")
+ Q
+NEXTID(RET,DFN) ;EP
+ N ABBRV
+ S ABBRV=$P($G(^AUTTLOC(DUZ(2),0)),U,7),RET=""
+ I $L(ABBRV) D
+ .S RET=$E($O(^AUPNPROB("AA",DFN,DUZ(2),""),-1),2,999)\1+1
+ .S RET=ABBRV_"-"_$S(RET<1000:RET,1:"")
+ Q
+LAT(PRIEN) ;EP
+ ;IHS/MSC/MGH Check for laterality patch 20
+ N FLG,LAT,SEARCH,SNOMED,IN
+ S LAT=""
+ S LAT=$$GET1^DIQ(9000011,PRIEN,.22,"I")
+ I LAT'="" S FLG=1
+ E  D
+ .S SEARCH="EHR IPL PROMPT FOR LATERALITY"
+ .S SNOMED=$$GET1^DIQ(9000011,PRIEN,80002)
+ .S IN=SNOMED_U_SEARCH_U_U_1
+ .S FLG=$$VSBTRMF^BSTSAPI(IN)
+ Q FLG_U_LAT
+SETPRI(RET,INP) ;EP
+ N PRIEN,PRI,FDA,IEN,ADD
+ S PRIEN=+INP
+ S PRI=$P(INP,U,2)
+ I 'PRIEN S RET=$$ERR^BGOUTL(1008) Q
+ S IEN=$O(^BGOPROB("B",PRIEN,0))
+ S FDA=$NA(FDA(90362.22,$S(IEN:IEN_",",1:"+1,")))
+ S @FDA@(.01)="`"_PRIEN
+ S @FDA@(.02)=PRI
+ S RET=$$UPDATE^BGOUTL(.FDA,"E",.ADD)
+ I 'RET,'IEN S IEN=ADD(1)
+ S:'RET RET=IEN
+ Q
+ ; Return file number
+FNUM() Q 9000011

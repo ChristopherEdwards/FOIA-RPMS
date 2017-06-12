@@ -1,8 +1,10 @@
-BADEHL3 ;IHS/MSC/MGH/VAC - Dentrix HL7 inbound interface  ;01-Oct-2010 10:20;EDR
- ;;1.0;DENTAL/EDR INTERFACE;**1,3**;FEB 22, 2010;Build 4
+BADEHL3 ;IHS/MSC/MGH/VAC - Dentrix HL7 inbound interface  ;01-Oct-2010
+ ;;1.0;DENTAL/EDR INTERFACE;**1,3,4,5**;FEB 22, 2010;Build 23
  ;; Modified - IHS/MSC/AMF - 11/23/10 - More descriptive alert messages
  ;; Modified - IHS/MSC/AMF 10/2010 fix for hospital location FT1-16,2
  ;; Modified - GDIT/KJH Patch 3 - Comment out incorrect call to tag ACK pending further review
+ ;; Modified - IHS/OIT/GAB 05/2015 fix for ICD10 Implementation	**4**
+ ;; Modified - IHS/OIT/GAB **5** 12/2015 Process POV from Dentrix (v8.0.5 or later)
  ; Return array of message data
  ; Input: MIEN - IEN to HLO MESSAGES and HLO MESSAGE BODY files
  ; Output: DATA
@@ -76,6 +78,7 @@ FT1 ;Get the FT1 segment
  .S X=X_VTIME
  S Y=$$FMDATE^HLFNC(X)
  I $P(Y,".")>$$DT^XLFDT S BADERR=" " D ACK(HLMSGIEN,DFN,"Future visit date not allowed:") Q  ;IHS/MSC/AMF 11/23/10 More descriptive alert
+ S VISDT=$P(Y,".")  ;/IHS/OIT/GAB TO CHECK FOR ICD10 DATE **4**
  S BADIN("VISIT DATE")=Y
  D DD^%DT S APCDTCDT=Y   ;External format
  ;This field determines if its new (0), update (2) or delete (1)
@@ -174,7 +177,8 @@ VISIT ;Create the visit
  ;Deletion type to existing visit
  ;IHS/MGH/MGH added parameter to PRV call for patch 1
  I VTYPE="NEW" D POV,PRV("P"),DENT
- I VTYPE="ADD" D CHECKPRV,DENT
+ ; I VTYPE="ADD" D CHECKPRV,DENT   /IHS/OIT/GAB **5** CHANGED TO BELOW LINE
+ I VTYPE="ADD" D POV,CHECKPRV,DENT
  N MSHMSG,MSA
  ;07/18/2013 - KJH - Following line was originally not called because "AL" was never set.
  ;                 - Line became active after a fix to the adapter but calls ACK with wrong number of parameters.
@@ -197,13 +201,25 @@ ACK(HLMSGIEN,DFN,BADERR) ;Send acknowledgement IHS/MSC/AMF 11/23/10 More descrip
  ;I '$$SENDACK^HLOAPI2(.ACK,.ERR) D NOTIF(HLMSGIEN,ERR) Q
  Q
 POV ;Store the POV
- N APCDALVR
+ N APCDALVR,CODE
  S APCDALVR("APCDPAT")=DFN
  S APCDALVR("APCDVSIT")=APCDVSIT
  S APCDALVR("APCDTNQ")="DENTAL/ORAL HEALTH VISIT"
  S APCDALVR("APCDOVRR")=1
- S APCDALVR("APCDTPOV")="V72.2"
- S APCDALVR("APCDATMP")="[APCDALVR 9000010.07 (ADD)]" D EN^APCDALVR
+ ;S APCDALVR("APCDTPOV")="V72.2"   ;/IHS/OIT/GAB REMOVE FOR ICD10
+ ;/IHS/OIT/GAB 4.2015 ADDED NEXT LINE -TO SEE WHICH CODING SYSTEM TO USE
+ ;If 1 USE ICD9, 30 USE ICD10 **4**
+ S I=$$IMP^BADEHL3(VISDT)
+ ;I I=30 S APCDALVR("APCDTPOV")="ZZZ.999"  ;/IHS/OIT/GAB **5** REMOVED & ADD NEXT 6 LINES
+ I I=30	 D
+  .D GETPOV^BADEUTIL
+  .I NOPOV=1  D
+  ..S POV="ZZZ.999"
+  ..I '$$HASPOV^BADEUTIL(APCDVSIT,POV) S APCDALVR("APCDTPOV")="ZZZ.999" S APCDALVR("APCDTEXK")=APCDTEXK S APCDALVR("APCDATMP")="[APCDALVR 9000010.07 (ADD)]" D EN^APCDALVR
+ E  D
+ .S APCDALVR("APCDTPOV")="V72.2",POV="V72.2"
+ .I '$$HASPOV^BADEUTIL(APCDVSIT,POV) S APCDALVR("APCDATMP")="[APCDALVR 9000010.07 (ADD)]" D EN^APCDALVR   ; **5** historical visits use ICD9  
+ ;S APCDALVR("APCDATMP")="[APCDALVR 9000010.07 (ADD)]" D EN^APCDALVR
  K APCDOVRR,APCDALVR("APCDOVRR")
  Q
 CHECKPRV ;Check to see if the provider in the message is already on this visit
@@ -307,3 +323,20 @@ MAKEVST(CRIT) ;EP
  .N X
  .S X="CIANBEVT" X ^%ZOSF("TEST") I $T D BRDCAST^CIANBEVT("PCC."_DFN_".VST",RET)
  Q RET
+ ;
+IMP(D) ;  which coding system should be used
+ ;IHS/OIT/GAB ADDED THIS FUNCTION FOR ICD10 **4**
+ ;RETURN IEN of entry in ^ICDS
+ ;1 = ICD9  30 = ICD10
+ ;
+ I $G(D)="" S D=DT
+ NEW X,Y,IMPDT
+ I '$O(^ICDS("F",80,0)) Q 1
+ S Y=""
+ S X=0 F  S X=$O(^ICDS("F",80,X)) Q:X'=+X  D
+ .I $P(^ICDS(X,0),U,4)="" Q   ;NO IMPLEMENTATION DATE
+ .S IMPDT=$P(^ICDS(X,0),U,4)
+ ;Compare the visit date to ensure it should use ICD10
+ I D>(IMPDT-1) S Y=30
+ E  S Y=1
+ Q Y

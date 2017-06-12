@@ -1,10 +1,10 @@
-BGP7XTEL ; IHS/CMI/LAB - TAXONOMY CHECK FOR FY04 CRS REPORT ; [ 04/10/2007  12:37 PM ]
- ;;7.0;IHS CLINICAL REPORTING;**1**;JAN 24, 2007
+BGP7XTEL ; IHS/CMI/LAB - TAXONOMY CHECK FOR  CRS REPORT ;
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
  ;
  D HOME^%ZIS
  W:$D(IOF) @IOF
- W !!,"Checking for Taxonomies to support the 2007 Elder Care Report. ",!,"Please enter the device for printing.",!
+ W !!,"Checking for Taxonomies to support the 2017 Elder Care Report. ",!,"Please enter the device for printing.",!
 ZIS ;
  S XBRC="",XBRP="TAXCHK^BGP7XTEL",XBNS="",XBRX="XIT^BGP7XTEL"
  D ^XBDBQUE
@@ -18,12 +18,12 @@ GUICHK ;EP
  NEW A,BGPX,I,Y,Z,J,BGPY,BGPT
  K A
  ;S T="TAXS" F J=1:1 S Z=$T(@T+J),BGPX=$P(Z,";;",2),Y=$P(Z,";;",3) Q:BGPX=""  D
- S BGPT="" F  S BGPT=$O(^BGPTAXA("B",BGPT)) Q:BGPT=""  D
- .S BGPY=$O(^BGPTAXA("B",BGPT,0))
- .Q:'$D(^BGPTAXA(BGPY,12,"B",4))
- .;I $P(^BGPTAXA(BGPY,0),U,2)'="L" S BGPX=$O(^ATXAX("B",BGPT,0))
- .;I $P(^BGPTAXA(BGPY,0),U,2)="L" S BGPX=$O(^ATXLAB("B",BGPT,0))
- .S BGPTYPE=$P(^BGPTAXA(BGPY,0),U,2),Y=$G(^BGPTAXA(BGPY,11,1,0))
+ S BGPT="" F  S BGPT=$O(^BGPTAXG("B",BGPT)) Q:BGPT=""  D
+ .S BGPY=$O(^BGPTAXG("B",BGPT,0))
+ .Q:'$D(^BGPTAXG(BGPY,12,"B",4))
+ .;I $P(^BGPTAXG(BGPY,0),U,2)'="L" S BGPX=$O(^ATXAX("B",BGPT,0))
+ .;I $P(^BGPTAXG(BGPY,0),U,2)="L" S BGPX=$O(^ATXLAB("B",BGPT,0))
+ .S BGPTYPE=$P(^BGPTAXG(BGPY,0),U,2),Y=$G(^BGPTAXG(BGPY,11,1,0))
  .I BGPTYPE'="L" D
  ..I '$D(^ATXAX("B",BGPT)) S A(BGPT)=Y_"^is Missing" Q
  ..S I=$O(^ATXAX("B",BGPT,0))
@@ -51,7 +51,7 @@ PAGE ;
  I $E(IOST)="C",IO=IO(0) W ! S DIR(0)="EO" D ^DIR K DIR I Y=0!(Y="^")!($D(DTOUT)) S BGPQUIT="" Q
  Q
 TAXS ;
- ;;BGP DEPRESSIVE DISORDERS;;Depressive Disorders ICD9 Diagnosis Taxonomy
+ ;;BGP DEPRESSIVE DISORDERS;;Depressive Disorders ICD DXDiagnosis Taxonomy
  ;;BGP PRIMARY CARE CLINICS
  ;;SURVEILLANCE DIABETES;;Diabetes Diagnoses Codes
  ;;BGP HGBA1C LOINC CODES

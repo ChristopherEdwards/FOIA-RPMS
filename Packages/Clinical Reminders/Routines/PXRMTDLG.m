@@ -1,5 +1,5 @@
-PXRMTDLG ; SLC/PJH - Edit/Inquire Taxonomy Dialog ;03/05/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMTDLG ; SLC/PJH - Edit/Inquire Taxonomy Dialog ;9/7/2012
+ ;;2.0;CLINICAL REMINDERS;**26**;Feb 04, 2005;Build 404
  ;
  ;Called by option PXRM TAXONOMY DIALOG
  ;
@@ -101,38 +101,50 @@ DTAX(TIEN) ;
  ;Selectable codes
  ;----------------
 CODES(FILE,TIEN) ;
- N CODES,CODE,DESC,DTEXT,SUB,TAB,TEXT
+ N BDATE,CODES,CODE,DATES,DESC,DTEXT,EDATE,STR,SUB,TAB,TEXT
  ;Display text
- S TEXT="Selectable codes: ",TAB=18
+ S TEXT=$J("",15)_"Selectable codes:",TAB=18
+ S STR=$$LJ^XLFSTR($G(TEXT),60)
+ S STR=STR_"Activation Periods"
+ S VALMCNT=VALMCNT+1
+ ;S ^TMP("PXRMDLG",$J,VALMCNT,0)=$J("",15)_$G(TEXT)
+ S ^TMP("PXRMGEN",$J,VALMCNT,0)=STR
  ;Get array
- D CODES^PXRMDLLA(FILE,TIEN,.CODES)
+ D CODES^PXRMDLLB(FILE,TIEN,.CODES)
  ;Move results into workfile
  S SUB=""
  F  S SUB=$O(CODES(SUB)) Q:SUB=""  D
  .S CODE=$P(CODES(SUB),U,2),DESC=$P(CODES(SUB),U,3)
- .S DTEXT=CODE_$J("",7-$L(CODE))_DESC
+ .S BDATE=$$FMTE^XLFDT($P($G(CODE),":",2))
+ .I $P($G(CODE),":",3)'="" S EDATE=$$FMTE^XLFDT($P($G(CODE),":",3))
+ .S DATE=BDATE I $G(EDATE)'="" S DATE=DATE_"-"_EDATE
+ .S STR=$$LJ^XLFSTR($P($G(CODE),":"),8)
+ .S STR=STR_$$LJ^XLFSTR(DESC,37)
+ .S DTEXT=STR_DATE
  .S VALMCNT=VALMCNT+1
- .S ^TMP("PXRMGEN",$J,VALMCNT,0)=$J("",15)_$G(TEXT)_DTEXT
- .S TEXT=$J("",TAB)
+ .S ^TMP("PXRMGEN",$J,VALMCNT,0)=$J("",15)_DTEXT
+ .;S ^TMP("PXRMDLG",$J,VALMCNT,0)=$J("",15)_$G(TEXT)_DTEXT
+ .;S TEXT=$J("",TAB)
  Q
  ;
  ;Display selectable codes - called from print template
  ;-----------------------------------------------------
 TDES(FILE,D0,D1) ;
- N CNT,CODE,DATA,IEN,TEXT,NODE
+ N CNT,CODE,DATA,IEN,TEMP,TEXT,NODE
  S NODE=$S(FILE=80:"SDX",FILE=81:"SPR")
  S DATA=$G(^PXD(811.2,D0,NODE,D1,0)) Q:DATA=""
  ;Get ien of code
  S IEN=$P(DATA,U) Q:IEN=""
- ;Translate ien to code
- I FILE=80 S CODE=$P($G(^ICD9(IEN,0)),U)
- I FILE=81 S CODE=$P($$CPT^ICPTCOD(IEN),U,2)
+ S TEMP=$S(FILE=80:$$ICDDX^ICDCODE(IEN,DT),FILE=81:$$CPT^ICPTCOD(IEN,DT))
+ S CODE=$P(TEMP,U,2)
  ;Set display text from taxonomy selectable code text
+ ;otherwise use icd9/cpt diagnosis or short name.
  S TEXT=$P(DATA,U,2)
- ;otherwise use icd9/cpt description
- I TEXT="",FILE=80 S TEXT=$G(^ICD9(IEN,1))
- I TEXT="",FILE=80 S TEXT=$P($G(^ICD9(IEN,0)),U,3)
- I TEXT="",FILE=81 S TEXT=$P($$CPT^ICPTCOD(IEN),U,3)
- S TEXT=" "_$E(TEXT,1,40)_$J("",40-$L(TEXT))
+ ;Check for an invalid code.
+ I $P(TEMP,U,1)=-1 S CODE=$$CODEC^ICDCODE(IEN),TEXT=$P(TEMP,U,2)_" (invalid code)"
+ I TEXT="" S TEXT=$S(FILE=80:$P(TEMP,U,4),FILE=81:$P(TEMP,U,3))
+ S TEXT="  "_$E(TEXT,1,40)_$J("",40-$L(TEXT))
+ ;Lineup file 80 codes on the ".".
+ I FILE=80,$L(CODE)=5 S CODE=CODE_" "
  W $J(CODE,10)_TEXT
  Q

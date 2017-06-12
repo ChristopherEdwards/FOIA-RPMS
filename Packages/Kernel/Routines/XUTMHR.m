@@ -1,26 +1,33 @@
-XUTMHR ;ISF/RWF - Taskman Hourly checkup routine. ;08/27/08  14:28
- ;;8.0;KERNEL;**446**;Jul 10, 1995;Build 44
+XUTMHR ;ISF/RWF - Taskman Hourly checkup routine. ;10/20/10  17:13
+ ;;8.0;KERNEL;**446,534,554**;Jul 10, 1995;Build 7
  ;Per VHA Directive 2004-038, this routine should not be modified.
  Q
  ;
 HOUR ;Work to do each hour
- D SCAN
+ D SCAN ;Look for scheduled task that have dropped there schedule.
+ D DEVREJ() ;Check for tasks re-scheduled for unavailable device.
  Q
  ;
 SCAN ;Scan the Scheduled Tasks file.  Merge with XUTMCS sometime.
  N D0,OLD,NOW,X,X1,X2,Z0,Z4,Z5,TK
- S U="^",D0=0,NOW=$$NOW^XLFDT,OLD=$$HTFM^XLFDT($H-1)
+ ;Make NOW 10 minute in the past
+ S U="^",D0=0,NOW=$$HTFM^XLFDT($$HADD^XLFDT($H,,,-10)),OLD=$$HTFM^XLFDT($H-1)
  F  S D0=$O(^DIC(19.2,D0)) Q:'D0  D  L -^DIC(19.2,D0)
  . L +^DIC(19.2,D0):2 I '$T Q
  . S X=$G(^DIC(19.2,D0,0)),X1=+$G(^(1)) ;X1 is the task #.
  . ;Check that the Option still exists.
  . I '($D(^DIC(19,+X,0))#2) D REMOVE(D0) Q
  . I $P(X,U,2)="" Q  ;No Scheduled time.
- . ;I $P(X,U,9)["S" Q  ;Start-up.
- . I $P(X,U,2)>NOW,$D(^%ZTSK(X1)) Q  ;Scheduled for future
- . I X1,'$D(^%ZTSK(X1)) D FIX(D0,X) Q  ;%ZTSK entry missing
- . S TK=$G(^%ZTSK(X1,0))
- . I $P(X,U,2)>OLD,$L($P(X,U,6)) D FIX(D0,X,$P(TK,U,3)) Q  ;
+ . ;Lock the Task
+ . L +^%ZTSK(X1):5 I $T D  L -^%ZTSK(X1)
+ . . ;I $P(X,U,9)["S" Q  ;Start-up.
+ . . I $P(X,U,2)>NOW,$D(^%ZTSK(X1)) Q  ;Scheduled for future
+ . . ;ToDo Check if Device OK.
+ . . I X1,'$D(^%ZTSK(X1)) D FIX(D0,X) Q  ;%ZTSK entry missing
+ . . S TK=$G(^%ZTSK(X1,0))
+ . . I $P(X,U,2)>OLD,$L($P(X,U,6)) D FIX(D0,X,$P(TK,U,3)) Q  ;
+ . . Q
+ . Q
  S ZTREQ="@"
  Q
  ;
@@ -38,11 +45,34 @@ REMOVE(DA) ;Remove if pointed to option is missing
  S DIK="^DIC(19.2," D ^DIK
  Q
  ;
+DEVREJ(SKIP) ;Rejected Device cleanup
+ N ZTSK,ZTDTH,CNT,VOL,Y,TRY,X,Z,XMB,XMY
+ D GETENV^%ZOSV S VOL=$P(Y,U,2),Y=$O(^%ZIS(14.5,"B",VOL,0)) Q:'Y
+ S TRY=$P(^%ZIS(14.5,Y,0),U,12),SKIP=$G(SKIP) Q:'TRY
+ S ZTDTH=0
+ F  S ZTDTH=$O(^%ZTSCH(ZTDTH)),ZTSK=0 Q:'ZTDTH  F  S ZTSK=$O(^%ZTSCH(ZTDTH,ZTSK)) Q:'ZTSK  D
+ . L +^%ZTSK(ZTSK):5 Q:'$T  D  ;Catch next time. p554
+ . . Q:'$D(^%ZTSK(ZTSK,0))
+ . . S Z=^%ZTSK(ZTSK,0),Y=$G(^%ZTSK(ZTSK,.2)),X=$P(Y,U,8)
+ . . I X>TRY D UNSCH(ZTSK,$P(Z,U,3),$S($L($P(Y,U,6)):$P(Y,U,6),1:$P(Y,U)),SKIP)
+ . . Q
+ . L -^%ZTSK(ZTSK)
+ . Q
+ Q
+ ;
+UNSCH(ZTSK,DZ,DEV,SKIP) ;Unschedule Task and send alert
+ N XQA,XQAMSG,XQADATA,XQAROU
+ D DQ^%ZTLOAD
+ S XQA(DZ)="",XQAMSG="Your task #"_ZTSK_" was unscheduled, because it could not get device "_DEV,XQADATA=ZTSK,XQAROU="XQA^XUTMUTL"
+ I 'SKIP D SETUP^XQALERT Q
+ W !,XQAMSG
+ Q
+ ;
 EN(ZTQPARAM) ;So can job it to run.
  ;
 SNAP ;Snapshot ZTMON data into the TASKMAN SNAPSHOT file.
  S U="^"
- N ZT1,ZT2,ZT3,ZT4,ZT5,ZTC,ZTC2,FDA,IEN,NOWH3,ZTQ1,ZTQ2
+ N %,FDA,I2,I3,IEN,NOWH3,R2,R3,SI,X,ZT1,ZT2,ZT3,ZT4,ZT5,ZTC,ZTC2,ZTQ1,ZTQ2
  S ZTQPARAM=$G(ZTQPARAM,"60,60") ;Default run for 60 minutes, snap every minute
  S ZTQ1=+ZTQPARAM*60 ;Convert minutes to seconds.
  S:ZTQ1>480 ZTQ1=480 ;Max 8 hours

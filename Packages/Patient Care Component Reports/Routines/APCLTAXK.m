@@ -1,5 +1,5 @@
 APCLTAXK ; IHS/CMI/LAB - EXTENSION OF ROUTINE APCLCODE ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in LOOK
  ;
@@ -7,10 +7,10 @@ LOOK ; ENTRY POINT - LOOKUP USER RESPONSE; SET UTILITY NODES
  S DIC="^ICD0(",DIC(0)="EMF" D ^DIC K DIC,DR
  I Y<0 S APCLA=1 W $C(7),"  ??" S APCL("NO DISPLAY")=1 G X3
  ;S:APCLTYP="LOW" APCL("LOW")=$P(^ICD0(+Y,0),U)_" "  ;cmi/anch/maw 9/12/2007 prog line
- S:APCLTYP="LOW" APCL("LOW")=$P($$ICDOP^ICDCODE(+Y),U,2)_" "  ;cmi/anch/maw 9/12/2007 csv
+ S:APCLTYP="LOW" APCL("LOW")=$P($$ICDOP^ICDEX(+Y,,,"I"),U,2)_" "  ;cmi/anch/maw 9/12/2007 csv
  I APCLTYP="LOW",APCLONE S APCL("HI")=APCL("LOW") D ^APCLTAXJ
  ;I APCLTYP="HI" S APCL("HI")=$P(^ICD0(+Y,0),U)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLTAXI,^APCLTAXJ  ;cmi/anch/maw 9/12/2007 orig line
- I APCLTYP="HI" S APCL("HI")=$P($$ICDOP^ICDCODE(+Y),U,2)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLTAXI,^APCLTAXJ  ;cmi/anch/maw 9/12/2007 csv
+ I APCLTYP="HI" S APCL("HI")=$P($$ICDOP^ICDEX(+Y,,,"I"),U,2)_" " D  I 'APCL("NO DISPLAY") D DISPLAY^APCLTAXI,^APCLTAXJ  ;cmi/anch/maw 9/12/2007 csv
  . I $E(APCL("HI"))?1N&($E(APCL("LOW"))?1N)!($E(APCL("LOW"))'?1N&($E(APCL("HI"))'?1N))
  . E  W !,$C(7),"Low and high codes of range must both start either with a letter or a number.",! S APCL("NO DISPLAY")=1
  . I 'APCL("NO DISPLAY") I APCL("LOW")]APCL("HI") W !,$C(7),"Low code is higher than high code.",! S APCL("NO DISPLAY")=1

@@ -1,35 +1,78 @@
-PXRMEVFI ; SLC/PKR - Driver for findings evaluation. ;25-Jan-2012 16:28;DU
- ;;1.5;CLINICAL REMINDERS;**1001,1004,1008**;Jun 19, 2000;Build 25
- ; Modified IHS/CIA/MGH - 5/10/2004 - Added lines to call routines for reminder findings in IHS
- ; PATCH 1004 added call for refusals
- ;=======================================================================
-EVAL(DFN,FIEVAL) ;Evaluate the findings by group using the "E"
- ;cross-reference.
- N FTYPE
- S FTYPE=""
- F  S FTYPE=$O(^PXD(811.9,PXRMITEM,20,"E",FTYPE)) Q:FTYPE=""  D
- . I FTYPE="AUTTEDT(" D EVALFI^PXRMEDU(DFN,.FIEVAL) Q
- . I FTYPE="AUTTEXAM(" D EVALFI^PXRMEXAM(DFN,.FIEVAL) Q
- . I FTYPE="AUTTHF(" D EVALFI^PXRMHF(DFN,.FIEVAL) Q
- . I FTYPE="AUTTIMM(" D EVALFI^PXRMIMM(DFN,.FIEVAL) Q
- . I FTYPE="AUTTSK(" D EVALFI^PXRMSKIN(DFN,.FIEVAL) Q
- . I FTYPE="GMRD(120.51," D EVALFI^PXRMMEAS(DFN,.FIEVAL) Q
- . I FTYPE="LAB(60," D EVALFI^PXRMLAB(DFN,.FIEVAL) Q
- . I FTYPE="ORD(101.43," D EVALFI^PXRMORDR(DFN,.FIEVAL) Q
- . I FTYPE="PXD(811.2," D EVALFI^PXRMTAX(DFN,.FIEVAL) Q
- . I FTYPE="PXRMD(811.4," D EVALFI^PXRMCF(DFN,.FIEVAL) Q
- . I FTYPE="PXRMD(811.5," D EVALFI^PXRMTERM(DFN,.FIEVAL) Q
- . I FTYPE="PS(50.605," D EVALFI^PXRMDRCL(DFN,.FIEVAL) Q
- . I FTYPE="PSDRUG(" D EVALFI^PXRMDRUG(DFN,.FIEVAL) Q
- . I FTYPE="PSNDF(50.6," D EVALFI^PXRMDGEN(DFN,.FIEVAL) Q
- . I FTYPE="RAMIS(71," D EVALFI^PXRMRAD(DFN,.FIEVAL) Q
- . ;I FTYPE="YTT(601," D EVALFI^PXRMMH(DFN,.FIEVAL) Q
- . ;-----------------------------------------------------------------
- . ; IHS/CIA/MGH - 5/10/2004 PATCH 1001 Calls below are to resolve findings using
- . ; files from IHS that are not used by VA.  They are Patient refusals
- . ; V-measurement files, V asthma file
- . I FTYPE="AUTTREFT(" D EVALFI^BPXRMREF(DFN,.FIEVAL) Q
- . I FTYPE="AUTTMSR(" D EVALFI^BPXRMEA(DFN,.FIEVAL) Q   ;V Measurement file PATCH 1001
- . I FTYPE="APCDACV(" D EVALFI^BPXRMAS1(DFN,.FIEVAL) Q  ;V Asthma file
+PXRMEVFI ;SLC/PKR - Driver for finding evaluation. ;23-Mar-2015 10:11;DU
+ ;;2.0;CLINICAL REMINDERS;**6,1001,18,1005**;Feb 04, 2005;Build 23
+ ;IHS/MSC/MGH Patch 1001 and 1005 add IHS findings
+ ;=====================================================
+BRANCH(DFN,DEFARR,ENODE,FIEVAL) ;Branch to appropriate evalution routine.
+ I ENODE="AUTTHF(" D EVALFI^PXRMHF(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PXD(811.2," D EVALFI^PXRMTAX(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PXRMD(810.9," D EVALFI^PXRMLOCF(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PXRMD(811.4," D EVALFI^PXRMCF(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PXRMD(811.5," D EVALFI^PXRMTERM(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PS(50.605," D EVALFI^PXRMDRCL(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PSDRUG(" D EVALFI^PXRMDRUG(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="PSNDF(50.6," D EVALFI^PXRMDGEN(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="RAMIS(71," D EVALFI^PXRMRAD(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ I ENODE="YTT(601.71," D EVALFI^PXRMMH(DFN,.DEFARR,ENODE,.FIEVAL) Q
+ ; IHS/MSC/MGH - 2/28/2012 PATCH 1001 Calls below are to resolve findings using
+ ; files from IHS that are not used by VA.
+ I ENODE="AUTTMSR(" D EVALFI^BPXRMEA(DFN,.DEFARR,ENODE,.FIEVAL) Q     ;V Measurement file
+ I ENODE="AUTTREFT(" D EVALFI^BPXRMREF(DFN,.DEFARR,ENODE,.FIEVAL) Q   ;Refusal File
+ I ENODE="APCDACV(" D EVALFI^BPXRMAS1(DFN,.DEFARR,ENODE,.FIEVAL) Q    ;PCC asthma control
+ ;All others use EVALFI^PXRMINDX directly.
+ ;"AUTTEDT(", "AUTTEXAM(", "AUTTIMM(","AUTTSK(","GMRD(120.51,"
+ ;"LAB(60,", "ORD(101.43,"
+ D EVALFI^PXRMINDX(DFN,.DEFARR,ENODE,.FIEVAL)
+ Q
+ ;
+ ;=====================================================
+EVAL(DFN,DEFARR,FIEVAL) ;Evaluate findings, first those that don't have any
+ ;date dependencies using the "E"index then those that do have date
+ ;dependencies using the "EDEP" index.
+ ;index.
+ N BDT,EDT,IND,ITEM,ENODE,FINDING,NOCC,TDEFARR
+ I $G(PXRMDEBG) D
+ . S FINDING=0
+ . F  S FINDING=$O(DEFARR(20,FINDING)) Q:FINDING=""  S FIEVAL(FINDING,"BDT")=$P(DEFARR(20,FINDING,0),U,8),FIEVAL(FINDING,"EDT")=$P(DEFARR(20,FINDING,0),U,11)
+ S ENODE=""
+ F  S ENODE=$O(DEFARR("E",ENODE)) Q:ENODE=""  D BRANCH(DFN,.DEFARR,ENODE,.FIEVAL)
+ I '$D(DEFARR("EDEP")) G FF
+ M TDEFARR=DEFARR
+ S IND=0
+ F  S IND=$O(TDEFARR("EDEP",IND)) Q:IND=""  D
+ . S ENODE=$O(TDEFARR("EDEP",IND,""))
+ . S ITEM=$O(TDEFARR("EDEP",IND,ENODE,""))
+ . S FINDING=$O(TDEFARR("EDEP",IND,ENODE,ITEM,""))
+ .;If either dependent finding is false then set this finding false and
+ .;skip the evaluation.
+ . S BDT=+$P(TDEFARR("EDEP",IND,ENODE,ITEM,FINDING),U,1)
+ . I BDT>0,FIEVAL(BDT)=0 S FIEVAL(FINDING)=0 Q
+ . S EDT=+$P(TDEFARR("EDEP",IND,ENODE,ITEM,FINDING),U,2)
+ . I EDT>0,FIEVAL(EDT)=0 S FIEVAL(FINDING)=0 Q
+ .;Convert beginning and ending date/time to internal FM dates.
+ . D SSPAR^PXRMUTIL(TDEFARR(20,FINDING,0),.NOCC,.BDT,.EDT)
+ . I (BDT=-1)!(EDT=-1) D  Q
+ .. S FIEVAL(FINDING)=0
+ .. I $G(PXRMDEBG) S FIEVAL(FINDING,"BDTE")=BDT,FIEVAL(FINDING,"EDTE")=EDT
+ . S $P(TDEFARR(20,FINDING,0),U,8)=BDT
+ . S $P(TDEFARR(20,FINDING,0),U,11)=EDT
+ .;Build an "E" node to evaluate this finding.
+ . K TDEFARR("E",ENODE)
+ . S TDEFARR("E",ENODE,ITEM,FINDING)=""
+ .;At this point branch to appropriate EVALFI
+ . D BRANCH(DFN,.TDEFARR,ENODE,.FIEVAL)
+ ;Evaluate function findings.
+FF D EVAL^PXRMFF(DFN,.DEFARR,.FIEVAL)
+ Q
+ ;
+ ;=====================================================
+EVALPL(DEFARR,FINUM,PLIST) ;Create a patient list for a regular
+ ;finding.
+ N FINDPA,TERMARR
+ S FINDPA(0)=DEFARR(20,FINUM,0)
+ S FINDPA(3)=DEFARR(20,FINUM,3)
+ S FINDPA(10)=DEFARR(20,FINUM,10)
+ S FINDPA(11)=DEFARR(20,FINUM,11)
+ D GENTERM^PXRMPLST(FINDPA(0),FINUM,.TERMARR)
+ D EVALPL^PXRMTERL(.FINDPA,.TERMARR,PLIST)
  Q
  ;

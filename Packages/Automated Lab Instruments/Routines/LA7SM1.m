@@ -1,5 +1,5 @@
-LA7SM1 ;DALOI/JMC - Shipping Manifest Options ;5/5/97  14:39
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,46,61**;Sep 27, 1994
+LA7SM1 ;VA/DALOI/JMC - Shipping Manifest Options ; 22-Oct-2013 09:22 ; MAW
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**27,46,61,1018,1033**;NOV 1, 1997
  ;
 RETRANS ; Retransmit a shipping manifest.
  ;
@@ -160,8 +160,9 @@ TASKSM ; Task electronic transmission of manifest
  ;
  N MSG,ZTDTH,ZTIO,ZTRTN,ZTSAVE,ZTSK
  ;
+ ;ihs/cmi/maw 02/05/2013 added ZTSAVE("LA7SCFG") for quest configuration
  S ZTRTN="BUILD^LA7VORM1("""_+$P(LA7SM,"^")_""")",ZTDESC="E-Transmission of Lab Shipping Manifest"
- S ZTSAVE("LA7SM")="",ZTIO="",ZTDTH=$$NOW^XLFDT
+ S ZTSAVE("LA7SM")="",ZTSAVE("LA7SCFG")="",ZTIO="",ZTDTH=$$NOW^XLFDT
  D ^%ZTLOAD
  ;
  S MSG="Electronic Transmission of Shipping Manifest "_$S($G(ZTSK):"queued as task# "_ZTSK,1:"NOT queued!")

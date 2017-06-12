@@ -1,5 +1,5 @@
 ABSPOSI8 ; IHS/FCS/DRS - insurance selection - page 8 ;   [ 11/06/2002  1:26 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
 FN() Q 9002313.522
 INIT ;EP - from ABSPOSI7

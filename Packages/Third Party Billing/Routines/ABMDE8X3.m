@@ -1,9 +1,16 @@
 ABMDE8X3 ; IHS/SD/SDR - Page 8 - ERROR CHECKS-CONT ;
- ;;2.6;IHS 3P BILLING SYSTEM;**8,9,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**8,9,13,14**;NOV 12, 2009;Build 238
  ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
+ ;IHS/SD/SDR - 2.6*14 - ICD10 008 - Added warning if service lines cross over ICD10 EFFECTIVE DATE
+ ;IHS/SD/SDR - 2.6*14 HEAT163747 - Updated error 217 so it only displays one for ea service line, no matter how many coor dx are present
  ;
 G1 ;EP - Entry Point Page 8G error checks cont
  S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),39,ABMX,0)
+ ;start new abm*2.6*14 ICD10 008
+ S ABMP("SLFDT")=$P($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),39,ABMX,0)),U,7),".")
+ S ABMP("SLTDT")=$P($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),39,ABMX,0)),U,8),".")
+ I (ABMP("ICD10")>ABMP("SLFDT"))&(ABMP("ICD10")<ABMP("SLTDT")) S ABME(249)=$S($G(ABME(249))="":ABMX,1:$G(ABME(249))_","_ABMX)
+ ;end new ICD10 008
  I ^ABMDEXP(ABMMODE(7),0)["UB" D
  .I $P(ABMX("X0"),U,2)="" S ABME(121)=""
  I (^ABMDEXP(ABMMODE(7),0)["HCFA")!(^ABMDEXP(ABMMODE(7),0)["CMS") D
@@ -15,7 +22,8 @@ G1 ;EP - Entry Point Page 8G error checks cont
  ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
  ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
  ...;end old start new
- ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
+ ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
+ ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") Q:ABME(217)[(ABMX("I"))  S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ...;end new
  I $P(ABMX("X0"),U,3)="" S ABME(132)=""
@@ -48,6 +56,11 @@ G1 ;EP - Entry Point Page 8G error checks cont
  ;
 H1 ;EP - Entry Point Page 8H error checks cont
  S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),43,ABMX,0)
+ ;start new abm*2.6*14 ICD10 008
+ S ABMP("SLFDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),43,ABMX,0)),U,7)
+ S ABMP("SLTDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),43,ABMX,0)),U,12)
+ I (ABMP("ICD10")>ABMP("SLFDT"))&(ABMP("ICD10")<ABMP("SLTDT")) S ABME(249)=$S($G(ABME(249))="":ABMX,1:$G(ABME(249))_","_ABMX)
+ ;end new ICD10 008
  I ^ABMDEXP(ABMMODE(8),0)["UB" D
  .I $P(ABMX("X0"),U,2)="" S ABME(121)=""
  I (^ABMDEXP(ABMMODE(8),0)["HCFA")!(^ABMDEXP(ABMMODE(8),0)["CMS") D
@@ -55,7 +68,8 @@ H1 ;EP - Entry Point Page 8H error checks cont
  .S ABMCODXS=$P(ABMX("X0"),U,6)
  .I ABMCODXS'="" D
  ..F ABMJ=1:1 S ABMCODX=$P(ABMCODXS,",",ABMJ) Q:+$G(ABMCODX)=0  D
- ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
+ ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
+ ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") Q:ABME(217)[(ABMX("I"))  S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  I $P(ABMX("X0"),U,3)="" S ABME(123)=""
  I $P(ABMX("X0"),U,4)="" S ABME(126)=""
@@ -95,6 +109,11 @@ H1 ;EP - Entry Point Page 8H error checks cont
  Q
 K1 ;EP - Entry Point Page 8K error checks cont
  S ABMX("X0")=^ABMDCLM(DUZ(2),ABMP("CDFN"),47,ABMX,0)
+ ;start new abm*2.6*14 ICD10 008
+ S ABMP("SLFDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),47,ABMX,0)),U,7)
+ S ABMP("SLTDT")=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),47,ABMX,0)),U,12)
+ I (ABMP("ICD10")>ABMP("SLFDT"))&(ABMP("ICD10")<ABMP("SLTDT")) S ABME(249)=$S($G(ABME(249))="":ABMX,1:$G(ABME(249))_","_ABMX)
+ ;end new ICD10 008
  I ^ABMDEXP(ABMMODE(8),0)["UB" D
  .I $P(ABMX("X0"),U,2)="" S ABME(121)=""
  I $D(^ABMNINS(ABMP("LDFN"),ABMP("INS"),5,"B",$P(ABMX("X0"),U)))&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),47,ABMX,2)),U,2)="") D  ;abm*2.6*9 NARR
@@ -111,7 +130,8 @@ K1 ;EP - Entry Point Page 8K error checks cont
  ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX
  ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX
  ...;end old start new
- ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")
+ ...;I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
+ ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))'="") Q:ABME(217)[(ABMX("I"))  S ABME(217)=$G(ABME(217))_","_ABMX("I")  ;abm*2.6*14 HEAT163747
  ...I +$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMCODX,0))=0,($G(ABME(217))="") S ABME(217)=ABMX("I")
  ...;end new
  I $P(ABMX("X0"),U,3)="" S ABME(123)=""

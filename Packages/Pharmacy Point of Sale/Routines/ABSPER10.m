@@ -1,5 +1,5 @@
 ABSPER10 ; IHS/FCS/DRS - JWS 03:58 PM 16 Jul 1996 ;   [ 09/12/2002  10:01 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Pharmacy Claim Rejection Report (by Tran Date, SORTed by Insurer)

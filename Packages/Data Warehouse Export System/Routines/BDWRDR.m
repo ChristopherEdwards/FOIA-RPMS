@@ -1,5 +1,5 @@
 BDWRDR ; IHS/CMI/LAB - MAIN DRIVER DW EXPORT ;
- ;;1.0;IHS DATA WAREHOUSE;**1,2**;JAN 23, 2006
+ ;;1.0;IHS DATA WAREHOUSE;**1,2,4**;JAN 23, 2006;Build 24
  ;
 START ;EP - called from option
  K BDWDDR
@@ -18,6 +18,9 @@ DRIVER ;EP called from TSKMN+2
  I BDW("QFLG") D ABORT Q
  S BDWCNT=$S('$D(ZTQUEUED):"X BDWCNT1  X BDWCNT2",1:"S BDWCNTR=BDWCNTR+1"),BDWCNT1="F BDWCNTL=1:1:$L(BDWCNTR)+1 W @BDWBS",BDWCNT2="S BDWCNTR=BDWCNTR+1 W BDWCNTR,"")"""
  D PROCESS ;            Generate trasactions
+ I BDW("QFLG") D ABORT Q
+ ;maw TODO uncomment this when ready to try the other messages
+ D ALPMR^BDWRDR2  ;generate ALPMR patient centric messages
  I BDW("QFLG") D ABORT Q
  D LOG ;                Update Log
  I BDW("QFLG") D ABORT Q
@@ -142,12 +145,12 @@ ABORT ; ABNORMAL TERMINATION
  Q
  ;
 LOG ; UPDATE LOG
- S BDW("COUNT")=BDW("REG")+BDW("VISITS") W:'$D(ZTQUEUED) !!,BDW("COUNT")," HL7 Messages were generated."
+ S BDW("COUNT")=BDW("REG")+BDW("VISITS")+$G(BDW("ALPMR")) W:'$D(ZTQUEUED) !!,BDW("COUNT")," HL7 Messages were generated."
  W:'$D(ZTQUEUED) !,"Updating log entry."
  D NOW^%DTC S BDW("RUN STOP")=%
  S DA=BDW("RUN LOG"),DIE="^BDWXLOG(",DR=".04////"_BDW("RUN STOP")_";.05////"_BDW("SKIP")_";.06////"_BDW("COUNT")_";.08///"_BDW("VPROC") D ^DIE I $D(Y) S BDW("QFLG")=26 Q
  K DIE,DA,DR
- S DA=BDW("RUN LOG"),DIE="^BDWXLOG(",DR=".11////"_BDW("REG")_";.12////"_BDWMSGH_";.18////"_$G(BDW("VISITS")) D ^DIE I $D(Y) S BDW("QFLG")=26 Q
+ S DA=BDW("RUN LOG"),DIE="^BDWXLOG(",DR=".11////"_BDW("REG")_";.12////"_BDWMSGH_";.18////"_$G(BDW("VISITS"))_";.19////"_$G(BDW("ALPMR")) D ^DIE I $D(Y) S BDW("QFLG")=26 Q
  K DR,DIE,DA,DIV,DIU
  S DIE="^BDWXLOG(",DA=BDW("RUN LOG"),DR="3101////"_BDW("DEMO")_";3102////"_BDW("ZERO")_";3103////"_BDW("DEL")_";3104////"_BDW("NO PAT")_";3105////"_BDW("NO LOC")_";3106////"_BDW("NO TYPE")_";3107////"_BDW("NO CAT")_";3111////"_BDW("MFI")
  D ^DIE I $D(Y) S BDW("QFLG")=26 Q
@@ -162,6 +165,8 @@ TR ;trailer report
  S X="TOTAL NUMBER OF ADDS: "_$$VAL^XBDIQ1(90213,BDW("RUN LOG"),3108) D S
  S X="TOTAL NUMBER OF MODS: "_$$VAL^XBDIQ1(90213,BDW("RUN LOG"),3109) D S
  S X="TOTAL NUMBER OF DELETES: "_$$VAL^XBDIQ1(90213,BDW("RUN LOG"),3110) D S
+ ;cmi/maw alpmr follows
+ S X="TOTAL NUMBER OF PATIENT RECORDS EXPORTED: "_$$VAL^XBDIQ1(90213,BDW("RUN LOG"),.19) D S
  S X="" D S
  S X="" D S
  F  S BDWLOC=$O(^TMP($J,"BDWTRAILER",BDWLOC)) Q:BDWLOC'=+BDWLOC  D

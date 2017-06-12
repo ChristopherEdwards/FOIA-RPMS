@@ -1,6 +1,7 @@
-PXRMXXT ; SLC/DLT - Formatting for extract print templates ;30-Nov-2005 09:51;MGH
- ;;1.5;CLINICAL REMINDERS;**1,1004**;June 19, 2000
- ;IHS/CIA/MGH- Modified to use HRN instead of SSN
+PXRMXXT ; SLC/DLT - Formatting for extract print templates ;29-Feb-2012 09:27;DU
+ ;;2.0;CLINICAL REMINDERS;**1001**;Feb 04, 2005;Build 21
+ ;IHS/CIA/MGH Patch 1001 Modified to use health record number
+ ;
  ;======================================================================
 FORMATB ;Format body of report that prints the findings
  ; Variables that need to be deleted from the template logic follow
@@ -20,12 +21,13 @@ FORMATB ;Format body of report that prints the findings
  S PXRMENCT=$S($P(PXRME,"^",8)="I":"Inpatient ",1:"Outpatient")
  Q
  ;
-PDEM ;Print HRCN
- ;IHS/CIA/MGH Modified to use health record number
+PDEM ;Print SSN with dashes
+ ;IHS/MSC/MGH Patch 1001Modified to use health record number
  ;W PXRMSSN
  W PXRMHRCN
  Q
-HRCN(DFN,SITE) ;EP; IHS/CIA/MGH Return chart number for patient at this site
+HRCN(DFN,SITE) ;EP
+ ; IHS/MSC/MGH Patch 1001 Return chart number for patient at this site
  N TEST,TEST1
  Q $P($G(^AUPNPAT(DFN,41,SITE,0)),U,2)
  ;
@@ -34,6 +36,6 @@ PFIND ;Print findings data from the template
  Q
  ;
 DELVAR ;Delete variables used in the processing
- K PXRME,PXRMB,PXRMSEX,PXRMFD,PXRMSSN,PXRMHRCN,PXRMFD,PXRMENCT
+ K PXRME,PXRMB,PXRMSEX,PXRMFD,PXRMSSN,PXRMFD,PXRMENCT
  Q
  ;

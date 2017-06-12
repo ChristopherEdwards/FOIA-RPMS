@@ -1,5 +1,5 @@
 APCHSMU ; IHS/CMI/LAB - utilities for hmr ;
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,7,11,16**;MAY 14, 2009;Build 9
  ;
 D1(D) ;EP - DATE WITH 4 YR
  I $G(D)="" Q ""
@@ -45,7 +45,7 @@ FIRST ;EP
 INAC(X) ;EP - active?
  Q $P($G(^APCHSURV(X,0)),"^",3)
  ;
-LASTLAB(P,APCHI,APCHT,APCHL,APCHLT,F) ;EP P is patient, APCHI is ien of lab test, APCHT is IEN of lab taxonomy, APCHL is ien of loinc code,  APCHLT is ien o f loinc taxonmy
+LASTLAB(P,APCHI,APCHT,APCHL,APCHLT,F) ;EP P is patient, APCHI is ien of lab test, APCHT is IEN of lab taxonomy, APCHL is ien of loinc code,  APCHLT is ien of loinc taxonmy
  I $G(F)="" S F="D"
  S APCHC=""
  S D=0 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(APCHC)  D
@@ -123,7 +123,7 @@ MINAGE(R,P,F) ;EP - is this patient correct sex,age for this reminder
  .I '$O(^APCHSURV(R,11,J,11,0)) S G="" Q  ;no age ranges specified!  Use default criteria
  .S K=0 F  S K=$O(^APCHSURV(R,11,J,11,K)) Q:K'=+K  D
  ..S MIN=$P(^APCHSURV(R,11,J,11,K,0),U),MIN=$$DAYS(MIN)
- ..Q:A<MIN  ;patient is less than minimum days old
+ ..Q:A<MIN
  ..S MAX=$P(^APCHSURV(R,11,J,11,K,0),U,2)
  ..I MAX="" S G=$$DAYS($P(^APCHSURV(R,11,J,11,K,0),"^",3)) Q  ;if no max then it's a hit
  ..S MAX=$$DAYS(MAX)
@@ -151,16 +151,21 @@ DAYS(V) ;
  I V["M" Q +V*30.5
  I V["D" Q +V
  Q ""
-PLTAX(P,A,S) ;EP - is DM on problem list 1 or 0
+IPLSNO(P,T,B) ;EP - any problem list entry with a SNOMED in T
+ Q $$IPLSNO^APCHSMU1(P,T)
+PLTAX(P,A,S,B) ;EP - is A CODE IN THIS TAXONOMY ACTIVE on problem list 1 or 0
+ ;IF B=1 THEN COUNT INACTIVE
  I $G(P)="" Q ""
  I $G(A)="" Q ""
  S S=$G(S)
+ S B=$G(B)
  N T S T=$O(^ATXAX("B",A,0))
  I 'T Q ""
  N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)) D
  .S Y=$P(^AUPNPROB(X,0),U)
- .Q:'$$ICD^ATXCHK(Y,T,9)
- .Q:$P(^AUPNPROB(X,0),U,12)="D"  ;deleted problem
+ .Q:'$$ICD^ATXAPI(Y,T,9)
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .I 'B Q:$P(^AUPNPROB(X,0),U,12)="I"  ;CMI/LAB - added per Susan 5/3/16
  .I S]"",$P(^AUPNPROB(X,0),U,12)'=S Q
  .S I=1
  Q I
@@ -169,7 +174,7 @@ PLCODE(P,A,F) ;EP
  I $G(A)="" Q ""
  I $G(F)="" S F=1
  N T
- S T=+$$CODEN^ICDCODE(A,80)
+ S T=+$$CODEABA^ICDEX(A,80)
  I 'T Q ""
  N X,Y,I S (X,Y,I)=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  I $D(^AUPNPROB(X,0)),$P(^AUPNPROB(X,0),U,12)'="D" S Y=$P(^AUPNPROB(X,0),U) I Y=T S I=X
  I F=1 Q I
@@ -182,7 +187,7 @@ REF(P,F,I,D,T) ;EP - dm item refused?
  I $G(D)="" S D=""
  I $G(T)="" S T="E"
  NEW X,N S X=$O(^AUPNPREF("AA",P,F,I,0))
- I 'X Q ""  ;none of this item was refused
+ I 'X Q ""
  S N=$O(^AUPNPREF("AA",P,F,I,X,0))
  NEW Y S Y=9999999-X
  I D]"",Y>D Q $S(T="I":Y,1:$$TYPEREF(N)_$E($$VAL^XBDIQ1(F,I,$$FFD(F)),1,(44-$L($$TYPEREF(N))))_"^on "_$$FMTE^XLFDT(Y))_"^"_Y
@@ -220,11 +225,6 @@ LASTPAP(P) ;EP - return last pap date
  .S V=$P(APCHY(1),U,5) S V=$$PRIMPROV^APCLV(V,"F") I V,$P($G(^DIC(7,V,9999999)),U,3)'="Y" Q
  .Q:LPAP>$P(APCHY(1),U)
  .S LPAP=$P(APCHY(1),U)
- ;K APCHY S %=P_"^LAST DX V72.31",E=$$START1^APCLDF(%,"APCHY(")
- ;I $D(APCHY(1)) D
- ;.S V=$P(APCHY(1),U,5) S V=$$PRIMPROV^APCLV(V,"F") I V,$P($G(^DIC(7,V,9999999)),U,3)'="Y" Q
- ;.Q:LPAP>$P(APCHY(1),U)
- ;.S LPAP=$P(APCHY(1),U)
  K APCHY S %=P_"^LAST DX V72.32",E=$$START1^APCLDF(%,"APCHY(")
  I $D(APCHY(1)) D
  .S V=$P(APCHY(1),U,5) S V=$$PRIMPROV^APCLV(V,"F") I V,$P($G(^DIC(7,V,9999999)),U,3)'="Y" Q
@@ -378,7 +378,7 @@ CPTREFT(P,BDATE,EDATE,T) ;EP - return ien of CPT entry
  S G=""
  S I=0 F  S I=$O(^AUPNPREF("AA",P,81,I)) Q:I=""!($P(G,U))  D
  .S (X,G)=0 F  S X=$O(^AUPNPREF("AA",P,81,I,X)) Q:X'=+X!($P(G,U))  S Y=0 F  S Y=$O(^AUPNPREF("AA",P,81,I,X,Y)) Q:Y'=+Y  S D=$P(^AUPNPREF(Y,0),U,3) I D'<BDATE&(D'>EDATE) D
- ..Q:'$$ICD^ATXCHK(I,T,1)
+ ..Q:'$$ICD^ATXAPI(I,T,1)
  ..S G="1^"_D_"^"_$P(^AUPNPREF(Y,0),U,7)
  .Q
  Q G

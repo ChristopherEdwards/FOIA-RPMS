@@ -1,10 +1,11 @@
-PXRMDBL3 ; SLC/PJH - Reminder Dialog Generation. (overflow) ;04/30/2001
- ;;1.5;CLINICAL REMINDERS;**5**;Jun 19, 2000
+PXRMDBL3 ; SLC/PJH - Reminder Dialog Generation. (overflow) ;06/08/2009
+ ;;2.0;CLINICAL REMINDERS;**6,12**;Feb 04, 2005;Build 73
  ;
  ; Called from PXRMDBL1
  ;
  ;Set number range for site
-START D SETSTART^PXRMCOPY("^PXRMD(801.41,")
+START ;
+ D SETSTART^PXRMCOPY("^PXRMD(801.41,")
  ;Update dialog file for individual dialog items
  D UPDATE(.ARRAY,.WPTXT,"E")
  ;Create reminder dialog
@@ -60,17 +61,15 @@ HIS(IENN) ;
  ;Mental Health
  ;-------------
 MHOK(IEN) ;
- N RNAME,TEST,YT S YT=""
+ N DSHORT,RNAME,TEST,YT S YT=""
  ;Convert ien to name
- S YT("CODE")=$P($G(^YTT(601,IEN,0)),U)
+ ;DBIA #5044
+ S YT("CODE")=$P($G(^YTT(601.71,IEN,0)),U)
  ;Quit if no code found
  I YT("CODE")="" Q 0
- ;Check if this is an allowable GUI test
- I (YT("CODE")'="GAF"),($P($G(^YTT(601.6,IEN,0)),U,4)'="Y") Q 0
- ;Get details of test
- D SHOWALL^YTAPI3(.TEST,.YT)
+ I '$$OK^PXRMDLL(IEN) Q 0
  ;Check if valid
- I TEST(1)["[ERROR]" Q 0
+ ;I TEST(1)["[ERROR]" Q 0
  ;
  S DNAME=FTYP_" "_YT("CODE")
  ;Create arrays
@@ -82,10 +81,11 @@ MHOK(IEN) ;
  I $L(DSHORT)>40 S DSHORT=$E(DNAME,1,40)
  ;Dialog item name, finding item and result 
  S ARRAY(CNT)=DSHORT_U_U_RESN_U
+ ;Commented out Result Group Patch 6 until a decision can be made
  ;Result group name
- S RNAME="PXRM "_YT("CODE")_" RESULT GROUP"
+ ;S RNAME="PXRM "_YT("CODE")_" RESULT GROUP"
  ;Result pointer
- S $P(ARRAY(CNT),U,7)=$O(^PXRMD(801.41,"B",RNAME,""))
+ ;S $P(ARRAY(CNT),U,7)=$O(^PXRMD(801.41,"B",RNAME,""))
  ;If aims exclude from p/n
  I YT("CODE")="AIMS" S $P(ARRAY(CNT),U,6)=1
  ;Prompt text
@@ -129,11 +129,11 @@ UPDATE(INP,WPTXT,DTYPE) ;
  ..S FDA(801.41,"?+1,",25)="WPTXT("_CNT_")"
  ..;MH fields (exclude from P/N and results pointer)
  ..S:$P(INP(CNT),U,6) FDA(801.41,"?+1,",54)=$P(INP(CNT),U,6)
- ..S:$P(INP(CNT),U,7) FDA(801.41,"?+1,",55)=$P(INP(CNT),U,7)
+ ..;S:$P(INP(CNT),U,7) FDA(801.41,"?+1,",55)=$P(INP(CNT),U,7)
  .;Reminder dialog associated reminder/DISABLE
  .I DTYPE="R" D
  ..S FDA(801.41,"?+1,",2)=REM
- ..I PXRMENAB'="Y" S FDA(801.41,"?+1,",3)="DISABLED AT AUTO GENERATE"
+ ..I PXRMENAB'="Y" S FDA(801.41,"?+1,",3)=1
  .;Dialog items point to prompts and actions, Sets point to dialog items
  .N ACNT,SUB
  .;S ACNT=0,SUB=2

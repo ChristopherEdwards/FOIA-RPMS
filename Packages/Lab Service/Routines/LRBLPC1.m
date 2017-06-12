@@ -1,7 +1,5 @@
-LRBLPC1 ;VA/AVAMC/REG - PT ADM,RX SPECIALTY,ICD9CM CODES ;11/18/91  20:36 ;
- ;;5.2;LAB SERVICE;**1031**;NOV 1, 1997
- ;
- ;;VA LR Patche(s): 247,315
+LRBLPC1 ;VA/AVAMC/REG - PT ADM,RX SPECIALTY,ICDCM CODES ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;LAB SERVICE;**247,315,1031,1034**;NOV 1, 1997;Build 88
  ;
  ;Per VHA Directive 97-033 this routine should not be modified.  Medical Device # BK970021
  ;Reference to ^DGPT is supported by ICR# 418
@@ -22,7 +20,8 @@ A S Y=$S($D(^DGPM(LRX,0)):^(0),1:""),LR=$P(Y,"^",16) W !,"Adm:",+$E(Y,4,5)_"/"_+
  F Y=0:0 S Y=$O(^DGPT(LR,"S",Y)) Q:'Y  S W=^(Y,0) F X=8:1:12 I $P(W,"^",X) S LRC($P(W,"^",X))=""
  N LRTMP,LRX
  F LRTMP=0:0 S LRTMP=$O(LRF(LRTMP)) Q:'LRTMP!(LR("Q"))  D
- . S LRX=$$ICDDX^ICDCODE(LRTMP,,,1)
+ . ; S LRX=$$ICDDX^ICDCODE(LRTMP,,,1)
+ . S LRX=$$ICDDX^ICDEX(LRTMP,,,"I",1)  ; IHS/MSC/MKK - LR*5.2*1034
  . I +LRX=-1 Q
  . D:$Y>(IOSL-9) H Q:LR("Q")
  . W !,$P(LRX,"^",2),?10,$P(LRX,"^",4)

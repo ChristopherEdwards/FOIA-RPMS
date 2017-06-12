@@ -1,5 +1,5 @@
 BJPNPDET ;GDIT/HS/BEE-Prenatal Care Module Utility 2 Calls ; 08 May 2012  12:00 PM
- ;;1.0;PRENATAL CARE MODULE;;Dec 06, 2012;Build 61
+ ;;2.0;PRENATAL CARE MODULE;;Feb 24, 2015;Build 63
  ;
  Q
  ;
@@ -26,6 +26,8 @@ DET(DATA,PIP) ;EP - BJPN PROBLEM DETAIL
  ;Define Header
  S @DATA@(II)="T01024REPORT_TEXT"_$C(30)
  ;
+ S II=II+1,@DATA@(II)="This will eventually be filled with detail history"_$C(30)
+ G XDET
  I $G(PIP)="" G XDET
  ;
  ;Retrieve Problem Pointer

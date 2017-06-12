@@ -1,7 +1,7 @@
-PXRMVPTR ; SLC/PKR - Routines for dealing with variable pointers. ; 02/06/2001
- ;;1.5;CLINICAL REMINDERS;**2**;Jun 19, 2000
+PXRMVPTR ; SLC/PKR - Routines for dealing with variable pointers. ;10-Apr-2015 08:02;du
+ ;;2.0;CLINICAL REMINDERS;**6,1004**;Feb 04, 2005;Build 9
  ;
- ;=======================================================================
+ ;==================================================
 BLDALIST(FILE,FIELD,LIST) ;Build a list of variable pointer information
  ;indexed by the abbreviation.
  N ABBR,FN,IND,ROOT,TEMP
@@ -10,25 +10,28 @@ BLDALIST(FILE,FIELD,LIST) ;Build a list of variable pointer information
  . S TEMP=^DD(FILE,FIELD,"V",IND,0)
  . S FN=$P(TEMP,U,1)
  . S ROOT=$$ROOT^DILFD(FN)
+ . Q:ROOT=""
  . S ROOT=$P(ROOT,"^",2)
  . S ABBR=$P(TEMP,U,4)
  . S LIST(ABBR)=TEMP
  Q
  ;
- ;=======================================================================
+ ;==================================================
 BLDNLIST(FILE,FIELD,LIST) ;Build a list of variable pointer information
  ;indexed by the file number.
  N FN,IND,ROOT,TEMP
+ ;DBIA #2991
  S IND=0
  F  S IND=$O(^DD(FILE,FIELD,"V",IND)) Q:+IND=0  D
  . S TEMP=^DD(FILE,FIELD,"V",IND,0)
  . S FN=$P(TEMP,U,1)
  . S ROOT=$$ROOT^DILFD(FN)
+ . Q:ROOT=""
  . S ROOT=$P(ROOT,"^",2)
  . S LIST(FN)=TEMP
  Q
  ;
- ;=======================================================================
+ ;==================================================
 BLDRLIST(FILE,FIELD,LIST) ;Build a list of variable pointer information
  ;indexed by the root.
  N FN,IND,ROOT,TEMP
@@ -37,6 +40,7 @@ BLDRLIST(FILE,FIELD,LIST) ;Build a list of variable pointer information
  . S TEMP=^DD(FILE,FIELD,"V",IND,0)
  . S FN=$P(TEMP,U,1)
  . S ROOT=$$ROOT^DILFD(FN)
+ . Q:ROOT=""
  . S ROOT=$P(ROOT,"^",2)
  . S LIST(ROOT)=TEMP
  Q

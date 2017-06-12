@@ -1,5 +1,5 @@
 ABMDVCK ; IHS/ASDST/DMJ - PCC Visit Edits ;  
- ;;2.6;IHS 3P BILLING SYSTEM;**11**;NOV 12, 2009;Build 133
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,19,20**;NOV 12, 2009;Build 317
  ;Original;TMD;08/19/96 4:49 PM
  ;Note special input variable ABMDFN
  ;It is optional
@@ -17,18 +17,18 @@ ABMDVCK ; IHS/ASDST/DMJ - PCC Visit Edits ;
  ;    A/O/S.  If DOS is equal or after the Audit Start Date and the status
  ;    is anything but REVIEWED the claim will not generate.
  ;
- ; IHS/SD/SDR - v2.5 p8
- ;    When inpatient, check if coding complete field is null; if so,
- ;    generate claim.
- ;
- ; IHS/SD/SDR - v2.5 p9 - IM19304
- ;    Fix supplied by Jim Gray, checking to see if variable ABMP("INS") is set
- ;
+ ; IHS/SD/SDR - v2.5 p8 -When inpatient, check if coding complete field is null; if so, generate claim.
+ ; IHS/SD/SDR - v2.5 p9 - IM19304 - Fix supplied by Jim Gray, checking to see if variable ABMP("INS") is set
  ; IHS/SD/SDR - v2.5 p9 - Fix to Uncoded Dxs to check lag time
+ ; IHS/SD/SDR - v2.5 p10 - IM21846 - Made change to stop error <UNDEF>EXP+1^ABMDE2X5
  ;
- ; IHS/SD/SDR - v2.5 p10 - IM21846
- ;   Made change to stop error <UNDEF>EXP+1^ABMDE2X5
- ;
+ ;IHS/SD/SDR - 2.6*19 - HEAT128988 - Made change to CG to check A/R PARENT/SATELLITE SETUP so CG can check
+ ;   parent locations first, then satellites; claims were generated under wrong location when satellite IEN
+ ;   was lower than parent IEN.
+ ;IHS/SD/SDR - 2.6*19 - HEAT251398 - Changed claim generator to allow service category TELEMEDICINE to
+ ;  generate claims.
+ ;IHS/SD/SDR - 2.6*20 - HEAT270671 - Made change to stop <UNDEF>SITE+1^ABMDVCK error.  Occurs when there is an entry
+ ;  in the A/R Parent/Satellite file but no matching entry in the 3P Parameter file.
  ; *********************************************************************
 START ;START HERE
  I DUZ(2)="" S DUZ(2)=1
@@ -80,14 +80,26 @@ LOOP ;LOOP THROUGH SITES
  ;start old code abm*2.6*11 HEAT86425
  ;Only loop through sites that are in the parameters file
  S DUZ(2)=0
- F  S DUZ(2)=$O(^ABMDPARM(DUZ(2))) Q:+DUZ(2)=0  D  Q:$G(ZTSTOP)
+ ;start old abm*2.6*19 HEAT128988
+ ;F  S DUZ(2)=$O(^ABMDPARM(DUZ(2))) Q:+DUZ(2)=0  D  Q:$G(ZTSTOP)
+ ;.Q:$D(^ABMDPARM(DUZ(2),1))'=10
+ ;.D SITE
+ ;.D ^ABMDACK
+ ;.S DIE="^ABMDPARM(DUZ(2),"
+ ;.S DA=1
+ ;.S DR=".21////"_DT
+ ;.D ^ABMDDIE
+ ;end old start new abm*2.6*19 HEAT128988
+ F  S DUZ(2)=$O(^BAR(90052.05,DUZ(2))) Q:+DUZ(2)=0  D  Q:$G(ZTSTOP)
  .Q:$D(^ABMDPARM(DUZ(2),1))'=10
- .D SITE
- .D ^ABMDACK
- .S DIE="^ABMDPARM(DUZ(2),"
- .S DA=1
- .S DR=".21////"_DT
- .D ^ABMDDIE
+ .I +$P($G(^ABMDPARM(DUZ(2),1,4)),U,9)=1 D LOOP2 Q
+ .S ABMHDUZ=DUZ(2)
+ .S DUZ(2)=0
+ .F  S DUZ(2)=$O(^BAR(90052.05,ABMHDUZ,DUZ(2))) Q:+DUZ(2)=0  D  Q:$G(ZTSTOP)
+ ..Q:$D(^ABMDPARM(DUZ(2),1))'=10  ;abm*2.6*20 IHS/SD/SDR HEAT270671
+ ..D LOOP2
+ .S DUZ(2)=ABMHDUZ
+ ;end new code abm*2.6*19 HEAT128988
  ;end old code start new code HEAT86425
  ;K ABMPSLST
  ;S DUZ(2)=0
@@ -124,6 +136,16 @@ LOOP ;LOOP THROUGH SITES
  K ABMP,ABMACTVI,ABMCOVD,ABMD,ABMPCAT,ABMPINS,ABMSRC,ABMV,DIE,DA,DR
  K SERVCAT,X,X1,X2,Y0
  Q
+ ;start new abm*2.6*19 IHS/SD/SDR HEAT128988
+LOOP2 ;
+ D SITE
+ D ^ABMDACK
+ S DIE="^ABMDPARM(DUZ(2),"
+ S DA=1
+ S DR=".21////"_DT
+ D ^ABMDDIE
+ Q
+ ;end new code abm*2.6*19 IHS/SD/SDR HEAT128988
  ;
  ; *********************************************************************
 SITE ;ONE SITE
@@ -194,7 +216,8 @@ V2 ;CHECK VISIT (NEEDS ABMVDFN DEFINED)
  .D ^%DTC
  .I X>ABMILAG K ABMIFLG  ;past lag time
  I $G(ABMIFLG)=1 D PCFL(59) Q  ;error for uncoded Dx
- I "ASO"[SERVCAT,($P($G(^APCCCTRL(DUZ(2),0)),U,12)'=""),($P(^APCCCTRL(DUZ(2),0),U,12)'>ABMP("VDT")),($P($G(^AUPNVSIT(ABMVDFN,11)),U,11)'="R") D PCFL(60) Q  ;EHR/Chart Audit Start Date
+ ;I "ASO"[SERVCAT,($P($G(^APCCCTRL(DUZ(2),0)),U,12)'=""),($P(^APCCCTRL(DUZ(2),0),U,12)'>ABMP("VDT")),($P($G(^AUPNVSIT(ABMVDFN,11)),U,11)'="R") D PCFL(60) Q  ;EHR/Chart Audit Start Date  ;abm*2.6*19 IHS/SD/SDR HEAT251398
+ I "ASOM"[SERVCAT,($P($G(^APCCCTRL(DUZ(2),0)),U,12)'=""),($P(^APCCCTRL(DUZ(2),0),U,12)'>ABMP("VDT")),($P($G(^AUPNVSIT(ABMVDFN,11)),U,11)'="R") D PCFL(60) Q  ;EHR/Chart Audit Start Date  ;abm*2.6*19 IHS/SD/SDR HEAT251398
  I "AS"[SERVCAT D  Q
  .;If the visit has a parent and
  .;the visit is in the date range I will treat it like an I type.

@@ -1,5 +1,5 @@
 ABSPOSAP ; IHS/FCS/DRS - GETNEXT, PUTBACK ;      [ 09/12/2002  10:06 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,37**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,37**;JUN 21, 2001;Build 15
  Q
  ;
  ;  GETNEXT, PUTBACK - manage the list of packets to be sent

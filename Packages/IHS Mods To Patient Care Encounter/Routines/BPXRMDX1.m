@@ -1,7 +1,5 @@
-BPXRMDX1 ;IHS/MSC/MGH - Build indexes for the V files. ;29-Oct-2012 14:37;DU
- ;;1.5;CLINICAL REMINDERS;**1009**;Jun 19, 2000;Build 24
- ;DBIA 4113 supports PXRMSXRM entry points.
- ;DBIA 4114 supports setting and killing ^PXRMINDX
+BPXRMDX1 ;IHS/MSC/MGH - Build indexes for the IHS V files. ;23-Mar-2015 10:11;DU
+ ;;2.0;CLINICAL REMINDERS;**1001,1002,1005**;Feb 04, 2005;Build 23
  ;===============================================================
 VPRC ;Build the indexes for V PROCEDURES.
  N ICD,DAS,DATE,DFN,DIFF,DONE,END,ENTRIES,ETEXT,GLOBAL,IND,NE,NERROR,PP
@@ -109,9 +107,9 @@ VMEA ;Build the indexes for V MEASUREMENTS.
  . I DFN="" D  Q
  .. S ETEXT=DAS_" missing DFN"
  .. D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
+ . S VISIT=$P(TEMP,U,3)
  . S DATE=$P($G(^AUPNVMSR(DAS,12)),U,1)
  . I DATE="" D
- . .S VISIT=$P(TEMP,U,3)
  . .I VISIT="" D  Q
  ... S ETEXT=DAS_" missing visit"
  ... D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
@@ -122,8 +120,9 @@ VMEA ;Build the indexes for V MEASUREMENTS.
  . .I DATE="" D  Q
  ... S ETEXT=DAS_" missing visit date"
  ... D ADDERROR^PXRMSXRM(GLOBAL,ETEXT,.NERROR)
- .;if this entry is marked as entered-in-error do not index it
- . I $P($G(^AUPNVMEA(DAS,2)),U,1) S NE2=NE2+1 Q
+ . Q:DATE=""
+ . ;if this entry is marked as entered-in-error do not index it
+ . I $P($G(^AUPNVMSR(DAS,2)),U,1) S NE2=NE2+1 Q
  . S NE=NE+1
  . S ^PXRMINDX(9000010.01,"IP",MEA,DFN,DATE,DAS)=""
  . S ^PXRMINDX(9000010.01,"PI",DFN,MEA,DATE,DAS)=""

@@ -1,5 +1,5 @@
 APCLAPIU ; IHS/CMI/LAB - visit data ; 
- ;;2.0;IHS PCC SUITE;**2,6**;MAY 14, 2009;Build 11
+ ;;2.0;IHS PCC SUITE;**2,6,10,11,16**;MAY 14, 2009;Build 9
  ;
  ;
 LASTITEM(P,APCLV,APCLT,BD,ED,APCLF) ;PEP - return last item APCLV OF TYPE APCLT DURING BD TO ED IN FORM APCLF
@@ -94,7 +94,7 @@ LASTBHDT(P,BD,ED,T,F) ;EP - find date of last BH dx of TAXONOMY T
  ..Q:'Y
  ..S Y=$P($G(^AMHPROB(Y,0)),U)
  ..S I=$O(^ICD9("B",Y,0))
- ..Q:'$$ICD^ATXCHK(I,TIEN,9)
+ ..Q:'$$ICD^ATXAPI(I,TIEN,9)
  ..S G=$P($P(^AMHREC(V,0),U),".")_"^BH DX: "_Y_"^"_$$VAL^XBDIQ1(9002011.01,X,.04)_"^^9002011.01^"_X
  I F="D" Q $P(G,U)
  Q G
@@ -127,8 +127,8 @@ LASTDXT(P,BD,ED,T,F) ;EP
  ..S C=$P($G(^AUPNVPOV(I,0)),U)
  ..Q:C=""  ;bad xref
  ..Q:'$D(^ICD9(C))
- ..I TIEN Q:'$$ICD^ATXCHK(C,TIEN,9)
- ..S R=(9999999-D)_"^DX: "_$P($$ICDDX^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.07,I,.04)_"^"_$P(^AUPNVPOV(I,0),U,3)_"^9000010.07^"_I
+ ..I TIEN Q:'$$ICD^ATXAPI(C,TIEN,9)
+ ..S R=(9999999-D)_"^DX: "_$P($$ICDDX^ICDEX(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.07,I,.04)_"^"_$P(^AUPNVPOV(I,0),U,3)_"^9000010.07^"_I
  ..Q
  .Q
  I R="" Q ""
@@ -151,8 +151,8 @@ LASTPRCT(P,BD,ED,T,F) ;EP
  ..S C=$P($G(^AUPNVPRC(I,0)),U)
  ..Q:C=""  ;bad xref
  ..Q:'$D(^ICD0(C))
- ..I TIEN Q:'$$ICD^ATXCHK(C,TIEN,0)
- ..S R=(9999999-D)_"^DX: "_$P($$ICDOP^ICDCODE(C,(9999999-D)),U,2)_"^"_$$VAL^XBDIQ1(9000010.08,I,.04)_"^"_$P(^AUPNVPRC(I,0),U,3)_"^9000010.08^"_I
+ ..I TIEN Q:'$$ICD^ATXAPI(C,TIEN,0)
+ ..S R=(9999999-D)_"^PROC: "_$P($$ICDOP^ICDEX(C,(9999999-D),,"I"),U,2)_"^"_$$VAL^XBDIQ1(9000010.08,I,.04)_"^"_$P(^AUPNVPRC(I,0),U,3)_"^9000010.08^"_I
  ..Q
  .Q
  I R="" Q ""
@@ -178,7 +178,7 @@ LASTCPTT(P,BD,ED,T,F) ;EP
  ...S C=$P($G(^AUPNVCPT(I,0)),U)
  ...Q:C=""  ;bad xref
  ...Q:'$D(^ICPT(C))
- ...I TIEN Q:'$$ICD^ATXCHK(C,TIEN,1)
+ ...I TIEN Q:'$$ICD^ATXAPI(C,TIEN,1)
  ...S R=(9999999-$P(D,"."))_"^CPT: "_$P($$CPT^ICPTCOD(C,(9999999-$P(D,"."))),U,2)_"^"_$P($$CPT^ICPTCOD(C,(9999999-$P(D,"."))),U,3)_"^"_$P(^AUPNVCPT(I,0),U,3)_"^9000010.18^"_I
  ..Q
  .Q
@@ -288,7 +288,7 @@ LASTRADT(P,BD,ED,T,F) ;EP
  ...Q:C=""  ;bad xref
  ...Q:J=""  ;no cpt code
  ...Q:'$D(^ICPT(J))
- ...I TIEN Q:'$$ICD^ATXCHK(J,TIEN,1)
+ ...I TIEN Q:'$$ICD^ATXAPI(J,TIEN,1)
  ...S R=(9999999-$P(D,"."))_"^RADIOLOGY: "_$P(^RAMIS(71,C,0),U)_" - "_$P($$CPT^ICPTCOD(J,(9999999-$P(D,"."))),U,2)_"^^"_$P(^AUPNVRAD(I,0),U,3)_"^9000010.22^"_I
  ..Q
  .Q
@@ -310,12 +310,12 @@ LASTBHCT(P,BD,ED,T,F) ;EP - find date of last BH CPT of TAXONOMY T
  .Q:'$D(^AMHREC(V,0))
  .S X=0 F  S X=$O(^AMHRPROC("AD",V,X)) Q:X'=+X!(G]"")  S Y=$P($G(^AMHRPROC(X,0)),U) D
  ..Q:'Y
- ..Q:'$$ICD^ATXCHK(Y,TIEN,1)
+ ..Q:'$$ICD^ATXAPI(Y,TIEN,1)
  ..S G=$P($P(^AMHREC(V,0),U),".")_"^BH CPT: "_$P(^ICPT(Y,0),U)_"^"_$$VAL^XBDIQ1(9002011.04,X,.04)_"^^9002011.04^"_X
  I F="D" Q $P(G,U)
  Q G
  ;
-ALLV(P,BD,ED,A,SC,CL) ;EP
+ALLV(P,BD,ED,A,SC,CL) ;PEP - GET ALL VISITS
  I '$G(P) Q
  I $G(BD)="" S BD=$$DOB^AUPNPAT(P)
  I $G(ED)="" S ED=DT
@@ -347,7 +347,7 @@ ALLLAB(P,BD,ED,T,LT,LN,A) ;EP
  S T=$G(T)
  NEW D,V,G,X,J,B,E,C
  S B=9999999-BD,C=0,E=9999999-ED  ;get inverse date and begin at edate-1 and end when greater than begin date
- S D=E-1,D=D_".9999" S (D,G)=0 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!($P(D,".")>B)  D
+ S D=E-1,D=D_".9999" S G=0 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!($P(D,".")>B)  D
  .S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,X)) Q:X'=+X  D
  ..S Y=0 F  S Y=$O(^AUPNVLAB("AE",P,D,X,Y)) Q:Y'=+Y  D
  ...I 'T,'LT,LN="" D SETLAB Q
@@ -365,3 +365,46 @@ SETLAB ;
  S C=C+1
  S @A@(C)=(9999999-$P(D,"."))_"^"_$$VAL^XBDIQ1(9000010.09,Y,.01)_"^"_$$VAL^XBDIQ1(9000010.09,Y,.04)_"^"_Y_"^"_$P(^AUPNVLAB(Y,0),U,3)
  Q
+IPLSNO(P,T) ;EP - any problem list entry with a SNOMED in T
+ NEW OUT,IN,C,G,Y,X,I,SNL,SNI
+ S OUT="SNL"
+ S X=$$SUBLST^BSTSAPI(OUT,T)
+ ;BUILD INDEX
+ S C=0 F  S C=$O(SNL(C)) Q:C'=+C  S I=$P(SNL(C),U,1) I I]"" S SNI(I)=SNL(C)
+ K SNL
+ ;LOOP PROBLEM LIST
+ S (X,G)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="I"  ;inactive
+ ..I $D(SNI(X)) S G=1_U_$$CONCPT^AUPNVUTL(X)_" on their Problem List"
+ Q G
+SNOMEDPV(P,BD,ED,T,F) ;EP - any problem list entry with a SNOMED in T
+ NEW OUT,IN,C,G,Y,X,I,SNL,SNI,V
+ I $G(T)="" Q ""
+ I $G(BD)="" S BD=$$DOB^AUPNPAT(P)
+ I $G(ED)="" S ED=DT
+ I $G(F)="" S F="D"
+ S OUT="SNL"
+ S X=$$SUBLST^BSTSAPI(OUT,T)
+ ;BUILD INDEX
+ S C=0 F  S C=$O(SNL(C)) Q:C'=+C  S I=$P(SNL(C),U,1) I I]"" S SNI(I)=SNL(C)
+ K SNL
+ ;LOOP V POV FOR EACH CODE
+ S C=0 F  S C=$O(SNI(C)) Q:C=""  D
+ .S (X,G,D)=""
+ .S D=$O(^AUPNVPOV("ASNC",P,C,0)) I D D
+ ..S Y=9999999-D
+ ..Q:Y<BD
+ ..Q:Y>ED
+ ..S X=$O(^AUPNVPOV("ASNC",P,C,D,0))
+ ..Q:'X
+ ..Q:'$D(^AUPNVPOV(X,0))
+ ..S V=$P(^AUPNVPOV(X,0),U,3)
+ ..S SNL(D)=(9999999-D)_U_"SNOMED: "_C_U_V_U_"9000010.07"_U_X
+ S D=$O(SNL(0))
+ I D="" Q ""
+ I F="D" Q $P(SNL(D),U,1)
+ Q SNL(D)

@@ -1,79 +1,6 @@
 BGP7D21A ; IHS/CMI/LAB - measure 6 ;
- ;;7.0;IHS CLINICAL REPORTING;;JAN 24, 2007
+ ;;17.0;IHS CLINICAL REPORTING;;AUG 30, 2016;Build 16
  ;
-POSUR(P,BDATE,EDATE) ;EP
- K BGPC,BGPX,BGP1
- S BGPC=""
- S %="",E=+$$CODEN^ICPTCOD(82043),%=$$CPTI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-CPT^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(82044),%=$$CPTI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-CPT^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(83518),%=$$CPTI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-CPT^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(84166),%=$$CPTI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGP1(9999999-$P(%,U,2))="1^MICROALB-CPT^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(81050),%=$$CPTI^BGP7DU(P,BDATE,EDATE,E)
- I %]"",$O(BGP1(0)) S BGPX(9999999-$P(%,U,2))="1^MICROALB-CPT^^"_$P(%,U,2)_" and 84166"
- S %="",E=+$$CODEN^ICPTCOD(82043),%=$$TRANI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-TRAN^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(82044),%=$$TRANI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-TRAN^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(83518),%=$$TRANI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGPX(9999999-$P(%,U,2))="1^MICROALB-TRAN^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(84166),%=$$TRANI^BGP7DU(P,BDATE,EDATE,E)
- I %]"" S BGP1(9999999-$P(%,U,2))="1^MICROALB-TRAN^^"_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(81050),%=$$TRANI^BGP7DU(P,BDATE,EDATE,E)
- I %]"",$O(BGP1(0)) S BGPX(9999999-$P(%,U,2))="1^MICROALB-TRAN^^"_$P(%,U,2)_" and 84166"
- S T=$O(^ATXAX("B","BGP MICROALBUM LOINC CODES",0))
- S BGPLT=$O(^ATXLAB("B","DM AUDIT MICROALBUMINURIA TAX",0))
- S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC]"")  D
- .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC]"")  D
- ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC]"")  D
- ...Q:'$D(^AUPNVLAB(X,0))
- ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S (BGPC,BGPX(D))="1^MICROALB^^"_(9999999-D) Q
- ...Q:'T
- ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
- ...Q:'$$LOINC(J,T)
- ...S (BGPC,BGPX(D))="1^MICROALB^^"_(9999999-D) Q
- ...Q
- I $D(BGPX) S X=$O(BGPX(0)) Q BGPX(X)
- S T=$O(^ATXAX("B","DM AUDIT A/C RATIO LOINC",0))
- S BGPLT=$O(^ATXLAB("B","DM AUDIT A/C RATIO TAX",0))
- S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC]"")  D
- .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC]"")  D
- ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC]"")  D
- ...Q:'$D(^AUPNVLAB(X,0))
- ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S (BGPC,BGPX(D))="1^A/C RATIO^^"_(9999999-D) Q
- ...Q:'T
- ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
- ...Q:'$$LOINC(J,T)
- ...S (BGPC,BGPX(D))="1^A/C RATIO^^"_(9999999-D) Q
- ...Q
- I $D(BGPX) S X=$O(BGPX(0)) Q BGPX(X)
- K BGPG S %=P_"^LAST LAB [DM AUDIT URINE PROTEIN TAX;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
- S (%,R)="" I $D(BGPG(1)) D  Q R_"^"_"U"_"^"_%_"^"_$P(BGPG(1),U)
- .S %=$P(^AUPNVLAB(+$P(BGPG(1),U,4),0),U,4)
- .S R=$S(%="":"",%["+":1,%[">":1,$E(%)="P":1,$E(%)="p":1,$E(%)="L":1,$E(%)="l":1,$E(%)="M":1,$E(%)="m":1,$E(%)="S":1,$E(%)="s":1,$E(%)="c":"",$E(%)="C":"",+%>29:1,1:"")
- S T=$O(^ATXAX("B","BGP URINE PROTEIN LOINC CODES",0))
- S BGPC="",B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC]"")  D
- .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC]"")  D
- ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC]"")  D
- ...Q:'T
- ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
- ...Q:'$$LOINC(J,T)
- ...S %=$P(^AUPNVLAB(X,0),U,4)
- ...S R=$S(%="":"",%["+":1,%[">":1,$E(%)="P":1,$E(%)="p":1,$E(%)="L":1,$E(%)="l":1,$E(%)="M":1,$E(%)="m":1,$E(%)="S":1,$E(%)="s":1,$E(%)="c":"",$E(%)="C":"",+%>29:1,1:"")
- ...S BGPC=R_"^U^"_%_"^"_(9999999-D)
- I BGPC]"" Q BGPC
- K BGPG S %=P_"^LAST DX 585.6;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
- I $D(BGPG(1)) Q "1^ESRD 585.6^^"_$P(BGPG(1),U)
- K BGPG S %=P_"^LAST DX V45.1;DURING "_$$FMTE^XLFDT($$DOB^AUPNPAT(P))_"-"_$$FMTE^XLFDT(EDATE),E=$$START1^APCLDF(%,"BGPG(")
- I $D(BGPG(1)) Q "1^ESRD V45.1^^"_$P(BGPG(1),U)
- S T=$O(^ATXAX("B","BGP ESRD CPTS",0))
- I T D  I X]"" Q 1_U_"ESRD "_$P(X,U,2)_U_U_$P(X,U,1)
- .S X=$$CPT^BGP7DU(P,$$DOB^AUPNPAT(P),EDATE,T,5) Q:X]""
- .S X=$$TRAN^BGP7DU(P,$$DOB^AUPNPAT(P),EDATE,T,5)
- Q 0
 LOINC(A,B) ;EP
  NEW %
  S %=$P($G(^LAB(95.3,A,9999999)),U,2)
@@ -81,3 +8,85 @@ LOINC(A,B) ;EP
  S %=$P($G(^LAB(95.3,A,0)),U)_"-"_$P($G(^LAB(95.3,A,0)),U,15)
  I $D(^ATXAX(B,21,"B",%)) Q 1
  Q ""
+BLINDPL(P,EDATE) ;EP
+ NEW X,T,G,R,L,Y,C
+ S X=$$PLTAXND^BGP7DU(P,"BGP BILATERAL BLINDNESS DXS",EDATE)
+ I X Q 1
+ S X=$$IPLSNOND^BGP7DU(P,"PXRM BGP BILAT BLINDNESS",EDATE)
+ I X Q 1
+ S T="PXRM BGP BLINDNESS UNSPECIFIED"  ;CODE WITH LATERALITY=BILATERAL
+ ;LOOP PROBLEM LIST
+ S (X,G,R,L)=""
+ F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ .S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ..Q:'$D(^AUPNPROB(Y,0))
+ ..Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ..Q:'$D(^XTMP("BGPSNOMEDSUBSET",$J,T,X))
+ ..I EDATE,$P(^AUPNPROB(Y,0),U,13)>EDATE Q  ;if there is a doo and it is after report period skip
+ ..I $P(^AUPNPROB(Y,0),U,13)="",EDATE,$P(^AUPNPROB(Y,0),U,8)>EDATE Q  ;no doo, entered after report period, skip
+ ..;IS LATERALITY BILATERAL:
+ ..S C=$$VAL^XBDIQ1(9000011,Y,.22)
+ ..I $$UP^XLFSTR(C)["BILATERAL" S G=1_U_"Problem List: "_X Q  ;$$CONCPT^AUPNVUTL(X)
+ ..I $$UP^XLFSTR(C)["LEFT" S L=1
+ ..I $$UP^XLFSTR(C)["RIGHT" S R=1
+ I G Q G
+ I R,L Q 1_U_"Problem List: "_X
+ ;NOW CHECK RIGHT AND LEFT SNOMED SUBSETS
+ NEW TR,TL
+ I 'R D
+ .S TR="PXRM BGP RIGHT EYE BLIND"
+ .;LOOP PROBLEM LIST
+ .S (X,G)=""
+ .F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ ..S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ...Q:'$D(^AUPNPROB(Y,0))
+ ...Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ...Q:'$D(^XTMP("BGPSNOMEDSUBSET",$J,TR,X))
+ ...I EDATE,$P(^AUPNPROB(Y,0),U,13)>EDATE Q  ;if there is a doo and it is after report period skip
+ ...I $P(^AUPNPROB(Y,0),U,13)="",EDATE,$P(^AUPNPROB(Y,0),U,8)>EDATE Q  ;no doo, entered after report period, skip
+ ...S R=1
+ I R,L Q 1_U_"Problem List: "_X
+ I 'L D
+ .S TL="PXRM BGP LEFT EYE BLIND"
+ .;LOOP PROBLEM LIST
+ .S (X,G)=""
+ .F  S X=$O(^AUPNPROB("APCT",P,X)) Q:X=""!(G)  D
+ ..S Y=0 F  S Y=$O(^AUPNPROB("APCT",P,X,Y)) Q:Y'=+Y!(G)  D
+ ...Q:'$D(^AUPNPROB(Y,0))
+ ...Q:$P(^AUPNPROB(Y,0),U,12)="D"  ;deleted
+ ...Q:'$D(^XTMP("BGPSNOMEDSUBSET",$J,TL,X))
+ ...I EDATE,$P(^AUPNPROB(Y,0),U,13)>EDATE Q  ;if there is a doo and it is after report period skip
+ ...I $P(^AUPNPROB(Y,0),U,13)="",EDATE,$P(^AUPNPROB(Y,0),U,8)>EDATE Q  ;no doo, entered after report period, skip
+ ...S L=1
+ I R,L Q 1_U_"Problem List: "_X
+ Q ""
+CHDPL(P,EDATE)  ;EP - is dx on problem list as either active or inactive?
+ NEW T,T1,T2,T3,SN1,SN2,SN3,SN4
+ S T=$O(^ATXAX("B","BGP CHD DXS",0))
+ S T1=$O(^ATXAX("B","BGP AMI DXS PAMT",0))
+ S T2=$O(^ATXAX("B","BGP IVD DXS",0))
+ S T3=$O(^ATXAX("B","BGP TIA DXS",0))
+ S SN1="PXRM ISCHEMIC HEART DISEASE"
+ S SN2="PXRM BGP AMI"
+ S SN3="PXRM BGP IVD"
+ S SN4="PXRM BGP ISCHEMIC STROKE TIA"
+PL ;
+ NEW X,Y,I,S
+ S (X,Y,I)=0
+ F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X!(I)  D
+ .Q:'$D(^AUPNPROB(X,0))
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .S Y=$P(^AUPNPROB(X,0),U)
+ .I EDATE,$P(^AUPNPROB(X,0),U,13)>EDATE Q  ;if there is a doo and it is after report period skip
+ .I $P(^AUPNPROB(X,0),U,13)="",EDATE,$P(^AUPNPROB(X,0),U,8)>EDATE Q  ;no doo, entered after report period, skip
+ .S S=$$VAL^XBDIQ1(9000011,X,80001) I S]"",$D(^XTMP("BGPSNOMEDSUBSET",$J,SN1,S)) S I=1 Q
+ .I S]"",$D(^XTMP("BGPSNOMEDSUBSET",$J,SN2,S)) S I=1 Q
+ .I S]"",$D(^XTMP("BGPSNOMEDSUBSET",$J,SN3,S)) S I=1 Q
+ .I S]"",$D(^XTMP("BGPSNOMEDSUBSET",$J,SN4,S)) S I=1 Q
+ .I $$ICD^BGP7UTL2(Y,T,9) S I=1 Q  ;_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)
+ .I $$ICD^BGP7UTL2(Y,T1,9) S I=1 Q  ;_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)
+ .I $$ICD^BGP7UTL2(Y,T2,9) S I=1 Q  ;_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01)
+ .I $$ICD^BGP7UTL2(Y,T3,9) S I=1 Q  ;_U_"Problem List: "_$$VAL^XBDIQ1(9000011,X,.01) 
+ .Q
+ Q I

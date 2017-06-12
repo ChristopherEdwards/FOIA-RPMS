@@ -1,5 +1,5 @@
-XUS1 ;SF-ISC/STAFF - SIGNON ;02/03/10  16:01
- ;;8.0;KERNEL;**9,59,111,165,150,252,265,419,469,523,1007,1017**;Jul 10, 1995;Build 3
+XUS1 ;SF-ISC/STAFF - SIGNON ;09/23/14  16:06
+ ;;8.0;KERNEL;**9,59,111,165,150,252,265,419,469,523,543,638,1007,1018**;Jul 10, 1995;Build 8
  ;THIS ROUTINE CONTAINS IHS MODIFICATIONS
  ;User setup
 USER ;
@@ -29,7 +29,7 @@ SET ;
  Q
  ;
 VCHG() ;Check if the Verify code needs to be changed
- I $D(DUZ("ASH")) Q 0 ;rwf 403
+ I $D(DUZ("ASH")) Q 0 ;p403
  D:'$D(XUSER) USER^XUS(DUZ)
  Q:'$L($P(XUSER(1),U,2)) 1 ;Null VC
  I $$BROKER^XWBLIB Q:$P(XUSER(0),U,8)=1 0 ;VC never expires, only for BROKER
@@ -42,7 +42,7 @@ ASKDIV ;Ask the user for the Division, return Y
  ;IHS/HQW/MFD 12/14/1997
  ;This line is commented out and replaced by the line below. This
  ;modified line ensures that the default division is set.
- ;S DIC="^VA(200,DUZ,2,",DIC(0)="AEMQ",DIC("P")="200.02P",X=$O(^VA(200,DUZ,2,"AX1",1,0)) S:X>0 DIC("B")=$P($$NS^XUAF4(X),U)
+ ;S DIC="^VA(200,DUZ,2,",DIC(0)="AEQ",DIC("P")="200.02P",X=$O(^VA(200,DUZ,2,"AX1",1,0)) S:X>0 DIC("B")=$P($$NS^XUAF4(X),U)
  S DIC="^VA(200,DUZ,2,",DIC(0)="AEMQ",DIC("P")="200.02P",DIC("B")=$P($$IHSDIV(DUZ),U,2)
  ;----- END IHS MODIFICATION
  D ^DIC I Y'>0 W !,*7,"You must select one." G ASKDIV
@@ -59,9 +59,8 @@ CHKDIV(CD) ;ef,sr Check if user needs to select Division.
  Q %_"^"_%1
  ;
 ENQ ;Get terminal type
- S XUT1="" I XUTT X XUEOFF R X:0 X ^%ZOSF("TYPE-AHEAD") W $C(27,91,99) R *X:2 I X=27 F  R X#1:2 S XUT1=XUT1_X Q:'$T!(X="c")
- ;Commented out the next line as Wyse 75 are not used
- ;I XUTT,(XUT1'["[") R X:0 S XUT1="" W *5 R *X:2 R:$T XUT1:2 S X=$S(X=6:"C-WYSE 75",1:$C(X)_XUT1),XUT1=""
+ S XUT1="" I XUTT X XUEOFF R X:0 X ^%ZOSF("TYPE-AHEAD") W $C(27,91,99) X "R *X:2 I X=27 F  R X#1:2 S XUT1=XUT1_X Q:'$T!(X=""c"")"
+ ;Removed code for Wyse 75
  X XUEON I XUTT,XUT1["[" S Y=$O(^%ZIS(3.22,"B",XUT1,0)) I Y>0 S X=$P($G(^%ZIS(3.22,Y,0)),"^",2)
  I X?1.ANP S DIC="^%ZIS(2,",DIC(0)="MO" D ^DIC I Y>0 S XUIOP(1)=$P(Y,U,2),$P(XUIOP,";",2)=XUIOP(1),^VA(200,DUZ,1.2)=+Y
  I '$D(XUIOP(1)),$D(^VA(200,DUZ,1.2)) S X=+^(1.2) I X>0,$D(^%ZIS(2,X,0)) S $P(XUIOP,";",2)=$P(^(0),U)
@@ -72,18 +71,12 @@ NEXT ;Jump to the next routine
  S X=$G(^DISV(DUZ)) ;Add kill by session or day here
  S ^DISV(DUZ)=$H
  ;Removed UCI jump p469
- ;S X=%UCI,N1=XUCI I PGM["[" S X=$P(PGM,"[",2,4),PGM=$P(PGM,"[",1)
- ;S:X["""" X=$P(X,"""",2) S:X?.E1"]"&(X'["[") X=$E(X,1,$L(X)-1) S XUM=14,XUM(0)=X
- ;S %UCI=X I "PRODMGR"'[X,$D(^%ZOSF("UCICHECK")) X ^("UCICHECK") G NO:Y="" S:N1=Y %UCI=""
- ;S XUM=15,XUM(0)=PGM G NO:PGM'?1AP.AN
- ;G NO:":"_XUA_":"'[(":"_PGM_":")
  D AUDIT
  S X=$S($D(^VA(200,DUZ,0)):$P($P(^(0),U),","),1:"Unk"),X=$E(X,1,10)_"_"_($J#10000) D SETENV^%ZOSV ;Set Process Name
  ;S X=$P(XOPT,U,16) X:X ^%ZOSF("PRIORITY")
  D LOG:DUZ,KILL
- ;I %UCI]"" K ^XUTL("XQ",$J) S $P(^VA(200,DUZ,1.1),U,3)=0 G GO^%XUCI
  K ^XUTL("OR",$J),^UTILITY($J),%UCI
- G ^XQ ;@(U_PGM)
+ G ^XQ
  ;
 SAVE ;
  N X
@@ -101,16 +94,22 @@ LOG ;used by R/S and Broker
  ;
  ;Division updated in DIVSET^XUSRB2
  ;The other parameters are in the symbol table with known names.
- ;P1=DUZ,P2=$I,P3=$J,P4=EXIT D/T,P5=VOLUME,P6=TASKMAN,P7=XUDEV,P8=UCI,P9=ZIO,P10=NODE,P11=IP,P12=CLNM,P13=HANDLE,P14=REMOTE SITE,P15=REMOTE IEN
+ ;P1=DUZ,P2=$I,P3=$J,P4=EXIT D/T,P5=VOLUME,P6=TASKMAN,P7=XUDEV,P8=UCI,P9=ZIO,P10=NODE,P11=IPV4,P12=CLNM,P13=HANDLE,P14=REMOTE SITE,P15=REMOTE IEN
 SLOG(P5,P6,P7,P8,P10,P14,P15) ;
- N %,I,DA,DIK,N,XL1,XL2 S XL1=$$NOW^XLFDT
- S P5=$G(P5),P6=$G(P6),P7=$G(P7),P8=$G(P8),P10=$G(P10)
- S N=DUZ_"^"_$I_"^"_$J_"^^"_P5_"^"_P6_"^"_P7_"^"_P8_"^"_$G(IO("ZIO"))_"^"_P10_"^"_$G(IO("IP"))_"^"_$G(IO("CLNM"))
+ ;p638 Changes: Save IPv4 address in field 11 (0;11) and IPv6 address in field 100 (1;1)
+ N %,I,DA,DIK,N,XL1,XL2,P11,P12,P100
+ S XL1=$$NOW^XLFDT
+ S P5=$G(P5),P6=$G(P6),P7=$G(P7),P8=$G(P8),P10=$P($G(P10),".")
+ S P11=$$FORCEIP4^XLFIPV($G(IO("IP"))),P12=$P($G(IO("CLNM")),"."),P100=$$FORCEIP6^XLFIPV($G(IO("IP")))
+ I P11="0.0.0.0" S P11=""  ;Do not store null IPv4 address
+ I P100="0000:0000:0000:0000:0000:0000:0000:0000" S P100=""  ;Do not store null IPv6 address
+ S N=DUZ_"^"_$I_"^"_$J_"^^"_P5_"^"_P6_"^"_P7_"^"_P8_"^"_$E($G(IO("ZIO")),1,30)_"^"_P10_"^"_P11_"^"_P12
  S:$D(DUZ("VISITOR")) $P(N,U,14,15)=DUZ("VISITOR") ;p523
  S:$G(DUZ(2))>0 $P(N,"^",17)=DUZ(2)
  S:$D(DUZ("REMAPP")) $P(N,U,18)=$P(DUZ("REMAPP"),U) ;p523
- F I=XL1:.00000001 L +^XUSEC(0,I):1 Q:'$D(^XUSEC(0,I))  L -^XUSEC(0,I)
+ F I=XL1:.00000001 L +^XUSEC(0,I):$G(DILOCKTM,5) Q:'$D(^XUSEC(0,I))  L -^XUSEC(0,I)
  S ^XUSEC(0,I,0)=N
+ S ^XUSEC(0,I,1)=P100 ;p638 save IPv6 address in standard format
  L -^XUSEC(0,I)
  S $P(^XUSEC(0,0),"^",3,4)=I_U_(1+$P(^XUSEC(0,0),"^",4))
  S (XL1,DA)=I,DIK="^XUSEC(0," D IX^DIK ;index new entry
@@ -121,7 +120,7 @@ SLOG(P5,P6,P7,P8,P10,P14,P15) ;
 COOKIE(J1,J2) ;Call VAdeamon for a cookie
  N ZZ,%
  I $G(XQXFLG("ZEBRA"))=-1 K XQXFLG("ZEBRA") Q "" ;Disabled
- Q:$G(IO("IP"))="" "" ;Not using Telnet
+ Q:$G(IO("IP"))="" "" ;Not using Telnet or SSH
  Q:$D(DUZ("VISITOR")) "" ;Don't create Handles for visitors p523
  ;
  S %=$$CMD^XWBCAGNT(.ZZ,"XWB CREATE HANDLE",J1_"^"_J2) Q:'% ""

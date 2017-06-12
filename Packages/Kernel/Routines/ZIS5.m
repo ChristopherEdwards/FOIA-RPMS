@@ -1,16 +1,23 @@
-%ZIS5 ;SFISC/STAFF --DEVICE LOOK-UP ;12/16/08  08:44
- ;;8.0;KERNEL;**18,24,69,499,518**;JUL 10, 1995;Build 15
+%ZIS5 ;SFISC/STAFF --DEVICE LOOK-UP ;08/30/2011
+ ;;8.0;KERNEL;**18,24,69,499,518,546,572**;JUL 10, 1995;Build 10
  ;Per VHA Directive 2004-038, this routine should not be modified
  ;Does a DIC like lookup. %XX,%YY are call in/out parameters
  N %DO,%DIY,%DD,%DIX
  S U="^",%DO="" K DUOUT
  I $D(^%ZIS(%ZISDFN,0)) S %DO=^(0)
-A G:%ZIS(0)'["A" X I $D(%ZIS("A")) S %DD=%ZIS("A") G B
+A G:%ZIS(0)'["A" X
+ ;Ask Device
+ I $D(%ZIS("A")) S %DD=%ZIS("A") G B
  S %DD="Select "_$P(%DO,U,1)_": "
 B I $D(%ZIS("B")),%ZIS("B")]"" S %YY=%ZIS("B"),%XX=$O(^%ZIS(%ZISDFN,%D,%YY)),%DIY=$S($F(%XX,%YY)-1=$L(%YY):%XX,$D(^%ZIS(%ZISDFN,%YY,0)):$P(^(0),U,1),1:%YY) W %DD,%DIY,"// " R %XX:%ZISDTIM G G:%XX]"" S %XX=%DIY G G
  W !,%DD R %XX:%ZISDTIM
 G G NO:'$T,NO:%XX["^" G:%XX?.N&(+%XX=%XX) NUM I %XX'?.ANP!($L(%XX)>30) W:%ZIS(0)["Q" *7," ??" G A
-X I %XX=" ",$D(DUZ)#2,$D(^DISV(+DUZ,"^%ZIS("_%ZISDFN_",")) S %YY=+^("^%ZIS("_%ZISDFN_",") D S G:'$T NO G GOT
+ ;Lookup
+X ;**P572 START CJM
+ ;I %XX=" ",$D(DUZ)#2,$D(^DISV(+DUZ,"^%ZIS("_%ZISDFN_",")) S %YY=+^("^%ZIS("_%ZISDFN_",") D S G:'$T NO G GOT
+ I %XX=" ",$D(DUZ)#2,$D(^DISV(+DUZ,"ZIS","^%ZIS("_%ZISDFN_","))!$D(^DISV(+DUZ,"^%ZIS("_%ZISDFN_",")) D  D S G:'$T NO G GOT
+ .S %YY=$S($D(^DISV(+DUZ,"ZIS","^%ZIS("_%ZISDFN_",")):+^("^%ZIS("_%ZISDFN_","),1:^DISV(+DUZ,"^%ZIS("_%ZISDFN_","))
+ ;**P572 END CJM
 F G NO:%XX="" K %DS S %DS=0,%DS(0)=1,%DIX=%XX,%DIY=0
  I $D(^%ZIS(%ZISDFN,%D,%XX)) G T1
 TRY S %DIX=$O(^%ZIS(%ZISDFN,%D,%DIX)) G:$P(%DIX,%XX,1)'=""!(%DIX="") T2 S %DIY=0
@@ -36,7 +43,12 @@ L1 W:%DIY !,"Type '^' to Stop, or" W !,"Choose 1" W:%DS>1 "-",%DS
  S %YY=%DS(%YY) Q
 GOT S %DZ=^%ZIS(%ZISDFN,+%YY,0)
  W:%ZIS(0)["E" "  ",$P(%DZ,U,1)
-R I %ZIS(0)'["F" S:$S($D(DUZ)#2:$S(DUZ:1,1:0),1:0) ^DISV(DUZ,"^%ZIS("_%ZISDFN_",")=+%YY
+ ;**P572 START CJM
+R ;
+ ;I %ZIS(0)'["F" S:$S($D(DUZ)#2:$S(DUZ:1,1:0),1:0) ^DISV(DUZ,"^%ZIS("_%ZISDFN_",")=+%YY
+ I %ZIS(0)'["F" I '$D(IOP),$S($D(DUZ)#2:$S(DUZ:1,1:0),1:0) S ^DISV(DUZ,"ZIS","^%ZIS("_%ZISDFN_",")=+%YY
+ ;**P572 END CJM
+ ;
  I %ZIS(0)["Z" S %YY(0)=^%ZIS(%ZISDFN,+%YY,0)
 Q K %ZISDFN,%DO,%DD,%DIX,%DIY,%DZ Q
 ADD ;can't add to files
@@ -53,15 +65,20 @@ NUM I $D(^%ZIS(%ZISDFN,%XX)) S %YY=%XX D S I $T G GOT
  S %D="B",%ZISDFN=2,%ZIS(0)=$S($D(IOP):"M",1:"EMQ") D %ZIS5
  Q
  ;
-LD1 S %E=0,%Y=0 D LCPU:"PD"[$E(%X) S %E=0 W !
+ ;A=all printers, P=local printers, C=complete list, D=local devices
+LD1 ;Called from %ZIS7
+ S %E=0,%Y=0 D LCPU:"PD"[$E(%X) S %E=0 W !
 L S %E=$S("PD"[$E(%X):$O(^UTILITY("ZIS",$J,"DEVLST","B",%E)),1:$O(^%ZIS(1,"B",%E))) G:%E="" RESTART S %A=+$O(^(%E,0))
- G L:'$D(^%ZIS(1,%A,0)),L:$P(^(0),"^",2)=46,L:$P(^(0),"^",2)=63 I $D(%ZIS("S")) N Y S Y=%A D XS^ZISX G L:'$T
+ G L:'$D(^%ZIS(1,%A,0)) ;,L:$P(^(0),"^",2)=46,L:$P(^(0),"^",2)=63 p546 Skip check for device numbers
+ I $D(%ZIS("S")) N Y S Y=%A D XS^ZISX G L:'$T ;Screen
  I "AP"[$E(%X) G L:$P($G(^%ZIS(2,+$G(^%ZIS(1,%A,"SUBTYPE")),0)),U)'?1"P".E
- W $J($P(^%ZIS(1,%A,0),"^",1),9) W:$D(^(1)) " ",$P(^(1),"^",1) I $D(^(90)),^(90) W " ** OUT OF SERVICE"
+ W $P(^%ZIS(1,%A,0),"^",1) W:$D(^(1)) " ",$P(^(1),"^",1) I $D(^(90)),^(90) W " ** OUT OF SERVICE"
  W ?39 I $X>40 W ! S %Y=%Y+1 I %Y>20 R "'^' TO STOP: ",%Y:%ZISDTIM,! G RESTART:%Y?1P S %Y=0
  G L
  ;
 LCPU S %A=%ZISV
 LC1 S %A=$O(^%ZIS(1,"CPU",%A)) Q:$P(%A,".")'=%ZISV  S %E=0
 LC2 S %E=+$O(^%ZIS(1,"CPU",%A,%E)) G LC1:%E'>0,LC1:'$D(^%ZIS(1,%E,0)) S ^UTILITY("ZIS",$J,"DEVLST","B",$P(^(0),"^",1),%E)="" G LC2
-RESTART S:$D(%H) %E=+%H K %X,^UTILITY("ZIS",$J,"DEVLST") Q
+ ;
+RESTART S:$D(%H) %E=+%H K %X,^UTILITY("ZIS",$J,"DEVLST")
+ Q

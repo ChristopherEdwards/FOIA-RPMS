@@ -1,5 +1,5 @@
-BGP INDICATORS
-ZWR
+OSEHRA ZGO Export: BGP INDICATORS
+12-JUN-2017 09:47:24 ZWR
 ^BGPIND(0)="BGP INDICATORS^90242.01I^33^33"
 ^BGPIND(1,0)="2003^1^DIABETES^Indicator 1:  Diabetes Prevalence/Incidence^Ind 1: List all Diabetic Patients with most recent Diagnosis^1^1^1"
 ^BGPIND(1,1)="D I1^BGP3D2"

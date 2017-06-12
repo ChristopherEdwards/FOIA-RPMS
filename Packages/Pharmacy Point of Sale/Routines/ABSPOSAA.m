@@ -1,5 +1,5 @@
 ABSPOSAA ; IHS/FCS/DRS - JWS, ;   [ 09/12/2002  10:05 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  Q
  ;  $$CONNECT(DIALOUT)  - initialize modem and dial 
  ;  Called from ABSPOSAQ from ABSPOSAM

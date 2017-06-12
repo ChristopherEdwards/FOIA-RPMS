@@ -1,5 +1,5 @@
 ABSPOSQL ; IHS/FCS/DRS - Process responses ;   [ 10/07/2002  8:20 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,29,31,32**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,29,31,32**;JUN 21, 2001;Build 15
  ;
  ;-----------------------------------------------------
  ;IHS/SD/lwj 10/07/02 NCPDP 5.1 changes

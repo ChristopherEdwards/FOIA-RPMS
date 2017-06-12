@@ -1,5 +1,6 @@
-LRDIDLE0 ;VA/DALOI/JMC - Create audit trail of changed values ;JUL 06, 2010 3:14 PM
- ;;5.2;LAB SERVICE;**140,171,153,286,1027**;NOV 01, 1997
+LRDIDLE0 ;VA/DALOI/JMC - Create audit trail of changed values ; 13-Aug-2013 09:14 ; MKK
+ ;;5.2;LAB SERVICE;**1004,140,171,153,1018,286,1027,396,1033**;NOV 01, 1997
+ ;
  ; Called by LRVER3
  ;
 INIT ;
@@ -19,18 +20,19 @@ EVAL ;
  . S LRNEW=$P(LRSB(LRSB),"^") S:LRNEW="" LRNEW="<no value>" ; new value
  . S LROLD=$P(LRSA(LRSB),"^") S:LROLD="" LROLD="<no value>" ; old value
  . S LRSQ9=LROLD_" by ["_$$USERID($P(LRSA(LRSB),"^",4))_"]" ; old result
- . ; S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" reported incorrectly as "_LRSQ9_"."
- . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" previously reported as "_LRSQ9_"."              ; IHS/OTI/MKK - LR*5.2*1027
+ . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" reported incorrectly as "_LRSQ9_"."
  . S LRJ=LRJ+1,LRTXT(LRJ)="Changed to "_LRNEW_" on "_LRCHDT7_" by ["_LRUSER_"]."
  ;
  ; Normalcy flag changed
  I $P($G(LRSA(LRSB,2)),"^",2) D
- . S LRNEW=$P(LRSB(LRSB),"^",2) S:LRNEW="" LRNEW="normal" ; new value
+ . S LRNEW=$P(LRSB(LRSB),"^",2) S:LRNEW="" LRNEW="normal" D  ; new value
+ . . I $P(LRSB(LRSB),"^")="canc"!($P(LRSB(LRSB),"^")="CANC") S LRNEW="canc"
  . S LROLD=$P(LRSA(LRSB),"^",2) S:LROLD="" LROLD="normal" ; old value
  . S LRSQ9=LROLD_" by ["_$$USERID($P(LRSA(LRSB),"^",4))_"]" ; old result
- . ; S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" normalcy reported incorrectly as "_LRSQ9_"."
- . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" normalcy previously reported as "_LRSQ9_"."     ; IHS/OTI/MKK - LR*5.2*1027
- . S LRJ=LRJ+1,LRTXT(LRJ)="Changed to "_LRNEW_" on "_LRCHDT7_" by ["_LRUSER_"]."
+ . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" flagged incorrectly as "_LRSQ9_"."
+ . S LRJ=LRJ+1 D
+ . . I LRNEW="canc" S LRTXT(LRJ)="Abnormal flag removed on "_LRCHDT7_" by ["_LRUSER_"]." Q
+ . . S LRTXT(LRJ)="Changed to "_LRNEW_" on "_LRCHDT7_" by ["_LRUSER_"]."
  ;
  ; Check normal ranges
  I $P($G(LRSA(LRSB,2)),"^",5) D
@@ -41,8 +43,7 @@ EVAL ;
  . . S LRNEW=$P(LRX,"!",7) S:LRNEW="" LRNEW="<no value>" ; new value
  . . S LROLD=$P(LRY,"!",7) S:LROLD="" LROLD="<no value>" ; old value
  . . S LRSQ9=LROLD_" by ["_$$USERID($P(LRSA(LRSB),"^",4))_"]" ; old value
- . . ; S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" units reported incorrectly as "_LRSQ9_"."
- . . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" units previously reported as "_LRSQ9_"."      ; IHS/OTI/MKK - LR*5.2*1027
+ . . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" units reported incorrectly as "_LRSQ9_"."
  . . S LRJ=LRJ+1,LRTXT(LRJ)="Changed to "_LRNEW_" on "_LRCHDT7_" by ["_LRUSER_"]."
  . ; Reference ranges changed
  . S LRZ(0)="^reference low^reference high^critical low^critical high^^^^^^therapeutic low^therapeutic high^"
@@ -51,8 +52,7 @@ EVAL ;
  . . S LROLD=$P(LRY,"!",LRI) S:LROLD="" LROLD="<no value>" ; old value
  . . S LRZ=$P(LRZ(0),"^",LRI)
  . . S LRSQ9=LROLD_" by ["_$$USERID($P(LRSA(LRSB),"^",4))_"]" ; old value
- . . ; S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" "_LRZ_" reported incorrectly as "_LRSQ9_"."
- . . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" "_LRZ_" previously reported as "_LRSQ9_"."    ; IHS/OTI/MKK - LR*5.2*1027
+ . . S LRJ=LRJ+1,LRTXT(LRJ)=LRSA(LRSB,1)_" "_LRZ_" reported incorrectly as "_LRSQ9_"."
  . . S LRJ=LRJ+1,LRTXT(LRJ)="Changed to "_LRNEW_" on "_LRCHDT7_" by ["_LRUSER_"]."
  ;
  I LRJ D STORE

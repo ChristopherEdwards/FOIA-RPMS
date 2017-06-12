@@ -1,5 +1,5 @@
 APCLTEN ; IHS/CMI/LAB - TOP TEN POVS ;
- ;;2.0;IHS PCC SUITE;**7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**7,11**;MAY 14, 2009;Build 58
  ;
  W !!?20,"*****  FREQUENCY OF DIAGNOSES REPORT  *****",!!
  D EXIT
@@ -42,8 +42,9 @@ POV ;
  I Y="P" S APCLPRIM=""
 EXCL ;
  W !!,"You have the opportunity to exclude certain diagnoses from this report."
- W !,"For example, to eliminate Pharmacy refill diagnoses, you need to exclude",!,"V68.1 from this report.  If you chose to include only the primary pov"
- W !,"then visits with a primary pov of V68.1 will be excluded.",!
+ W !,"For example, to eliminate Pharmacy refill diagnoses, you need to exclude",!,"ICD-9 code V68.1 and ICD-10 code Z76.0 from this report."
+ W !,"If you chose to include only the primary pov then visits with "
+ W !,"a primary pov of V68.1/Z76.0 will be excluded.",!
  ;exclude any diagnoses codes?
  S APCLEXCL=""
  S DIR(0)="Y",DIR("A")="Do you wish to exclude any diagnoses codes from the report",DIR("B")="N" KILL DA D ^DIR KILL DIR

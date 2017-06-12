@@ -1,7 +1,9 @@
-ORWGAPIU ; SLC/STAFF - Graph API Utilities ;08-Feb-2012 17:10;PLS
- ;;3.0;ORDER ENTRY/RESULTS REPORTING;**215,260,243,1010**;Dec 17, 1997;Build 47
+ORWGAPIU ; SLC/STAFF - Graph API Utilities ;29-Jun-2015 09:58;PLS
+ ;;3.0;ORDER ENTRY/RESULTS REPORTING;**215,260,243,1010,1014**;Dec 17, 1997;Build 47
  ;
  ;Modified - IHS/MSC/MGH - 02/08/2012 - FILE+31
+ ;           IHS/MSC/MGH - 05/19/2015
+ ;           IHS/MSC/MGH - 06/29/2015 - Added calls to BEHOGMEA
 EVALUE(VAL,FILE,FIELD) ; $$(internal value,file,field) -> external value or ""
  ; from ORWGAPI1, ORWGAPI2, ORWGAPI3, ORWGAPI4, ORWGAPIP, ORWGAPIR
  I VAL="" Q ""
@@ -22,6 +24,8 @@ EVALUE(VAL,FILE,FIELD) ; $$(internal value,file,field) -> external value or ""
  I FILE=50.605 Q $$DC^ORWGAPIC(VAL)
  I FILE=68 Q $$AA^ORWGAPIC(VAL)
  I FILE=811.2 Q $$TAX^ORWGAPIA(VAL)
+ ;IHS/MSC/MGH Modified for vital graphing
+ I FILE=9000010.01 Q $$VAL^BEHOGMEA(VAL)
  D
  . I FILE=52 S FIELD=6 Q
  . I FILE=53.79 S FIELD=.08 Q

@@ -1,5 +1,5 @@
 AMEREDIT ; IHS/OIT/SCR - Primary Routine for ER VISIT edit interface 
- ;;3.0;ER VISIT SYSTEM;**1,3**;DEC 07, 2011;Build 11
+ ;;3.0;ER VISIT SYSTEM;**1,3,5,6,8**;MAR 03, 2009;Build 23
  ;
  ; ALGORITHM:
  ;    1. Allow user to select from ER VISITS
@@ -73,12 +73,17 @@ RUN ; EP - from Main Menu option AMER EDIT to Edit ER VISIT
  ..I AMERDIFF<=0 D
  ...D SYNCHERA^AMERERS(AMERDA,AMERPCC)   ;SYNCH VISIT DATA
  ...D SYNCHERD^AMERERS(AMERDA,AMERPCC)   ;SYNCH V PROVIDER DATA
- ...D SYNCHERX^AMERERS(AMERDA,AMERPCC)   ;SYNCH V POV DATA
+ ...;AMER*3.0*6;Do not sync V POV DATA
+ ...;D SYNCHERX^AMERERS(AMERDA,AMERPCC)   ;SYNCH V POV DATA
  ...Q
  ..;IHS/OIT/SCR 12/30/08 END CHANGES
  ..;IHS/OIT/SCR 01/09/08 GET CURRENT VALUES IN PATIENT REG FOR DOB AND CHART NUMBER AND UPDATE IF DIFFERENT
  ..S AMERPAT=$P($G(^AMERVSIT(AMERDA,0)),U,2)  ; AMERPAT IS THE IEN OF PATIENT
  ..I AMERPAT'="" D SYNCHERP^AMERERS(AMERPAT,AMERDA)
+ ..;
+ ..;AMER*3.0*5 - Now log the activity
+ ..I $G(AMERPCC)]"" D LOG^AMERBUSA("P","Q","AMER","AMER: Display Patient ER visit information ("_AMERDA_")","^"_AMERPCC)
+ ..;
  ..D PRINT(AMERDA)
  ..S DIR("A")="Do you want to EDIT this ER VISIT"
  ..S DIR(0)="Y",DIR("B")="YES"
@@ -104,16 +109,25 @@ PRINT(DA) ; PRINT SELECTED VISIT TO SCREEN
  N DIC,BY,FR,TO,FLDS
  S DIC="^AMERVSIT(",BY="NUMBER",(FR,TO)=DA,FLDS="[AMER DETAIL"
  D EN1^DIP
+ ;
+ ;AMER*3.0*5 - Now log the activity
+ I $G(AMERPCC)]"" D LOG^AMERBUSA("P","P","AMER","AMER: Printed Patient ER visit information","^"_AMERPCC)
+ ;
  K DIC,BY,FR,TO,FLDS
  Q
  ; 
 EDITERV(AMERDA,AMERAIEN,AMEREDNO)  ; EDIT SELECTED VISIT
  ; NEED TO PARTITION SELECTIONS INTO PCC FIELD EDIT AND ERS FIELD EDIT
+ ;
+ ;AMER*3.0*5 - Now log the activity
+ I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edit Patient ER visit information ("_AMERDA_")","^"_AMERPCC)
+ ;
  N AMERQUIT,AMERSEL,DIR,AMERQUIT
  S AMERQUIT=0
  ;D EN^DDIOL("***ENTRIES MARKED WITH '*' contain LOCKED fields***","","!!,?5")
  S DIR(0)="SO^1:ADMISSION SUMMARY;2:TRIAGE INFO;3:INJURY INFO;"
- S DIR(0)=DIR(0)_"4:PROCEDURES;5:DIAGNOSES;6:EXIT ASSESSMENT;"
+ ;AMER*3*6;Added (Option Disabled)
+ S DIR(0)=DIR(0)_"4:PROCEDURES;5:DIAGNOSES (OPTION DISABLED);6:EXIT ASSESSMENT;"
  S DIR(0)=DIR(0)_"7:DISCHARGE INFO;8:FOLLOW UP INSTRUCTIONS;9:ER CONSULTANTS;"
  S DIR(0)=DIR(0)_"10:ALL"
  S DIR("A")="ENTER NUMBER OF SECTION TO EDIT  (OR '<return>' TO QUIT)",DIR("?")="Enter the number of the section you want to edit"
@@ -123,7 +137,11 @@ EDITERV(AMERDA,AMERAIEN,AMEREDNO)  ; EDIT SELECTED VISIT
  .I '$D(^XUSEC("AMERZ9999",DUZ)) Q  ;only holders of the coding key can update a DX
  .S AMERQUIT=1
  .I '$$CHKVSIT^AMEREDPC(AMERDA,AMERAIEN) D
- ..D EN^DDIOL("**The primary diagnosis for this ER visit is uncoded**","","!!")
+ ..D EN^DDIOL("**The primary diagnosis for this ER visit is uncoded**","","!")
+ ..;AMER*3*6;No longer allow DX to be fixed
+ ..D EN^DDIOL("**Please fix the issue using EHR/PCC**","","!")
+ ..Q
+ ..;
  ..S DIR(0)="Y",DIR("A")="Would you like to update the .9999 code now",DIR("B")="YES"
  ..D ^DIR
  ..I Y=0 S Y=""
@@ -134,6 +152,7 @@ EDITERV(AMERDA,AMERAIEN,AMEREDNO)  ; EDIT SELECTED VISIT
  S AMERSEL=Y
  K DIR,Y,DA
  D EDIT(AMERSEL,AMERDA,AMERAIEN,.AMEREDNO)
+ ;
  K AMERQUIT,AMERSEL
  Q
  ; 
@@ -143,30 +162,60 @@ EDIT(AMERSEL,AMERDA,AMERAIEN,AMEREDNO) ;
  D EN^DDIOL(AMERLINE,"","!!")
  I AMERSEL=1!(AMERSEL=10) D
  .I '$$EDADMIT^AMEREDTA(AMERDA,AMERAIEN) S AMERQUIT=1 Q  ;ADMISSION SUMMARY
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Admission Summary Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=2!(AMERSEL=10) D                 ;TRIAGE INFO
  .I '$$ADMTRIAG^AMEREDTT(AMERDA,AMERAIEN) S AMERQUIT=1 Q  ;WORK RELATED,ADMITTING PROVIDERS,ADMITTING TRIAGE CATEGORY
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Triage Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=3!(AMERSEL=10) D  ;INJURY
  .I '$$EDINJRY^AMEREDTI(AMERDA,AMERAIEN) S AMERQUIT=1 Q
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Injury Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=4!(AMERSEL=10) D                                 ;PROCEDURE
  .I '$$EDPROCS^AMEREDTD(AMERDA,.AMEREDNO,AMERAIEN) S AMERQUIT=1 Q
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Procedure Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=5!(AMERSEL=10) D
+ .;
+ .;Automatically sync with PCC
+ .D SYNCHERX^AMERERS(AMERDA,AMERPCC)   ;SYNCH V POV DATA
+ .;
+ .;AMER*3*6;Disable DX entry
+ .I AMERSEL=5 D  H 3
+ ..D EN^DDIOL("DX entry has been disabled in AMER.","","")
+ ..D EN^DDIOL("Please use PCC to update visit POV information.","","!!") H 3
+ .Q
+ .;
  .I '$$EDDIAGS^AMEREDDX(AMERDA,.AMEREDNO,AMERAIEN) S AMERQUIT=1 Q  ;DIAGNOSES
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Diagnosis Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
@@ -174,6 +223,10 @@ EDIT(AMERSEL,AMERDA,AMERAIEN,AMEREDNO) ;
  ;IHS/OIT/SCR - 10/15/08 the visit can be deleted here and AMERDA is passed by reference
  I AMERSEL=6!(AMERSEL=10) D
  .I '$$EDEXTAS^AMEREDTD(.AMERDA,AMERAIEN) S AMERQUIT=1 Q  ;EXIT ASSESSMENT
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Exit Assessment Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .I (AMERDA=0) S AMERQUIT=1
@@ -181,21 +234,37 @@ EDIT(AMERSEL,AMERDA,AMERAIEN,AMEREDNO) ;
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=7!(AMERSEL=10) D  ;DISCHARGE
  .I '$$EDDISCHG^AMEREDTD(AMERDA,AMERAIEN) S AMERQUIT=1 Q
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Discharge Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=8!(AMERSEL=10) D  ;FOLLOW UP INSTRUCTIONS
  .I '$$EDFUINST^AMEREDTD(AMERDA,AMERAIEN) S AMERQUIT=1 Q
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Follow up Instructions ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
  I AMERQUIT D EXIT(AMERDA,AMERQUIT) Q
  I AMERSEL=9!(AMERSEL=10) D   ;ER CONSULTANT
  .I '$$EDTCNSLT^AMEREDTE(AMERDA,.AMEREDNO,AMERAIEN) S AMERQUIT=1 Q
+ .;
+ .;AMER*3.0*5 - Now log the activity
+ .I $G(AMERPCC)]"" D LOG^AMERBUSA("P","E","AMER","AMER: Edited ER Consultant Information ("_AMERDA_")","^"_AMERPCC)
+ .;
  .D EN^DDIOL(AMERLINE,"","!!")
  .D EN^DDIOL("","","!")
  .Q
+ ;
+ ;AMER*3.0*8;Update V EMERGENCY VISIT record
+ D VER^AMERVER($G(DFN),$G(AMERPCC))
+ ;
  D:AMERSEL'="" EDITERV(AMERDA,AMERAIEN,.AMEREDNO)
  Q
  ;

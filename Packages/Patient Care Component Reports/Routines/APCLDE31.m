@@ -1,5 +1,5 @@
 APCLDE31 ; IHS/CMI/LAB - list DEPRESSION screenings ; 
- ;;2.0;IHS PCC SUITE;**2,4,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,4,8,10**;MAY 14, 2009;Build 88
  ;
  ;
 PROC ;

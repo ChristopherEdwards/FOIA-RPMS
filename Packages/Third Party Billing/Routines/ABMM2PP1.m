@@ -1,5 +1,9 @@
 ABMM2PP1 ;IHS/SD/SDR - MU Patient Volume EP Report ;
- ;;2.6;IHS 3P BILLING SYSTEM;**11,12**;NOV 12, 2009;Build 187
+ ;;2.6;IHS 3P BILLING SYSTEM;**11,12,15**;NOV 12, 2009;Build 251
+ ;IHS/SD/SDR - 2.6*15 - Updated 'C' prompt so a complete date (mm/dd/ccyy) must be entered.  Was allowing user
+ ;  to enter CCYY only.
+ ;IHS/SD/SDR - 2.6*15 - HEAT194499 - If option D is used need to kill the End date variables that were set so it will
+ ; calculate end date for each 90-day window.  Was printing same date for all start dates.
  ;
 90DAY ;
  W !!,"Patient Volume is calculated based on a 90-day period. There are two different"
@@ -47,6 +51,7 @@ ABMM2PP1 ;IHS/SD/SDR - MU Patient Volume EP Report ;
  .S X2=-365
  .D C^%DTC
  .S (ABMY("SDT"),ABMP("SDT"))=X
+ .K ABMY("EDT"),ABMEDT  ;abm*2.6*15 HEAT194499
  I ABMY("90")="A"!(ABMY("90")="D") D
  .D ^XBFMK
  .S DIR(0)="S^F:First 90-day period found;H:Highest 90-day period found"
@@ -76,7 +81,8 @@ ABMM2PP1 ;IHS/SD/SDR - MU Patient Volume EP Report ;
  .S (ABMY("SDT"),ABMP("SDT"))=Y
  I ABMY("90")="C" D
  .D ^XBFMK
- .S DIR(0)="D^::%DT"
+ .;S DIR(0)="D^::%DT"  ;abm*2.6*15
+ .S DIR(0)="D^::EX"  ;forces date to be mm/dd/ccyy  ;abm*2.6*15
  .S DIR("A",1)=""
  .S DIR("A",2)="Select a specific start date in the calendar year"
  .I ABMY("RTYP")="HOS" S DIR("A",2)="Select a specific start date in the fiscal year for the 90-Day Report Period."

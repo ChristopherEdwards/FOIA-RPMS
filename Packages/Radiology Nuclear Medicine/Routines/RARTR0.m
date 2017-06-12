@@ -1,5 +1,5 @@
-RARTR0 ;HISC/GJC-Queue/Print Radiology Rpts utility routine. ; 20 Apr 2011  7:03 PM
- ;;5.0;Radiology/Nuclear Medicine;**8,26,74,84,99,1003**;Nov 01, 2010;Build 3
+RARTR0 ;HISC/GJC-Queue/Print Radiology Rpts utility routine. ; 06 Oct 2013  11:06 AM
+ ;;5.0;Radiology/Nuclear Medicine;**8,26,74,84,99,1003,1005**;Nov 01, 2010;Build 13
  ; 06/28/2006 BAY/KAM Remedy Call 146291 - Change Patient Age to DOB
  ;
  ;Integration Agreements
@@ -168,7 +168,11 @@ HEAD ; Set up header info for e-mail message (called from INIT^RARTR)
  S ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))=RATPHY_RAILOC
  S ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))=RAPRIPHY_RASERV
  ;p99: get pt sex, add pregnancy screen and pregnancy screen comment
- I $$PTSEX^RAUTL8(RADFN)="F",$D(RAY3) D
+ ;
+ ;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ ;I $$PTSEX^RAUTL8(RADFN)="F",$D(RAY3) D
+ I $$PTSEX^RAUTL8(RADFN)'="M",$D(RAY3) D
+ .;
  .Q:RAY3<0
  .N RAPCOMM,RA32PSC,DIWF,DIWL,DIWR,X S RAPCOMM=$G(^RADPT(RADFN,"DT",+$G(RADTI),"P",+$G(RACNI),"PCOMM"))
  .S:$P(RAY3,U,32)'="" ^TMP($J,"RA AUTOE",$$INCR^RAUTL4(RAACNT))="Pregnancy Screen: "_$S($P(RAY3,"^",32)="y":"Patient answered yes",$P(RAY3,"^",32)="n":"Patient answered no",$P(RAY3,"^",32)="u":"Patient is unable to answer or is unsure",1:"")

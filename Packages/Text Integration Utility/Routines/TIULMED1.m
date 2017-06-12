@@ -1,7 +1,6 @@
-TIULMED1 ; SLC/JM - Active/Recent Med Objects Routine ;04-Jun-2012 16:20;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,1006,202,1010**;Jun 20, 1997;Build 24
- ;IHS/MSC/MGH added items to display for objects
- ;
+TIULMED1 ; SLC/JM - Active/Recent Med Objects Routine ;31-Dec-2012 14:51;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**38,73,92,94,1006,202,1010,226,1011**;Jun 20, 1997;Build 13
+ ;;IHS/MSC/MGH added items to display for objects
  ; All routines here are part of the LIST entry point of TIULMED
  ;
 ADD(TXT) ; Saves TXT in TARGET
@@ -23,7 +22,7 @@ ADDL(TXT) ; Add with ADDLNUM on FIRST
  E  D ADD(TXT)
  Q
 ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
- N DATA,FIRST,XSUM,XCOUNT,TOPLINE,WSTATUS
+ N DATA,FIRST,XSUM,XCOUNT,TOPLINE,WSTATUS,TSTAT
  S FIRST=1
  I XMODE S (XSUM,XCOUNT)=0,XSTR=""
  E  D
@@ -61,7 +60,8 @@ ADDMED(XMODE) ; if XMODE creates XSTR, if not add med to TARGET
  ..D ADDM("B")
  .D ADDP(3)
  .I DETAILED D FLUSH
- .D ADDM("SIO")
+ .;ELR/VMP patch 226 add route and schedule to IV's
+ .D ADDM("SIO"),ADDM("MDR"),ADDM("SCH")
  .D FLUSH
  .I 'XMODE D
  ..N I

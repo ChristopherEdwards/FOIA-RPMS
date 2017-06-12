@@ -1,5 +1,5 @@
-APCD3MF ; IHS/CMI/LAB - install and generate HL7 messages to 3M ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+APCD3MF ; IHS/CMI/LAB - install and generate HL7 messages to 3M ; 30 Apr 2014  8:27 AM
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;
 FILE(APCD3M) ;EP
@@ -18,8 +18,8 @@ CHECKREC ;
  . I DFN'=$P(Z,"^",2) S APCDERR="DFN in HL7 doesn't match V POV patient." Q
  . I VISIT'=$P(Z,"^",3) S APCDERR="VISIT in HL7 doesn't match V POV visit." Q
  . S N=$P(VPOV(APCDX),"^",2),%=$P(Z,"^",4),%=$P(^AUTNPOV(%,0),U) I N'=% S APCDERR="Provider Narratives mismatch" Q
- . ;file ICD9 code
- . S ICD9=$P(VPOV(APCDX),"^",3),ICD9=$$CODEN^ICDCODE(ICD9,80) S:+ICD9=-1 ICD9="" I ICD9="" S APCDERR="Could not find ICD9 code in table." Q
+ . ;file ICD code
+ . S ICD9=$P(VPOV(APCDX),"^",3),ICD9=+$$CODEN^ICDEX(ICD9,80) S:+ICD9=-1 ICD9="" I ICD9="" S APCDERR="Could not find ICD code in table." Q
  . NEW DD,DO,DA,DIC,DLAYGO,I,X,Y,%,%D,%E,%Y,D0,DI,DIE,DQ,DR,AUPNSEX
  . S DA=$P(VPOV(APCDX),"^") I '$D(^AUPNVPOV(DA,0)) S APCDERR="VPOV no longer exists." Q
  . S AUPNSEX=$P(^DPT(DFN,0),"^",2)

@@ -1,5 +1,7 @@
-LA7VQINS ;VA/DALOI/DLR - LAB ORM (Order) message builder ;JUL 06, 2010 3:14 PM
- ;;5.2;AUTOMATED LAB INSTRUMENTS;**1027**;NOV 01, 1997;Build 9
+LA7VQINS ;VA/DALOI/DLR - LAB ORM (Order) message builder ; 17-Oct-2014 09:22 ; MKK
+ ;;5.2;AUTOMATED LAB INSTRUMENTS;**1027,1033,1034**;NOV 01, 1997;Build 88
+ ;
+ ;
 INS(STORE,OR) ;Handle insurance
  N ORI,BDA,STR,IIEN,IPIEN,IEIEN
  S ORI=$O(^BLRRLO("B",OR,0))
@@ -39,8 +41,9 @@ MCR(IEN,PE,ST) ;medicare.
  S IN1(7)=$G(IN(9999999.18,INS,.06,"E"))
  S IN1(16)="MC"
  S IN1(18)=1
- S IN1(17)=$$HLNAME^HLFNC($G(IN(9000003,IENS,.01,"E")),LA7ECH)
- S IN1(37)=$G(IN(9000003,IENS,.03,"I"))
+ S IN1(17)=$$HLNAME^HLFNC($G(IN(9000003,IENS,2101,"E")),LA7ECH)
+ I IN1(17)="" S IN1(17)=$$HLNAME^HLFNC($G(IN(9000003,IENS,.01,"E")),LA7ECH)
+ S IN1(37)=$G(IN(9000003,IENS,.03,"I"))_$G(IN(9000003,IENS,.04,"E"))
  S IN1(4)=$G(IN(9999999.18,INS,.66,"E"))
  S IN1(9)=$G(IN(9000003.11,IENS,.11,"I"))
  S IN1(9)=$S($G(IN1(9)):$P($G(^AUTNEGRP(IN1(9),0)),U,2),1:"")
@@ -105,6 +108,40 @@ PI(IEN,PE,ST) ;private insurance
  Q:'ST
  D IN1(.IN1)
  Q
+ ;
+WC(INS,IEN,ST) ;-- workmans comp
+ K DFNS
+ S CNT=$G(CNT)+1
+ N IENS
+ S IENS=IEN_","
+ S IN=$P(IEN,",")_","
+ D GETS^DIQ(9000042,IN,"*","EI","IN")
+ D GETS^DIQ(9000042.11,IENS,"*","EI","IN")
+ S INS=INS_","
+ S DFNS=DFN_","
+ D GETS^DIQ(9999999.18,INS,"*","EI","IN")
+ D GETS^DIQ(2,DFNS,".111;.112;.114;.115;.116","EI","IN")
+ S IN1(4)=$G(IN(9999999.18,INS,.66,"E"))
+ S IN1(5)=$G(IN(9999999.18,INS,.01,"E"))
+ S IN1(6)=$$ADD()
+ S IN1(7)=$G(IN(9999999.18,INS,.06,"E"))
+ S IN1(9)=$G(IN(9000042.11,IENS,.12,"I"))
+ S IN1(9)=$S($G(IN1(9)):$P($G(^AUTNEGRP(IN1(9),0)),U,2),1:"")
+ S IN1(10)=$G(IN(9000042.11,IENS,.12,"E"))
+ S IN1(16)=$S($G(IN(9999999.18,INS,.21,"I"))="H":"HM",1:"PI")
+ S IN1(17)=$$HLNAME^HLFNC($G(IN(9000042,IN,.01,"E")),LA7ECH)
+ ;S IN1(18)=$G(IN(9000006.11,IENS,.05,"E"))
+ S IN1(20)=$$ADD(2)
+ S IN1(37)=$G(IN(9000042.11,IENS,.04,"E"))
+ S IN1(48)=$S($G(ORD):$P($$ACCT^LA7VQINS(ORD),U,4),1:"")
+ ;S IN1(18)=+$P($G(^AUTTRLSH(+$P($G(^AUPNPRVT(DFN,11,+PE,0)),U,5),0)),U,3)
+ S IN1(18)=1
+ S IN1("18E")=$S(IN1(18)=1:"SELF",IN1(18)=2:"SPOUSE",1:"OTHER")  ;$P($G(^AUTTRLSH(+$P($G(^AUPNPRVT(DFN,11,+PE,0)),U,5),0)),U)
+ K DFNS
+ Q:'ST
+ D IN1(.IN1)
+ Q
+ ;
 RR ;-- get railroad insurance
  Q
  ;
@@ -128,6 +165,7 @@ IN1(IN1) ;
  D FILE6249^LA7VHLU(LA76249,.LA7BLG)
  Q
 GAR(DFN,REL,PAT,ST) ;SELF AS GUARANTOR
+ K INS  ;1034
  Q:$G(LA7GUAR)
  N DFN1 S DFN1=$G(DFN)
  I '$G(PAT) S PAT=$G(DFN)
@@ -162,7 +200,9 @@ DG1(UID) ;
  . S CNT=CNT+1
  . S DX=$P($G(^BLRRLO(ORI,1,BDA,0)),U)
  . S DXE=$P($G(^ICD9(DX,0)),U)
- . S LA7BLG(0)="DG1"_LA7FS_CNT_LA7FS_"I9"_LA7FS_$G(DXE)
+ . N ICDT
+ . I $D(^ICDS(0)) S ICDT=$P($$ICDDX^ICDEX(DX,DT),U,20)  ;get the icd type based on the code
+ . S LA7BLG(0)="DG1"_LA7FS_CNT_LA7FS_$S($G(ICDT)="30":"I10",1:"I9")_LA7FS_$G(DXE)
  . D FILESEG^LA7VHLU(GBL,.LA7BLG)
  . D FILE6249^LA7VHLU(LA76249,.LA7BLG)
  S LA7DGQ=1
@@ -204,6 +244,7 @@ SFMAP(MNE) ;-- get sliding fee scale if mnemonic is Labcorp sliding scale
  ;
 PRT(UID) ;EP -- print out insurance information on manifest
  N ORI,STR,IIEN,IEIEN,IPIEN,BTP,ORD,NINS,CNT
+ K INS,DFNS  ;1034
  S NINS=$S($P($G(^BLRSITE(DUZ(2),"RL")),U,23):$P($G(^BLRSITE(DUZ(2),"RL")),U,23),1:99)  ;number of insurances to print
  S LA7ECH="^~&\"
  S ORI=$O(^BLRRLO("ACC",UID,0))
@@ -268,7 +309,8 @@ DGP(ORI) ;
  . S CNT=CNT+1
  . S DX=$P($G(^BLRRLO(ORI,1,BDA,0)),U)
  . S DXE=$P($G(^ICD9(DX,0)),U)
- . S DXEE=$E($P($G(^ICD9(DX,0)),U,3),1,39)
+ . ; S DXEE=$E($P($G(^ICD9(DX,0)),U,3),1,39)
+ . S DXEE=$E($$DIAGICD^BLRICDU0(DX),1,39)   ; IHS/MSC/MKK - LR*5.2*1034
  . D WR("Diagnosis: ",DXE,11,1)
  . D WR("Description: ",DXEE,30)
  Q

@@ -1,5 +1,5 @@
-BGOVSK ;IHS/BAO/TMD - Skin test management   ;12-Jul-2013 12:08;DU
- ;;1.1;BGO COMPONENTS;**3,4,5,6,7,8,12**;Mar 20, 2007
+BGOVSK ;IHS/BAO/TMD - Skin test management   ;15-Aug-2013 14:44;DU
+ ;;1.1;BGO COMPONENTS;**3,4,5,6,7,8,12,13**;Mar 20, 2007
  ; Retrieve skin tests and associated refusals
  ;  DFN = Patient IEN
  ;  RET returned as a list of records with one of two formats:
@@ -63,7 +63,14 @@ GET(RET,DFN) ;EP
  ..S LOCK=$$ISLOCKED^BEHOENCX(VIEN)
  ..S A="S"_U_VDATE_U_SK_U_OUTLOC_U_SRES_U_READ_U_READD_U_TNAME_U_TEST_U_AGE_U_ADMIN_"~"_ADMIN2_U_SWHO_"~"_READER_U_VIEN_U_SER_U_LOC_"~"_LOCN_U_SITE_"~"_SITEN_U_VOL_U_LOCK_U_SDATE
  ..D ADD(A)
- D REFGET^BGOUTL2(RET,DFN,FNUM,.CNT)
+ N ARRAY,CNT2,Z,STR,SAVE,SAVE2,DATA
+ S CNT2=0,ARRAY="DATA"
+ D REFGET^BGOUTL2(.ARRAY,DFN,FNUM,.CNT2)
+ S Z=0 F  S Z=$O(@ARRAY@(Z)) Q:Z=""  D
+ .S STR=$G(@ARRAY@(Z))
+ .S SAVE=$P(STR,U,13),SAVE2=$P(STR,U,11)
+ .I SAVE'="" S $P(STR,U,11)=SAVE,$P(STR,U,13)=SAVE2
+ .D ADD(STR)
  Q
 GS1(PC,FN) ;
  N X

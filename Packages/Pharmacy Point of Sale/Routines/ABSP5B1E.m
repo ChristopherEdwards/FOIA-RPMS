@@ -1,5 +1,5 @@
 ABSP5B1E ; IHS/OIT/CASSevern/Pieran ran 1/19/2011 - Handling of outgoing NCPDP Billing "B1" Claims for 5.1 (Prior Authorization segment)
- ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**42**;JUN 21, 2001;Build 15
 PRIORAUTH ;EP CALLED FROM ABSP5B1 to set up Prior Authorization Segment
  Q:$D(SUPRESSG("Prior Auth"))
  N FIELD,NFIELD

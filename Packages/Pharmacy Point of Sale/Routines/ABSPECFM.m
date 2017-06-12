@@ -1,5 +1,5 @@
 ABSPECFM ; IHS/FCS/DRS - JWS 04:09 PM 28 May 1996 ;   [ 09/04/2002  1:55 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,9**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,9,47**;JUN 1, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;NCPDP Field Format Functions
@@ -42,7 +42,9 @@ DFF2EXT(X) ;EP -
  Q $J(+X,$L(+X),2)
  ;----------------------------------------------------------------------
  ;Alpha-Numeric Field Format
+ ;OIT/CAS/RCS 04/21/14 Patch 47 Make sure strings only contain Upper case characters
 ANFF(X,L) ;EP
+ S X=$TR(X,"abcdefghijklmnopqrstuvwyxz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  Q $E(X_$J("",L-$L(X)),1,L)
  ;----------------------------------------------------------------------
  ;Numerics Field Format
@@ -70,11 +72,15 @@ NDCF(X) ;EP -
  Q $$RJZF(Y(1),5)_$$RJZF(Y(2),4)_$$RJZF(Y(3),2)
  ;----------------------------------------------------------------------
  ;Right justify and zero fill X in a string of length L
+ ;OIT/CAS/RCS 04/21/14 Patch 47 Make sure strings only contain Upper case characters
 RJZF(X,L) ;
+ S X=$TR(X,"abcdefghijklmnopqrstuvwyxz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  Q $E($TR($J("",L-$L(X))," ","0")_X,1,L)
  ;----------------------------------------------------------------------
  ;Right justify and blank fill X in a string of length L
+ ;OIT/CAS/RCS 04/21/14 Patch 47 Make sure strings only contain Upper case characters
 RJBF(X,L) ;EP -
+ S X=$TR(X,"abcdefghijklmnopqrstuvwyxz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
  Q $E($J("",L-$L(X))_X,1,L)
  ;----------------------------------------------------------------------
  ;STRIP TEXT of all non-numerics

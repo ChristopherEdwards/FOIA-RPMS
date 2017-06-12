@@ -1,5 +1,5 @@
 ABMDEPG ; IHS/ASDST/DMJ - EDIT PAGE SELECTION ; 
- ;;2.6;IHS Third Party Billing;**1,6,8**;NOV 12, 2009
+ ;;2.6;IHS Third Party Billing;**1,6,8,14**;NOV 12, 2009;Build 238
  ;
  ;IHS/DSD/MRS - 8/19/1999 - NOIS QBA-0299-130064 Patch 3 #10
  ;    Modified jump variable to remove illegal spaces.A space is used
@@ -12,6 +12,8 @@ ABMDEPG ; IHS/ASDST/DMJ - EDIT PAGE SELECTION ;
  ; IHS/SD/SDR - abm*2.6*1 - HEAT6439 - Added jump to page9G
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added page3B
  ; IHS/SD/SDR - abm*2.6*6 - NOHEAT - fix for jumping to 8-pages
+ ;IHS/SD/SDR - 2.6*14 - HEAT163711 - Made change for exp mode 35 to allow jumping to page 9A and 9G.
+ ;IHS/SD/SDR - 2.6*14 - HEAT165301,CR3165 - Removed page 9A jumping that was added because it was causing more issues.
  ;
 SCRN ;EP for Edit Screen Controller
  W !!
@@ -78,6 +80,8 @@ JUMP ;EP for Jumping to a Page
  .S ABM("EX")=$P($T(@ABM("EX")),$E(X,3)_$E(X,2)_" ",2)
  .S X=$E(X,2,3)
  .;I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA",(X'["F"),(X["9") S ABM("EX")=";;",ABMP("SCRN")=0  ;ABM*2.6*8 NOHEAT
- .I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA",((X'["F")&(X'["G")),(X["9") S ABM("EX")=";;",ABMP("SCRN")=0  ;ABM*2.6*8 NOHEAT
+ .I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["ADA",((X'["F")&(X'["G")),(X["9") S ABM("EX")=";;",ABMP("SCRN")=0  ;ABM*2.6*8 NOHEAT2
+ .;abm*2.6*14 HEAT165301 - put below line back in; they should see pg but don't force line to page 3 question
+ .I $P($G(^ABMDEXP(ABMP("EXP"),0)),U)["CMS",((X'["A")&(X'["E")*(X'["F")&(X'["G")),(X["9") S ABM("EX")=";;",ABMP("SCRN")=0  ;ABM*2.6*14 HEAT163711  ;abm*2.6*14 IHS/SD/SDR 5/29/14 HEAT165301 removed line to remove 9A displaying
  .X ABM("EX")
  Q

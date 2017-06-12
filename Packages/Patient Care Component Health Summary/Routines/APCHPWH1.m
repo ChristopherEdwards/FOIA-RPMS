@@ -1,5 +1,5 @@
 APCHPWH1 ; IHS/CMI/LAB - Patient Wellness Handout ; 11 Oct 2011  5:44 PM
- ;;2.0;IHS PCC SUITE;**2,7**;MAY 14, 2009;Build 1
+ ;;2.0;IHS PCC SUITE;**2,7,11**;MAY 14, 2009;Build 58
  ;
 S(Y,F,C,T) ;EP - set up array
  I '$G(F) S F=0

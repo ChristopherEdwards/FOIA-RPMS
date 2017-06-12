@@ -1,5 +1,5 @@
 ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;  
- ;;2.6;IHS Third Party Billing System;**2,3,6,9,10,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS Third Party Billing System;**2,3,6,9,10,18**;NOV 12, 2009;Build 289
  ;
  ; IHS/SD/SDR - V2.5 P2 - 5/9/02 - NOIS HQW-0302-100190
  ;     Modified to display 2nd and 3rd modifiers and units
@@ -20,7 +20,7 @@ ABMDEMLC ; IHS/ASDST/DMJ - Edit Utility - FOR MULTIPLES - PART 4 ;
  ; IHS/SD/SDR - abm*2.6*3 - NOHEAT - fixed modifiers so they work correctly; it would let
  ;   user but garbage
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - added export mode 32
- ;IHS/SD/SDR - 2.6*13 - Added check for new export mode 35
+ ;IHS/SD/SDR - 2.6*18 - HEAT242924 - Added screen when export mode is 33 so only 4 DXs can be selected for the coord. DX.
  ;
 DX ;EP for selecting Corresponding Diagnosis
  I '+$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C","")) W !!,"There are no Diagnosis entered to select from." Q
@@ -33,7 +33,8 @@ DX ;EP for selecting Corresponding Diagnosis
  ;W !,?7,"===",?12,"======",?21,"============================================"  ;abm*2.6*10 ICD10 002I
  W !,?7,"===",?12,"========",?22,"============================================"  ;abm*2.6*10 ICD10 002I
  D RES^ABMDEMLA(17)
- F ABMX("I")=1:1 S ABMX=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMX)) Q:'ABMX  D DX1
+ ;F ABMX("I")=1:1 S ABMX=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMX)) Q:'ABMX  D DX1  ;abm*2.6*18 IHS/SD/SDR HEAT242924
+ F ABMX("I")=1:1 S ABMX=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABMX)) Q:'ABMX!(ABMP("EXP")=33&(ABMX("I")>4))  D DX1  ;abm*2.6*18 IHS/SD/SDR HEAT242924
  I ABMX("I")=2 D  Q
  .S Y(0)=1
  .S ABMX(1)=1,X=1
@@ -56,6 +57,7 @@ DX ;EP for selecting Corresponding Diagnosis
  ..K DIR
  ..I Y=1 S Y=ABMBFY,Y(0)=ABMBFY0
  ..E  S ABMNY=-1,Y=ABMBFY,Y(0)=$P(ABMBFY0,",",1,4)
+ .I ABMP("EXP")=33 S DIC("S")="I X<5"  ;abm*2.6*18 IHS/SD/SDR HEAT242924
  .D ^DIC Q:+Y<0
  .S DIC("A")="Enter Other Corresponding DX (carriage return when done): "
  .S Y(0)=$G(Y(0))
@@ -161,8 +163,7 @@ SELMOD ;
  Q
 POSA ; EP - place of service
  ;I "^3^14^15^19^20^22^27"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
- ;I "^3^14^15^19^20^22^27^32"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010  ;abm*2.6*13 export mode 35
- I "^3^14^15^19^20^22^27^32^35"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*13 export mode 35
+ I "^3^14^15^19^20^22^27^32"'[ABMP("EXP") Q  ;only for HCFAs and 837P  ;abm*2.6*6 5010
  D POS
  I $D(ABMZ("DR")) S ABMZ("DR")=ABMZ("DR")_";.15T//"_ABMDFLT
  E  S ABMZ("DR")=";W !;.15T//"_ABMDFLT

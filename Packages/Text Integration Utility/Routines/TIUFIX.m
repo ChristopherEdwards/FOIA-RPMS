@@ -1,5 +1,5 @@
-TIUFIX ; SLC/JER,MAM - Resolve Upload Filing Errors Library ;4/25/02
- ;;1.0;TEXT INTEGRATION UTILITIES;**131**;Jun 20, 1997
+TIUFIX ; SLC/JER,MAM - Resolve Upload Filing Errors Library ;10/19/06  14:31
+ ;;1.0;TEXT INTEGRATION UTILITIES;**131,211**;Jun 20, 1997;Build 26
  ;
 TITLDFLT(TRANTITL,TIUTYPE,BADTYPES) ; Return default title
  ; Call with: [TRANTITL] - transcribed title
@@ -47,7 +47,7 @@ GETTITLE(SUCCESS,TIUTYPE,TIUFLDS,TITLDA,BADTYPES,ASK) ; Get title from user
  I '$G(ASK) W "."
  I $G(ASK) W ", or enter '^' to exit",!,"or to change document to a Progress Note."
  ; -- Ask user for title:
- S TITLDA=$$ASKTYP^TIULA2(+TIUTYPE,DEFAULT,SCREEN,"TITLE: ")
+ S TITLDA=$$ASKTYP^TIULA2(+TIUTYPE,DEFAULT,SCREEN,"TITLE: ",1)
  I TITLDA>0 S SUCCESS=1
  Q:'$G(ASK)
  I TITLDA'>0 D
@@ -59,7 +59,7 @@ GETTITLE(SUCCESS,TIUTYPE,TIUFLDS,TITLDA,BADTYPES,ASK) ; Get title from user
  . Q:TIUTYPE=3
  . ; -- Reprompt for same type of title if user said no:
  . W !,"  OK, please enter a ",TYPENM," title."
- . S TITLDA=$$ASKTYP^TIULA2(+TIUTYPE,DEFAULT,SCREEN,"TITLE: ")
+ . S TITLDA=$$ASKTYP^TIULA2(+TIUTYPE,DEFAULT,SCREEN,"TITLE: ",1)
  . I TITLDA>0 S SUCCESS=1
  Q
  ;

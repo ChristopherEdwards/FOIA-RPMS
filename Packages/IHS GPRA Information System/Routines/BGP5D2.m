@@ -1,7 +1,7 @@
 BGP5D2 ; IHS/CMI/LAB - measure 1,2,3,4 ;
- ;;15.0;IHS CLINICAL REPORTING;;NOV 18, 2014;Build 134
+ ;;15.1;IHS CLINICAL REPORTING;;MAY 06, 2015;Build 143
  ;
-I1 ;EP - measure 1
+I1 ;EP
  S BGPN1=0
  K BGPG
  S Y="BGPG("
@@ -61,7 +61,6 @@ BPX1 ;
  ;
 I5 ;EP
  K BGPN1,BGPN2,BGPN3,BGPN4,BGPN5,BGPVALUE,BGPLD,BGPLDL,BGPTRI,BGPHDL
- ;S (BGPTRI,BGPLDL,BGPHDL)=""
  S (BGPN1,BGPN2,BGPN3,BGPN4,BGPN5)=0
  I 'BGPDM1 S BGPSTOP=1 Q
 DMLDL ;EP - called from elder care
@@ -211,7 +210,6 @@ DIAMEAN(X) ;EP
  S C=0 F Y=1:1:3 I $P(X,";",Y)]"" S C=C+1
  I C<2 Q ""
  S T=0 F Y=1:1:3 S T=$P($P(X,";",Y),"/",2)+T
- ;Q $$STRIP^XLFSTR($J((T/C),5,1)," ")
  Q T\C
  ;
 GDEV(V) ;EP
@@ -247,7 +245,7 @@ BPS(P,BDATE,EDATE,F,GDEV) ;EP ;
  ..S T=$P($G(^AUPNVMSR(X,0)),U)
  ..Q:T=""  ;BAD AD XREF
  ..Q:$P($G(^AUTTMSR(T,0)),U)'="BP"
- ..Q:$P($G(^AUPNVMSR(X,2)),U,1)  ;entered in error so skip it
+ ..Q:$P($G(^AUPNVMSR(X,2)),U,1)
  ..S Z=$P(^AUPNVMSR(X,0),U,4)  ;blood pressure value
  ..I BGPBP="" S BGPBP=Z Q
  ..I $P(Z,"/")'>$P(BGPBP,"/") S BGPBP=Z
@@ -286,31 +284,8 @@ TRIG(P,BDATE,EDATE) ;EP
  I %]"" Q 1_U_$P(%,U,2)
  S %="",E=+$$CODEN^ICPTCOD(84478),%=$$TRANI^BGP5DU(P,BDATE,EDATE,E)
  I %]"" Q 1_U_$P(%,U,2)
- ;now get all loinc/taxonomy tests
  S T=$O(^ATXAX("B","BGP TRIGLYCERIDE LOINC CODES",0))
  S BGPLT=$O(^ATXLAB("B","DM AUDIT TRIGLYCERIDE TAX",0))
- S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC)  D
- .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC)  D
- ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC)  D
- ...Q:'$D(^AUPNVLAB(X,0))
- ...I BGPLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BGPLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BGPC=1_U_(9999999-D) Q
- ...Q:'T
- ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
- ...Q:'$$LOINC(J,T)
- ...S R=$P(^AUPNVLAB(X,0),U,4)
- ...S BGPC=1_U_(9999999-D)
- ...Q
- Q BGPC
-HDL(P,BDATE,EDATE) ;EP
- K BGPC
- S BGPC=0
- S %="",E=+$$CODEN^ICPTCOD(83718),%=$$CPTI^BGP5DU(P,BDATE,EDATE,E)
- I %]"" Q 1_U_$P(%,U,2)
- S %="",E=+$$CODEN^ICPTCOD(83718),%=$$TRANI^BGP5DU(P,BDATE,EDATE,E)
- I %]"" Q 1_U_$P(%,U,2)
- ;now get all loinc/taxonomy tests
- S T=$O(^ATXAX("B","BGP HDL LOINC CODES",0))
- S BGPLT=$O(^ATXLAB("B","DM AUDIT HDL TAX",0))
  S B=9999999-BDATE,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BGPC)  D
  .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L!(BGPC)  D
  ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X!(BGPC)  D
@@ -364,8 +339,10 @@ LDL(P,BDATE,EDATE,NORES) ;EP
  I %]"" S BGPC=BGPC+1,BGPT(9999999-$P(%,U,1),BGPC)="CPT "_$P(%,U,2)
  S %=$$TRAN^BGP5DU(P,BDATE,EDATE,$O(^ATXAX("B","BGP LDL CPTS",0)),5)
  I %]"" S BGPC=BGPC+1,BGPT(9999999-$P(%,U,1),BGPC)="CPT "_$P(%,U,2)
+ S %=$$LASTDX^BGP5UTL1(P,"BGP LDL DXS",BDATE,EDATE)
+ I %]"" S BGPC=BGPC+1,BGPT((9999999-$P(%,U,3)),BGPC)="DX "_$P(%,U,2)
  I '$O(BGPT(0)) Q ""
- S %=$O(BGPT(0)) S C=$O(BGPT(%,0)) Q 1_"^"_(9999999-%)_"^"_BGPT(%,C)
+ S %=$O(BGPT(0)) S C=$O(BGPT(%,0)) Q 1_"^"_(9999999-%)_"^"_$S(BGPT(%,C)]"":BGPT(%,C),1:"LAB NO RESULT")
  Q ""
  ;
 LOINC(A,B) ;EP

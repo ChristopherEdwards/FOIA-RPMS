@@ -1,5 +1,5 @@
 APCLBP ; IHS/CMI/LAB - AGE BUCKET/DIAGNOSIS REPORT ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**10,15**;MAY 14, 2009;Build 11
  ;
  ; If APCLREP (repeat) = 1 then the last tag executed in APCLTAG is
  ; repeated.
@@ -94,7 +94,7 @@ AGE ;
  Q
  ;
 SEX ;
- S DIR(0)="S^M:Males;F:Females;B:Both",DIR("A")="Report should include",DIR("B")="B" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
+ S DIR(0)="S^M:Males;F:Females;U:Unknown Gender;B:ALL Genders",DIR("A")="Report should include",DIR("B")="B" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  S APCLSEX=Y
  Q
  ;
@@ -139,6 +139,7 @@ DESCR ;
  W ?26,"LIST OF BLOOD PRESSURE OUT OF CONTROL PATIENTS"
  W !!,"This report will produce a listing of all patients for the specified age, sex,"
  W !,"communities, clinic and time period, who are considered out of control based on",!,"their mean Systolic or Diastolic blood pressure .",!
+ W !,"Out of Control is defined as greater than or equal to 140/90."
  Q
  ;
 ZIS ;

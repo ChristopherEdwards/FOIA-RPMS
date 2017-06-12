@@ -1,5 +1,5 @@
 BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**12**;MAY 01,2016
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  UTILITY: SCREENMAN CODE: VAC SELECT ACTIONS, SERIES VALID,
  ;;           LOC BRANCHING LOGIC, VISIT LOC DEF, SKIN TEST READ MM.
@@ -8,6 +8,8 @@ BIUTL4 ;IHS/CMI/MWR - UTIL: SCREENMAN CODE; OCT 15, 2010
  ;;  PATCH 5: Add NDC to reset fields when vaccine is changed.  VACCHG+14
  ;;  PATCH 5: Add leading zero to default volume if less than 1.  VISVOL+21
  ;;  PATCH 9: Make VIS Presented Date default to Visit Date (when changed).  OLDATE+9
+ ;;  PATCH 10: Only stuff VIS Presented Date if this is a V Imm.  OLDDATE+18
+ ;;  PATCH 12: If date not today, Inj Site not required  OLDDATE+17
  ;
  ;----------
 VACSCR ;EP
@@ -79,7 +81,6 @@ VACCHG(BIVAC) ;EP
  .;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
  .;---> Add NDC to reset fields when vaccine is changed.
  .S BIMSG="* NOTE: Because you have changed the vaccine, Dose Override,"
- .;S BIMSG=BIMSG_"Lot#, and any Reaction and VIS will be removed or replaced"
  .S BIMSG=BIMSG_"Lot#, NDC, and any Reaction and VIS will be removed or replaced"
  .S BIMSG=BIMSG_" with defaults for the new vaccine."
  .D HLP^DDSUTL(BIMSG),HLP^DDSUTL("$$EOP")
@@ -258,15 +259,8 @@ CREASCR ;EP
  ;
  ;----------
 HISTORY(X) ;EP
- ;---> Add/Edit Screenman actions to take ON POST-CHANGE of Category Field.
- ;---> Parameters:
- ;     1 - X (opt) X=Internal Value of Category Field ("E"=Historical Event).
- ;
- ;---> If this is an Historical Event, then set Lot#="" and not required.
- I X="E" D
- .S BI("D")=""
- .D PUT^DDSVALF(3,"","",""),REQ^DDSUTL(3,"","",0)
- .D PUT^DDSVALF(9,,,) S BI("R")=""
+ ;---> See BIUTL9.
+ D HISTORY^BIUTL9(X)
  Q
  ;
  ;
@@ -287,8 +281,20 @@ OLDDATE(X) ;EP
  I '$G(BI("K"))&($P(X,".")'=DT) D
  .D PUT^DDSVALF(11,,,"E","I") S BI("I")="E"
  .I ($G(DT)-X)>5 D NOPROV^BIUTL7("E")
+ .;
+ .;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ .;---> If Date not today, set Injection Site and Volume fields not required.
+ .D REQ^DDSUTL(4,"","",0),REQ^DDSUTL(5,"","",0)
  ;
- D PUT^DDSVALF(10.2,,,BIDATEE,"E") S BI("QQ")=BIDATEE
+ ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;---> Only stuff VIS Presented Date if this is a V Imm.
+ ;D PUT^DDSVALF(10.2,,,BIDATEE,"E") S BI("QQ")=BIDATEE
+ I $G(BIVTYPE)="I" D PUT^DDSVALF(10.2,,,BIDATEE,"E") S BI("QQ")=BIDATEE
+ ;
+ ;********** PATCH 12, v8.5, MAY 01,2016, IHS/CMI/MWR
+ ;---> Insert missing Q.
+ Q
  ;**********
  ;
  ;
@@ -431,7 +437,7 @@ DEFSITE ;EP
  ;----------
 BADREAD ;EP
  ;---> Code to check Skin Test results: If the result is Negative,
- ;---> the Reading must be less than 15 millimeters; in that case,
+ ;---> the Reading must be <15mm; in that case,
  ;---> display help message and reject value.
  ;
  N X

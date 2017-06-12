@@ -1,5 +1,5 @@
 LEXXFI2 ; ISL/KER - File Info - Checksums            ; 07/28/2004
- ;;2.0;LEXICON UTILITY;**32**;Sep 23, 1996;Build 15
+ ;;2.0;LEXICON UTILITY;**32**;Sep 23, 1996;Build 10
  Q
  ;            
  ; Global Variables

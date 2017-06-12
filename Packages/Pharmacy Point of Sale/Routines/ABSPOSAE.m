@@ -1,5 +1,5 @@
 ABSPOSAE ; IHS/SD/lwj - send/receive E1 trans ;   [ 10/07/2005  2:11 pM ]
- ;;1.0;PHARMACY POINT OF SALE;**14,16,17,21,28,42**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**14,16,17,21,28,42,47**;JUN 1, 2001;Build 15
  ;
  ;  ABSPOSAE is the main program for send/receive communications
  ;  with the Envoy switch for E1 transactions.  It was originally
@@ -51,7 +51,7 @@ SEND(E1MSG,E1IEN) ;EP - from ABSPOSE1/ABSPOSE2
  S ^ABSPECX("ABSPOSQ3","JOB",$J,"DIALOUT")=DIALOUT
  N ABSPERR
  S ABSPERR=0
- F  D  Q:(SENDE1)!(TRYCNT>3)!(ABSPERR)
+ F  D  Q:(SENDE1)!(TRYCNT>5)!(ABSPERR)  H 2 ;OIT/CAS/RCS Patch 47, Give more time and more tries before quiting
  . ;S:$$JOBCOUNT^ABSPOSQ3'>$$MAXJOBS^ABSPOSQ3 SENDE1=1
  . I $$JOBCOUNT^ABSPOSQ3'>$$MAXJOBS^ABSPOSQ3 D
  . . L +^ABSPECX("ABSPOSQ3","JOB",$J):0

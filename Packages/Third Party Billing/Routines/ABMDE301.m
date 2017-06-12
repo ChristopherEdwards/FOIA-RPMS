@@ -1,5 +1,5 @@
 ABMDE301 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display (cont) ;   
- ;;2.6;IHS 3P BILLING SYSTEM;**6,13**;NOV 12, 2009;Build 213
+ ;;2.6;IHS 3P BILLING SYSTEM;**6,13,14**;NOV 12, 2009;Build 238
  ; Split from ABMDE30 due to routine size
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added Hearing and Vision Prescription Date
  ; IHS/SD/SDR - abm*2.6*6 - 5010 - Added start/end disability dates
@@ -11,6 +11,7 @@ ABMDE301 ; IHS/ASDST/DMJ - Page 3 - QUESTIONS - Display (cont) ;
  ;IHS/SD/SDR - 2.6*13 - Added Inital Treatment Date for exp mode 35
  ;IHS/SD/SDR - 2.6*13 - Added Acute Manifestation Date to Spinal Manipulation Code
  ;IHS/SD/SDR - 2.6*13 - Added EXP35 FL17 provider questions
+ ;IHS/SD/SDR - 2.6*14 - HEAT163697 - Added message NO NPI ENTERED for question 44
  ;
  ; *********************************************************************
 W30 ;EP Hospice Employed Provider
@@ -121,5 +122,6 @@ W44 ;EXP35 FL17 Provider
  .S ABMPT=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,25)
  .W " ("_$S(ABMPT="DN":"referring",ABMPT="DK":"ordering",ABMPT="DQ":"supervising",1:"")_")"
  I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26)'="" W "  "_$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26)
+ I $P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,26)=""&($P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),8)),U,24)'="") W " <NO NPI ENTERED>"  ;abm*2.6*14 HEAT163697
  Q
  ;end new code abm*2.6*13

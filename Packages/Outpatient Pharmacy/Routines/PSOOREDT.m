@@ -1,5 +1,5 @@
-PSOOREDT ;BIR/SAB - edit orders from backdoor ;14-Feb-2013 16:44;PLS
- ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008,1013,143,148,260,281,304,289,1015,1016**;DEC 1997;Build 74
+PSOOREDT ;BIR/SAB - edit orders from backdoor ;10-Jun-2013 22:29;DU
+ ;;7.0;OUTPATIENT PHARMACY;**4,20,27,37,57,46,78,102,104,119,1002,1008,1013,143,148,260,281,304,289,1015,1016,1017**;DEC 1997;Build 40
  ;External reference to ^PSDRUG supported by DBIA 221
  ;External reference to PSSLOCK supported by DBIA 2789
  ;External reference to ^VA(200 supported by DBIA 10060
@@ -8,6 +8,7 @@ PSOOREDT ;BIR/SAB - edit orders from backdoor ;14-Feb-2013 16:44;PLS
  ;            IHS/MSC/PLS - 01/27/09 - Line EDT+20, EDT+21
  ;                          02/15/12 - Line PROV+1
  ;            IHS/MSC/PB  - 01/22/13 - Line SEL+1 modified to screen for external Rx and not allow it to be edited.
+ ;            IHS/MSC/PLS - 06/04/13 - Line EDT+23
 SEL ;
  ;IHS/MSC/PB start code to screen for external Rx to be edited 1/22/13
  I $E($P($G(^PSRX($P(PSOLST(ORN),"^",2),0)),"^",1))="X" D  Q
@@ -75,6 +76,7 @@ EDT ; Rx Edit (Backdoor)
  ..S PSORXED("LOT #")=$$GET1^DIQ(52,PSORXED("IRXN"),24)
  ..S PSORXED("DAW")=$$GET1^DIQ(52,PSORXED("IRXN"),9999999.25,"I")
  ..S PSORXED("CASH DUE")=$$GET1^DIQ(52,PSORXED("IRXN"),9999999.26)
+ ..S PSORXED("DSCMED")=$$GET1^DIQ(52,PSORXED("IRXN"),9999999.28,"I")  ;IHS/MSC/PLS - 06/04/13
  ..D IHSFLDS^APSPDIR(.PSORXED,1)
  .S FDR="39.2^"_$S($P(PSOPAR,"^",3):"6",1:"")_";6.5^113^114^3^1^22R^24^8^7^9^4^11;"_$S($P(RX0,"^",11)="W"&($P(PSOPAR,"^",12)):"35;",1:"")_"^10.6^5^20^23^12^PSOCOU^RF^81"
  .I $G(ST)=11!($G(ST)=12)!($G(ST)=14)!($G(ST)=15) D NDCDAWDE^PSOORED7(ST,FLN,$G(RXN)) Q

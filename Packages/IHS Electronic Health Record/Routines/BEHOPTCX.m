@@ -1,5 +1,5 @@
-BEHOPTCX ;MSC/IND/DKM - Patient Context Object ;22-Jun-2011 17:41;PLS
- ;;1.1;BEH COMPONENTS;**004004,004005,004006,004007**;Mar 20, 2007
+BEHOPTCX ;MSC/IND/DKM - Patient Context Object ;29-Jun-2015 15:00;PLS
+ ;;1.1;BEH COMPONENTS;**004004,004005,004006,004007,004010,004011**;Mar 20, 2007
  ;=================================================================
  ; Selects patient & returns key information
  ;  1    2   3   4    5      6    7    8      9       10     11  12 13  14  15  16     17     18      19
@@ -103,8 +103,13 @@ PTINQB(DFN) ;
  .W !,"Date of Death: ",DOD
  .I DUZ("AG")="I" D
  ..S CAUSE=$$GET1^DIQ(9000001,DFN,1114,"I")
- ..S CAUSE2=$$GET1^DIQ(80,CAUSE,.01)
- ..S NARR=$$GET1^DIQ(80,CAUSE,3)
+ ..;IHS/MSC/MGH Changed lookup for ICD-10
+ ..I $$AICD^BEHOENPC D
+ ...S CAUSE2=$P($$ICDDX^ICDEX(CAUSE,DOD),U,2)
+ ...S NARR=$P($$ICDDX^ICDEX(CAUSE,DOD),U,4)
+ ..E  D
+ ...S CAUSE2=$$GET1^DIQ(80,CAUSE,.01)
+ ...S NARR=$$GET1^DIQ(80,CAUSE,3)
  ..W:$L(NARR) !,"Underlying Cause: ",CAUSE2_" ("_NARR_")"
  D EN^BEHOPTC1                                                            ; mas patient inquiry
  S DOC=$$OUTPTPR^BEHOPTPC(DFN)
@@ -192,7 +197,7 @@ CHKDUP(DATA,DFN) ; EP
  F X=1:0 S X=$O(DUPS(X)) Q:'X  D CD2(DUPS(X))
  D CD2(),CD2("Are you sure this is the correct patient?")
  Q
-CD1(VAL) Q $P(VAL,U,3)_"   DOB: "_$$ENTRY^CIAUDT($P(VAL,U,4))_"   SSN: "_$$SSN^CIAU($P(VAL,U,5))_"   HRN: "_$$HRN($P(VAL,U,2))
+CD1(VAL) Q $P(VAL,U,3)_"   DOB: "_$$ENTRY^CIAUDT($P(VAL,U,4))_"   SSN: "_$$FMTSSN($P(VAL,U,5))_"   HRN: "_$$HRN($P(VAL,U,2))
 CD2(VAL) S CNT=CNT+1,DATA(CNT)=$G(VAL)
  Q
  ;
@@ -200,3 +205,15 @@ FMTSSN(SSN) ;EP - P7
  N X
  S X=$E(SSN,6,$L(SSN))
  Q "XXX-XX-"_$S($L(X):X,1:"XXXX")
+ ; Fires CONTEXT.PATIENT event to notify client that an ADT event has occurred
+CXADTEVT(DFN,DGPMT) ;EP-
+ I DGPMT=1!(DGPMT=3) D
+ .F  Q:'$$NXTUID^CIANBUTL(.X,-1,.AID)  D
+ ..S:+$$GETVAR^CIANBUTL("PATIENT.ID.MRN","","CONTEXT.PATIENT",X)=DFN LST("UID",X)=""
+ .S X="" F  S X=$O(LST("UID",X)) Q:'X  D
+ ..D:X QUEUE^CIANBEVT("CONTEXT.PATIENT",+DFN_U_"ADT:"_DGPMT,X)
+ Q
+ ; Fire Admit Encounter Context to set to passed VistStr
+FIREVST(DATA,DFN) ;EP-
+ S DATA=$$SETCTX^BEHOENCX($P($$ADMITINF^BEHOENCX(DFN,+$G(^DPT(DFN,.105))),U))
+ Q

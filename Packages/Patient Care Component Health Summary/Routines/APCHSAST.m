@@ -1,5 +1,5 @@
 APCHSAST ; IHS/CMI/LAB - ; 20 Sep 2010  1:44 PM
- ;;2.0;IHS PCC SUITE;**2,5,7**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,5,7,11**;MAY 14, 2009;Build 58
  ;
  ;BJPC v1.0 patch 1
 S(Y,F,C,T) ;EP - set up array
@@ -218,7 +218,7 @@ PLAST(P,F) ;EP
  .Q:$P(^AUPNPROB(A,0),U,12)="D"
  .S I=$P(^AUPNPROB(A,0),U) Q:'$D(^ICD9(I,0))  S S=$P(^ICD9(I,0),U)
  .I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
- .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
+ .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXAPI(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  .S G=A
  .Q
  I G="" Q ""
@@ -236,7 +236,7 @@ PLASTA(P,R) ;EP
  .Q:$P(^AUPNPROB(A,0),U,12)="D"
  .S I=$P(^AUPNPROB(A,0),U) Q:'$D(^ICD9(I,0))  S S=$P(^ICD9(I,0),U)
  .I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
- .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
+ .I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXAPI(I,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  .S APCHPL(A)=$$PLN(A)
  .Q
  Q
@@ -247,7 +247,7 @@ DXAST(P) ;EP
  .S I=0 F  S I=$O(^AUPNVPOV("AA",P,D,I)) Q:I'=+I!(G)  D
  ..S A=$P(^AUPNVPOV(I,0),U),S=$P(^ICD9(A,0),U)
  ..I '$O(^ATXAX("B","BGP ASTHMA DXS",0)),$E(S,1,3)'="493" Q
- ..I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXCHK(A,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
+ ..I $O(^ATXAX("B","BGP ASTHMA DXS",0)),'$$ICD^ATXAPI(A,$O(^ATXAX("B","BGP ASTHMA DXS",0)),9) Q
  ..S G=1
  ..Q
  .Q
@@ -317,7 +317,7 @@ LASTSEV(P,F) ;EP - return highest CLASSIFICATION recorded
  .Q:$P(^AUPNPROB(X,0),U,12)="D"
  .S C=$P($G(^AUPNPROB(X,0)),U)
  .Q:C=""
- .Q:'$$ICD^ATXCHK(C,T,9)  ;not asthma dx
+ .Q:'$$ICD^ATXAPI(C,T,9)  ;not asthma dx
  .Q:$P(^AUPNPROB(X,0),U,15)=""  ;no classification
  .S E=$P(^AUPNPROB(X,0),U,15)
  .I E'>$P(S,U,1) Q

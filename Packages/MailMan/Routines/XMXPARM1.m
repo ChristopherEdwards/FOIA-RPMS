@@ -1,12 +1,13 @@
 XMXPARM1 ;ISC-SF/GMB-Parameter check (cont.) ;04/19/2002  12:14
- ;;8.0;MailMan;;Jun 28, 2002
+ ;;8.0;MailMan;**36**;Jun 28, 2002;Build 1
 CHKUSER(XMDUZ,XMNOMBOX) ; Ascertain/verify user's DUZ, and make sure authorized to use MailMan
  ; XMNOMBOX Is it possible that this user does not have a mailbox?
  ;          0=no (default); 1=yes
  N XMSCREEN,XMUSER,XMADDR
  S XMADDR=XMDUZ
  S XMADDR=$$UP^XLFSTR(XMADDR)
- S:'$G(XMNOMBOX) XMSCREEN="I $L($P(^(0),U,3)),$D(^XMB(3.7,+Y,2))"  ; User must have an access code & mailbox
+ ;S:'$G(XMNOMBOX) XMSCREEN="I $L($P(^(0),U,3)),$D(^XMB(3.7,+Y,2))"  ; User must have an access code & mailbox
+ I '$G(XMNOMBOX),'$$USERTYPE^XUSAP(XMDUZ,"APPLICATION PROXY") S XMSCREEN="I $L($P(^(0),U,3)),$D(^XMB(3.7,+Y,2))"  ; User must have an access code & mailbox
  ; "B^BB^C^D" = name^alias^initial^nickname
  S XMDUZ=$$FIND1^DIC(200,"","O",$S(+XMADDR=XMADDR:"`"_XMADDR,1:XMADDR),"B^BB^C^D",.XMSCREEN)
  Q:XMDUZ

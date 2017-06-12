@@ -1,5 +1,14 @@
-TIUSRV ; SLC/JER - Silent server functions ;04-Jun-2012 16:16;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1,19,28,87,61,100,109,113,112,1009,184,1010**;Jun 20, 1997;Build 24
+TIUSRV ; SLC/JER - Silent server functions ;11-Nov-2013 14:51;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1,19,28,87,61,100,109,113,112,1009,184,1010,211,1011,250,1013**;Jun 20, 1997;Build 33
+ ;
+ ;IHS mods put back in in patches 1009,1010, and 1011
+ ; ICR #10088    - ENDR^%ZISS Routine & IOINORM, IORVOFF, IORVON Local Vars
+ ;     #10015    - EN^DIQ1 Routine & DA, DIC,DIQ, & DR Local Vars
+ ;     #10116    - $$SETSTR^VALM1
+ ;     #10117    - CNTRL^VALM10,SET^VALM10 & VALM("LINES"), VALMAR, VALMCNT,
+ ;                 VALMEVL, & VALMQUIT Local Vars
+ ;     #10104    - $$UP^XLFSTR
+ ;
 RPC(TIUY,TIUDA,REASSIGN) ; RPC for DT
  N VALMAR,TIUGDATA,TIUGWHOL K ^TMP("TIUAUDIT",$J)
  S TIUY=$NA(^TMP("TIUAUDIT",$J))
@@ -22,7 +31,7 @@ GET(TIUDA,HUSH,REASSIGN) ; Build List
  ;Clinical Procedures Class (1=Yes and 0=No)
  S TIUCPF=+$$ISA^TIULX(+$G(^TIU(8925,TIUDA,0)),+$$CLASS^TIUCP)
  S DIC=8925,DIQ="TIUREC(",DA=TIUDA
- S DR=".01;.02;.05;.07:.1;1201;1202;1204;1208;1212;1301;1302;1305;1306;1501;1502;1505;1507;1508;1511;1601:1602;1610:1612;1701"
+ S DR=".01;.02;.05;.07:.1;1201;1202;1204;1208;1212;1301;1302;1305;1306;1501;1502;1505;1507;1508;1511;1601:1602;1610:1612;1701;1801;89261"
  ;If the document is a member of the Clinical Procedures Class, include the
  ;Procedure Summary Code field and the Date/Time Performed field
  I TIUCPF S DR=DR_";70201;70202"
@@ -53,28 +62,30 @@ LOADSUPP(METHOD,TIUDA,TIUL) ; Execute OnBrowse/Load Supplementary data
  K @TIUY
  Q
 SOURCE(TIUREC,HUSH,TIUL,TIUCPF) ; Source Info
- ;S TIUL=TIUL+1 D BLANK(TIUL) S TIUL=TIUL+1
  W:'+$G(HUSH) !!,"Opening "_TIUREC(8925,+TIUDA,.01)_" record for review..."
+ S TIUL=TIUL+1
  D SET(TIUL,1,"Source Information ",$G(IORVON),$G(IORVOFF))
- D SET(TIUL+1,2," Reference Date: "_$G(TIUREC(8925,TIUDA,1301)))
- D SET(TIUL+2,2,"     Entry Date: "_$G(TIUREC(8925,TIUDA,1201)))
- D SET(TIUL+3,2,"Expected Signer: "_$G(TIUREC(8925,TIUDA,1204)))
- D SET(TIUL+4,2,"        Urgency: "_$G(TIUREC(8925,TIUDA,.09)))
- D SET(TIUL+5,2,"     Line Count: "_$G(TIUREC(8925,TIUDA,.1)))
- D SET(TIUL+6,2,"       Division: "_$G(TIUREC(8925,TIUDA,1212)))
- D SET(TIUL+7,2,"        Subject: "_$G(TIUREC(8925,TIUDA,1701)))
+ D SET(TIUL+1,2," Standard Title: "_$G(TIUREC(8925,TIUDA,89261)))
+ D SET(TIUL+2,2," Reference Date: "_$G(TIUREC(8925,TIUDA,1301)))
+ D SET(TIUL+3,2,"     Entry Date: "_$G(TIUREC(8925,TIUDA,1201)))
+ D SET(TIUL+4,2,"Expected Signer: "_$G(TIUREC(8925,TIUDA,1204)))
+ D SET(TIUL+5,2,"        Urgency: "_$G(TIUREC(8925,TIUDA,.09)))
+ D SET(TIUL+6,2,"     Line Count: "_$G(TIUREC(8925,TIUDA,.1)))
+ D SET(TIUL+7,2,"       Division: "_$G(TIUREC(8925,TIUDA,1212)))
+ D SET(TIUL+8,2,"        Subject: "_$G(TIUREC(8925,TIUDA,1701)))
  ;If the document is a member of the Clinical Procedures Class, include the
  ;Procedure Summary Code field and the Date/Time Performed field
  I $G(TIUCPF) D
- . D BLANK(TIUL+8)
- . D SET(TIUL+9,2,"Procedure Summary Code: "_$G(TIUREC(8925,TIUDA,70201)))
- . D SET(TIUL+10,2,"   Date/Time Performed: "_$G(TIUREC(8925,TIUDA,70202)))
+ . D BLANK(TIUL+9)
+ . D SET(TIUL+10,2,"Procedure Summary Code: "_$G(TIUREC(8925,TIUDA,70201)))
+ . D SET(TIUL+11,2,"   Date/Time Performed: "_$G(TIUREC(8925,TIUDA,70202)))
  D SET(TIUL+1,40,"            Author: "_$G(TIUREC(8925,TIUDA,1202)))
  D SET(TIUL+2,40,"        Entered By: "_$G(TIUREC(8925,TIUDA,1302)))
  D SET(TIUL+3,40," Expected Cosigner: "_$G(TIUREC(8925,TIUDA,1208)))
  D SET(TIUL+4,40,"   Document Status: "_$G(TIUREC(8925,TIUDA,.05)))
  D SET(TIUL+5,40,"    TIU Document #: "_+$G(TIUDA))
- S TIUL=$S(+$G(TIUCPF):TIUL+10,1:TIUL+6)
+ D SET(TIUL+6,40,"    VBC Line Count: "_$G(TIUREC(8925,TIUDA,1801)))
+ S TIUL=$S(+$G(TIUCPF):TIUL+11,1:TIUL+8)
  Q
 PROBLEM(TIUDA,TIUL) ; Problems
  N TIUI,DR,DIC,DIQ,TIUPROB S TIUI=0

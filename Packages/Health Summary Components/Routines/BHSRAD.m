@@ -1,5 +1,5 @@
-BHSRAD ;IHS/CIA/MGH - Health Summary for V RAD file ;11-May-2010 09:27;MGH
- ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4**;March 17, 2006;Build 13
+BHSRAD ;IHS/CIA/MGH - Health Summary for V RAD file ;02-Aug-2013 16:17;DU
+ ;;1.0;HEALTH SUMMARY COMPONENTS;**1,2,4,8**;March 17, 2006;Build 22
  ;===================================================================
  ;Taken from BHS3C
  ; IHS/TUCSON/LAB - PART 3C OF APCHS -- SUMMARY PRODUCTION COMPONENTS ;  [ 01/20/04  8:04 PM ]
@@ -8,6 +8,7 @@ BHSRAD ;IHS/CIA/MGH - Health Summary for V RAD file ;11-May-2010 09:27;MGH
  ;IHS/MSC/MGH  Updated to IHS patch 15
  ;IHS/MSC/MGH Patch 2 update to patch 16
  ;IHS/MSC/MGH Patch 4 moved exams to its own routine
+ ;IHS/MSC/MGH patch 8 Updated refusals for SNOMED
 MRR ; ******************** MOST RECENT RADIOLOGY * 9000010.22 *******
  N BHSPAT,BHSICD,BHSICL,BHSQ,X
  S BHSPAT=DFN
@@ -52,7 +53,7 @@ RPRT2 ;
  Q
 DISPREF ;EP added in patch 2
  D CKP^GMTSUP Q:$D(GMTSQIT)
- N %
+ N %,SNO
  S BHSRC=0
  S BHSX="" F  S BHSX=$O(^AUPNPREF("AA",BHSPAT,BHSFN,BHSX)) Q:BHSX=""!($D(GMTSQIT))  D
  .S BHSD=0 F  S BHSD=$O(^AUPNPREF("AA",BHSPAT,BHSFN,BHSX,BHSD)) Q:BHSD=""!(BHSD>GMTSDLM)!($D(GMTSQIT))  D
@@ -61,7 +62,11 @@ DISPREF ;EP added in patch 2
  ...S BHSRC=BHSRC+1
  ...I BHSRC=1 I BHST]"" W !,BHST," Refusals "
  ...D CKP^GMTSUP Q:$D(GMTSQIT)
- ...W !,$$VAL^XBDIQ1(9000022,BHSI,.04)," -- ",$$VAL^XBDIQ1(9000022,BHSI,.07),?60,"(",$$DATE^APCHSMU(9999999-BHSD),")"
+ ...S SNO=$$GET1^DIQ(9000022,BHSI,1.02)
+ ...S SNO=$P($$DESC^BSTSAPI(SNO_"^^1"),U,2)
+ ...I SNO="" S SNO=$$VAL^XBDIQ1(9000022,BHSI,.07)
+ ...W !,$$VAL^XBDIQ1(9000022,BHSI,.04)," -- ",SNO,?60,"(",$$DATE^APCHSMU(9999999-BHSD),")"
+ ...;W !,$$VAL^XBDIQ1(9000022,BHSI,.04)," -- ",$$VAL^XBDIQ1(9000022,BHSI,.07),?60,"(",$$DATE^APCHSMU(9999999-BHSD),")"
  ..Q
  .Q
  W !

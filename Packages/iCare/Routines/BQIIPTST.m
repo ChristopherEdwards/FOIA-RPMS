@@ -1,5 +1,5 @@
 BQIIPTST ;GDIT/HS/ALA-IPC Routine for Testing ; 29 Nov 2011  2:23 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  ;
 EN ;EP
@@ -11,9 +11,9 @@ EN ;EP
  S DIR("A")="Enter Month and Year"
  S DIR("A",1)="Remember that the CRS measures will only aggregate based on what their"
  S DIR("A",2)="current values are since the Nightly or Weekly job has run."
- S DIR(0)="D^3111000:3120100:EM"
+ S DIR(0)="D^3130100:"_$E(DT,1,5)_"00"_":EM"
  D ^DIR
- I $G(DIRUT)="^"!($G(DUOUT)="^") Q
+ I $G(DIRUT)="^"!($G(DUOUT)="^")!(Y="^") Q
  S DATE=Y,BQDT=Y(0)
  D EN^DDIOL("Running . . . for "_BQDT,"","!!?12")
  D EN^BQIIPMON(DATE)
@@ -37,6 +37,7 @@ RPT ;EP - Report
  S DFN=0
  F  S DFN=$O(^AUPNPAT(DFN)) Q:'DFN  D  Q:$G(ABORT)=1
  . S DSPM=$$DPCP^BQIULPT(DFN)
+ . I $G(^AUPNPAT(DFN,0))="" Q
  . S DPCP=$P(^AUPNPAT(DFN,0),U,14)
  . I $P(DSPM,U,1)=DPCP Q
  . I L+4>IOSL D HDR Q:$G(ABORT)=1

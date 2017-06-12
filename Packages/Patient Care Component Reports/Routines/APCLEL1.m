@@ -1,5 +1,5 @@
 APCLEL1 ; IHS/CMI/LAB - patients with elder care assessment ; 02 Sep 2010  7:05 AM
- ;;2.0;IHS PCC SUITE;**5**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**5,10**;MAY 14, 2009;Build 88
  ;
  ;
 START ;
@@ -94,8 +94,10 @@ PROC ;EP - called from XBDBQUE
  .;has pt had functional assessment
  .S X=$$FA(DFN,APCLBD,APCLED)
  .S ^XTMP("APCLEL1",APCLJOB,APCLBTH,"PATIENT LIST",AGE,$P(^DPT(DFN,0),U,2),DFN)=X
- .S $P(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2)),U)=$P($G(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2))),U)+1
- .S $P(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2)),U,2)=$P($G(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2))),U,2)+($S(X]"":1,1:0))
+ .S S=$P(^DPT(DFN,0),U,2)
+ .I S="U" S S="M"
+ .S $P(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,S),U)=$P($G(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2))),U)+1
+ .S $P(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,S),U,2)=$P($G(^XTMP("APCLEL1",APCLJOB,APCLBTH,"TALLY",AGE,$P(^DPT(DFN,0),U,2))),U,2)+($S(X]"":1,1:0))
  .Q
  Q
  ;
@@ -186,7 +188,7 @@ HEAD1 ;
  I '$D(APCLCOMM) S X="All Communities" W !,$$CTR(X)
  I $D(APCLCOMM) S X="Selected Communities" W !,$$CTR(X)
  W !,APCL80D
- I APCLTR="T" W !,?24,"FEMALES",?45,"MALES",?65,"TOTAL",!,?20,"#",?27,"N",?32,"%",?40,"#",?47,"N",?52,"%",?60,"#",?66,"N",?72,"%",!,?17,"------------------" D
+ I APCLTR="T" W !,?24,"FEMALES",?42,"MALES/UNKNOWN",?65,"TOTAL",!,?20,"#",?27,"N",?32,"%",?40,"#",?47,"N",?52,"%",?60,"#",?66,"N",?72,"%",!,?17,"------------------" D
  .W ?37,"------------------",?57,"------------------"
  I APCLTR="L" W !?64,"LAST FUNCTIONAL",!,"PATIENT NAME",?28,"HRN",?36,"SEX",?41,"DOB",?59,"AGE",?64,"ASSESSMENT",!,APCL80D
  Q

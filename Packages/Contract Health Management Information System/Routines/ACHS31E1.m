@@ -1,5 +1,5 @@
 ACHS31E1 ;IHS/OIT/FCJ - ACHS 3.1 PATCH ENV CHECK ;
- ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**22**;JUN 11,2001;Build 13
+ ;;3.1;CONTRACT HEALTH MGMT SYSTEM;**26**;JUN 11,2001;Build 37
  ;3.1*14 1/11/2008;IHS/OIT/FCJ
  ; CHANGE INTROE SECTION WITH EACH PATCH
  ;
@@ -32,8 +32,8 @@ CHK ;
  I '$$INSTALLD("AUT*98.1*20") S XPDQUIT=2
  I $$VCHK("ATX","5.1",2,"<")
  I ACHSAR=0 D
- .I $$VCHK("LEX","2.0",2,"<")
- .I '$$INSTALLD("AICD*3.51*7") S XPDQUIT=2
+ .I '$$INSTALLD("LEX*2.0*1003") S BMCQUIT=2 D SORRY(BMCQUIT)
+ .I $$VCHK("AICD","4.0",2,"<")
  ;
  NEW DA,DIC
  S X="ACHS",DIC="^DIC(9.4,",DIC(0)="",D="C"
@@ -87,28 +87,9 @@ INSTALLD(ACHS) ;EP; Determine if patch ACHS was installed, where ACHS is
  ; -------------------------------------------
 INTROE ; Intro text during KIDS Environment check.
  ;;In this distribution:
- ;;(1)Modifications: 
- ;;   1. Changed write security codes to "C" on the CHS EOBR MESSAGE
- ;;      File. 
- ;;   2. Status line will now display correct OS
- ;;   3. Removed Area test variable
- ;;   4. Defaulted Facility print EOBR to N
- ;;   5. Fix for CSV lookup from the FI EOBR
- ;;   6. Test for Area or Facility on Summary report
- ;;   7. EOBR Report by Patient, added test for data
- ;;   8. Added check adm date>discharge dt on tribal export report
- ;;   9. Added additional tests for Area options, some options are
- ;;      not required
- ;;  10. Area Windows sites changes for directory lookup
- ;;  11. Export records
- ;;        a. 3C EPO record fixed century
- ;;        b. B record fixed reading in of SCC
- ;;        c. Updated H record description
- ;;        d. Only send FI pay type records to the FI
- ;;   12. PO Print for Cheerokee
- ;;   13. ICD9 fix for invalid 3 digit codes
- ;;   14. Fixed Report Dump option for Denial Data
- ;;  
+ ;;(1)Modifications for patch: 
+ ;;   Nine New reports
+ ;; See Notes file for specific options
  ;;
  ;;###
  ;

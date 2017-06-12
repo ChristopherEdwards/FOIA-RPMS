@@ -1,10 +1,11 @@
-%ZISH ;IHS/PR,SFISC/AC - Host File Control for Cache for VMS/NT/UNIX ;12/07/09  15:44
- ;;8.0;KERNEL;**34,65,84,104,191,306,385,440,518,524,1017**;JUL 10, 1995;Build 3
+%ZISH ;IHS/PR,SFISC/AC - Host File Control for Cache for VMS/NT/UNIX ;05/22/12  11:01
+ ;;8.0;KERNEL;**34,65,84,104,191,306,385,440,518,524,546,599,1017,1018**;JUL 10, 1995;Build 8
  ;THIS ROUTINE CONTAINS IHS MODIFICATIONS BY TASSC/MFD
  ;
  ;TASSC/MFD Many mods to enable functioning on Cache, Windows or Unix.
  ;          This routine no longer calls any other routines.
  ;
+ ; ZEXCEPT: IOM,IOSL,IOT,POP
 OPEN(X1,X2,X3,X4,X5,X6)    ;SR. Open Host File
  I '$D(X4) Q $$OPENI(X1,X2,X3)      ;TASSC/MFD added call
  ;X1=handle name
@@ -18,14 +19,14 @@ OPEN(X1,X2,X3,X4,X5,X6)    ;SR. Open Host File
  I %ZOS'="VMS" S %1=$S(X4["A":"AW",X4["W":"WN",1:"R")_$S(X4["B":"U",1:"S") ;NT & Unix
  I %ZOS="VMS" S %1=$S(X4["A":"AW",X4["W":"WN",1:"RH")_$S(X4["B":"U",1:"S")
  ;The next line eliminates the <ENDOFFILE> error for sequential files for the current process.
- S %ZA=$ZUTIL(68,40,1) ;Work like DSM
+ S %ZA=$$ENDOFILE^%ZISUTL ;p599 Work like DSM
  S %=X2_X3 O %:(%1):2 I '$T S POP=1 Q
  S IO=%,IO(1,IO)="",IOT="HFS",IOM=80,IOSL=60,POP=0 D SUBTYPE^%ZIS3($G(X6,"P-OTHER"))
  I $G(X1)]"" D SAVDEV^%ZISUTL(X1)
- ;I $L($G(%I)) U %I ;Would only needed if we had done a USE.
  Q
  ;
 OPNERR ;Handle open error
+ ; ZEXCEPT: POP
  S POP=1,$ECODE=""
  ;I $L($G(%I)) U %I
  Q
@@ -43,7 +44,7 @@ CLOSE(X) ;SR. Close HFS device not opened by %ZIS.
 OPENERR ;
  Q 0
  ;
- ;----- BEGIN IHS MODIFICATION - XU*8.0*1017
+ ;----- BEGIN IHS MODIFICATION - XU*8.0*1018
 DEL(%ZX1,%ZX2) ;ef,SR. Del fl(s)
  ;S Y=$$DEL^ZOSHMSM("\dir\",$NA(array))
  ;TASSC/MFD modified to accommodate IHS calls without $NA array in %ZX2
@@ -95,6 +96,7 @@ DEL(%ZX1,%ZX2) ;ef,SR. Del fl(s)
  ;Q %ZXDEL
  ;;
  ;DELERR ;Trap any $ETRAP error, unwind and return.
+ ;; ZEXCEPT: %ZARG,%ZXDEL
  ;S $ETRAP="D UNWIND^%ZTER"
  ;S %ZXDEL=0,%ZARG=""
  ;D UNWIND^%ZTER
@@ -121,7 +123,7 @@ DEL(%ZX1,%ZX2) ;ef,SR. Del fl(s)
  ;S %ZISH=$$LIST(%PATH,%FL,"%ZISHY")
  ;Q %ZISH
  ;;
- ;----- END IHS MODIFICATION XU*8.0*1017
+ ;----- END IHS MODIFICATION XU*8.0*1018
  ;
 LIST(%ZX1,%ZX2,%ZX3) ;ef,SR. Create a local array holding file names
  ;S Y=$$LIST^%ZISH("\dir\",$NA(array),$NA(return array)) Return 1 if found anything
@@ -130,12 +132,12 @@ LIST(%ZX1,%ZX2,%ZX3) ;ef,SR. Create a local array holding file names
  S %ZX1=$$DEFDIR($G(%ZX1)),%ZOS=$$OS^%ZOSV
  ;S %ZX1=$$TRNLNM(%ZX1)
  ;
- ;----- BEGIN IHS MODIFICATION - XU*8.0*1017
+ ;----- BEGIN IHS MODIFICATION - XU*8.0*1018
  ;TASSC/MFD added LISTI sub to accommodate IHS call without $NA array in %ZX2
  S %ZISHT=$ZT,X="*LISTI",@^%ZOSF("TRAP")             ;TASSC/MFD, 9/9/02 added * to not unwind stack
  I %ZX2'["*",$D(@%ZX2)<10 G LISTI                  ;TASSC/MFD
  I %ZX2["*",$D(@%ZX2)<10 G LISTI                    ;TASSC/MFD
- ;----- END IHS MODIFICATION - XU*8.0*1017
+ ;----- END IHS MODIFICATION - XU*8.0*1018
  ;
  ;Get fls to act on
  S %ZISH="" F  S %ZISH=$O(@%ZX2@(%ZISH)) Q:%ZISH=""  D
@@ -154,7 +156,7 @@ LIST(%ZX1,%ZX2,%ZX3) ;ef,SR. Create a local array holding file names
  S X=%ZISHT,@^%ZOSF("TRAP")                         ;TASSC/MFD reset trap
  Q $O(@%ZX3@(""))]""
  ;
- ;----- BEGIN IHS MOFIDICATION - XU*8.0*1017
+ ;----- BEGIN IHS MODIFICATION - XU*8.0*1018
  ; Re-introducing IHS code
 MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  ;S Y=$$MV^ZOSHDOS("\dir\","fl","\dir\","fl")
@@ -196,6 +198,13 @@ SLOWCOPY ; Copy without view buffer
  ; Commented below VA logic due to unknown side effects IHS/OIT/FBD
  ;MV(X1,X2,Y1,Y2) ;ef,SR. Rename a fl
  ;;S Y=$$MV^ZOSHDOS("\dir\","fl","\dir\","fl")
+ ;N X,Y,%ZISHMVC
+ ;S X1=$$DEFDIR($G(X1)),Y1=$$DEFDIR($G(Y1))
+ ;S X=X1_X2,Y=Y1_Y2
+ ;S %ZISHMVC=$S($ZV["UNIX":"mv",1:"move")
+ ;Q $$JOBWAIT^%HOSTCMD(%ZISHMVC_" "_X_" "_Y)
+ ;;----- END IHS MODIFICATION - XU*8.0*1008
+ ;;
  ;;Unix use mv, NT/VMS use COPY and DEL
  ;N %,X,Y,%ZOS,%ZISHX S %ZOS=$$OS^%ZOSV
  ;S X1=$$DEFDIR($G(X1)),Y1=$$DEFDIR($G(Y1))
@@ -209,9 +218,9 @@ SLOWCOPY ; Copy without view buffer
  ;. S Y=$$DEL^%ZISH(X1,$NA(%ZISHX))
  ;Q 1
  ;;
- ;----- END IHS MODIFICATION - XU*8.0*1017
+ ;----- END IHS MODIFICATION - XU*8.0*1018
  ;-----------------------------------------------------
- ; BEGIN IHS MODIFICATION - XU*8.0*1017
+ ; BEGIN IHS MODIFICATION - XU*8.0*1018
  ; Re-introduce IHS code and comment VA modifications - IHS/OIT/FBD
  ;
 PWD(X) ;ef,SR. Print working directory    ;TASSC/MFD parameter put back in for IHS
@@ -221,13 +230,13 @@ PWD(X) ;ef,SR. Print working directory    ;TASSC/MFD parameter put back in for I
  S X(1)=$P(Y,".",1)
  Q X(1)      ;TASSC/MFD changed to subscripted return var
  ;
- ; Commented below VA code - IHS/OIT/FBD - XU*8.0*1017
+ ; Commented below VA code - IHS/OIT/FBD - XU*8.0*1018
  ;PWD() ;ef,SR. Print working directory
  ;N Y,%ZOS
  ;S Y=$$DEFDIR(""),%ZOS=$$OS^%ZOSV
  ;I Y="" S Y=$ZSEARCH("*")
  ;Q $S(%ZOS["VMS":Y,1:$P(Y,".",1))
- ; - END IHS MODIFICATION - XU*8.0*1017
+ ; - END IHS MODIFICATION - XU*8.0*1018
  ;
 TRNLNM(PATH) ;ef. Expand logical path
  N %ZOS,P1,P2
@@ -267,25 +276,26 @@ DEFDIR(DF) ;ef. Default Dir and frmt
  . S DF=$TR(DF,"\","/")
  . S:$E(DF,$L(DF))'="/" DF=DF_"/"
  . Q
- ;Check syntax, NT needs c:\dir\
+ ;Check syntax, NT needs c:\dir\ or \\server\folder\
  I %ZOS="NT" D
  . N P1,P2
+ . I '(DF?1(1A1":\",1"\\").E) S DF=$$DEFDIR("")
+ . S P1="",P2=DF
  . I DF[":" S P1=$P(DF,":")_":",P2=$P(DF,":",2)
- . E  S P1="",P2=DF
  . S P2=$TR(P2,"/","\")
  . I $L(P2) S:".\"'[$E(P2,1) P2="\"_P2 S:$E(P2,$L(P2))'="\" P2=P2_"\"
  . S DF=P1_P2
  . Q
  S DF=$$TRNLNM(DF) ;Resolve logicals
  Q DF
- ; BEGIN IHS MODIFICATION - XU*8.0*1017
+ ; BEGIN IHS MODIFICATION - XU*8.0*1018
 DF(X) ;Dir frmt  ;TASSC/MFD added DF+2
  Q:X=""
  I $ZV["UNIX" S X=$TR(X,"\","/") S:$E(X,$L(X))'="/" X=X_"/" Q    ;TASSC/MFD added line for UNIX sys
  S X=$TR(X,"/","\")
  I $E(X,$L(X))'="\" S X=X_"\" Q
  Q
- ; END IHS MODIFICATION - XU*8.0*1017
+ ; END IHS MODIFICATION - XU*8.0*1018
 FL(X) ;Fl len
  N ZOSHP1,ZOSHP2
  S ZOSHP1=$P(X,"."),ZOSHP2=$P(X,".",2)
@@ -298,11 +308,12 @@ STATUS() ;ef,SR. Return EOF status
  Q $$EOF($ZEOF)
  ;
 EOF(X) ;Eof flag, pass in $ZEOF
- ;Q (X=-1)  ;XU*8.0*1017 - ORIGINAL LINE - COMMENTED OUT
- Q $ZEOF  ;TASSC/MFD check for $ZEOF rather than ENDOFFILE error  XU*8.0*1017
+ ;Q (X=-1)  ;XU*8.0*1018 - ORIGINAL LINE - COMMENTED OUT
+ Q $ZEOF  ;TASSC/MFD check for $ZEOF rather than ENDOFFILE error  XU*8.0*1018
  ;
 MAKEREF(HF,IX,OVF) ;Internal call to rebuild global ref.
  ;Return %ZISHF,%ZISHO,%ZISHI,%ZISUB
+ ; ZEXCEPT: %ZISHF,%ZISHI,%ZISHO,%ZISUB
  N I,F,MX
  S OVF=$G(OVF,"%ZISHOF")
  S %ZISHI=$QS(HF,IX),MX=$QL(HF) ;
@@ -315,14 +326,16 @@ MAKEREF(HF,IX,OVF) ;Internal call to rebuild global ref.
  Q
  ;
 READNXT(REC) ;Read any sized record into array. %ZB has terminator
+ ; ZEXCEPT: %ZB
  N %,I,X,$ES,$ET S REC="",$ET="D READNX^%ZISH Q"
  U IO R X:5 S %ZB=$A($ZB),REC=$E(X,1,255)
  Q:$L(X)<256
  S %=256 F I=1:1 Q:$L(X)<%  S REC(I)=$E(X,%,%+254),%=%+255
  Q
 READNX ;Check for EOF
+ ; ZEXCEPT: %ZA
  ;I $ZE["ENDOFFILE" S %ZA=-1   ;TASSC/MFD commented out
- ;S $EC=""                     ;IHS/OIT/FBD - COMMENTED OUT  XU*8.0*1017
+ ;S $EC=""                     ;IHS/OIT/FBD - COMMENTED OUT  XU*8.0*1018
  I $ZEOF S %ZA=-1              ;TASSC/MFD added line since we are checking for $ZEOF
  Q
  ;
@@ -339,7 +352,7 @@ FTG(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;ef,SR. Unload contents of host file into global
  D OPEN^%ZISH(,%ZX1,%ZX2,"R")
  I POP Q 0
  S %ZC=1,%ZA=0,$ET="S %ZC=0,%ZA=-1,$EC="""" Q"
- S X="ERREOF^%ZISH",@^%ZOSF("TRAP") ; Added line from IHS side IHS/OIT/FBD - XU*8.0*1017
+ S X="ERREOF^%ZISH",@^%ZOSF("TRAP") ;IHS/OIT/FBD - XU*8.0*1018 - Added line from IHS side
  U IO F  K %XX D READNXT(.%XX) Q:$$EOF($ZEOF)!%ZA  D
  . S @%ZISHF=%XX
  . I $D(%XX)>2 F %OVFCNT=1:1 Q:'$D(%XX(%OVFCNT))  S @%ZISHO=%XX(%OVFCNT)
@@ -372,20 +385,21 @@ MGTF(%ZX1,%ZX2,%ZX3,%ZX4,%ZX5) ;
  ;p2=incrementing subscript
  ;p3=host file directory
  ;p4=host file name
+ ; ZEXCEPT: %ZISHF,POP
  N %ZISH,%ZISH1,%ZISHI,%ZISHL,%ZISHS,%ZISHOX,IO,%ZX,Y,%ZC
  D MAKEREF(%ZX1,%ZX2)
  D OPEN^%ZISH(,$G(%ZX3),%ZX4,%ZX5) ;Default dir set in open
  I POP Q 0
- ;----- BEGIN IHS MODIFICATION - XU*8.0*1017 IHS/OIT/FBD
+ ;----- BEGIN IHS MODIFICATION - XU*8.0*1018 IHS/OIT/FBD
  ; commented VA code and added IHS logic
  ;N $ETRAP S $ETRAP="S $EC="""" D CLOSE^%ZISH() Q 0"
  N X S X="ERREOF^%ZISH",@^%ZOSF("TRAP")
- ;----- END IHS MODIFICATION - XU*8.0*1017
+ ;----- END IHS MODIFICATION - XU*8.0*1018
  F  Q:'($D(@%ZISHF)#2)  S %ZX=@%ZISHF,%ZISHI=%ZISHI+1 U IO W %ZX,!
  D CLOSE()
  Q 1
  ;
- ; BEGIN IHS MODIFICATION - XU*8.0*1017
+ ; BEGIN IHS MODIFICATION - XU*8.0*1018
  ;
  ; TASSC/MFD all subs below are IHS-added
  ; 
@@ -436,7 +450,11 @@ SEND(ZISH1,ZISH2,ZISH3,ZISHPARM) ;Send UNIX or Windows fl
  S ZISHC="cd /usr/spool/uucppublic; ftpsend "      ;TASSC/MFD moved script into a var
  ; -n = suppress sending results in UNIX mail message to the user
  ; -c = pack file(s) with 'compress' before sending
- I $ZV["Windows" S ZISHC="sendto "         ;TASSC/MFD accommodate Windows, use full path names on files
+ ;I $ZV["Windows" S ZISHC="sendto "         ;TASSC/MFD accommodate Windows, use full path names on files  ;IHS/OIT/FBD - XU*8.0*1018 - ORIGNAL LINE - COMMENTED OUT & REPLACED WITH FOLLOWING 'IF' BLOCK
+ I $ZV["Windows" D  ;IHS/OIT/FBD - XU*8.0*1018 - WINDOWS-SPECIFIC MODIFICATIONS
+ . S ZISHC="sendto "                  ;IHS/OIT/FBD - XU*8.0*1018 - ADDED LINE - STRIP PATH SPECIFICATION FROM COMMAND LINE CALL
+ . F ZISH=1:1 Q:'$D(ZISH2(ZISH))  D   ;IHS/OIT/FBD - XU*8.0*1018 - ADDED LINE - SCROLL THROUGH LIST OF FILES
+ ..  S ZISH2(ZISH)=ZISH1_ZISH2(ZISH)  ;IHS/OIT/FBD - XU*8.0*1018 - ADDED LINE - AND APPEND PATH TO FILE NAMES
  F ZISH=1:1 Q:'$D(ZISH2(ZISH))  D
  . S ZISHC=ZISHC_ZISHPARM_" "_ZISH3_" "_ZISH2(ZISH)
  . D JW   ;IHS/AAO/RPL 4/9/99 ftpsend after cd to public or nothing gets sent.
@@ -464,6 +482,9 @@ CLIENT() ;return underlying client name - only works if reverse DNS
  ;----- END IHS MODIFICATION - XU*8.0*1008
  ;
 SENDTO1(ZISH1,ZISH2)         ;use sendto1 script
- ;
  Q $$SENDTO1^ZISHMSMU(ZISH1,ZISH2)
- ;----- END IHS MOD - XU*8.0*1017
+ ;
+ERREOF D CLOSE() ;IHS/OIT/FBD - XU*8.0*1018 - Error close and exit
+ Q 0
+ ;
+ ;----- END IHS MOD - XU*8.0*1018

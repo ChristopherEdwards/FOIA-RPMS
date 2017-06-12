@@ -1,5 +1,5 @@
 XWBRPC ;OIFO-Oakland/REM - M2M Broker Server MRH  ;08/20/2002  12:13
- ;;1.1;RPC BROKER;**28,34**;Mar 28, 1997
+ ;;1.1;RPC BROKER;**28,34**;Mar 28, 1997;Build 13
  ;
  QUIT
  ;

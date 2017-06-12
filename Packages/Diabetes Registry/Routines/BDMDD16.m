@@ -1,0 +1,368 @@
+BDMDD16 ; IHS/CMI/LAB - 2016 DIABETES AUDIT ; 02 Feb 2014  2:41 PM
+ ;;2.0;DIABETES MANAGEMENT SYSTEM;**9**;JUN 14, 2007;Build 78
+ ;
+ ;
+TBCODE(P,EDATE,R) ;EP
+ NEW BDMJ,BDMI,X,BDMR
+ S BDMJ=""
+ S BDMR=$$PPD^BDMDD18(P,EDATE)
+ I $E($P(BDMR,"||",2))=1 D  Q BDMJ
+ .I $$TBTX^BDMDD12(P)["TX COMPLETE" S BDMJ=1 Q
+ .S BDMJ=2
+ .Q
+ I $E($P(BDMR,"||",2))=2 S BDMJ=4 D  Q BDMJ
+ .I $$DODX(P,R,"I")="" S BDMJ=6 Q
+ .S D=$$DODX(P,R,"I"),E=$$PPD^BDMDD18(P,EDATE,"I") S BDMJ=$S(D>E:4,1:3)
+ .Q
+ I $E(BDMR)=4 S BDMJ=5
+ I $E(BDMR)=3 S BDMJ=5
+ I $E($P(BDMR,"||",2))=3 S BDMJ=5
+ I $E($P(BDMR,"||",2))=4 S BDMJ=5
+ Q BDMJ
+ ;;
+1 ;;PPD +, treatment complete
+2 ;;PPD +, not treated/treatment incomplete or unknown treatment
+3 ;;PPD -, placed on or after date of DM dx
+4 ;;PPD -, placed before date of DM dx
+5 ;;PPD Status unknown
+6 ;;PPD -, date of DX or PPD date unknown
+7 ;;PPD Refused
+BI() ;
+ Q $S($O(^AUTTIMM(0))>100:1,1:0)
+SYSMEAN(P,BDATE,EDATE) ;EP
+ NEW X S X=$$BPS^BDMDD13(P,BDATE,EDATE,"I")
+ I X="" Q ""
+ NEW Y,C,Z S C=0 F Y=1:1:3 I $P(X,";",Y)]"" S C=C+1
+ I C<2 Q ""
+ S Z=C
+ S C=0 F Y=1:1:3 S C=$P($P(X,";",Y),"/")+C
+ Q C\Z
+DIAMEAN(P,BDATE,EDATE) ;EP
+ NEW X S X=$$BPS^BDMDD13(P,BDATE,EDATE,"I")
+ I X="" Q ""
+ NEW Y,C,Z S C=0 F Y=1:1:3 I $P(X,";",Y)]"" S C=C+1
+ I C<2 Q ""
+ S Z=C
+ S C=0 F Y=1:1:3 S C=$P($P(X,";",Y),"/",2)+C
+ Q C\Z
+PPDDATE(P,EDATE) ;EP
+ NEW X S X=$$LASTNP^BDMDD18(P,EDATE)
+ Q X
+STATIN(P,BDATE,EDATE) ;EP
+ NEW X,BDM,E,BDMALL
+ S X=P_"^LAST MEDS [DM AUDIT STATIN DRUGS"_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S BDMALL($P(BDM(1),U,1))=BDM(1)  ;Q "1  Yes "_$$DATE^BDMS9B1($P(BDM(1),U,1))_" "_$P(BDM(1),U,2)
+ NEW BDMSMEDS
+ K BDMSMEDS
+ D GETMEDS^BDMSMU1(P,BDATE,EDATE,"BGP PQA STATIN MEDS","BGP PQA STATIN NDC",,,.BDMSMEDS)
+ S (X,C)=0 F  S X=$O(BDMMEDS(X)) Q:X'=+X  S C=X
+ I C S BDMALL($P(BDMMEDS(C),U,1))=BDMMEDS(C) ;Q "1  Yes "_$$DATE^BDMS9B1($P(BDMSMEDS(1),U,1))_" "_$P(BDMSMEDS(1),U,2)
+ S (X,C)=0 F  S X=$O(BDMALL(X)) Q:X'=+X  S C=X
+ I C Q "1  Yes  "_$$DATE^BDMS9B1($P(BDMALL(C),U,1))_" "_$P(BDMALL(C),U,2)
+ ;check allergy/intolerence
+ S E=$$STATALG(P,$$DOB^AUPNPAT(P),EDATE,BDATE)
+ I E Q "3  "_$P(E,U,2)
+ S E=$$STATCON(P,BDATE,EDATE)
+ I E Q "3  "_$P(E,U,2)
+ Q "2  No"
+ ;
+STATALG(P,BDATE,EDATE,RPB) ;EP
+ NEW BDMG,BDMY,Y,X,N,Z,BDMC
+ S BDMC=""
+ K BDMG,BDMY S Y="BDMG(",X=P_"^ALL DX [BGP ASA ALLERGY 995.0-995.3;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ S X=0 F  S X=$O(BDMG(X)) Q:X'=+X  S Y=+$P(BDMG(X),U,4) D
+ .S N=$$VAL^XBDIQ1(9000010.07,Y,.04) S N=$$UP^XLFSTR(N)
+ .I N["STATIN"!(N["STATINS") S BDMC=1_U_$$DATE^BDMS9B1($P(BDMG(X),U))_" ADR POV "_$P(BDMG(X),U,2)
+ .S T="BGP ADV EFF CARDIOVASC NEC"
+ .S Z=$P(^AUPNVPOV(Y,0),U,9) I Z]"",$$ICD^BDMUTL(Z,T,9) S BDMC=1_U_$$DATE^BDMS9B1($P(BDMG(X),U))_" ADR POV ["_$P(BDMG(X),U,2)_" + "_$P($$ICDDX^BDMUTL(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,18) I Z]"",$$ICD^BDMUTL(Z,T,9) S BDMC=1_U_$$DATE^BDMS9B1($P(BDMG(X),U))_" ADR POV ["_$P(BDMG(X),U,2)_" + "_$P($$ICDDX^BDMUTL(Z),U,2)_"]  "_N Q
+ .S Z=$P(^AUPNVPOV(Y,0),U,19) I Z]"",$$ICD^BDMUTL(Z,T,9) S BDMC=1_U_$$DATE^BDMS9B1($P(BDMG(X),U))_" ADR POV ["_$P(BDMG(X),U,2)_" + "_$P($$ICDDX^BDMUTL(Z),U,2)_"]  "_N Q
+ .Q
+ I BDMC Q BDMC
+ K BDMG S BDMC=0 S Y="BDMG(",X=P_"^ALL DX [BGP HX DRUG ALLERGY NEC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ S X=0 F  S X=$O(BDMG(X)) Q:X'=+X  S Y=+$P(BDMG(X),U,4) D
+ .S N=$$VAL^XBDIQ1(9000010.07,Y,.04),N=$$UP^XLFSTR(N)
+ .I N["STATIN"!(N["STATINS") S BDMC=1_U_$$DATE^BDMS9B1($P(BDMG(X),U))_" ADR POV "_$P(BDMG(X),U,2)  ;_"]"
+ I BDMC Q BDMC
+ ;PL
+ S BDMC=0
+ S T="",T="BGP ASA ALLERGY 995.0-995.3"
+ S X=0 F  S X=$O(^AUPNPROB("AC",P,X)) Q:X'=+X  D
+ .S I=$P($G(^AUPNPROB(X,0)),U),Y=$P($$ICDDX^BDMUTL(I),U,2)
+ .S N=$$VAL^XBDIQ1(9000011,X,.05),N=$$UP^XLFSTR(N)
+ .Q:$P(^AUPNPROB(X,0),U,8)>EDATE
+ .Q:$P(^AUPNPROB(X,0),U,12)="D"
+ .Q:$P(^AUPNPROB(X,0),U,12)="I"
+ .I $$ICD^BDMUTL(I,"BGP HX DRUG ALLERGY NEC",9)!($$ICD^BDMUTL(I,T,9)),N["STATIN"!(N["STATINS") S BDMC=1_U_$$DATE^BDMS9B1($P(^AUPNPROB(X,0),U,8))_" ADR Problem List "_Y  ;_"]"
+ .Q
+ I BDMC Q BDMC
+ ;ART
+ S BDMC=0
+ S X=0 F  S X=$O(^GMR(120.8,"B",P,X)) Q:X'=+X  D
+ .Q:$P($P($G(^GMR(120.8,X,0)),U,4),".")>EDATE
+ .S N=$P($G(^GMR(120.8,X,0)),U,2),N=$$UP^XLFSTR(N)
+ .I N["STATIN" S BDMC=1_U_$$DATE^BDMS9B1($P(^GMR(120.8,X,0),U,4))_" ADR Allergy Tracking "_N
+ I BDMC Q BDMC
+ K BDMG S Y="BDMG(",X=P_"^LAST DX [BGP MYOPATHY/MYALGIA;DURING "_$$FMTE^XLFDT(RPB)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BDMG(1)) Q 1_U_$$DATE^BDMS9B1($P(BDMG(1),U))_" ADR POV "_$P(BDMG(1),U,2)  ;_"]"
+ S BDMG=""
+ S T=$O(^ATXAX("B","BGP CREATINE KINASE LOINC",0))
+ S BDMLT=$O(^ATXLAB("B","BGP CREATINE KINASE TAX",0))
+ S B=9999999-RPB,E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BDMG)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BDMLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BDMLT,21,"B",$P(^AUPNVLAB(X,0),U))) I $$RESCK(X) S BDMG=1_U_$$DATE^BDMS9B1((9999999-D))_" ADR creat kinase of "_$P(^AUPNVLAB(X,0),U,4) Q
+ ...Q:'T
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...Q:'$$LOINC^BDMDD1C(J,T)
+ ...I $$RESCK(X) S BDMG=1_U_$$DATE^BDMS9B1((9999999-D))_" ADR creat kinase of "_$P(^AUPNVLAB(X,0),U,4) Q
+ ...Q
+ I BDMG Q BDMG
+ S T=$O(^ATXAX("B","BGP ALT LOINC",0))
+ S BDMLT=$O(^ATXLAB("B","DM AUDIT ALT TAX",0))
+ S T2=$O(^ATXAX("B","BGP AST LOINC",0))
+ S BDMLT2=$O(^ATXLAB("B","DM AUDIT AST TAX",0))
+ S B=9999999-$$FMADD^XLFDT(EDATE,-365),E=9999999-EDATE S D=E-1 F  S D=$O(^AUPNVLAB("AE",P,D)) Q:D'=+D!(D>B)!(BDMG)  D
+ .S L=0 F  S L=$O(^AUPNVLAB("AE",P,D,L)) Q:L'=+L  D
+ ..S X=0 F  S X=$O(^AUPNVLAB("AE",P,D,L,X)) Q:X'=+X  D
+ ...Q:'$D(^AUPNVLAB(X,0))
+ ...I BDMLT,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BDMLT,21,"B",$P(^AUPNVLAB(X,0),U))) S BDMC=BDMC+1,BDMC((9999999-D))=X_U_$P(^AUPNVLAB(X,0),U,4)_U_$P($G(^AUPNVLAB(X,11)),U,5) Q
+ ...I BDMLT2,$P(^AUPNVLAB(X,0),U),$D(^ATXLAB(BDMLT2,21,"B",$P(^AUPNVLAB(X,0),U))) S BDMC=BDMC+1,BDMC((9999999-D))=X_U_$P(^AUPNVLAB(X,0),U,4)_U_$P($G(^AUPNVLAB(X,11)),U,5) Q
+ ...S J=$P($G(^AUPNVLAB(X,11)),U,13) Q:J=""
+ ...I '$$LOINC^BDMDD1C(J,T),'$$LOINC^BDMDD1C(J,T2)
+ ...S BDMC=BDMC+1,BDMC((9999999-D))=X_U_$P(^AUPNVLAB(X,0),U,4)_U_$P($G(^AUPNVLAB(X,11)),U,5) Q
+ ...Q
+ S BDMG=""
+ S X=0 F  S X=$O(BDMC(X)) Q:X'=+X!(BDMG)  D
+ .Q:'$$RESAL(BDMC(X))
+ .S Y=$O(BDMC(X))
+ .Q:Y=""
+ .I $$RESAL(BDMC(Y)) S BDMG=1_U_" ADR AST/ALT" Q
+ .Q
+ I BDMG Q BDMG
+ Q 0
+ ;
+RESAL(Y) ;
+ NEW V,ULN
+ S V=+$P(Y,U,2),ULN=$P(Y,U,3)
+ I ULN="" Q ""
+ I V>(ULN*3) Q 1
+ Q ""
+RESCK(Y) ;
+ NEW V,ULN
+ S V=+$P(^AUPNVLAB(X,0),U,4)
+ I V>10000 Q 1
+ S ULN=$P($G(^AUPNVLAB(X,11)),U,5)
+ I ULN="" Q 0  ;no upper limit
+ I V>(ULN*10) Q 1
+ Q 0
+STATCON(P,BDATE,EDATE) ;EP does patient have an STATIN Contra
+ NEW ED,BD,BDMG,BDMC,X,Y,Z,N,E
+ ;
+ ;pregnant
+ S X=$$PREG^BDMDD1B(P,BDATE,EDATE,1,1) I X Q 1_U_"Contraindication pregnant"
+ ;nmi
+ S BDMG=""
+ S T=$O(^ATXAX("B","BGP PQA STATIN MEDS",0))
+ S X=0 F  S X=$O(^AUPNPREF("AA",P,50,X)) Q:X'=+X  D
+ .Q:'$D(^ATXAX(T,21,"B",X))  ;not an STATI
+ .S D=0 F  S D=$O(^AUPNPREF("AA",P,50,X,D)) Q:D'=+D  D
+ ..S Y=9999999-D I Y<BDATE Q
+ ..I Y>EDATE Q
+ ..S N=0 F  S N=$O(^AUPNPREF("AA",P,50,X,D,N)) Q:N'=+N  D
+ ...Q:$P($G(^AUPNPREF(N,0)),U,7)'="N"
+ ...S BDMG=1_U_$$DATE^BDMS9B1($P(^AUPNPREF(N,0),U,3))_" Contraindication NMI "_$$VAL^XBDIQ1(9000022,N,.04)  ;_"   "_"  "_$$VAL^XBDIQ1(9000022,X,1101)
+ ..Q
+ .Q
+ I BDMG Q BDMG
+ ;breastfeeding
+ K BDMG S Y="BDMG(",X=P_"^LAST DX [BGP BREASTFEEDING DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BDMG(1)) Q 1_U_$$DATE^BDMS9B1($P(BDMG(1),U))_" Contraindication Breastfeeding "_$P(BDMG(1),U,2)  ;_"]"  ;_$$VAL^XBDIQ1(9000010.07,+$P(BDMG(1),U,4),.04)
+ ;now check education
+ K BDMG
+ S Y="BDMG("
+ S X=P_"^ALL EDUC;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ S (X,D)=0,%="",T="" F  S X=$O(BDMG(X)) Q:X'=+X!(%]"")  D
+ .S T=$P(^AUPNVPED(+$P(BDMG(X),U,4),0),U)
+ .Q:'T
+ .Q:'$D(^AUTTEDT(T,0))
+ .S T=$P(^AUTTEDT(T,0),U,2)
+ .I T="BF-BC" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-BP" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-CS" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-EQ" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-FU" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-HC" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-ON" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-M" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-MK" S %=T_U_$P(BDMG(X),U) Q
+ .I T="BF-N" S %=T_U_$P(BDMG(X),U) Q
+ .I $P(T,"-",1)]"",$$SNOMED^BDMUTL(2016,"BREASTFEEDING PATIENT ED",$P(T,"-",1)) S %=T_U_$P(BDMG(X),U) Q
+ I %]"" Q 1_U_$$DATE^BDMS9B1($P(%,U,2))_" Contraindication Breastfeeding " ;_$P(%,U,1)
+ ;NOW CHECK ALCOHOL HEPATITIS
+ K BDMG S Y="BDMG(",X=P_"^LAST DX [BGP ALCOHOL HEPATITIS DXS;DURING "_$$FMTE^XLFDT(BDATE)_"-"_$$FMTE^XLFDT(EDATE) S E=$$START1^APCLDF(X,Y)
+ I $D(BDMG(1)) Q 1_U_$$DATE^BDMS9B1($P(BDMG(1),U))_" Contraindication Alcohol Hepatitis " ;_$P(BDMG(1),U,2) ;_"]"  ;_$$VAL^XBDIQ1(9000010.07,+$P(BDMG(1),U,4),.04)
+ Q ""
+ACE(P,BDATE,EDATE) ;EP
+ NEW X,BDM,E,X,Y,%DT,BD,G
+ S X=P_"^LAST MEDS [DM AUDIT ACE INHIBITORS"_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) Q "1  Yes  "_$$DATE^BDMS9B1($P(BDM(1),U))_" "_$P(BDM(1),U,3)
+ NEW D,%DT K %DT S X=BDATE,%DT="P" D ^%DT S D=Y
+ NEW V,I,%
+ K %DT S X=EDATE,%DT="P" D ^%DT S E=Y
+ S %=""
+ S I=9999999-E,I=I-1 F  S I=$O(^AUPNVMED("AA",P,I)) Q:I'=+I!(%)!(I>(9999999-D))  D
+ .S V=0 F  S V=$O(^AUPNVMED("AA",P,I,V)) Q:V'=+V  S G=$P(^AUPNVMED(V,0),U) I $P($G(^PSDRUG(G,0)),U,2)="CV800"!($P($G(^PSDRUG(G,0)),U,2)="CV805") S %=$P($P(^AUPNVSIT($P(^AUPNVMED(V,0),U,3),0),U),".")_U_G
+ I %]"" Q "1  Yes  "_$$DATE^BDMS9B1($P(%,U,1))_" "_$P(^PSDRUG($P(%,U,2),0),U)
+ ;refusals
+ NEW T S T=$O(^ATXAX("B","DM AUDIT ACE INHIBITORS",0))
+ I 'T Q "2  No"
+ S (G,X)=0 F  S X=$O(^ATXAX(T,21,X)) Q:X'=+X!(G)  S G=$$REFUSAL^BDMDD17(P,50,$P(^ATXAX(T,21,X,0),U),BDATE,EDATE)
+ I G,$P(G,U,2)'="N" S G=""
+ Q "2  No"_$S(G:" - Not Medically Indicated",1:"")
+ ;
+ ;
+ASPIRIN(P,BDATE,EDATE) ;EP
+ NEW X,BDM,E,A,N,G,T,T1,O,B,%
+ S (A,B,G,N,D)=""
+ S X=P_"^LAST MEDS [DM AUDIT ASPIRIN DRUGS"_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S A=1 S D=$$DATE^BDMS9B1($P(BDM(1),U))_" "_$P(BDM(1),U,3)
+ K BDM S X=P_"^LAST MEDS [DM AUDIT ANTIPLT/ANTICOAG RX"_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S N=1 S D=$$DATE^BDMS9B1($P(BDM(1),U))_" "_$P(BDM(1),U,3)
+ K BDM S X=P_"^LAST MEDS [DM AUDIT ANTI-PLATELET DRUGS"_";DURING "_BDATE_"-"_EDATE S E=$$START1^APCLDF(X,"BDM(")
+ I $D(BDM(1)) S N=1 S D=$$DATE^BDMS9B1($P(BDM(1),U))_" "_$P(BDM(1),U,3)
+ I A Q "1  Yes  "_D
+ I N Q "1  Yes  "_D
+ S T=$O(^ATXAX("B","DM AUDIT ASPIRIN DRUGS",0))
+ S T1=$O(^ATXAX("B","DM AUDIT ANTIPLT/ANTICOAG RX",0))
+ S X=0,%="" F  S X=$O(^PS(55,P,"NVA",X)) Q:X'=+X!(%]"")  D
+ .I $P($G(^PS(55,P,"NVA",X,999999911)),U,1),$D(^AUPNVMED($P(^PS(55,P,"NVA",X,999999911),U,1),0)) Q  ;got this with V MED
+ .S L=$P($P($G(^PS(55,P,"NVA",X,0)),U,10),".")
+ .Q:$P(^PS(55,P,"NVA",X,0),U,6)=1  ;discontinued
+ .I $P(^PS(55,P,"NVA",X,0),U,7)]"",$P(^PS(55,P,"NVA",X,0),U,7)<EDATE Q  ;discontinued date
+ .Q:$P(^PS(55,P,"NVA",X,0),U,9)>EDATE  ;
+ .S D=$P(^PS(55,P,"NVA",X,0),U,2)
+ .I D S G=0 D
+ ..I $D(^ATXAX(T,21,"B",D)) S G=1
+ ..I $D(^ATXAX(T1,21,"B",D)) S G=1
+ .I D,G S %="1  Yes - NVA MED - "_$P(^PSDRUG(D,0),U,1) Q
+ .S O=$P(^PS(55,P,"NVA",X,0),U,1)
+ .Q:O=""
+ .S O=$P($G(^PS(50.7,O,0)),U,1)
+ .Q:O=""
+ .I $E(O,1,7)="ASPIRIN",$E(O,8)'="/" S %="1  Yes - NVA MED - "_O Q
+ I %]"" Q %
+ Q "2  None"
+ ;
+ ;
+THERAPY(P,BD,EDATE) ;EP - therapy code for epi
+ I '$G(P) Q ""
+ NEW STR,TNAME,X,Y,%DT,HO,TOTAL
+ S STR="",TNAME="",HO="",TOTAL=0
+ S X=$$INSULIN^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_2_U,HO=1
+ S X=$$SULF^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_3_U,HO=1
+ S X=$$SULFLIKE^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_4_U,HO=1
+ S X=$$MET^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_5_U,HO=1
+ S X=$$ACAR^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_6_U,HO=1
+ S X=$$TROG^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_7_U,HO=1
+ S X=$$GLP1^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_8_U,HO=1
+ S X=$$DPP4^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_9_U,HO=1
+ S X=$$AMYLIN^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_10_U,HO=1
+ S X=$$BROM^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_11_U,HO=1
+ S X=$$COLE^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_12_U,HO=1
+ S X=$$SGLT2^BDMDD12(P,BD,EDATE)
+ I X]"" S TOTAL=TOTAL+1,STR=STR_13_U,HO=1
+ I HO Q STR_"|||"_TOTAL
+ Q 1
+ ;
+DIETONLY(P,BD,EDATE) ;EP - diet and exercise for audit export
+ NEW STR,TNAME,X,Y,%DT
+ S STR="",TNAME=""
+ S X=$$INSULIN^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$SULF^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$SULFLIKE^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$MET^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$ACAR^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$TROG^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ ;S X=$$INCR^BDMDD12(P,BD,EDATE)
+ ;I X]"" Q 2
+ S X=$$DPP4^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$AMYLIN^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$GLP1^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$BROM^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$COLE^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ S X=$$SGLT2^BDMDD12(P,BD,EDATE)
+ I X]"" Q 2
+ Q 1
+ ;
+ ;
+ ;
+TYPE(P,R,EDATE) ;EP return type 1 or 2 for epi file
+ I '$G(P) Q ""
+ NEW TYPE S TYPE=""
+ I $G(R) S TYPE=$$CMSFDX^BDMDD13(P,R,"DX")
+ I TYPE="NIDDM" Q 2
+ I TYPE["TYPE II" Q 2
+ I TYPE="IDDM" Q 1
+ I TYPE="TYPE I" Q 1
+ I TYPE["2" Q 2
+ I TYPE["1" Q 1
+ S TYPE="" NEW X,I,C S X=$$PLDMDXS^BDMDD13(P)
+ F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  S J=$P($$CODEN^BDMUTL(C,80),"~") I J>0,$$ICD^BDMUTL(J,"DM AUDIT TYPE II DXS",9) S TYPE=2
+ I TYPE]"" Q TYPE
+ F I=1:1 S C=$P(X,";",I) Q:C=""!(TYPE]"")  S J=$P($$CODEN^BDMUTL(C,80),"~") I J>0,$$ICD^BDMUTL(J,"DM AUDIT TYPE I DXS",9) S TYPE=1
+ I TYPE]"" Q TYPE
+ S X=$$LASTDMDX^BDMDD13(P,EDATE)
+ I X[2 Q 2
+ I X[1 Q 1
+ Q ""
+ ;
+DURDM(P,R,EDATE) ;EP
+ I '$G(P) Q ""
+ NEW Y S Y=$$DODX(P,R,"I")
+ I Y="" Q ""
+ I 'Y Q ""
+ I Y>EDATE Q ""
+ Q $P(($$FMDIFF^XLFDT(EDATE,Y,1)\365.25),".")
+ ;
+DODX(P,R,F) ;EP - date of dx for export file
+ I $G(F)="" S F="E"
+ NEW DATE,EARLY
+ S DATE="",EARLY=9999999
+ I $G(R) S DATE=$$CMSFDX^BDMDD13(P,R,"ID")
+ I DATE S EARLY=DATE
+ S DATE=$$PLDMDOO^BDMDD13(P,"I")
+ I DATE,DATE<EARLY S EARLY=DATE
+ I EARLY=9999999 S EARLY=""
+ Q $S(F="I":$$DI(EARLY),1:$$D(EARLY))
+ ;
+D(D) ;
+ I D="" Q ""
+ Q $S($E(D,4,5)="00":"07",1:$E(D,4,5))_"/"_$S($E(D,6,7)="00":"01",1:$E(D,6,7))_"/"_(1700+$E(D,1,3))
+ ;
+DI(D) ;EP
+ I D="" Q ""
+ Q $E(D,1,3)_$S($E(D,4,5)="00":"07",1:$E(D,4,5))_$S($E(D,6,7)="00":"01",1:$E(D,6,7))

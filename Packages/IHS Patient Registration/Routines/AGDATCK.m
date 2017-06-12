@@ -1,5 +1,6 @@
 AGDATCK ; IHS/ASDS/EFG - CHECK DATA ;
- ;;7.1;PATIENT REGISTRATION;;AUG 25,2005
+ ;;7.1;PATIENT REGISTRATION;**11**;AUG 25,2005;Build 1
+ ;IHS/OIT/NKD AG*7.1*11 MU2 UNKNOWN SEX
  ;
  ;****************************************************************
  ;Please notify the Patient Care Component (PCC) maintenance
@@ -54,7 +55,9 @@ DOB ;
  . S AG("DTOT")=AG("DTOT")+1
 SEX ;
  G TRIBE:$D(AG("ER",4))
- I $P(^DPT(DFN,0),U,2)=""!("MF"'[$P(^DPT(DFN,0),U,2)) D
+ ;IHS/OIT/NKD AG*7.1*11 MU2 - ALLOW FOR PATIENTS WITH UNKNOWN SEX
+ ;I $P(^DPT(DFN,0),U,2)=""!("MF"'[$P(^DPT(DFN,0),U,2)) D
+ I $$GET1^DIQ(2,DFN,.02)="" D
  . S AG("ER",4)=""
  . S AG("DTOT")=AG("DTOT")+1
 TRIBE ;

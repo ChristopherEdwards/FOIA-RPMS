@@ -1,5 +1,5 @@
 ICD002E ;IHS/OIT/FCJ - ICD*18.0*1002 Env Check FOR IHS patch 1002 ;07/01/2011
- ;;18.0;DRG Grouper;**1002**;Oct 20, 2000;Build 9
+ ;;18.0;DRG Grouper;**1002**;Oct 20, 2000;Build 7
  ;               
  ;
 ENV ;               

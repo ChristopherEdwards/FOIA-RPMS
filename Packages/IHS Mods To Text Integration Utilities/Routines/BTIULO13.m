@@ -1,5 +1,5 @@
-BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;15-Jul-2013 10:03;DU
- ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010,1011**;NOV 04, 2004;Build 9
+BTIULO13 ;IHS/MSC/MGH - IHS OBJECTS ADDED IN PATCHES ;23-May-2016 15:35;DU
+ ;;1.0;TEXT INTEGRATION UTILITIES;**1006,1009,1010,1011,1012,1017**;NOV 04, 2004;Build 7
 TMORDER(DFN,TARGET) ;EP Med Orders for today
  NEW X,I,CNT,RESULT
  S CNT=0
@@ -13,7 +13,7 @@ TMORDER(DFN,TARGET) ;EP Med Orders for today
  Q "~@"_$NA(@TARGET)
 GETORD(RETURN,DFN) ;Get list of orders
  K RETURN
- NEW VDT,END,ORLIST,ORD,HDR,HLF,LOC,X,Y,C,GROUP,GROUPIEN,ORDER,OLDOR,NEWORD
+ NEW VDT,END,ORLIST,NEWORD,ORD,HDR,HLF,LOC,X,Y,C,GROUP,GROUPIEN,ORDER,OLDOR
  S C=0,OLDOR=0
  K ^TMP("ORR",$J)
  ;Get all orders for today
@@ -32,8 +32,9 @@ GETORD(RETURN,DFN) ;Get list of orders
  . S C=C+1
  . F Y=0:0 S Y=$O(ORD("TX",Y)) Q:'Y  D
  .. I $E(ORD("TX",Y),1)="<" Q
- .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999) ;patch 1011
- .. ;I $E(ORD("TX",Y),1,3)="to " S ORD("TX",Y)=$E(ORD("TX",Y),4,999)   ;I
+ .. ;I $E(ORD("TX",Y),1,6)="Change" Q
+ .. I $E(ORD("TX",Y),1,6)="Change" S ORD("TX",Y)=$E(ORD("TX",Y),8,999)
+ .. ;I $E(ORD("TX",Y),1,3)="to " Q
  .. I $E(ORD("TX",Y),1,3)="to " D
  ... K RETURN(C)
  ... S NEWORD=$E(ORD("TX",Y),4,999)
@@ -166,3 +167,16 @@ EDDALL(DFN,TARGET) ;Get pregnancy data
  ..S @TARGET@(CNT,0)="Definitive EDD: "_EDD
  E  S CNT=CNT+1 S @TARGET@(CNT,0)="Patient is not currently pregnant"
  Q "~@"_$NA(@TARGET)
+LACSTAT(DFN) ;Get lactation status
+ N DATA,LAC,LAC1,LACDATE,TAGE
+ I $P(^DPT(DFN,0),U,2)="M" S DATA="Patient is male" Q DATA
+ S TAGE=$$GET1^DIQ(2,DFN,.033)
+ I TAGE<10!(TAGE>55) S DATA="Patient is too young or old" Q DATA
+ S LAC=$G(^AUPNREP(DFN,2))
+ I LAC'="" D
+ .S LAC1=$$GET1^DIQ(9000017,DFN,2.01)
+ .I LAC1="" S LAC1="UNKNOWN"
+ .S LACDATE=$$GET1^DIQ(9000017,DFN,2.02)
+ .S DATA="Lactation Status: "_LAC1_" ("_LACDATE_")"
+ E  S DATA="No documented lactation status"
+ Q DATA

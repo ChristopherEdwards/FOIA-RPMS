@@ -1,5 +1,5 @@
 BQIGPRA4 ;PRXM/HC/ALA - Calculate GPRA for single patient ; 26 Jul 2006  10:05 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.4;ICARE MANAGEMENT SYSTEM;;Apr 01, 2015;Build 41
  ;
  Q
  ;
@@ -64,7 +64,14 @@ SNG(DATA,DFN) ;EP -- BQI GPRA POPULATE BY PATIENT
  S BQIPUP(90507.5,DFN_",",.05)=$$NOW^XLFDT()
  D FILE^DIE("","BQIPUP","ERROR")
  K BQIPUP
+ ;
+ ; Setup taxonomies
+ I VER>14.1 D
+ . I $T(UNFOLDTX^BGP5UTL2)="" Q
+ . D UNFOLDTX^BGP5UTL2
  D @("BQI^"_BQIROU_"(DFN,.BQIGREF)")
+ ;
+ K ^XTMP("BGP15TAX",$J)
  ;
  ;  if the patient doesn't already exist in the iCare Patient file, add them
  I $G(^BQIPAT(DFN,0))="" D

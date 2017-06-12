@@ -1,5 +1,5 @@
 APCLAL3P ; IHS/CMI/LAB - list refusals ; 10 Dec 2009  3:10 PM
- ;;2.0;IHS PCC SUITE;**2**;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**2,10,11**;MAY 14, 2009;Build 58
  ;
  ;
 PRINT ;EP - called from xbdbque
@@ -116,21 +116,21 @@ N ;
  S APCRSORV=$P(^DPT(DFN,0),U)
  Q
 P ;
- S APCRSORV=$P(APCLY,U,5)
+ S APCRSORV=$P(APCRY,U,5)
  Q
 R ;
- S APCRSORV=$P($P(APCLY,U,2),";")_"  "_$P($P(APCLY,U,2),";",2)
+ S APCRSORV=$P($P(APCRY,U,2),";")_"  "_$P($P(APCRY,U,2),";",2)
  Q
 D ;
- S APCRSORV=$P(APCLY,U,1)
+ S APCRSORV=$P(APCRY,U,1)
  Q
-A S APCRSORV=$P(APCLY,U,4)
+A S APCRSORV=$P(APCRY,U,4)
  Q
 G ;
- S APCRSORV=$P(APCLY,U,3)
+ S APCRSORV=$P(APCRY,U,3)
  Q
 C ;
- S APCRSORV=$P(APCLY,U,6)
+ S APCRSORV=$P(APCRY,U,6)
  Q
 T ;
  S %=$$HRN^AUPNPAT(DFN,DUZ(2))
@@ -149,7 +149,7 @@ COVPAGE ;EP
 SHOW ;
  W !!?6,"Patient must have had a screening between ",$$FMTE^XLFDT(APCRBD)," and ",$$FMTE^XLFDT(APCRED),!
  ;W:APCRTYPE="S" !!?6,"Search Template: ",$P(^DIBT(APCRSEAT,0),U),!
- W !?6,"Gender:  ",$S(APCRSEX="F":"FEMALES ONLY",APCRSEX="M":"MALES ONLY",APCRSEX="MF":"Both MALES and FEMALES",1:"")
+ W !?6,"Gender:  ",$S(APCRSEX="F":"FEMALES ONLY",APCRSEX="M":"MALES ONLY",APCRSEX="U":"UNKNOWN",APCRSEX="MFU":"ALL GENDERS",1:"")
  I $D(APCRAGET) W !?6,"Age of Patients included: ",$P(APCRAGET,"-")," to ",$P(APCRAGET,"-",2)
  I '$D(APCRAGET) W !?6,"All Ages included"
  W !?6,"Patients must have had a screening during the time period with one of ",!?6,"the following screening results:"

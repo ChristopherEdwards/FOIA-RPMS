@@ -1,5 +1,5 @@
 AMHLEP1 ; IHS/CMI/LAB - DEMO/APPTS ACTION 08 Aug 2007 1:27 PM ;
- ;;4.0;IHS BEHAVIORAL HEALTH;**2,4**;JUN 18, 2010;Build 28
+ ;;4.0;IHS BEHAVIORAL HEALTH;**2,4,5**;JUN 02, 2010;Build 18
  ;
  Q
 OTHER ;EP
@@ -272,7 +272,7 @@ DISPRECS ;display visits for selection by user
  ..I $D(^AUPNPAT($P(AMHR0,U,8),41,DUZ(2))) W ?42,$P(^AUTTLOC(DUZ(2),0),U,7)," ",$P(^AUPNPAT($P(AMHR0,U,8),41,DUZ(2),0),U,2)
  .E  W ?42,"-----"
  .S AMHP=$O(^AMHRPRO("AD",AMHRIEN,0)) I AMHP="" W ?55,"No Problems recorded." Q
- .W ?55,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W:$P(^AMHRPRO(AMHP,0),U,4) ?64,$E($P(^AUTNPOV($P(^AMHRPRO(AMHP,0),U,4),0),U),1,15)
+ .W ?55,$P(^AMHPROB($P(^AMHRPRO(AMHP,0),U),0),U) W ?64,$E($$GET1^DIQ(9002011.01,AMHP,.04),1,15)
  .Q
  Q
  ;

@@ -1,5 +1,5 @@
 AMEREDAU ; IHS/OIT/SCR - 03/25/06 -Primary routine for audit trail of edited ER VISIT fields
- ;;3.0;ER VISIT SYSTEM;**2**;FEB 23, 2009
+ ;;3.0;ER VISIT SYSTEM;**2,6**;MAR 03, 2009;Build 30
  ;
 EDAUDIT(FIELD,OLDVAL,NEWVAL,FLDNAME) ; EP From all AMERED* routines
  ; Provides audit trail interface
@@ -101,9 +101,8 @@ EDDISPL(AMERVAL,AMERTYPE) ; EP from multiple AMERED* routines
   .S AMERNVAL=$P($G(Y),U,2)
   .Q
  I AMERTYPE="C" D  ;CAUSE OF INJURY
-  .;IHS/OIT/SCR use option to 'allow local codes' for this function since default screens valid codes
-  .;S:AMERVAL'="" AMERNVAL=$P($$ICDDX^ICDCODE(+AMERVAL),U,4)
-  .S:AMERVAL'="" AMERNVAL=$P($$ICDDX^ICDCODE(+AMERVAL,,,1),U,4)
+  .;AMER*3.0*6;Changing to ICD9/ICD10 lookup
+  .S:AMERVAL'="" AMERNVAL=$$DX^AMERPOV(+AMERVAL,$G(AMERDA))
   .Q
  I AMERTYPE="Q" D  ;SAFETEY EQUIPMENT
   .S DIC="^AMER(3,"

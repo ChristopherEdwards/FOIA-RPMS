@@ -1,5 +1,5 @@
-PXPXRMI1 ; SLC/PKR - Build indexes for the V files. ;29-Oct-2012 12:16;DU
- ;;1.0;PCE PATIENT CARE ENCOUNTER;**119,1009**;Aug 12, 1996;Build 24
+PXPXRMI1 ; SLC/PKR - Build indexes for the V files. ;28-Apr-2015 14:32;DU
+ ;;1.0;PCE PATIENT CARE ENCOUNTER;**119,1003**;Aug 12, 1996;Build 3
  ;DBIA 4113 supports PXRMSXRM entry points.
  ;DBIA 4114 supports setting and killing ^PXRMINDX
  ;===============================================================
@@ -29,7 +29,8 @@ VCPT ;Build the indexes for V CPT.
  .. S TEXT="Processing entry "_IND
  .. D MES^XPDUTL(TEXT)
  . I IND#10000=0 W "."
- . S TEMP=^AUPNVCPT(DAS,0)
+ . ;IHS/MSC/MGH Put a $G around it p1003
+ . S TEMP=$G(^AUPNVCPT(DAS,0))
  . S CPT=$P(TEMP,U,1)
  . I CPT="" D  Q
  .. S ETEXT=DAS_" missing CPT"
@@ -98,7 +99,8 @@ VHF ;Build the indexes for V HEALTH FACTORS.
  .. S TEXT="Processing entry "_IND
  .. D MES^XPDUTL(TEXT)
  . I IND#10000=0 W "."
- . S TEMP=^AUPNVHF(DAS,0)
+ . ;IHS/MSC/MGH Put a $G around it p1003
+ . S TEMP=$G(^AUPNVHF(DAS,0))
  . S HF=$P(TEMP,U,1)
  . I HF="" D  Q
  .. S ETEXT=DAS_" missing HF"
@@ -172,7 +174,8 @@ VIMM ;Build the indexes for V IMMUNIZATION.
  .. S TEXT="Processing entry "_IND
  .. D MES^XPDUTL(TEXT)
  . I IND#10000=0 W "."
- . S TEMP=^AUPNVIMM(DAS,0)
+ . ;IHS/MSC/MGH Put a $G around it p1003
+ . S TEMP=$G(^AUPNVIMM(DAS,0))
  . S IMM=$P(TEMP,U,1)
  . I IMM="" D  Q
  .. S ETEXT=DAS_" missing immunization"

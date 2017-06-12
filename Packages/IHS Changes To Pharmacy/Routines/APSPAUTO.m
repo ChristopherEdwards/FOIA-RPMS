@@ -1,5 +1,5 @@
-APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;22-Apr-2013 22:12;PLS
- ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008,1013,1014,1015**;Sep 23, 2004;Build 62
+APSPAUTO ;IHS/CIA/PLS - Auto Release Prescription ;27-May-2014 10:23;PLS
+ ;;7.0;IHS PHARMACY MODIFICATIONS;**1002,1006,1008,1013,1014,1015,1017,1018**;Sep 23, 2004;Build 21
  ; This routine contains code from PSODISP and PSODISPS.
  ; Call to OREL^PSOCMOPB was changed to include one parameter.
 AUTOREL ; EP
@@ -18,8 +18,21 @@ AUTOREL ; EP
  ..D:APSPREL AC(1)  ; 1=Don't Print info lines ; Call conditional on AUTORELEASE Flag set to YES
  ..I $G(PSOFROM)'="PARTIAL" D
  ...; IHS/CIA/PLS - 02/02/05 - Added check for prescription status
- ...D:'$$STATCHK^APSPLBL(APSPRXP) CALLPOS^APSPFUNC(APSPRXP,$O(^PSRX(APSPRXP,1,$C(1)),-1),"A")
+ ...;IHS/MSC/PLS - 04/01/2014 - Added check for existing POS entry
+ ...D
+ ....N REF
+ ....S REF=$O(^PSRX(APSPRXP,1,$C(1)),-1)
+ ....Q:$$STATCHK^APSPLBL(APSPRXP)
+ ....Q:$$EXISTPOS(APSPRXP,REF)
+ ....D CALLPOS^APSPFUNC(APSPRXP,REF,"A")
  Q
+ ; Returns presence of Prescription/Refill in Point Of Sale
+EXISTPOS(RXIEN,RFIEN) ;EP-
+ N RES
+ S RES=0
+ I '$$TEST^APSQBRES("ABSPOSRX") D
+ .S RES=$$STATUS59^ABSPOSRX(RXIEN,$G(RFIEN,0))'=""
+ Q RES
 AC(APSPNOP) ; EP - Autorelease prescription
  N DA,DR,DIE,X,X1,X2,Y,CX,PX,REC,DIR,YDT,REC,RDUZ,DIRUT,PSOCPN,PSOCPRX,YY
  N QDRUG,QTY,TYPE,XTYPE,DUOUT,OUT
@@ -61,16 +74,19 @@ BATCH ;
 REF ;release refills and partials
  K LBLP,IFN F XTYPE=1,"P" K IFN D QTY
  S:'XTYPE $P(^PSRX(RXP,"TYPE"),"^")=0
+ D:$G(OUT) ADJEXPDT  ;IHS/MSC/PLS - 07/15/2013
  Q:+$G(OUT)!($G(POERR))
 UPDATE I $G(ISUF) W:'$G(APSPNOP) $C(7),!!?7,"Prescription "_$P(^PSRX(RXP,0),"^")_" - Original Fill on Suspense !",!,$C(7) Q
  ; I +$G(^PSRX(RXP,"IB")) S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  S PSOCPRX=$P(^PSRX(RXP,0),"^") D CP^PSOCP
  ;IHS/MSC/PLS - 10/13/2011
- I 1 D
- .N APSPEXPD,DIE,DA,DR
- .S APSPEXPD=$$EXPDT(RXP,1)
- .I APSPEXPD D
- ..S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
+ ;IHS/MSC/PLS - 07/15/2013 - Changed to new EP
+ ;I 1 D
+ ;.N APSPEXPD,DIE,DA,DR
+ ;.S APSPEXPD=$$EXPDT(RXP,1)
+ ;.I APSPEXPD D
+ ;..S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
+ D ADJEXPDT
  W:'$G(APSPNOP) !?7,"Prescription Number "_$P(^PSRX(RXP,0),"^")_" Released"
  ;initialize bingo board variables
  I $G(LBLP),$P(^PSRX(RXP,0),"^",11)["W" S BINGRO="W",BINGNAM=$P(^PSRX(RXP,0),"^",2),BINGDIV=$P(^PSRX(RXP,2),"^",9)
@@ -98,6 +114,13 @@ QTY S PSOCPN=$P(^PSRX(RXP,0),"^",2),QDRUG=$P(^PSRX(RXP,0),"^",6) K LBLP
  .;initialize bingo board variables
  .I $G(IFN),$P($G(^PSRX(RXP,XTYPE,IFN,0)),"^",2)["W" S BINGRPR="W",BNGPDV=$P(^PSRX(RXP,XTYPE,IFN,0),"^",9),BINGNAM=$P($G(^PSRX(RXP,0)),"^",2)
  K IFN
+ Q
+ADJEXPDT ;EP-
+ ;IHS/MSC/PLS - 10/13/2011
+ N APSPEXPD,DIE,DA,DR
+ S APSPEXPD=$$EXPDT(RXP,1)
+ I APSPEXPD D
+ .S DIE="^PSRX(",DA=RXP,DR="26///"_APSPEXPD D ^DIE
  Q
  ; Return updated expiration date
 EXPDT(RX,AUTO,RDT) ;EP-

@@ -1,5 +1,6 @@
-XPDET ;SFISC/RSD - Input tranforms & help for file 9.6 & 9.7 ;10/19/2002  15:43
- ;;8.0;KERNEL;**15,39,41,44,51,58,66,137,229,393**;Jul 10, 1995;Build 12
+XPDET ;SFISC/RSD - Input tranforms & help for file 9.6 & 9.7 ;10/19/2002
+ ;;8.0;KERNEL;**15,39,41,44,51,58,66,137,229,393,539**;Jul 10, 1995;Build 15
+ ;Per VHA Directive 2004-038, this routine should not be modified.
  Q
 INPUTB(X) ;input tranfrom for NAME in BUILD file
  ;X=user input
@@ -98,7 +99,7 @@ SCRA(Y) ;screen of ACTION field in ENTRIES multiple in KERNEL FILES multiple, Y=
  Q:D1'=19&(D1'=101) 0
  ;only Options and Protocol can disable
  Q:Y=5 1
- N FGR,X,XPDF,XPDT,XPDZ
+ N FGR,X,XPDF,XPDT,XPDY,XPDZ
  ;get X=name, FGR=global reference, XPDF=file #
  S XPDY=Y,XPDF=D1,X=$P(^XPD(9.6,D0,"KRN",D1,"NM",D2,0),U),FGR=$$FILE^XPDV(D1)
  Q:X="" 0
@@ -178,14 +179,15 @@ ID97 ;identifier for Install file
  D
  .;Loaded, get DATE LOADED
  .I 'XPD9 S XPD=$$FMTE^XLFDT($P(XPD0,U,3),2) Q
- .Q:XPD9>3
+ .Q:XPD9>4
  .;Started, get INSTALL START TIME
  .I XPD9=2 S XPD=$$FMTE^XLFDT($P(XPD1,U),2) Q
- .;Completed, get INSTALL COMPLETE TIME
- .I XPD9=3 S XPD=$$FMTE^XLFDT($P(XPD1,U,3),2) Q
+ .;Completed or De-Installed, get INSTALL COMPLETE TIME
+ .I XPD9>2 S XPD=$$FMTE^XLFDT($P(XPD1,U,3),2) Q
  .;Queued, get QUEUED TASK NUMBER
  .I XPD9=1 S XPD="#"_$P(XPD0,U,6) Q
- S XPDET(1)="   "_$$EXTERNAL^DILFD(9.7,.02,"",XPD9)_"  "_XPD,XPDET(1,"F")="?0"
+ ;S XPDET(1)="   "_$$EXTERNAL^DILFD(9.7,.02,"",XPD9)_"  "_XPD,XPDET(1,"F")="?0"
+ S XPDET(1)="  "_XPD,XPDET(1,"F")="?0"
  S:XPD2]"" XPDET(2)="=> "_$E(XPD2,1,70),XPDET(2,"F")="!?5"
  D EN^DDIOL(.XPDET)
  Q
@@ -202,3 +204,4 @@ PAR964 ;Clear other fields if file is partial.  Called from within form
  D PUT^DDSVAL(DIE,.DA,222.9,"n","","I") ;User Override
  D PUT^DDSVAL(DIE,.DA,224,"","","I") ;Data Screen
  Q
+ ;

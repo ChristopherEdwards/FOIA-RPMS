@@ -1,5 +1,5 @@
-GMRCUTL1 ;SLC/DCM,JFR,MA - General Utilities ;10/15/02  11:49
- ;;3.0;CONSULT/REQUEST TRACKING;**1,4,12,15,21,17,28**;DEC 27, 1997
+GMRCUTL1 ;SLC/DCM,JFR,MA - General Utilities ;12-Feb-2015 15:20;DU
+ ;;3.0;CONSULT/REQUEST TRACKING;**1,4,12,15,21,17,28,1004,1005**;DEC 27, 1997;Build 2
  ;
  ; This routine invokes IA #2876,3121
  ; Patch #21 added variable GMRCAUDT and moved line tag PRNTAUDT
@@ -40,11 +40,14 @@ PROVDX(OI) ;return PROV DX prompting info from 123.5
  Q:'+$G(OI) "^"
  S GMRCFIL=$S(OI["99PRC":123.3,1:123.5)
  Q:'$D(^GMR(GMRCFIL,+OI)) "^"
- N STRING,NODE
+ N STRING,NODE,DATA
  I GMRCFIL=123.3 S NODE=$P(^GMR(123.3,+OI,0),U,7,8)
  I GMRCFIL=123.5 S NODE=$P($G(^GMR(123.5,+OI,1)),U,1,2)
- I NODE="" Q "O^F" ;values not set
- S $P(STRING,U)=$S($L($P(NODE,U)):$P(NODE,U),1:"O")
+ ;IHS/MSC/MGH patch 1005 check for parameter being turned off
+ D GETPAR^CIAVMRPC(.DATA,"BEHOORPA CLINICAL INDICATOR","ALL","CONSULT/REQUEST TRACKING")
+ I DATA=0 Q "O^F"  ;Parameter is not turned on
+ I NODE="" Q "R^F" ;values not set
+ S $P(STRING,U)=$S($L($P(NODE,U)):$P(NODE,U),1:"R")
  S $P(STRING,U,2)=$S($L($P(NODE,U,2)):$P(NODE,U,2),1:"F")
  Q STRING
 ORIFN(GMRC123) ;return ORIFN associated with give record in ^GMR(123,
@@ -54,7 +57,7 @@ GETDT(PROMPT,DEFAULT) ;prompt and return FM date
  ;Input:
  ;  PROMPT  = text of prompt - DIR("A")          (optional)
  ;  DEFAULT = default date to prompt - DIR("B")  (optional)
- ; 
+ ;
  ;Output:
  ; FM date/time if successfully answered, "^" if exit or timeout
  N DIR,DIRUT,DIROUT,DTOUT,DUOUT,X,Y
@@ -96,8 +99,8 @@ LOCKREC(GMRCDA) ;attempt to lock a consult record using order or record
  ; Input:
  ;   GMRCDA  = ien of consult record from file 123
  ;
- ; Output: 
- ;     1 or 0^reason can't be locked  
+ ; Output:
+ ;     1 or 0^reason can't be locked
  ;          1 = successfully locked
  ;          0 = couldn't be locked
  N GMRCORD,GMRCMSG

@@ -1,6 +1,5 @@
-LRWU4 ;DALOI/RWF - READ ACCESSION ;2/7/91  14:49
- ;;5.2T9;LR;**1018**;Nov 17, 2004
- ;;5.2;LAB SERVICE;**128,153,201,271**;Sep 27, 1994
+LRWU4 ;VA/DALOI/RWF - READ ACCESSION ; 13-Aug-2013 09:14 ; MKK
+ ;;5.2;LAB SERVICE;**1006,1013,128,153,201,271,1018,402,1033**;NOV 01, 1997
  ;
  ; Reference to ^DISV("LRACC") global supported by DBIA #510
  ;
@@ -24,6 +23,7 @@ AA ;
  D ^DIR
  I Y=""!$D(DIRUT) D QUIT Q
  S LRX=Y
+ S BLRLRAS=$G(X)
  ;
  S:$L(LRX)>2 ^DISV(DUZ,"LRACC")=LRX
  S:LRX=" " LRX=$S($D(^DISV(DUZ,"LRACC")):^("LRACC"),1:"?")
@@ -39,6 +39,7 @@ AA ;
  S LRAA=$O(^LRO(68,"B",X1,0))
  I LRAA<1 D WLQUES Q:LRAA<1
  S %=$P(^LRO(68,LRAA,0),U,14)
+ S %=$$LKUP^XPDKEY(%)
  I $L(%),'$D(^XUSEC(%,DUZ)) D WLQUES Q:LRAA<1
  ;
  S LRX=$G(^LRO(68,LRAA,0)),LRIDIV=$S($L($P(LRX,U,19)):$P(LRX,U,19),1:"CP")
@@ -55,7 +56,7 @@ AA ;
  I LRQUIT Q
  ;
  ; Convert middle value to FileMan date
- ; Adjust for monthly and quarterly formats (MM00) if user enters 4 digit 
+ ; Adjust for monthly and quarterly formats (MM00) if user enters 4 digit
  ; number as middle part of accession then convert to appropriate date.
  I LRAD<1 D
  . N %DT
@@ -122,7 +123,7 @@ QUES ;
 WLQUES ; Ask user if acession area enter does not match any existing entries
  N DIC,X
  S X=X1,DIC="^LRO(68,",DIC(0)="EMOQ"
- S DIC("S")="Q:$D(LREXMPT)  S %=$P(^(0),U,14) X ""I '$L(%)"" Q:$T  S %=$P(^DIC(19.1,%,0),U,1) I $D(^XUSEC(%,DUZ))"
+ S DIC("S")="Q:$D(LREXMPT)  S %=$P(^(0),U,14) X ""I '$L(%)"" Q:$T  S %=$$LKUP^XPDKEY(%) I $D(^XUSEC(%,DUZ))"
  W !,X
  D ^DIC S LRAA=+Y
  Q

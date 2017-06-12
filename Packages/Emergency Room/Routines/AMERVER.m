@@ -1,0 +1,117 @@
+AMERVER ; IHS/GDIT/BEE - Save record to V EMERGENCY VISIT RECORD ;  
+ ;;3.0;ER VISIT SYSTEM;**8**;MAR 03, 2009;Build 23
+ ;
+VER(AMERDFN,AMERPCC) ;Create/Update V EMERGENCY VISIT RECORD entry
+ ;
+ I $G(AMERDFN)="" Q
+ ;
+ ;If no VIEN, try to retrieve it
+ I $G(AMERPCC)="" D  Q:AMERPCC=""
+ . S AMERPCC=$$GET1^DIQ(9009081,AMERDFN_",",1.1,"I")
+ ;
+ NEW ERIEN,ERVIEN,%,VERUPD,ERROR,AUPNVSIT
+ ;
+ D NOW^%DTC
+ ;
+ ;Look for existing entry
+ S ERIEN=$O(^AUPNVER("AD",AMERPCC,""))
+ ;
+ ;If no entry create new one
+ I ERIEN="" D  Q:ERIEN=""
+ . ;
+ . NEW DIC,DLAYGO,X,Y
+ . ;
+ . S DIC(0)="L",DIC="^AUPNVER("
+ . S DLAYGO="9000010.29"
+ . S X="IHS-114 ER"
+ . K DO,DD D FILE^DICN
+ . I +Y<0 Q
+ . S ERIEN=+Y
+ . ;
+ . ;Now enter initial fields
+ . S VERUPD(9000010.29,ERIEN_",",.02)=AMERDFN  ;PATIENT NAME
+ . S VERUPD(9000010.29,ERIEN_",",.03)=AMERPCC   ;VISIT
+ . S VERUPD(9000010.29,ERIEN_",",1216)=%  ;DATE ENTERED
+ . S VERUPD(9000010.29,ERIEN_",",1217)=DUZ  ;ENTERED BY
+ ;
+ ;Update Modified By/Date
+ S VERUPD(9000010.29,ERIEN_",",1218)=%  ;DATE MODIFIED
+ S VERUPD(9000010.29,ERIEN_",",1219)=DUZ  ;LAST MODIFIED BY
+ ;
+ ;Pull from ER VISIT file if available
+ S ERVIEN=$O(^AMERVSIT("AD",AMERPCC,""))
+ I ERVIEN]"" D
+ . NEW URG,MOT,MOA,ENTBY,DIS,DISP,DISDT
+ . ;
+ . ;Urgency
+ . S URG=$$GET1^DIQ(9009080,ERVIEN_",",.24,"I")  ;INITIAL ACUITY
+ . S URG=$S(URG=1:"R",URG=2:"E",URG=3:"U",URG=4:"L",URG=5:"N",1:"@")
+ . S VERUPD(9000010.29,ERIEN_",",.04)=URG
+ . ;
+ . ;Method of Transport
+ . S (ENTBY,MOA)="",MOT=$$GET1^DIQ(9009080,ERVIEN_",",".25","I") I MOT'="" D
+ .. ;
+ .. ;MEANS OF ARRIVAL
+ .. S MOT=$$GET1^DIQ(9009083,MOT_",",".01","E")
+ .. I MOT["WALK" S MOA="W"
+ .. I MOT["AMBULANCE" S MOA="A"
+ .. S:MOA="" MOA="O"
+ .. ;
+ .. ;ENTERED ER BY
+ .. I MOT["AMBULANCE" S ENTBY="A"
+ .. I MOT["WHEEL" S ENTBY="W"
+ .. I MOT["STRET"  S ENTBY="S"
+ .. ;
+ .. S VERUPD(9000010.29,ERIEN_",",.05)=$S(MOA]"":MOA,1:"@")  ;MEANS OF ARRIVAL
+ .. S VERUPD(9000010.29,ERIEN_",",.07)=$S(ENTBY]"":ENTBY,1:"@")  ;ENTERED ER BY
+ . ;
+ . ;DISPOSITION OF CARE
+ . S DIS="",DISP=$$GET1^DIQ(9009080,ERVIEN_",","6.1","I") I DISP'="" D
+ .. S DISP=$$GET1^DIQ(9009083,DISP_",",".01","E")
+ .. I DISP["HOME" S DIS="D"
+ .. I DISP["TRANS" S DIS="T"
+ .. I DISP["ADMIT" S DIS="A"
+ .. I DISP["LEFT" S DIS="1"
+ .. I DISP["REGIS" S DIS="O"
+ .. I DISP["EXPIRED" S DIS="E"
+ .. I DISP["DEA" S DIS="E"
+ .. I DISP]"",DIS="" S DIS="O"
+ .. S VERUPD(9000010.29,ERIEN_",",.11)=$S(DIS]"":DIS,1:"@")
+ . ;
+ . ;DEPARTURE DATE&TIME
+ . S DISDT=$$GET1^DIQ(9009080,ERVIEN_",","6.2","I")
+ . S VERUPD(9000010.29,ERIEN_",",".13")=$S(DISDT]"":DISDT,1:"@")
+ ;
+ ;Pull from ER ADMISSION if no ER VISIT entry
+ I ERVIEN="" D
+ . NEW URG,MOT,MOA,ENTBY
+ . ;
+ . ;Urgency
+ . S URG=$$GET1^DIQ(9009081,AMERDFN_",",20,"I")  ;INITIAL ACUITY
+ . S URG=$S(URG=1:"R",URG=2:"E",URG=3:"U",URG=4:"L",URG=5:"N",1:"@")
+ . S VERUPD(9000010.29,ERIEN_",",.04)=URG
+ . ;
+ . ;Method of Transport
+ . S (ENTBY,MOA)="",MOT=$$GET1^DIQ(9009081,AMERDFN_",","6","I") I MOT'="" D
+ .. ;
+ .. ;Means of Arrival
+ .. S MOT=$$GET1^DIQ(9009083,MOT_",",".01","E")
+ .. I MOT["WALK" S MOA="W"
+ .. I MOT["AMBULANCE" S MOA="A"
+ .. S:MOA="" MOA="O"
+ .. ;
+ .. ;Entered ER By
+ .. I MOT["AMBULANCE" S ENTBY="A"
+ .. I MOT["WHEEL" S ENTBY="W"
+ .. I MOT["STRET"  S ENTBY="S"
+ .. ;
+ .. S VERUPD(9000010.29,ERIEN_",",.05)=$S(MOA]"":MOA,1:"@")  ;MEANS OF ARRIVAL
+ .. S VERUPD(9000010.29,ERIEN_",",.07)=$S(ENTBY]"":ENTBY,1:"@")  ;ENTERED ER BY
+ ;
+ ;File the entry
+ D FILE^DIE("","VERUPD","ERROR")
+ ;
+ ;Mark the visit as being modified
+ NEW D S AUPNVSIT=AMERPCC D MOD^AUPNVSIT K D
+ ;
+ Q

@@ -1,5 +1,5 @@
 AUPNLK2 ; IHS/CMI/LAB - IHS PATIENT LOOKUP ADD NEW PATIENT ; [ 11/02/2006  9:48 AM ]
- ;;99.1;IHS DICTIONARIES (PATIENT);**14,15,17**;MAR 09, 1999
+ ;;99.1;IHS DICTIONARIES (PATIENT);**14,15,17**;MAR 09, 1999;Build 9
  ;'Modified' MAS Patient Look-up Add New Patient, June 1987
  ;
  ; Upon exiting this routine AUPDFN will be set as follows:

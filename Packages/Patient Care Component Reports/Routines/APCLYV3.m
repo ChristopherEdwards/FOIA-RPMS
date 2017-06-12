@@ -1,5 +1,5 @@
 APCLYV3 ; IHS/CMI/LAB - CLINIC VISITS BY DATE RANGE WITH POV ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;This report is to be used to list visits by clinic
  ;
  W:$D(IOF) @IOF W !!?20,"LISTING OF CLINIC VISITS WITH ICD CODES",!!
@@ -24,15 +24,29 @@ CLINIC ;
  G CLINIC:Y<1 S APCLCL=+Y
 ICD ;
  W !!
+ K APCLARR,APCLARRC
  S DIR(0)="S^1:Print all Visits;2:Print Visits for a range of POV ICD codes;3:Print Visits for a range of Procedure ICD codes",DIR("A")="     Which visits should be printed" D ^DIR K DIR S:$D(DUOUT) DIRUT=1
  G:$D(DIRUT) CLINIC
  S APCLICD=Y
  I APCLICD=1 S (APCLBICD,APCLEICD)="" G LOC
-LKUP K DIC S DIC=$S(APCLICD=2:80,1:80.1) S DIC(0)="AEMQZ"
- S DIC("A")="Enter the beginning ICD code: " D ^DIC G ICD:Y<1
- S APCLBICD=$P(Y(0),"^"),DIC("A")="Enter the ending ICD code: " D ^DIC
+LKUP ;
+ ;GET CODING SYSTEM FIRST
+ S APCDSYS=""
+ W !,"You must enter the coding system from which you want to enter a code,",!,"or range of codes.",!
+ K DIC S DIC="^ICDS(",DIC("S")="I $P(^(0),U,3)="_$S(APCLICD=2:80,1:80.1)_"",DIC(0)="AEMQ" D ^DIC K DIC
+ I Y=-1 G ICD
+ S APCLSYS=+Y
+ K DIC S DIC=$S(APCLICD=2:80,1:80.1) S DIC(0)="AEMQZ"
+ S DIC("A")="Enter the beginning ICD code: ",ICDSYS=APCLSYS D ^DIC G ICD:Y<1
+ S APCLBICD=$P(Y(0),"^"),DIC("A")="Enter the ending ICD code: ",ICDSYS=APCLSYS D ^DIC
  G ICD:Y<1 S APCLEICD=$P(Y(0),"^")
- I APCLEICD<APCLBICD W $C(7),!,"Ending code must be greater than or equal to beginning code" G LKUP
+ ;I APCLEICD<APCLBICD W $C(7),!,"Ending code must be greater than or equal to beginning code" G LKUP
+ K APCLARR,APCLARRC
+ D LST^ATXAPI(APCLSYS,$S(APCLICD=2:80,1:80.1),APCLBICD_"-"_APCLEICD,"CODE","APCLARR")
+ I $O(APCLARR(""))="" W !!,"Invalid range.  Try again." G LKUP
+ S X="" F  S X=$O(APCLARR(X)) Q:X=""  D
+ .S APCLARRC($P(APCLARR(X),U,1))=""
+ .Q
 LOC ;
  S DIR(0)="YO",DIR("A")="Include visits from ALL Locations",DIR("?")="If you wish to include visits from ALL locations answer Yes.  If you wish to tabulate for only one location of encounter enter NO." D ^DIR K DIR
  G:$D(DIRUT) BD

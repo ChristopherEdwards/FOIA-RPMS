@@ -1,5 +1,5 @@
 ABSPOSH4 ; IHS/FCS/DRS - Parse Claim 5.1,D.0 Response ;    [ 09/04/2002  12:56 PM ]
- ;;1.0;PHARMACY POINT OF SALE;**3,14,36,42,46**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3,14,36,42,46**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Parse ASCII Response Claim Record and Sup FDATA() Array

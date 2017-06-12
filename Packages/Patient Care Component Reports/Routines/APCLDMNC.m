@@ -1,5 +1,5 @@
 APCLDMNC ; IHS/CMI/LAB - is this the first of this diabetes diagnosis? ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11**;MAY 14, 2009;Build 58
  ;
  ;cmi/anch/maw 9/10/2007 code set versioning in DMCOMPL
  ;
@@ -30,7 +30,7 @@ DMCOMPL ;PEP -- called from taxonomy system
  K APCL
  S APCLY="APCL("
  ;S APCLX=APCLDFN_"^FIRST DX "_$P(^ICD9(ATXICD,0),U) S APCLER=$$START1^APCLDF(APCLX,APCLY)  ;cmi/anch/maw 9/10/2007 orig line
- S APCLX=APCLDFN_"^FIRST DX "_$P($$ICDDX^ICDCODE(ATXICD),U,2) S APCLER=$$START1^APCLDF(APCLX,APCLY)  ;cmi/anch/maw 9/10/2007 csv
+ S APCLX=APCLDFN_"^FIRST DX "_$P($$ICDDX^ICDEX(ATXICD),U,2) S APCLER=$$START1^APCLDF(APCLX,APCLY)  ;cmi/anch/maw 9/10/2007 csv
  I APCLER G X2
  S V=+$P($G(APCL(1)),U,4) I V=ATXPOVDA G X2
 X3 S ATXSTOP=1

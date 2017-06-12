@@ -1,8 +1,9 @@
-BGOUTL3 ; IHS/BAO/TMD - Utilities (continued)  ;09-Apr-2012 14:06;DU
- ;;1.1;BGO COMPONENTS;**11**;Mar 20, 2007;Build 3
+BGOUTL3 ; IHS/BAO/TMD - Utilities (continued)  ;11-Jul-2013 13:22;du
+ ;;1.1;BGO COMPONENTS;**11,13**;Mar 20, 2007;Build 13
 GETSET(RET,BGOFILE,BGOFLD,BGOCHK) ;gets set of codes
  ; RET(n)=code^text for code
  N BGOPCC,BGOPCCL,BGOPCCC,BGOLO,BGOHI,BGOPCCD,BGOPCCT
+ S BGOCHK=$G(BGOCHK)
  S BGOLO="abcdefghijklmnopqrstuvwxyz"
  S BGOHI="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
  D FIELD^DID(BGOFILE,BGOFLD,"","POINTER","BGOPCC","BGOPCC")
@@ -24,6 +25,7 @@ CHK(BGOFILE,BGOPCCD,BGOCHK) ;See which codes are acceptable for this file
  .I $D(X) S RET(BGOPCCC)=BGOPCCD_"^"_$E(BGOPCCT)_$TR($E(BGOPCCT,2,99),BGOHI,BGOLO)
  Q
 EXAM ;Check exam codes
+ I X="RF" Q  ;referral good for all exam types
  I X="PA",C'=34 K X Q
  I X="PR",C'=34 K X Q
  I X="PAP",C'=34 K X Q
@@ -31,4 +33,8 @@ EXAM ;Check exam codes
  I X="A",C=35 K X Q
  I X="A",C=36 K X Q
  I X="PO",(C'=35&(C'=36)) K X Q
+ I X="L",(C'=42&(C'=43)) K X Q
+ I X="M",(C'=42&(C'=43)) K X Q
+ I X="H",(C'=42&(C'=43)) K X Q
+ I C=42!(C=43),X'="L",X'="M",X'="H" K X Q
  Q

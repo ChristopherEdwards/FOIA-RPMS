@@ -1,5 +1,5 @@
 BQIDCMPR ;PRXM/HC/ALA-"MY PATIENTS-PRIMARY or PRIMARY/SECONDARY" ; 20 Oct 2005  9:52 AM
- ;;2.1;ICARE MANAGEMENT SYSTEM;;Feb 07, 2011
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
  Q
  ;
@@ -15,7 +15,7 @@ FND(DATA,PARMS,MPARMS,FLAG) ;EP - Find patients
  ;Expected to return DATA
  ;
  NEW IEN,DFN,FDT,TDT,VISIT,VSDTM,Y,X,UID,NM,TMFRAME,PROV
- NEW VISITS,QFL,%DT,VDATA
+ NEW VISITS,QFL,%DT,VDATA,TMN
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQIDCMPR",UID))
  S VDATA=$NA(^TMP("BQIFND",UID))
@@ -27,12 +27,12 @@ FND(DATA,PARMS,MPARMS,FLAG) ;EP - Find patients
  F  S NM=$O(PARMS(NM)) Q:NM=""  S @NM=PARMS(NM)
  ;
  I $G(DT)="" D DT^DICRW
- S FDT=$G(TMFRAME,"")
- I TMFRAME["T-" D
- . S %DT="",X=TMFRAME
- . D ^%DT
- . S FDT=Y
- S TDT=DT
+ ;
+ S TMN=$O(^BQI(90506.9,"B",TMFRAME,""))
+ I TMN="" S FDT="",TDT=""
+ ;
+ S FDT=$P(^BQI(90506.9,TMN,0),U,3),TDT=$P(^BQI(90506.9,TMN,0),U,4)
+ S FDT=$$DATE^BQIUL1(FDT),TDT=$$DATE^BQIUL1(TDT)
  ;
  ;  Go through the V PROVIDER File for the designated provider and
  ;  find out if they are a primary or secondary provider AND if the

@@ -1,5 +1,5 @@
 BSDAIU ; IHS/ANMC/LJF - ADDRESS & INSURANCE UPDATE ; 
- ;;5.3;PIMS;**1007,1010,1012**;APR 26, 2002
+ ;;5.3;PIMS;**1007,1010,1012,1019**;APR 26, 2002;Build 3
  ;
  ;cmi/anch/maw 09/01/2008 PIMS Patch 1010 RQMT33 added number in household and income in DEM
  ;cmi/anch/maw 09/01/2008 PIMS Patch 1010 RQMT6 added mother and fathers employer name
@@ -33,7 +33,7 @@ DEM ;-- print demographics
  W ?30,"HRCN: ",$$HRCN^BDGF2(DFN,+$G(DUZ(2)))            ;chart #
  W ?44,"DOB: ",$$GET1^DIQ(2,DFN,.03)                     ;date of birth
  W ?62,"AGE: ",$$GET1^DIQ(9000001,DFN,1102.98)           ;printable age
- W !,"SSN: ",$$GET1^DIQ(2,DFN,.09)                       ;ssn
+ W !,"SSN: ","XXX-XX-"_$E($$GET1^DIQ(2,DFN,.09),6,9)     ;ssn
  ;
  I $$GET1^DIQ(9000001,DFN,1112)["PENDING" D
  . W !!,$$REPEAT^XLFSTR("*",80)

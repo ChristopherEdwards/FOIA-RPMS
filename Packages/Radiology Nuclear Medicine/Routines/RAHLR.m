@@ -1,5 +1,5 @@
-RAHLR ;HISC/CAH/BNT - Generate Common Order (ORM) Message ;11/10/99  10:42
- ;;5.0;Radiology/Nuclear Medicine;**2,12,10,25,71,82,75,80,84,94**;Mar 16, 1998;Build 9
+RAHLR ;HISC/CAH/BNT - Generate Common Order (ORM) Message ; 06 Oct 2013  11:08 AM
+ ;;5.0;Radiology/Nuclear Medicine;**2,12,10,25,71,82,75,80,84,94,1005**;Mar 16, 1998;Build 13
  ;Generates msg whenever a case is registered or cancelled or examined
  ;              registered        cancelled        examined
  ; Order control : NW                CA               XO
@@ -54,7 +54,11 @@ EN ; Called from the RA REG & RA CANCEL & RA EXAMINED protocols
  ; for an inexact date of birth.  If inexact, pass null for DOB in
  ; the 'PID' segment.  Some COTS systems can't handle inexact DOB's.
  I HL("VER")']"2.2" D
- .S HLA("HLS",1)="PID"_HLFS_HLFS_$G(VA("PID"))_HLFS_$$M11^HLFNC(RADFN)_HLFS_HLFS_$$HLNAME^HLFNC(VADM(1))_HLFS_HLFS_$$HLDATE^HLFNC(RAVADM(3))_HLFS_$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ .;
+ .;IHS/BJI/DAY - Patch 1005 - Gender Fix
+ .;S HLA("HLS",1)="PID"_HLFS_HLFS_$G(VA("PID"))_HLFS_$$M11^HLFNC(RADFN)_HLFS_HLFS_$$HLNAME^HLFNC(VADM(1))_HLFS_HLFS_$$HLDATE^HLFNC(RAVADM(3))_HLFS_$S(VADM(5)]"":$S("MF"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ .S HLA("HLS",1)="PID"_HLFS_HLFS_$G(VA("PID"))_HLFS_$$M11^HLFNC(RADFN)_HLFS_HLFS_$$HLNAME^HLFNC(VADM(1))_HLFS_HLFS_$$HLDATE^HLFNC(RAVADM(3))_HLFS_$S(VADM(5)]"":$S("MFU"[$P(VADM(5),"^"):$P(VADM(5),"^"),1:"O"),1:"U")
+ .;
  .S:$P(VADM(2),"^")]"" $P(HLA("HLS",1),HLFS,20)=$P(VADM(2),"^")
  I HL("VER")]"2.2" S HLA("HLS",1)=$$EN^VAFHLPID(DFN,"2,3,5,7,8,19,20")
  K RAVADM
@@ -127,6 +131,7 @@ ALLER ;Compile 'OBX' Segment for Allergies
  I $L(X) S RAN=RAN+1,HLA("HLS",RAN)="OBX"_HLFS_HLFS_"TX"_HLFS_"A"_$E(HLECH)_"ALLERGIES"_$E(HLECH)_"L"_HLFS_HLFS_X D OBX11^RAHLRU
 OBXTCM ;Compile 'OBX' Segment for Tech Comment
  D OBXTCM^RAHLRU
+ ;
 EXIT ; set HL7 message type & return to protocol
  K ^UTILITY($J,"W")
  S HL("MTN")="ORM"

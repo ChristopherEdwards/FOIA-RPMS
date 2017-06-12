@@ -1,5 +1,5 @@
 ABSPER4A ; IHS/FCS/DRS - JWS 10:29 AM 17 Jul 1996 ;  [ 09/12/2002  10:03 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Pharmacy Claim Rejection Report - CODE 40 - (by Tran Date, Sorted by Insurer)

@@ -1,5 +1,5 @@
 ABSPOSFB ; IHS/FCS/DRS - VMEDS(*) prep for ABSP(*) ;   [ 09/12/2002  10:08 AM ]
- ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;
  ; Copied from routine ABSPOSCB on 03/20/2001.

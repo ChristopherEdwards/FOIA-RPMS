@@ -1,5 +1,5 @@
-BLRRLHL ;cmi/anch/maw - BLR HL7 Utilities for Reference Lab 3/31/2009 9:19:59 AM;JUL 06, 2010 3:14 PM
- ;;5.2;IHS LABORATORY;**1027,1028,1031**;NOV 01, 1997;Build 185
+BLRRLHL ;cmi/anch/maw - BLR HL7 Utilities for Reference Lab ;27-Jul-2015 06:10;MKK
+ ;;5.2;IHS LABORATORY;**1027,1028,1031,1034,1036**;NOV 01, 1997;Build 10
  Q
  ;
 CLIENT N BLRCLCNT
@@ -18,9 +18,9 @@ CLIENT N BLRCLCNT
  . D ^DIR
  . Q:$D(DIRUT)
  . S BLRRL("CLIENT")=$G(BLRCLA(+Y))
- . S BLRRLCLT=BLRRL("CLIENT")
+ S BLRRLCLT=BLRRL("CLIENT")
  I $G(BLRRL("CLIENT"))="" G CLIENT
- S BLRRLCLA=1
+ S BLRRLCLA=BLRRLCLT
  ;cmi/maw 2/25/2008 end of mods for multiple account numbers
  ;cmi/maw 10/31/07 ask what type of billing here
  ;cmi/maw 10/31/07 end of mods
@@ -40,22 +40,29 @@ BILL ;-- this is where we ask billing type
  . Q:$E($G(BLRRLBTP),1,1)'="T"
  . S BLRRL("BILL TYPE")="T"
  . D SETINS
- . D SETDX
+ . ;D SETDX^BLRRLHL2  ;ihs/cmi/maw p1034
  S DIR(0)="S^C:Client;T:Third Party;P:Patient"
  S DIR("A")="Which Party is Responsible for Billing: "
  S DIR("B")=$P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,15)
  D ^DIR
- S BLRRL("BILL TYPE")=Y(0)
+ ; S BLRRL("BILL TYPE")=Y(0)
+ ; I $D(DIRUT) S BLRRL("BILL TYPE")="Client"
+ ; ----- BEGIN IHS/MSC/MKK - LR*5.2*1036
  I $D(DIRUT) S BLRRL("BILL TYPE")="Client"
+ E  S BLRRL("BILL TYPE")=$G(Y(0))
+ ; ----- END IHS/MSC/MKK - LR*5.2*1036
  K DIR
  I $E(BLRRL("BILL TYPE"),1,1)="T" D
  . K DXCNT,INSCNT
  . S DXCNT=1
  . S INSCNT=1
- . D DX(BLRRL("PAT"))
- . D INS(BLRRL("PAT"))
- I $E(BLRRL("BILL TYPE"),1,1)="T",$G(BLRRL("DX"))="" D  G BILL
+ . ;D DX^BLRRLEDI(LRORD)  ;ihs/cmi/maw - LR*5.2*1034
+ . ;D DX2^BLRRLHL2(BLRRL("PAT"))  ;ihs/cmi/maw - LR*5.2*1034
+ . D INS(BLRRL("PAT"),0)
+ ;I $E(BLRRL("BILL TYPE"),1,1)="T",$G(BLRRL("DX"))="" D  G BILL
+ I $E(BLRRL("BILL TYPE"),1,1)="T",'$O(^BLRRLO(BLRO,1,"B",0)) D  G BILL  ;ihs/cmi/maw p1034
  . W !,"You must select an ICD Diagnosis if Bill Type is Third Party"
+ . D DX^BLRRLEDI(LRORD)
  I $E(BLRRL("BILL TYPE"),1,1)="T",$G(BLRRL("INSE"))="" D  G BILL
  . W !,"You must select an Insurer if Bill Type is Third Party"
  I $E(BLRRL("BILL TYPE"),1,1)="P" D PATBILL(BLRTSTDA)
@@ -64,54 +71,24 @@ BILL ;-- this is where we ask billing type
  Q
  ;
 DX(PAT) ;-- get the diagnosis for billing
- K DIC,BLRDXS,BLRADX,BLRDXA
- S BLRADX=1
- S DIC="^ICD9("
- S DIC("S")="I '$P($G(^(0)),U,9)"
- S DIC(0)="AEMQZ",DIC("A")="What is the ICD Diagnosis code for billing: "
- D ^DIC
- I Y<0 D  Q
- . D ADDDX(BLRTSTDA)
- . K BLRADX
- S BLRDXS=$$ICDDX^ICDCODE(+Y)
- I $G(BLRDXA(+Y)) D  G ENDDX
- . W !,"You have already selected this Diagnosis"
- S BLRDXA(+Y)=1
- S BLRDX(DXCNT)=BLRDXS
-SETDX I '$G(BLRADX) D ADDDX(BLRTSTDA) Q
- ;S BLRRL(BLRTSTDA,"DX",DXCNT)=$P(BLRDXS,U,2)
- S BLRRL("DX",DXCNT)=$P(BLRDXS,U,2)
- S BLRRL("DX")=$P(BLRDXS,U,2)
- ;S BLRRL(BLRTSTDA,"DXE",DXCNT)=$P(BLRDXS,U,4)
- S DXCNT=DXCNT+1
-ENDDX D DX(BLRRL("PAT"))
+ D DX2^BLRRLHL2(PAT)    ; IHS/MSC/MKK - LR*5.2*1034
  Q
  ;
-ADDDX(TSTDA) ;-- add the diagnosis to the test since it is not there, this happens when they want all dx for mult accessions
- N TDA
- S TDA=0 F  S TDA=$O(BLRDX(TDA)) Q:'TDA  D
- . N DXS
- . S DXS=$G(BLRDX(TDA))
- . S BLRRL(TSTDA,"DX",TDA)=$P(DXS,U,2)
- . S BLRRL(TSTDA,"DXE",TDA)=$P(DXS,U,4)
- . S BLRRL(TSTDA,"DX")=$P(DXS,U,2)  ;cmi/maw 01/20/2010
- . S BLRRL(TSTDA,"DXE")=$P(DXS,U,4)  ;cmi/maw 01/20/2010
- Q
- ;
-INS(PAT) ;-- lets get a list of selectable insurances for the patient and if set for auto select pick the first one in sequence
+INS(PAT,FLG) ;-- lets get a list of selectable insurances for the patient and if set for auto select pick the first one in sequence
  ;we must also setup the BLRRL insurance array and diagnosis array for GIS
  S DFN=PAT
  D ^AGINS
- I '$D(AGINS(1)) D  Q
- . W !,"Patient has No Insurance on file, changing Bill Type to Patient"
- . S BLRRL("BILL TYPE")="Patient"
+ I '$D(AGINS(1)),$E($G(BLRRL("BILL TYPE")),1,1)="T" D  Q  ;p1034
+ . W !,"Patient has No Insurance on file, changing Bill Type to Client"
+ . S BLRRL("BILL TYPE")="Client"
  . S BLRRL("INSCOV")=BLRRL("BILL TYPE")
  ;W !,"Now Applying Sequenced Insurer to Accession"
  ;cmi/maw 1/22/2010 readded ask of insurance if flag set for no sequencing
  I $P($G(^BLRSITE($S($G(BLRALTDZ):BLRALTDZ,1:DUZ(2)),"RL")),U,21) D  Q  ;get flag for insurance
- . W !,"Now applying Sequenced Insurer to Accession"
+ . I '$G(FLG) W !,"Now applying Sequenced Insurer to Accession"
  . S BLRINS=1
  . D SETINS
+ I $G(FLG) S BLRINS=1 G SETINS
  N BLRRLDA,BLRRLCN
  S BLRRLCN=0
  S BLRRLDA=0 F  S BLRRLDA=$O(AGINS(BLRRLDA)) Q:'BLRRLDA  D
@@ -129,13 +106,14 @@ SETINS I '$G(PAT) S PAT=DFN
  I $G(BLRRL(BLRTSTDA,"CDT")) S BLRRLCDT=BLRRL(BLRTSTDA,"CDT")
  D SEQINS(.AGINS,PAT,$G(BLRRLCDT))
  I '$D(BLRSEQ(1)) D  Q
- . W !,"Patient Insurance has not been Sequenced, changing Bill Type to Patient"
- . S BLRRL("BILL TYPE")="Patient"
+ . W !,"Patient Insurance has not been Sequenced, changing Bill Type to Client"
+ . S BLRRL("BILL TYPE")="Client"
  . S BLRRL("INSCOV")=BLRRL("BILL TYPE")
  K AGINS
  M AGINS=BLRSEQ
  K BLRSEQ
  S BLRINS=1
+ I '$G(FLG) D UPINS^BLRRLEDI(LRORD,LRUID,PAT,$TR(AGINS(BLRINS),"^","~"))   ;ihs/cmi/maw p1034
  S BLRRL(BLRTSTDA,"INSE")=$P(AGINS(BLRINS),U)
  S BLRRL("INSE")=$P(AGINS(BLRINS),U)
  S BLRRL(BLRTSTDA,"INSI")=$P(AGINS(BLRINS),U,2)
@@ -169,7 +147,7 @@ SETINS I '$G(PAT) S PAT=DFN
  . S BLRRL(BLRTSTDA,"INSPHO")=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI"),0)),U,6)
  . S BLRRL(BLRTSTDA,"INSTYP")=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI"),2)),U)
  S BLRRL(BLRTSTDA,"PATADD")=$$PATADD(PAT)
- S BLRRL(BLRTSTDA,"PATADDE")=$TR($P($$PATADD(BLRRL("PAT")),U),U," ")_"~"_$TR($P($$PATADD(BLRRL("PAT")),U,3,99),U," ")
+ S BLRRL(BLRTSTDA,"PATADDE")=$TR($P($$PATADD(PAT),U),U," ")_"~"_$TR($P($$PATADD(PAT),U,3,99),U," ")
  S BLRRL(BLRTSTDA,"INSEMP")=$$GET1^DIQ(2,PAT,.3111)
  S BLRRL(BLRTSTDA,"INSNOI")=$$HLNAME^XLFNAME($P(^DPT(PAT,0),U))
  S BLRRL(BLRTSTDA,"INSNOIE")=$P(^DPT(PAT,0),U)
@@ -183,7 +161,7 @@ SETINS I '$G(PAT) S PAT=DFN
  . D INSTYP(BLRTSTDA)
  . S BLRRL(BLRTSTDA,"GT1ADDE")=$TR($P($G(BLRRL(BLRTSTDA,"GT1ADD")),U),U," ")_"~"_$TR($P($G(BLRRL(BLRTSTDA,"GT1ADD")),U,3,99),U," ")
  . S BLRRL(BLRTSTDA,"GT1NME")=$TR($G(BLRRL(BLRTSTDA,"GT1NM")),U," ")
- I BLRRL(BLRTSTDA,"GT1PHI") D
+ I BLRRL(BLRTSTDA,"GT1PHI")]"" D
  . S BLRRL(BLRTSTDA,"GT1NM")=$$HLNAME^XLFNAME($P(^DPT(PAT,0),U))
  . S BLRRL(BLRTSTDA,"GT1ADD")=$$PATADD(PAT)
  . S BLRRL(BLRTSTDA,"GT1PHO")=$P($G(^DPT(PAT,.131)),U)
@@ -251,45 +229,10 @@ GT1ADD(PH) ;-- return insured address
 HL7 ;-- setup hl7 lines
  N HLDA
  S HLDA=0 F  S HLDA=$O(AGINS(HLDA)) Q:'HLDA  D
- . D HLSET(HLDA)
+ . ; D HLSET(HLDA)
+ . D HLSET^BLRRLHL2(HLDA)    ; IHS/MSC/MKK - LR*5.2*1034
  Q
  ;
-HLSET(BLRINS) ;-- setup hl7 variables
- S INSCNT=BLRINS
- S BLRRL(BLRTSTDA,"INSE",INSCNT)=$P(AGINS(BLRINS),U)
- S BLRRL("INSE",INSCNT)=$P(AGINS(BLRINS),U)
- S BLRRL(BLRTSTDA,"INSI",INSCNT)=$P(AGINS(BLRINS),U,2)
- ;S BLRRL(BLRTSTDA,"INSCOV")=$P(AGINS(BLRINS),U,4)
- S BLRRL(BLRTSTDA,"INSCOV",INSCNT)=$E($G(BLRRL("BILL TYPE")),1,1)
- S BLRRL(BLRTSTDA,"INSPH",INSCNT)=$P(AGINS(BLRINS),U,7)
- S BLRRL(BLRTSTDA,"INSGRP",INSCNT)=$P(AGINS(BLRINS),U,20)
- S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S($P(AGINS(BLRINS),U,16):$P($G(^AUTTRLSH($P(AGINS(BLRINS),U,16),0)),U),1:"")
- S BLRRL(BLRTSTDA,"INSRELE",INSCNT)=BLRRL(BLRTSTDA,"INSREL",INSCNT)
- I $G(BLRRL(BLRTSTDA,"INSREL",INSCNT))]"" D
- . I BLRRL(BLRTSTDA,"INSREL",INSCNT)="SELF" S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":2,1:1) Q
- . I BLRRL(BLRTSTDA,"INSREL",INSCNT)="SPOUSE" S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":2,1:2),BLRRL(BLRTSTDA,"INSRELE",INSCNT)="SPOUSE" Q
- . I BLRRL(BLRTSTDA,"INSREL",INSCNT)="HUSBAND" S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":2,1:2),BLRRL(BLRTSTDA,"INSRELE",INSCNT)="SPOUSE" Q
- . I BLRRL(BLRTSTDA,"INSREL",INSCNT)="WIFE" S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":2,1:2),BLRRL(BLRTSTDA,"INSRELE",INSCNT)="SPOUSE" Q
- . S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":8,1:3),BLRRL(BLRTSTDA,"INSRELE",INSCNT)="OTHER" Q
- I $G(BLRRL(BLRTSTDA,"INSREL",INSCNT))="" S BLRRL(BLRTSTDA,"INSREL",INSCNT)=$S(BLRRL("RLE")["QUEST":1,1:1),BLRRL(BLRTSTDA,"INSRELE",INSCNT)="SELF"
- S BLRRL(BLRTSTDA,"INSPOL",INSCNT)=$P(AGINS(BLRINS),U,9)
- S BLRRL(BLRTSTDA,"INSELG",INSCNT)=$P(AGINS(BLRINS),U,5)
- S BLRRL(BLRTSTDA,"INSEXP",INSCNT)=$P(AGINS(BLRINS),U,6)
- S BLRRL(BLRTSTDA,"INSPLN",INSCNT)=$S(BLRRL(BLRTSTDA,"INSE",INSCNT)["MEDICARE":"MC",BLRRL(BLRTSTDA,"INSE",INSCNT)["MEDICAID":"MD",1:"PI")
- S BLRRL(BLRTSTDA,"INSTYP",INSCNT)=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI",INSCNT),2)),U)
- I BLRRL(BLRTSTDA,"INSI",INSCNT)]"" D
- . S BLRRL(BLRTSTDA,"INSID",INSCNT)=$TR($P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI",INSCNT),2)),U,19),"~")  ;cmi/maw 2/17/2009 changed to piece 10 external group name from external id 2
- . S BLRRL(BLRTSTDA,"INSCNME",INSCNT)=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI",INSCNT),0)),U)  ;insurance company name
- . S BLRRL(BLRTSTDA,"INSADD",INSCNT)=$$INSADD(BLRRL(BLRTSTDA,"INSI",INSCNT))
- . S BLRRL(BLRTSTDA,"INSADDE",INSCNT)=$TR($P(BLRRL(BLRTSTDA,"INSADD",INSCNT),U),U," ")_"~"_$TR($P(BLRRL(BLRTSTDA,"INSADD",INSCNT),U,3,99),U," ")
- . S BLRRL(BLRTSTDA,"INSPHO",INSCNT)=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI"),0)),U,6)
- . S BLRRL(BLRTSTDA,"INSTYP",INSCNT)=$P($G(^AUTNINS(BLRRL(BLRTSTDA,"INSI"),2)),U)
- S BLRRL(BLRTSTDA,"INSEMP",INSCNT)=$$GET1^DIQ(2,PAT,.3111)
- S BLRRL(BLRTSTDA,"INSNOI",INSCNT)=$$HLNAME^XLFNAME($P(^DPT(PAT,0),U))
- S BLRRL(BLRTSTDA,"INSNOIE",INSCNT)=$P(^DPT(PAT,0),U)
- S INSCNT=INSCNT+1
- ;end of hl7 lines
- Q
  ;
 SEQINS(BINS,PT,RLCDT) ;-- lets go through sequencing insurers
  Q:'$O(BINS(""))

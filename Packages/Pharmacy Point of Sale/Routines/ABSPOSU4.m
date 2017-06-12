@@ -1,5 +1,5 @@
 ABSPOSU4 ; IHS/FCS/DRS - copied for POS ;  [ 09/12/2002  10:19 AM ]
-ABSUD004 ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001
+ABSUD004 ;;1.0;PHARMACY POINT OF SALE;**3**;JUN 21, 2001;Build 15
  ;----------------------------------------------------------------------
  ;----------------------------------------------------------------------
  ;Standard List PROMPT:

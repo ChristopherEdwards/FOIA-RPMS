@@ -1,13 +1,12 @@
 BIVISIT ;IHS/CMI/MWR - ADD/EDIT IMM/SKIN VISITS.; MAY 10, 2010
- ;;8.5;IMMUNIZATION;**9**;OCT 01,2014
+ ;;8.5;IMMUNIZATION;**10**;MAY 30,2015
  ;;* MICHAEL REMILLARD, DDS * CIMARRON MEDICAL INFORMATICS, FOR IHS *
  ;;  CODE TO ADD V IMMUNIZATION AND V SKIN TEST VISITS.  CALLED BY BIRPC3.
- ;;  PATCH 3: Set DATE/TIME LAST MODIFIED  VFILE+155, +192
  ;;  PATCH 5: Added BINOM parameter to ADDEDIT P.E.P. for Visit Selection Menu. ADDV+0
  ;;           Added Admin Note, piece 27.  PARSE+36,+66, ADDV+16, VFILE+13,+184
- ;;           Moved TRIGADD to rtn BIVISIT2 for RSIZE.  TRIGADD+0
  ;;  PATCH 9: Added save of Admin Date and VIS Presented Date.  VFILE+200
  ;;           If >19yrs on date of immunization and Elig="", set Elig-V01.  VFILE+188
+ ;;  PATCH 10: Added save of Skin Test Lot Number.  VFILE+143
  ;
  ;
  ;----------
@@ -54,6 +53,9 @@ PARSE(Y,Z) ;EP
  ;    28 - BIADMIN (opt) Admin Date (Date shot admin'd to patient.
  ;    29 - BIVPRES (opt) Date VIS Presented to Patient.
  ;
+ ;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI/MWR
+ ;    30 - BILOTSK (opt) Skin Test Lot Number.
+ ;
  N V S V="|"
  ;
  S BIVTYPE=$P(Y,V,1)
@@ -71,7 +73,7 @@ PARSE(Y,Z) ;EP
  S BIREA=$P(Y,V,13)
  S BIDTR=$P(Y,V,14) S:BIDTR<1 BIDTR=""
  S BIREC=$P(Y,V,15)
- S BIVFC=$P(Y,V,16)  ;vvv83
+ S BIVFC=$P(Y,V,16)
  S BIVISD=$P(Y,V,17)
  S BIPROV=$P(Y,V,18)
  S BIOVRD=$P(Y,V,19)
@@ -85,6 +87,7 @@ PARSE(Y,Z) ;EP
  S BIANOT=$P(Y,V,27)
  S BIADMIN=$P(Y,V,28)
  S BIVPRES=$P(Y,V,29)
+ S BILOTSK=$P(Y,V,30)
  ;**********
  Q
  ;
@@ -108,7 +111,7 @@ ADDV(BIERR,BIDATA,BIOIEN,BINOM) ;EP
  ;
  N BIVTYPE,BIDFN,BIPTR,BIDOSE,BILOT,BIDATE,BILOC,BIOLOC,BICAT,BIVSIT
  N BIOIEN,BIRES,BIREA,BIDTR,BIREC,BIVISD,BIPROV,BIOVRD,BIINJS,BIVOL
- N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT
+ N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT,BILOTSK
  ;
  ;---> See BIDATA definition at linelabel PARSE.
  D PARSE(BIDATA)
@@ -142,7 +145,6 @@ ADDV(BIERR,BIDATA,BIOIEN,BINOM) ;EP
  ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
  ;---> Added BINOM parameter to control Visit Menu display.
  S:($G(BINOM)="") BINOM=0
- ;D VISIT^BIVISIT1(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,.BIVSIT,.BIERR)
  D VISIT^BIVISIT1(BIDFN,BIDATE,BICAT,BILOC,BIOLOC,BISITE,.BIVSIT,.BIERR,BINOM)
  ;**********
  Q:BIERR
@@ -174,7 +176,7 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  ;
  N BIVTYPE,BIDFN,BIPTR,BIDOSE,BILOT,BIDATE,BILOC,BIOLOC,BICAT
  N BIOIEN,BIRES,BIREA,BIDTR,BIREC,BIVISD,BIPROV,BIOVRD,BIINJS,BIVOL
- N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT
+ N BIREDR,BISITE,BICCPT,BIMPRT,BIANOT,BILOTSK
  ;
  ;---> See BIDATA definition at linelabel PARSE (above).
  D PARSE(BIDATA,1)
@@ -234,7 +236,7 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  .;
  .;---> Lot Number IEN for this immunization.
  .S:'$G(BILOT) BILOT=""
- .;---> Lot Number passed to PCC more reliably if prepend "`". ;MWRZZZ 10/30/06
+ .;---> Lot Number passed to PCC more reliably if prepend "`".
  .;---> Imm v8.5: Handle Lot Number below
  .;S:BILOT BILOT="`"_BILOT
  .;S APCDALVR("APCDTLOT")=BILOT
@@ -246,7 +248,7 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  .;---> Immunization Provider ("Shot giver").
  .S:$G(BIPROV) APCDALVR("APCDTEPR")="`"_BIPROV
  .;
- .;---> User who last edited this Immunization.  ;MWR New for v8.2.
+ .;---> User who last edited this Immunization.
  .S:$G(DUZ) APCDALVR("APCDTULU")="`"_DUZ
  .;
  .;---> Template to add encounter to V IMMUNIZATION File.
@@ -303,6 +305,10 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  .;---> Store Additional data.
  .N BIFLD
  .S BIFLD(.08)=BIREDR,BIFLD(.09)=BIINJS,BIFLD(.11)=BIVOL
+ .;
+ .;********** PATCH 10, v8.5, MAY 30,2015, IHS/CMI
+ .;---> BILOTSK (opt) Skin Test Lot Number.
+ .S BIFLD(.14)=BILOTSK
  .;
  .;---> Set DATE/TIME LAST MODIFIED, per Lori Butcher, 5/26/12
  .S:$G(BIOIEN) BIFLD(1218)=$$NOW^XLFDT
@@ -397,14 +403,11 @@ VFILE(BIVSIT,BIDATA,BIERR) ;EP
  Q
  ;
  ;
- ;********** PATCH 5, v8.5, JUL 01,2013, IHS/CMI/MWR
- ;---> Moved TRIGADD to rtn BIVISIT2 for RSIZE.
  ;----------
 TRIGADD ;EP
  ;---> Immunization Added Trigger Event call to Protocol File.
  D TRIGADD^BIVISIT2
  Q
- ;**********
  ;
  ;
  ;----------

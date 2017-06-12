@@ -1,20 +1,21 @@
 BQIMUUSR ;VNGT/HS/BEE-MU User Prefs ; 10 Aug 2011  10:52 AM
- ;;2.3;ICARE MANAGEMENT SYSTEM;;Apr 18, 2012;Build 59
- ;
+ ;;2.3;ICARE MANAGEMENT SYSTEM;**3,4**;Apr 18, 2012;Build 66
  ;
 RET(DATA,TYPE) ; EP -- BQI GET MU PREFS
  ;Description
  ;  Retrieve the MU Preferences for an owner
  ;  
  ;Input
- ;  TYPE - PCQ - Providers CQ)
+ ;  TYPE - Type to return (P-Providers, H-Hospitals, HCQ - Hospitals CQ, PCQ - Providers CQ,
+ ;                         ACD-CQ by Division, APD-Performance by Division)
+ ;                        (If no type, return all)
  ;Output
  ;  DATA  - name of global (passed by reference) in which the data
  ;          is stored
  ;Assumes
  ;  DUZ - User who signed onto iCare
  ;
- NEW UID,II,PARMS,TYP,MIEN
+ NEW UID,II,PARMS,TYP
  S UID=$S($G(ZTSK):"Z"_ZTSK,1:$J)
  S DATA=$NA(^TMP("BQIMUUSR",UID))
  K @DATA
@@ -24,16 +25,20 @@ RET(DATA,TYPE) ; EP -- BQI GET MU PREFS
  ;
  S @DATA@(II)="T00001TYPE^T03200PARMS"_$C(30)
  ;
+ ;Return Individual type
  S TYPE=$G(TYPE,"")
+ I TYPE]"" S TYPE(TYPE)=""
  ;
- ;Return Provider CQ Detail
+ ;Return All Types
+ I TYPE="" F TYPE="P","H","HCQ","PCQ","ACD","APD" S TYPE(TYPE)=""
  ;
- S MIEN=0,PARMS=""
- I TYPE=""!(TYPE="PCQ") D
- . S TYP="PCQ"
+ ;Create the records
+ S TYP="" F  S TYP=$O(TYPE(TYP)) Q:TYP=""  D
+ . NEW MIEN
+ . S PARMS=""
  . S MIEN=$O(^BQICARE(DUZ,12,"B",TYP,""))
  . ;
- . ;No preferences on file - use default
+ . ;No preferences on file for type - use default
  . I MIEN="" D  Q
  .. S PARMS=$$DCAT(PARMS)
  .. S II=II+1,@DATA@(II)=TYP_"^"_PARMS_$C(30)
@@ -89,7 +94,9 @@ ERR ;
 UPD(DATA,TYPE,PARMS) ;  EP -- BQI SET MU PREFS
  ;
  ;Input
- ;  TYPE    - PCQ - Providers CQ
+ ;  TYPE - Type to return (P-Providers, H-Hospitals, HCQ - Hospitals CQ, PCQ - Providers CQ,
+ ;                         ACD-CQ by Division, APD-Performance by Division)
+ ;                        (If no type, return all)
  ;  PARMS   - Parameters
  ;Assumes
  ;  DUZ - User who signed onto iCare
@@ -102,6 +109,7 @@ UPD(DATA,TYPE,PARMS) ;  EP -- BQI SET MU PREFS
  S II=0,TYPE=$G(TYPE,"")
  ;
  I TYPE="" S BMXSEC="RPC Failed: No Type of Preferences passed in" Q
+ I TYPE'="P",TYPE'="H",TYPE'="HCQ",TYPE'="PCQ",TYPE'="ACD",TYPE'="APD" S BMXSEC="RPC Failed: Invalid Type of Preferences passed in" Q
  ;
  I $D(PARMS)>10 D
  . NEW LIST,BN,QFL,BQ
@@ -122,7 +130,8 @@ UPD(DATA,TYPE,PARMS) ;  EP -- BQI SET MU PREFS
  ;If no previous, add new entry
  I TYPN="" D
  . NEW DA,DIC,DLAYGO,X,Y
- . S DA(1)=DUZ,X=$S(TYPE="PCQ":"Providers CQ",1:"Providers CQ"),DIC(0)="LNZ",DLAYGO=90505.012
+ . S DA(1)=DUZ,X=TYPE
+ . S DIC(0)="XLNZ",DLAYGO=90505.012
  . I $G(^BQICARE(DUZ,12,0))="" S ^BQICARE(DUZ,12,0)="^90505.012S^^"
  . S DIC="^BQICARE("_DA(1)_",12,"
  . D ^DIC S TYPN=+Y I TYPN=-1 K DO,DD D FILE^DICN S TYPN=+Y
@@ -204,5 +213,6 @@ DCAT(PARMS) ; Set up default return list
  ;
  S PARMS="PREV=Y"_$C(28)_"MENUSET=Y"_$C(28)_"CORE=Y"_$C(28)_"ALT=N"
  S PARMS=PARMS_$C(28)_"MSM=N"_$C(28)_"MEASURE=N"
+ I TYPE="P"!(TYPE="H")!(TYPE="APD") S PARMS=PARMS_$C(28)_"REPORT="_$$CURREP^BQIMUTAB()
  ;
 XDCAT Q PARMS

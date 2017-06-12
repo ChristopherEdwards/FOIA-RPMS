@@ -1,5 +1,5 @@
 TIURD ; SLC/JER - Reassign actions ;4/25/05
- ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109,173,184**;Jun 20, 1997
+ ;;1.0;TEXT INTEGRATION UTILITIES;**4,58,61,100,109,173,184,233**;Jun 20, 1997;Build 3
  ;
  ; Call to $$TIUREAS^MDAPI covered by IA# 3378
  ; $$TIUREAS^MDAPI went out with MD 1.0, which was not mandated, so
@@ -155,8 +155,12 @@ CLAPPLN1(TIUDA) ; Re-link a single record to the client application
  ;
 CANTSURG(TIUDA) ; If TIUDA is surg docmt, write can't do this action and
  ;return 1 for can't do it P184
- N TIUY,CANT S CANT=0
- D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA,0)))
+ N TIUY,CANT,TIUPDA,TIUDA2 S CANT=0,TIUPDA=0,TIUDA2=0
+ ; VMP/RJT - *233 - Do not allow action on addenda of Surgical documents 
+ D
+ . I +$$ISADDNDM^TIULC1(TIUDA) S TIUDA2=+$P($G(^TIU(8925,TIUDA,0)),U,6) Q
+ . S TIUDA2=TIUDA
+ D ISSURG^TIUSROI(.TIUY,+$G(^TIU(8925,TIUDA2,0)))
  I '+TIUY Q CANT
  S CANT=1 W !,"This action is no longer permitted for SURGICAL REPORTS"
  Q CANT

@@ -1,5 +1,5 @@
 ADGCRB5 ; IHS/ADC/PDW/ENM - A SHEET lines 8-11 ;  [ 08/25/2004  11:38 AM ]
- ;;5.3;PIMS;**1001,1008,1009,1010,1016**;APR 26, 2002;Build 20
+ ;;5.3;PIMS;**1001,1008,1009,1010,1016,1017,1019**;APR 26, 2002;Build 3
  ;IHS/ITSC/WAR 8/1/2004 Modified 2nd line to be consistent with version
  ;   number and IHS patch number. Need to copy this routine and rename
  ;  it to match current naming scheme for PIMS. Original 2nd line is 
@@ -26,13 +26,13 @@ VSIT ; -- visit DGFN
  Q
  ;
 VPOV ; -- diagnosis
- N X,Y,Z S X=0 F  S X=$O(^AUPNVPOV("AD",DGVSDA,X)) Q:'X  D
+ N X,Y,Z,DX S X=0 F  S X=$O(^AUPNVPOV("AD",DGVSDA,X)) Q:'X  D
  . Q:'$D(^AUPNVPOV(X,0))  S Y=^(0) Q:'Y!('$D(^ICD9(+Y,0)))
- . ;W !?3,$P(^ICD9(+Y,0),U),?13,$S($P(Y,U,7)=1:"X",1:"")
- . W !?3,$P($$ICDDX^ICDCODE(+Y,0),U,2),?13,$S($P(Y,U,7)=1:"X",1:"")  ;cmi/anch/maw 12/7/2007 csv patch 1008
+ . W !?3,$P($$ICDDX^ICDEX(+Y,0),U,2),?13,$S($P(Y,U,7)=1:"X",1:"")  ;cmi/anch/maw 12/7/2007 csv patch 1008
  . S:$P(Y,U,9)'="" DGPOVDA=X,DGPOVN0=Y
  . Q:'+$P(Y,U,4)!('$D(^AUTNPOV(+$P(Y,U,4),0)))
- . S Z=$P(^AUTNPOV(+$P(Y,U,4),0),U) I $L(Z)<53 W ?27,Z Q
+ . S Z=$$GET1^DIQ(9000010.07,X,.04) I $L(Z)<53 W ?27,Z Q  ;ihs/cmi/maw 08/10/2014 patch 1017
+ . ;S Z=$P(^AUTNPOV(+$P(Y,U,4),0),U) I $L(Z)<53 W ?27,Z Q
  . D WRAP(Z,27,79,"")
  Q
  ;
@@ -44,10 +44,13 @@ H9 ; -- sub heading 9
  W !?3,"Code",?58,"Infec   Date  Phy Code",!,DGLIN1 Q
  ;
 VPRC ; -- procedures
- N DGX,DGY S DGX=0 F  S DGX=$O(^AUPNVPRC("AD",DGVSDA,DGX)) Q:'DGX  D
+ N DGX,DGY,OPI,OP S DGX=0 F  S DGX=$O(^AUPNVPRC("AD",DGVSDA,DGX)) Q:'DGX  D
  . Q:'$D(^AUPNVPRC(DGX,0))  S DGY=^(0) Q:'DGY!('$D(^ICD0(+DGY,0)))
  . ;W !?3,$P(^ICD0(+DGY,0),U)
- . W !?3,$P($$ICDOP^ICDCODE(+DGY),U,2)
+ . S OPI=$$GET1^DIQ(9000010.08,DGX,.01,"I")
+ . S OP=$$ICDOP^ICDEX(OPI,DT,,"I")
+ . W !?3,$P(OP,U,2)
+ . ;W !?3,$P($$ICDOP^ICDCODE(+DGY),U,2)
  . I $P(DGY,U,5)]"" W ?11,$P($G(^ICD9($P(DGY,U,5),0)),U) ;cmi/maw 2/21/2008 PATCH 1009 requirement 57 updated 4/7/2009
  .; S X=$P(DGY,U,5) I X]"" W ?12,$P($G(^ICD9(X,0)),U) ;dx
  . S X=$P(DGY,U,4) I X]"" D  ;prov narr

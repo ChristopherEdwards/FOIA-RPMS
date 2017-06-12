@@ -1,10 +1,16 @@
-RABWORD ;HOIFO/JH&MM - Radiology Billing Awareness ; 20 Apr 2011  7:22 PM
- ;;5.0;Radiology/Nuclear Medicine;**41,57,70,1003**;Nov 01, 2010;Build 3
+RABWORD ;HOIFO/JH&MM - Radiology Billing Awareness ; 04 Apr 2014  6:54 AM
+ ;;5.0;Radiology/Nuclear Medicine;**41,57,70,1003,1006**;Nov 01, 2010;Build 2
  ;
  ; Rtn invokes IA #226-C, #1300-A, #2083, #10082, #2343, #4419
  Q
  ;
 ASK(RADFN,RASDDT) ; Ask ICD DX & SC/EI/MST/HNC questions at time of Order.
+ ;
+ ;IHS/BJI/DAY - Patch 1006 ICD-10
+ ;Do not ask or display Diagnosis
+ Q
+ ;End Patch
+ ;
  ; Called from BAQUES^RAORD1
  Q:'$D(^XUSEC("PROVIDER",DUZ))  ;user provider key check
  ;IHS/BJI/DAY - Patch 1003 - Comment out call to VA's IBB package

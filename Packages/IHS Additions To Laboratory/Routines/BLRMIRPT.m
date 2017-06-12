@@ -1,0 +1,500 @@
+BLRMIRPT ; IHS/MSC/MKK - IHS Lab Micro Report ; 15-Apr-2014 11:42 ; MKK
+ ;;5.2;IHS LABORATORY;**1033**;NOV 01, 1997
+ ;
+EEP ; Ersatz EP
+ D EEP^BLRGMENU
+ Q
+ ;
+PEP ; EP
+EP ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ Q:$$GETLRDFN()="Q"
+ ;
+ W !!
+ ;
+ D B^LRU      ; Get Date Range
+ ;
+ I +$G(LRSDT)<1!(+$G(LRLDT)<1) D BADSTUFF("Quit or Invalid Data. Routine Ends.")  Q
+ ;
+ S LRSIDT=9999999-$$FMADD^XLFDT(LRLDT,1)      ; "Starting" Inverse Date
+ S LREIDT=9999999-LRSDT                       ; "Ending" Inverse Date
+ ;
+ W !!  D HEADONE^BLRGMENU(.HEADONE) W !!      ; Pagination
+ ;
+ D ^%ZIS
+ I POP D BADSTUFF("Open Device Failed.  Routine Ends.")  Q
+ U IO
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," "),LINES=0
+ S LRIDT=LRSIDT,QFLG="NO"
+ F  S LRIDT=$O(^LR(LRDFN,"MI",LRIDT))  Q:LRIDT<1!($P(LRIDT,".")>LREIDT)!(QFLG="Q")  D
+ . D HEADER
+ . D GRAMSTAN(LRDFN,LRIDT)
+ . S ORGL=.9999999,ORGHEAD=0
+ . F  S ORGL=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL))  Q:ORGL<1!(QFLG="Q")  D
+ .. D ORGLINE,DRUGSORT
+ .. W !  S LINES=LINES+1
+ . W !  S LINES=LINES+1
+ . D FOOTER
+ . D:IOST["VT" PRESSKEY^BLRGMENU(9)
+ ;
+ D ^%ZISC
+ ;
+ Q
+ ;
+HEADER ; EP
+ S PATNAME=$$GET1^DIQ(2,DFN,"NAME")
+ S PATDOB=$$GET1^DIQ(2,DFN,"DATE OF BIRTH","I")
+ S:$L(PATDOB) PATDOB=$$FMTE^XLFDT(PATDOB,"5DZ")
+ S DOD=+$$GET1^DIQ(2,DFN,"DATE OF DEATH","I")
+ S:DOD PATDOD=$$FMTE^XLFDT(DOD,"5DZ")
+ S HRCN=$$HRCN^BDGF2(DFN,DUZ(2))
+ ;
+ K HEADER
+ S HEADER(1)="---- MICROBIOLOGY ----"
+ S:'DOD HEADER(2)=PATNAME_"    DOB:"_PATDOB_"    HRCN:"_HRCN
+ S:DOD HEADER(2)=PATNAME_"  DOB:"_PATDOB_"  DIED:"_PATDOD_"  HRCN:"_HRCN
+ S HEADER(3)=" "
+ D INSTDATA(DUZ(2),.STR1,.STR2)
+ S HEADER(4)=$$CJ^XLFSTR("Printed At: "_STR1,IOM)
+ S:$L(STR2) HEADER(5)=$$CJ^XLFSTR(STR2,IOM)
+ ;
+ D HEADERDT^BLRGMENU
+ D DATAHEAD
+ ;
+ W "Accession:",LRAS,?44,"Received:",RECDDATE,!
+ W "Collection Sample:",CSNAME,?44,"Collection Date:",COLLDATE,!
+ W "Site/Specimen:",SSNAME,!,"Provider:",PROVIDER,!
+ W:$L(COMMENT) "Comment on Specimen:",$G(COMMENT),!
+ W !!
+ ;
+ D ORDTESTS
+ Q
+ ;
+DATAHEAD ; EP - Get Data for Header
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,0))
+ S COLLDATE=$$FMTE^XLFDT($P(STR,"^"),"5MZ") ; Collection Date
+ S RECDDATE=$$FMTE^XLFDT($P(STR,"^",10),"5MZ")   ; Received Date
+ S LRAS=$P(STR,"^",6)   ; Accession
+ S SSIEN=+$P(STR,"^",5)
+ S SSNAME=$$GET1^DIQ(61,SSIEN,"NAME")  ; Site/Specimen Name
+ ;
+ S PHYIEN=+$P(STR,"^",7),PROVIDER=$$GET1^DIQ(200,PHYIEN,"NAME")
+ S CSIEN=+$P(STR,"^",11),CSNAME=$$GET1^DIQ(62,CSIEN,"NAME")     ; Collection Sample
+ S COMMENT=$G(^LR(LRDFN,"MI",LRIDT,99))
+ Q
+ ;
+FOOTER ; EP
+ W !,$TR($J("",IOM)," ","-"),!
+ ;
+ S RF=$$GETPERFL()
+ S:RF<1 RF=$G(DUZ(2))
+ ;
+ Q:$$INSTDATA(RF,.STR1,.STR2)="Q"
+ ;
+ W $$CJ^XLFSTR("Performing Laboratory:",IOM),!
+ W "[",RF,"]  ",STR1,!
+ S LINES=LINES+1
+ I $L(STR2)<1 D WRITECC  Q
+ ;
+ W STR2,!
+ S LINES=LINES+1
+ D WRITECC
+ Q
+ ;
+GETPERFL() ; GET PERForming Lab
+ S X=$$GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)
+ S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),LRIDT=$P($G(^(3)),"^",5)
+ ;
+ S RF=+$G(^LR(LRDFN,"MI",LRIDT,"RF"))    ; Reference Lab Node
+ Q:RF RF
+ ;
+ ; Try to get from Organism structure
+ S RF=+$P($G(^LR(LRDFN,"MI",LRIDT,3,1,"IHSOBX")),U,6)     ; Performing Lab
+ Q:RF RF
+ ;
+ S RF=+$P($G(^LR(LRDFN,"MI",LRIDT,0)),U,14)     ; Accessioning Lab
+ Q:RF RF
+ ;
+ ; Try the Accession Division
+ S RF=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,.4))
+ Q RF
+ ;
+WRITECC ; EP - Write County & Country, if they exist
+ NEW COUNTRY,COUNTY,IENS
+ ;
+ S (COUNTY,COUNTRY)=""
+ ;
+ S IENS=LRIDT_","_LRDFN
+ S COUNTY=$$GET1^DIQ(63.05,IENS,9999996),COUNTRY=$$GET1^DIQ(63.05,IENS,9999997)
+ Q:$L(COUNTY)<1&($L(COUNTRY)<1)
+ ;
+ W ?8
+ W:$L(COUNTY) $$LJ^XLFSTR("County:"_COUNTY,15)
+ W:$L(COUNTRY) "Country:",COUNTRY
+ W !
+ S LINES=LINES+1
+ Q
+ ;
+ORDTESTS ; EP - Ordered Tests(s)
+ NEW COMPDATE,F6OIEN,F60DESC,IENSTR,LRAA,LRAD,LRAN,LRAS,TESTS
+ NEW ORG,ORGCOMM,ORGDESC,ORGQUANT,UID
+ ;
+ W $$CJ^XLFSTR("Tests(s) Ordered:",IOM),!!
+ ;
+ S UID=+$G(^LR(LRDFN,"MI",LRIDT,"ORU"))
+ I UID S X=$Q(^LRO(68,"C",UID,0)),LRAA=$QS(X,4),LRAD=$QS(X,5),LRAN=$QS(X,6)
+ I UID<1 D
+ . S LRAS=$P($G(^LR(LRDFN,"MI",LRIDT,0)),"^",6)
+ . D GETACCCP^BLRUTIL3(LRAS,.LRAA,.LRAD,.LRAN)
+ ;
+ S IENSTR=LRAN_","_LRAD_","_LRAA_","
+ S TESTS=.9999999,X=0
+ F  S TESTS=$O(^LRO(68,LRAA,1,LRAD,1,LRAN,4,TESTS))  Q:TESTS<1  D
+ . W ?4,$$GET1^DIQ(60,TESTS,"NAME")
+ . S COMPDATE=$$GET1^DIQ(68.04,TESTS_","_IENSTR,"COMPLETE DATE","I")
+ . W:$L(COMPDATE) ?44,"Completed: ",$TR($$FMTE^XLFDT(COMPDATE,"MZ"),"@"," ")
+ . W !
+ W !
+ S IENSTR=LRIDT_","_LRDFN
+ S BACRPTDA=$$GET1^DIQ(63.05,IENSTR,"BACT RPT DATE APPROVED","I")
+ S BCRPTSTS=$$GET1^DIQ(63.05,IENSTR,"BACT RPT STATUS")
+ S BCRPTDUZ=$$GET1^DIQ(63.05,IENSTR,"BACT PERSON","I")
+ ;
+ W ?4,"BACTERIOLOGY ",BCRPTSTS," => "
+ W $$FMTE^XLFDT(BACRPTDA,"5DZ")
+ W ?59,"TECH CODE:",BCRPTDUZ
+ W !!
+ ;
+ D PRELIM^BLRMIRP2      ; Preliminary Remarks
+ ;
+ D REMARKS
+ ;
+ F  S TESTS=$O(^LR(LRDFN,"MI",LRIDT,26,TESTS))  Q:TESTS<1  D
+ Q
+ ;
+REMARKS ; EP - BACT RPT REMARKS
+ Q:$O(^LR(LRDFN,"MI",LRIDT,4,0))<1
+ ;
+ NEW BACTREM
+ W ?4,"Bacteriology Remark(s):",!
+ S BACTREM=0
+ F  S BACTREM=$O(^LR(LRDFN,"MI",LRIDT,4,BACTREM))  Q:BACTREM<1  W ?9,$G(^(BACTREM,0)),!
+ Q
+ ;
+INSTDATA(INST,STR1,STR2) ; EP
+ NEW ARRAY,ERRS
+ ;
+ ; Use MAILING Address
+ D GETS^DIQ(4,INST,".01;4.01;4.02;4.03;4.04;4.05",,"ARRAY","ERRS")
+ ;
+ Q:$D(ERRS) "Q"
+ ;
+ S RFS=INST_$C(44)
+ ;
+ S NAME=$G(ARRAY(4,RFS,.01))      ; Name
+ S ADDR1=$G(ARRAY(4,RFS,4.01))    ; Street Address 1
+ S:$L($G(ARRAY(4,RFS,4.02))) ADDR2=$G(ARRAY(4,RFS,1.02))   ; Street Address 2
+ S CITY=$G(ARRAY(4,RFS,4.03))     ; City
+ S STATE=$G(ARRAY(4,RFS,4.04))    ; State
+ S ZIP=$G(ARRAY(4,RFS,4.05))      ; Zip
+ ;
+ I $L(ADDR1)<1 D    ; No Address.  Have to try and see if default address entries exist
+ . K ARRAY,ERRS
+ . D GETS^DIQ(4,INST,".01;1.01;1.02;1.03;.02;1.04",,"ARRAY","ERRS")
+ . S NAME=$G(ARRAY(4,RFS,.01))    ; Name
+ . S ADDR1=$G(ARRAY(4,RFS,1.01))  ;  Street Address 1
+ . S:$L($G(ARRAY(4,RFS,1.02))) ADDR2=$G(ARRAY(4,RFS,1.02))_"  " ; Street Address 2
+ . S CITY=$G(ARRAY(4,RFS,1.03))   ; City
+ . S STATE=$G(ARRAY(4,RFS,.02))   ; State
+ . S ZIP=$G(ARRAY(4,RFS,1.04))    ; Zip
+ ;
+ Q:$D(ERRS) "Q"
+ Q:$L(ADDR1)<1 "Q"
+ ;
+ S STR1=NAME_"  "_ADDR1_"  "_$S($L($G(ADDR2)):ADDR2_"  ",1:"")_CITY_", "_STATE_"  "_ZIP
+ I $L(STR1)<(IOM-10)  S STR2=""  Q "OK"
+ ;
+ ; Need to have 2 line Footer
+ K STR1,STR2
+ S STR1=NAME_"  "_ADDR1_"  "_$S($L($G(ADDR2)):ADDR2,1:"")
+ S STR2=CITY_", "_STATE_"  "_ZIP
+ Q "OK"
+ ;
+IHSVARS(LRDFN,LRIDT,ORGANISM) ; EP
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,3,ORGANISM,"IHS"))
+ S RELDATE=$P(STR,"^")
+ S STATUS=$P(STR,"^",2),FLAG=$P(STR,"^",3)
+ S SUSC=$P(STR,"^",4),UP=$P(STR,"^",5)
+ S:+UP UNITS=$$GET1^DIQ(90475.3,UP,"DESCRIPTION")
+ S INTP=$P(STR,"^",6)
+ Q
+ ;
+GRAMSTAN(LRDFN,LRIDT) ; EP - GRAM STAIN Data
+ NEW GRAMCNT,GRAMSTR
+ ;
+ Q:$D(^LR(LRDFN,"MI",LRIDT,2))<1
+ ;
+ S (D2,GRAMCNT)=0
+ F  S D2=$O(^LR(LRDFN,"MI",LRIDT,2,D2))  Q:D2<1  D
+ . S GRAMSTR=$G(^LR(LRDFN,"MI",LRIDT,2,D2,0))
+ . Q:$TR(GRAMSTR," ")=""!(GRAMSTR["***GRAM STAIN")!(GRAMSTR="GRAM STAIN")!($TR(GRAMSTR," ")="GS")
+ . ;
+ . S GRAMCNT=GRAMCNT+1
+ . W:GRAMCNT=1 ?4,"GRAM STAIN:",!
+ . W ?9,$G(^LR(LRDFN,"MI",LRIDT,2,D2,0)),!
+ . S LINES=LINES+1
+ ;
+ W !
+ S LINES=LINES+1
+ Q
+ ;
+ORGLINE ; EP - ORGANISM Line
+ NEW ABNFLAG,HL7FLAG,IENSTR,OBSDATE,ORGCOMM,ORGIEN,ORGDESC,ORGQUANT,ORGSNOMD
+ ;
+ S HL7FLAG=0
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,"IHSOBX"))
+ S:$L(STR) HL7FLAG=1
+ S SNOMED=$P(STR,"^"),(ABNFLAG,FLAG)=$P(STR,"^",3),OBSDATE=$P(STR,"^",5)
+ ;
+ I $L(OBSDATE)<1 D
+ . S OBSDATE=$P($G(^LR(LRDFN,"MI",LRIDT,ORGL,1)),"^")
+ . S:$L(OBSDATE)<1 OBSDATE=$P($G(^LR(LRDFN,"MI",LRIDT,0)),"^",3)  S:$L(OBSDATE)<1 OBSDATE=$P($G(^(0)),"^",10)
+ ;
+ I ORGHEAD<1  W !,"CULTURE RESULTS:",!  S ORGHEAD=1+$G(ORGHEAD)
+ ;
+ S IENSTR=ORGL_","_LRIDT_","_LRDFN_","
+ S ORGDESC=$$GET1^DIQ(63.3,IENSTR,"ORGANISM")
+ S ORGQUANT=$$GET1^DIQ(63.3,IENSTR,"QUANTITY")
+ ;
+ I HL7FLAG D
+ . W !,?4,"Description",?39,"Quantity",?58,"FLG",?63,"Observation Date",!
+ . W ORGL,".",?4,ORGDESC,?39,ORGQUANT,?59,ABNFLAG,?63,$$FMTE^XLFDT(OBSDATE,"5MZ"),!
+ ;
+ I 'HL7FLAG D
+ . W !,?4,"Description",?39,"Quantity",?63,"Observation Date",!
+ . W ORGL,".",?4,ORGDESC,?39,ORGQUANT,?63,$$FMTE^XLFDT(OBSDATE,"5MZ"),!
+ ;
+ S ORGCOMM=0
+ F  S ORGCOMM=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL,1,ORGCOMM))  Q:ORGCOMM<1  D
+ . W ?9,$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,1,ORGCOMM,0)),!
+ Q
+ ;
+DRUGSORT ; Put drugs into Print Order
+ S DRUGNODE=2
+ F  S DRUGNODE=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL,DRUGNODE))  Q:DRUGNODE<1  D
+ . S DRUGIEN=$O(^LAB(62.06,"AD",DRUGNODE,0))
+ . S DRUGNAME=$$GET1^DIQ(62.06,DRUGIEN,"NAME")
+ . S DRUGDISP=$$GET1^DIQ(62.06,DRUGIEN,"DISPLAY COMMENT")
+ . S PRNTORDR=+$$GET1^DIQ(62.06,DRUGIEN,"PRINT ORDER")
+ . S DRUGSORT(PRNTORDR,DRUGNODE)=DRUGIEN_"^"_DRUGNAME_"^"_DRUGDISP
+ ;
+ S PRNTORDR="",DRUGHEAD=0
+ F  S PRNTORDR=$O(DRUGSORT(PRNTORDR))  Q:PRNTORDR<1  D
+ . S DRUGNODE=""
+ . F  S DRUGNODE=$O(DRUGSORT(PRNTORDR,DRUGNODE))  Q:DRUGNODE<1  D
+ .. S STR=$G(DRUGSORT(PRNTORDR,DRUGNODE))
+ .. S DRUGIEN=$P(STR,"^"),DRUGNAME=$P(STR,"^",2),DRUGDISP=$P(STR,"^",3)
+ .. D DRUGAMTS
+ Q
+ ;
+DRUGAMTS ; EP - Drug values
+ I $D(^LR(LRDFN,"MI",LRIDT,3,ORGL,"ISO"))  D HL7DRUGS  Q
+ ;
+ D INHOUSE
+ Q
+ ;
+INHOUSE ; EP - Drug values from RPMS entry
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,DRUGNODE))
+ S SUSC=$P(STR,"^"),INTP=$P(STR,"^",2),ALTI=$P(STR,"^",3)
+ ;
+ Q:$L(SUSC)<1&($L(INTP)<1)&($L(ALTI)<1)
+ ;
+ ; Only display drugs that have valid interpretation for the result (the "AI" X-ref)
+ S (BADSUSC,BADINTP)=1
+ S:$L(INTP) BADINTP=$D(^LAB(62.06,"AI",DRUGNODE,INTP))
+ S:$L(SUSC) BADSUSC=$D(^LAB(62.06,"AI",DRUGNODE,SUSC))
+ Q:BADINTP<1&(BADSUSC<1)
+ ;
+ D:+$G(DRUGHEAD)<1 DRUGHEAD
+ ;
+ S RPTSTS=$P($G(^LR(LRDFN,"MI",LRIDT,1)),"^",2)
+ ;
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,ORGL,1))
+ S OBSDATE=$P(STR,"^")
+ S:$L(OBSDATE)<1 OBSDATE=$P($G(^LR(LRDFN,"MI",LRIDT,0)),"^",3)  S:$L(OBSDATE)<1 OBSDATE=$P($G(^(0)),"^",10)
+ ;
+ S LRAS=$P($G(^LR(LRDFN,"MI",LRIDT,0)),"^",6)
+ S RF=$$GETPERFL()
+ S:$L(RF) LRPLS(RF)=""
+ ;
+ S:$L(OBSDATE) OBSDATE=$$FMTE^XLFDT(OBSDATE,"5MZ")
+ S (FLAG,RESULT,UNITS)=""
+ ;
+ ; Special "trick".  See file 62.06 & RESULT entry
+ S RESULT=SUSC
+ I $L($P(SUSC," ",2)) S RESULT=$P(SUSC," "),UNITS=$P(SUSC," ",2),SUSC=""
+ ;
+ W $E(DRUGNAME,1,25),?27,RESULT,?33,UNITS,?40,INTP,?46,ALTI,?53,OBSDATE
+ W:$L(RF) ?74,"[",RF,"]",!
+ S LINES=LINES+1
+ I $L(DRUGDISP) W ?14,DRUGDISP,!  S LINES=LINES+1
+ Q
+ ;
+DRUGHEAD ; EP - In-House Drug "Heading"
+ W !,?46,"ALT",!,"ANTIBIOTIC",?27,"SUSC",?33,"UNITS",?40,"INTP",?46,"INTP",?53,"OBSERVATION DATE",?75,"SITE",!
+ S DRUGHEAD=1+$G(DRUGHEAD)
+ Q
+ ;
+HL7DRUGS ; EP - Drug values from INCOMING HL7 messages
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,DRUGNODE))
+ S SUSC=$P(STR,"^")
+ S INTP=$P(STR,"^",2)
+ ;
+ D:+$G(DRUGHEAD)<1 HL7DHEAD
+ ;
+ S ISO=.9999999,FOUNDIT=0
+ F  S ISO=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL,"ISO",ISO))  Q:ISO<1!(FOUNDIT)  D
+ . S:$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,"ISO",ISO))[DRUGNODE FOUNDIT=ISO
+ ;
+ I FOUNDIT<1 W !  S LINES=LINES+1  Q
+ ;
+ S STR=$G(^LR(LRDFN,"MI",LRIDT,3,ORGL,"ISO","IHSOBX",FOUNDIT))
+ S RESULT=$P(STR,"^"),UNITS=$P($P(STR,"^",2),"~"),FLAG=$P(STR,"^",3)
+ S RPTSTS=$P(STR,"^",4),OBSDATE=$P(STR,"^",5),RF=$P(STR,"^",6)
+ S:$L(RF) LRPLS(RF)=""
+ S:$L(OBSDATE) OBSDATE=$$FMTE^XLFDT(OBSDATE,"5MZ")
+ ;
+ Q:SUSC="R"&(INTP="R")
+ ;
+ W $E(DRUGNAME,1,25),?27,RESULT,?33,UNITS,?40,FLAG,?43,SUSC,?48,INTP,?54,RPTSTS,?57,OBSDATE
+ W:$L(RF) ?74,"[",RF,"]"
+ W !
+ S LINES=LINES+1
+ I $L(DRUGDISP) W ?14,DRUGDISP,!  S LINES=LINES+1
+ ;
+ Q
+ ;
+HL7DHEAD ; EP - HL7 Incoming Drug "Heading"
+ W !,?27,"CONC",!,"ANTIBIOTIC",?27,"RANGE",?33,"UNITS",?39,"FLG",?43,"SUSC",?48,"INTP",?53,"STS",?57,"OBSERVATION DATE",?75,"SITE",!
+ S DRUGHEAD=1+$G(DRUGHEAD)
+ Q
+ ;
+PRELIM ; EP - Preliminary Report -- For Testing Purposes Only
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ S HEADER(1)="*** PRELIMINARY ***"
+ S HEADER(2)="Meaningful Use Stage 2 Micro Report"
+ ;
+ D HEADERDT^BLRGMENU
+ ;
+ D ^LRWU4
+ ;
+ S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),LRIDT=$P($G(^(3)),"^",5)
+ ;
+ I LRDFN<1 D  Q
+ . W !!,?4,"Could not determine Accession's data.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S BLRVERN=$TR($P($T(+1),";")," ")
+ S LINES=0
+ ;
+ D HEADER
+ D GRAMSTAN(LRDFN,LRIDT)
+ S ORGL=.9999999,ORGHEAD=0
+ F  S ORGL=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL))  Q:ORGL<1  D
+ . D ORGLINE
+ . D DRUGSORT
+ . W !
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ ;
+ Q
+ ;
+GETLRDFN() ; EP - Always get LRDFN
+ D ^LRPARAM
+ ;
+ D ^XBFMK
+ S DIR(0)="PO^2:E"
+ S DIR("A")="PATIENT"
+ D ^DIR
+ I +$G(Y)<1!(+$G(DIRUT)) D  Q "Q"
+ . W !,?4,"No/Invalid/Quit Entry.  Routine Ends."
+ . D PRESSKEY^BLRGMENU(9)
+ ;
+ S DFN=+$G(Y)
+ S PNM=$P(Y,"^",2)
+ ;
+ S DOD=+$$GET1^DIQ(2,DFN,.351,"I")
+ I DOD  D WARN^LRDPA  Q:DFN<1 "Q"
+ ;
+ S LRDFN=+$G(^DPT(DFN,"LR"))
+ Q:LRDFN "OK"
+ ;
+ W !!,?4,"Patient ",$$GET1^DIQ(2,+Y,"NAME")," [",+Y,"] has NO Lab Data.  Routine Ends."
+ D PRESSKEY^BLRGMENU(9)
+ Q "Q"
+ ;
+DEBUGER ; EP
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D B^LRU      ; Get Date Range
+ ;
+ S LRSIDT=9999999-$$FMADD^XLFDT(LRLDT,1)      ; "Starting" Inverse Date
+ S LREIDT=9999999-LRSDT                       ; "Ending" Inverse Date
+ ;
+ W !!,?4,"LRSIDT:",LRSIDT,!,?4,"LREIDT:",LREIDT,!!
+ W ?4,"LRIDT",?24,"$P(LRIDT,""."")>LREIDT",!
+ W ?4,$TR($J("",15)," ","-"),?24,$TR($J("",22)," ","-"),!
+ ;
+ S LRDFN=10553,LRIDT=LRSIDT,QFLG="NO"
+ F  S LRIDT=$O(^LR(LRDFN,"MI",LRIDT))  Q:LRIDT<1  D
+ . W ?4,LRIDT
+ . W ?24,$S($P(LRIDT,".")>LREIDT:"TRUE",1:"FALSE")
+ . W !
+ Q
+ ;
+LRAS ; EP - Debug by entering Accession or UID
+ NEW (DILOCKTM,DISYS,DT,DTIME,DUZ,IO,IOBS,IOF,IOM,ION,IOS,IOSL,IOST,IOT,IOXY,U,XPARSYS,XQXFLG)
+ ;
+ D ^LRWU4
+ ;
+ I LRAA<1!(LRAD<1)!(LRAN<1) D BADSTUFF("No/Invalid Entry.  Routine Ends.")  Q
+ ;
+ I $$GET1^DIQ(68,LRAA,.02,"I")'="MI" D  Q
+ . D BADSTUFF("Accession "_$$GET1^DIQ(68,LRAA,.01)_" (#"_LRAA_") is not a Micro Accession.  Routine Ends.")
+ ;
+ I $D(^LRO(68,LRAA,1,LRAD,1,LRAN))<1 D BADSTUFF("No Accession Data for Accession "_BLRLRAS_". Routine Ends.")  Q
+ ;
+ S LRDFN=+$G(^LRO(68,LRAA,1,LRAD,1,LRAN,0)),LRIDT=$P($G(^(3)),"^",5),DFN=$P($G(^LR(LRDFN,0)),"^",3)
+ S QFLG="NO"
+ ;
+ W !!
+ D HEADONE^BLRGMENU(.HEADONE)                 ; Pagination
+ W !!
+ ;
+ D ^%ZIS
+ I POP D BADSTUFF("Open Device Failed.  Routine Ends.")  Q
+ ;
+ U IO
+ ;
+ D HEADER
+ D GRAMSTAN(LRDFN,LRIDT)
+ S ORGL=.9999999,ORGHEAD=0
+ F  S ORGL=$O(^LR(LRDFN,"MI",LRIDT,3,ORGL))  Q:ORGL<1!(QFLG="Q")  D
+ . D ORGLINE,DRUGSORT
+ . W !  S LINES=LINES+1
+ W !  S LINES=LINES+1
+ ;
+ D FOOTER
+ ;
+ D ^%ZISC
+ ;
+ D PRESSKEY^BLRGMENU(9)
+ Q
+ ;
+BADSTUFF(MSG) ; EP
+ W !!,?4,MSG
+ D PRESSKEY^BLRGMENU(9)
+ Q

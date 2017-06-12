@@ -1,5 +1,5 @@
 APCDCAF3 ; IHS/CMI/LAB - MENTAL HLTH ROUTINE 16-AUG-1994 ;
- ;;2.0;IHS PCC SUITE;**2,5,7,8**;MAY 14, 2009;Build 2
+ ;;2.0;IHS PCC SUITE;**2,5,7,8,11**;MAY 14, 2009;Build 58
  ;; ;
  ;
 DISP ;
@@ -99,7 +99,7 @@ APPENDX ;
  D BACK
  Q
  ;
-UPDATE ;
+UPDATE ;EP
  D FULL^VALM1
  K DIR
  S DIR(0)="NO^1:"_APCDRCNT,DIR("A")="Update Chart Audit Status for which Visit"
@@ -108,7 +108,7 @@ UPDATE ;
  I $D(DIRUT) W !,"No VISIT selected." D EOP G UPDATEX
  S APCDVSIT=^TMP("APCDCAF OP",$J,"IDX",Y,Y)
  D MOD^AUPNVSIT
-UPD0 ;
+UPD0 ;EP
  K DIC,DD,D0,DO
  S X=$$NOW^XLFDT,DIC="^AUPNVCA(",DIC(0)="L",DIADD=1,DLAYGO=9000010.45
  S DIC("DR")=".02////"_$P(^AUPNVSIT(APCDVSIT,0),U,5)_";.03////"_APCDVSIT_";.05////"_DUZ_";1216////"_$$NOW^XLFDT D FILE^DICN
@@ -122,19 +122,20 @@ UPD1 ;
  S APCDCAR=$P(^AUPNVCA(APCDVCA,0),U,4)
  I APCDCAR="" W !!,"You must enter a status" G UPD1
  S APCDERR=$$ERRORCHK^APCDCAF(APCDVSIT)
- I APCDERR]"",APCDCAR="R" W !!,"This visit has the following error: ",APCDERR,!,"You cannot mark a visit as Reviewed/Completed if there is an error." G UPD1
+ I APCDERR]"",APCDCAR="R" W !!,"This visit has the following error: ",APCDERR,!,"You cannot mark a visit as Reviewed/Completed if there is an error." S DA=APCDVCA,DIE="^AUPNVCA(",DR=".04///I" D ^DIE G UPD1
  S DIE="^AUPNVSIT(",DA=APCDVSIT,DR=".13////"_DT_";1111////"_APCDCAR D ^DIE K DIE,DA,DR
- I APCDCAR="R" G UPDATEX
+ I APCDCAR="R" D RNU^APCDCAF4 G UPDATEX
 R ;
- S DA=APCDVCA,DIE="^AUPNVCA(",DR=".06"_$S($P($G(^APCDSITE(DUZ(2),0)),U,32):"R",1:"") D ^DIE K DA,DIE,DR I $P($G(^APCDSITE(DUZ(2),0)),U,32),$P(^AUPNVCA(APCDVCA,0),U,6)="" G R
- ;
+ D EN^APCDCAF6(APCDVSIT)
+ I '$$FINDPEND^APCDCAF6(APCDVSIT),$$VALI^XBDIQ1(9000010,APCDVSIT,1111)'="R",$P(^APCDSITE(DUZ(2),0),U,32) W !!,"A chart Deficiency reason is required." H 3 G R
  ;PUT CHART AUDIT NOTE HERE
- K DIR S DIR(0)="Y",DIR("A")="Do you want to update the Chart Audit Notes for this visit",DIR("B")="N" KILL DA D ^DIR KILL DIR
- I $D(DIRUT) G UPDATEX
- I 'Y G UPDATEX
- I '$D(^AUPNCANT(APCDVSIT)) D ADDCANT
- I '$D(^AUPNCANT(APCDVSIT)) W !!,"adding entry to chart audit notes failed." H 3 G UPDATEX
- S DA=APCDVSIT,DIE="^AUPNCANT(",DR=1100 D ^DIE K DIE,DA,DR
+ ;K DIR S DIR(0)="Y",DIR("A")="Do you want to update the Chart Audit Notes for this visit",DIR("B")="N" KILL DA D ^DIR KILL DIR
+ ;I $D(DIRUT) G UPDATEX
+ ;I 'Y G UPDATEX
+ ;I '$D(^AUPNCANT(APCDVSIT)) D ADDCANT
+ ;I '$D(^AUPNCANT(APCDVSIT)) W !!,"adding entry to chart audit notes failed." H 3 G UPDATEX
+ ;S DA=APCDVSIT,DIE="^AUPNCANT(",DR=1100 D ^DIE K DIE,DA,DR
+ ;
  ;
 UPDATEX ;
  K DIADD,DLAYGO

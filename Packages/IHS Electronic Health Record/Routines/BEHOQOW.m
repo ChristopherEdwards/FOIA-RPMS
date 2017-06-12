@@ -1,5 +1,5 @@
-BEHOQOW ;MSC/IND/PLS - Quick Order Wizard Support ;20-Jun-2007 10:36;DKM
- ;;1.1;BEH COMPONENTS;**039001**;Mar 20, 2007
+BEHOQOW ;MSC/IND/PLS - Quick Order Wizard Support ;17-Oct-2013 11:56;PLS
+ ;;1.1;BEH COMPONENTS;**039001,039002**;Mar 20, 2007
  ;=================================================================
  ; Return List of Display Groups
  ; Input: GRPTYP - 0 = common, 1=user
@@ -130,7 +130,8 @@ SETDISAB(DATA,BEHOQO,MSG) ;EP
 CANDEL(DATA,BEHOQO,USR) ;EP
  S DATA=0
  S:USR DATA=1
- S:'DATA DATA='($D(^ORD(101.41,"AD",BEHOQO))!($$INUSE^ORCMEDT5(BEHOQO))!($E($$GET1^DIQ(101.41,BEHOQO,.01),1,6)="ORWDQ "))
+ ;IHS/MSC/PLS - 10/17/2013 - Non-personal quick orders can't be deleted
+ ;S:'DATA DATA='($D(^ORD(101.41,"AD",BEHOQO))!($$INUSE^ORCMEDT5(BEHOQO))!($E($$GET1^DIQ(101.41,BEHOQO,.01),1,6)="ORWDQ "))
  Q:$Q DATA
  Q
  ; Delete given Order Dialog
@@ -167,6 +168,8 @@ DUSRQVI(QOIEN,USR,DGRP,DNM) ;
  .I $P(@ROOT@(DA,0),U,1,2)=(QOIEN_U_DNM) D
  ..D ^DIK
  ..S DFLG=1
+ ;CPRS 27 removes the view dialogs and then the actual QO
+ S DA=QOIEN,DIK="^ORD(101.41," D ^DIK
  Q DFLG
  ; Return Window Form ID for given Display Group default dialog
 GRPDEFWD(DATA,GRP) ;EP
@@ -259,4 +262,10 @@ CLONE(DATA,FIEN,TIEN) ;EP
  Q:'$D(^ORD(101.41,FIEN))!('$D(^ORD(101.41,TIEN)))
  M ^ORD(101.41,TIEN,6)=^ORD(101.41,FIEN,6)
  S DATA=1
+ Q
+ ;Returns quick order dialog info
+ITMINFO(DATA,IEN) ;EP-
+ N NODE
+ S NODE=$G(^ORD(101.41,IEN,0))
+ S DATA=IEN_U_$P(NODE,U)_U_$P(NODE,U,5)_U_$$UP^XLFSTR($P(NODE,U,2))
  Q

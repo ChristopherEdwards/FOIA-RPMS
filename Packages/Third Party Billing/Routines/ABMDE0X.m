@@ -1,10 +1,10 @@
-ABMDE0X ; IHS/ASDST/DMJ - Set Summary Display Variables ;  
- ;;2.6;IHS 3P BILLING SYSTEM;;NOV 12, 2009
+ABMDE0X ; IHS/SD/SDR - Set Summary Display Variables ;  
+ ;;2.6;IHS 3P BILLING SYSTEM;**14**;NOV 12, 2009;Build 238
  ;
- ; IHS/SD/SDR - v2.5 p8 - task 8
- ;    Modified to check for replacement insurer to display
+ ;IHS/SD/SDR - v2.5 p8 - task 8 - Modified to check for replacement insurer to display
  ;
- ; IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - v2.6 CSV
+ ;IHS/SD/SDR - 2.6*14 - HEAT161263 - Made change for display of provider narrative to use DIQ call so new output transform on field will be executed.
  ; *********************************************************************
 IDEN ; EP
  S ABM(1)=$P($G(^AUTTLOC(ABMP("LDFN"),0)),U,2)
@@ -72,7 +72,15 @@ PRV ;
 DX ;
  G DDS:ABMP("VTYP")=998&'$D(ABMP("FLAT"))
  S ABM=""
- F ABM("I")=1:1 S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABM)) Q:ABM=""  S Y=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,$O(^(ABM,"")),0)),U,3) I Y]"" S ABM("D"_ABM("I"))=$E($G(^AUTNPOV(Y,0)),1,34)
+ ;F ABM("I")=1:1 S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABM)) Q:ABM=""  S Y=$P($G(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,$O(^(ABM,"")),0)),U,3) I Y]"" S ABM("D"_ABM("I"))=$E($G(^AUTNPOV(Y,0)),1,34)  ;abm*2.6*14 HEAT161263
+ ;start new code abm*2.6*14 HEAT161263
+ F ABM("I")=1:1 S ABM=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABM)) Q:ABM=""  D
+ .S ABMI=$O(^ABMDCLM(DUZ(2),ABMP("CDFN"),17,"C",ABM,0))
+ .Q:ABMI=""
+ .S IENS=ABMI_","_ABMP("CDFN")_","
+ .S Y=$$GET1^DIQ(9002274.3017,IENS,".03","E")
+ .I Y]"" S ABM("D"_ABM("I"))=$E(Y,1,34)
+ ;end new code HEAT161263
  S ABM("CNT2")=ABM("CNT2")+ABM("I")
  ;
  D ^ABMDE0X1

@@ -1,5 +1,5 @@
 BQINIGHT ;PRXM/HC/ALA-Nightly Background Job ; 05 Jan 2006  1:31 PM
- ;;2.3;ICARE MANAGEMENT SYSTEM;**1**;Apr 18, 2012;Build 43
+ ;;2.5;ICARE MANAGEMENT SYSTEM;**1**;May 24, 2016;Build 17
  ;
  ;
 EN ;EP - Entry point
@@ -10,21 +10,32 @@ EN ;EP - Entry point
  S BQIUPD(90508,"1,",24.01)=$G(ZTSK)
  D FILE^DIE("","BQIUPD","ERROR")
  ;
+ ;D EN^BQIMUUPD
  D ARM^BQINIGH2
- D EN^BQIMUMON("")
- D JBC
+ D IMM^BQINIGH2
+ D PRN^BQINIGH2
+ D HCV^BQINIGH2
+ D DMA^BQINIGH2
+ ;D CQ^BQIMUMON("")
+ ;D PF^BQIMUMON("")
+ ;D JBC^BQINIGH3
  D MEAS^BQINIGH1
+ D PRF^BQINIGH2
  D FLG
  D CMA^BQINIGH2
  D DXC
  D CRS
  ;Run IPC
- D IPC("")
- D NUM^BQIMUSIT
+ D IJB^BQINIGH3("")
+ ;D NUM^BQIMUSIT
+ ; Reminders
  D REM
  K DLAYGO
+ ; Best Practice prompts
  D TRT
- D REG
+ ; Register updates
+ D REG^BQINIGH4
+ ; Care Mgmt
  D AST^BQINIGH1
  ; Run CMET
  D EN^BTPWPFND("Nightly")
@@ -79,9 +90,10 @@ FLG ;EP - Flag updates
  S ^XTMP("BQINIGHT",0)=$$FMADD^XLFDT(DT,1)_U_$$DT^XLFDT()
  F  S VLIEN=$O(^AUPNVSIT(VLIEN)) Q:'VLIEN  D
  . ; If visit has been deleted, don't include
- . I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
+ . I $P($G(^AUPNVSIT(VLIEN,0)),"^",11)=1 Q
+ . I $P($G(^AUPNVSIT(VLIEN,0)),"^",9)=1 Q
  . Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
- . S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
+ . S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) I DFN="" Q
  . S ^XTMP("BQINIGHT",DFN)=""
  ;
  F  S PRIEN=$O(^AUPNPROB(PRIEN)) Q:'PRIEN  D
@@ -89,15 +101,6 @@ FLG ;EP - Flag updates
  . I $P(^AUPNPROB(PRIEN,0),U,12)'="A" Q
  . S ^XTMP("BQINIGHT",DFN)=""
  ;
- ; Use new Date Last Modified cross-reference
- ;S LMDT=$$FMADD^XLFDT(DT,-1)-.005
- ;F  S LMDT=$O(^AUPNVSIT("ADLM",LMDT)) Q:LMDT=""  D
- ;. S VLIEN=""
- ;. F  S VLIEN=$O(^AUPNVSIT("ADLM",LMDT,VLIEN)) Q:VLIEN=""  D
- ;.. I $P(^AUPNVSIT(VLIEN,0),U,11)=1 Q
- ;.. Q:"DXCTI"[$P(^AUPNVSIT(VLIEN,0),U,7)
- ;.. S DFN=$P(^AUPNVSIT(VLIEN,0),U,5) Q:DFN=""
- ;.. S ^XTMP("BQINIGHT",DFN)=""
  Q
  ;
 DXC ;EP - Update Diagnosis Categories
@@ -144,7 +147,7 @@ CRS ;EP - Find all GPRA indicators
  K BQIUPD
  ;
  NEW DFN,GPMEAS,CT
- S BQIGREF=$NA(^TMP("BQIGPRA",UID))
+ S BQIGREF=$NA(^TMP(UID,"BQIGPRA"))
  K @BQIGREF
  S BQIDATA=$NA(^BQIPAT)
  ;
@@ -158,8 +161,6 @@ CRS ;EP - Find all GPRA indicators
  ;  Initialize GPRA variables
  NEW VER,BQX,XN
  S VER=$$VERSION^XPDUTL("BGP")
- ;I VER<8.0 D
- ;. S X=0 F  S X=$O(@BQIINDG@("GPRA",1,X)) Q:X'=+X  S BGPIND(X)=""
  ;
  I VER>7.0 D
  . S BQX=""
@@ -179,6 +180,11 @@ CRS ;EP - Find all GPRA indicators
  S BGPP3YE=$$FMADD^XLFDT(BGPPED,-1096)
  S BGPB3YE=$$FMADD^XLFDT(BGPBED,-1096)
  ;
+ ; Setup taxonomies
+ I VER>14.1 D
+ . I $T(UNFOLDTX^BGP6UTL2)="" Q
+ . D UNFOLDTX^BGP6UTL2
+ ;
  S DFN=0
  F  S DFN=$O(^XTMP("BQINIGHT",DFN)) Q:'DFN  D
  . ; Remove any previous GPRA data
@@ -188,10 +194,12 @@ CRS ;EP - Find all GPRA indicators
  . I $P($G(^DPT(DFN,.35)),U,1)'="" Q
  . ; If patient has no active HRNs, quit
  . I '$$HRN^BQIUL1(DFN) Q
- . ; If patient has no visit in last 3 years, quit
- . I '$$VTHR^BQIUL1(DFN) Q
+ . ; If patient has no visit in last 2 years, quit
+ . ;I '$$VTHR^BQIUL1(DFN) Q
+ . I '$$VTWR^BQIUL1(DFN) Q
  . ; If new patient add to BQIPAT
  . I $G(^BQIPAT(DFN,0))="" D NPT^BQITASK(DFN)
+ . I $P($G(^BQIPAT(DFN,0)),"^",1)="" S $P(^BQIPAT(DFN,0),"^",1)=DFN,^BQIPAT("B",DFN,DFN)=""
  . S BQIPUP(90507.5,DFN_",",.02)=BQIYR
  . S BQIPUP(90507.5,DFN_",",.03)=BGPBD
  . S BQIPUP(90507.5,DFN_",",.04)=BGPED
@@ -229,6 +237,8 @@ CRS ;EP - Find all GPRA indicators
  . K @BQIGREF
  . NEW DA,DIK
  . S DA=DFN,DIK="^BQIPAT(" D IX1^DIK
+ ;
+ K ^XTMP("BGP15TAX",$J)
  ;
  ; Compile Main view data
  D COMP^BQIGPRA5
@@ -275,6 +285,7 @@ REM ;EP - Find any new reminders
  S BKDFN=0,ERRCNT=0
  F  S BKDFN=$O(^XTMP("BQINIGHT",BKDFN)) Q:'BKDFN  D  Q:ERRCNT>100
  . I $G(^BQIPAT(BKDFN,0))="" D NPT^BQITASK(BKDFN)
+ . I $P($G(^BQIPAT(BKDFN,0)),"^",1)="" S $P(^BQIPAT(BKDFN,0),"^",1)=BKDFN,^BQIPAT("B",BKDFN,BKDFN)=""
  . D PAT^BQIRMDR(BKDFN)
  ;
  ; Set the DATE/TIME REMINDERS STOPPED field
@@ -299,6 +310,7 @@ TRT ;EP - Update treatment prompts
  S BKDFN=0
  F  S BKDFN=$O(^XTMP("BQINIGHT",BKDFN)) Q:'BKDFN  D
  . I $G(^BQIPAT(BKDFN,0))="" D NPT^BQITASK(BKDFN)
+ . I $P($G(^BQIPAT(BKDFN,0)),"^",1)="" S $P(^BQIPAT(BKDFN,0),"^",1)=BKDFN,^BQIPAT("B",BKDFN,BKDFN)=""
  . D PAT^BQITRMT(BKDFN)
  ; Set the DATE/TIME TREATMENT STOPPED field
  NEW DA
@@ -332,110 +344,4 @@ INP ;EP - Initialize GPRA variables
  S BQIMEASF=$$GET1^DIQ(90508.01,IENS,.03,"E")
  S BQIMEASG=$$ROOT^DILFD(BQIMEASF,"",1)
  S BQIROU=$$GET1^DIQ(90508.01,IENS,.04,"E")
- Q
- ;
-REG ;EP - Check for register updates and apply in iCare
- ; Process register records into tags
- NEW REGIEN,RDATA,TAG,FILE,FIELD,XREF,STFILE,STFLD,STEX,SUBREG,GLBREF,GLBNOD
- NEW DFN,RIEN,QFL,DATE,TGNM,PSTAT,DATA
- S REGIEN=0
- F  S REGIEN=$O(^BQI(90507,REGIEN)) Q:'REGIEN  D
- . S RDATA=^BQI(90507,REGIEN,0)
- . ; If the register is inactive, quit
- . I $P(RDATA,U,8)=1 Q
- . ; Check if register is associated with a tag, if there isn't one, quit
- . S TAG=$O(^BQI(90506.2,"AD",REGIEN,"")) I TAG="" Q
- . S FILE=$P(RDATA,U,7),FIELD=$P(RDATA,U,5),XREF=$P(RDATA,U,6)
- . S STFILE=$P(RDATA,U,15),STFLD=$P(RDATA,U,14),STEX=$G(^BQI(90507,REGIEN,1))
- . S SUBREG=$P(RDATA,U,9)
- . S GLBREF=$$ROOT^DILFD(FILE,"")_XREF_")"
- . S GLBNOD=$$ROOT^DILFD(FILE,"",1)
- . I GLBNOD="" Q
- . ;
- . I '$D(@GLBNOD@(0)) Q
- . ;
- . S DFN=""
- . F  S DFN=$O(@GLBREF@(DFN)) Q:DFN=""  D
- .. ; If patient is deceased, quit
- .. I $P($G(^DPT(DFN,.35)),U,1)'="" Q
- .. ; If patient has no active HRNs, quit
- .. I '$$HRN^BQIUL1(DFN) Q
- .. ; If patient has no visit in last 3 years, quit
- .. I '$$VTHR^BQIUL1(DFN) Q
- .. ;
- .. I $G(SUBREG)'="" S QFL=0 D  Q:'QFL
- ... Q:FILE'=9002241
- ... S RIEN=""
- ... F  S RIEN=$O(@GLBREF@(DFN,RIEN)) Q:RIEN=""  D
- .... I $P($G(@GLBNOD@(RIEN,0)),U,5)=SUBREG S QFL=1,IENS=RIEN
- .. ; Check register status
- .. I $G(SUBREG)="" S IENS=$O(@GLBREF@(DFN,""))
- .. I STEX'="" X STEX Q:'$D(IENS)
- .. S PSTAT=$$GET1^DIQ(STFILE,IENS,STFLD,"I")
- .. S DATE=$P($G(^BQIPAT(DFN,20,TAG,0)),U,2)
- .. I $O(^BQIREG("C",DFN,TAG,""))'="" Q
- .. I PSTAT="U"!(PSTAT="") D  Q
- ... ; If patient is already tagged, quit
- ... I $O(^BQIPAT(DFN,20,TAG,0))'="" Q
- ... ; else build a "proposed" record
- ... D EN^BQITDPRC(.DATA,DFN,TAG,"P",DATE,"NIGHTLY JOB",8,"Register status is "_PSTAT) Q
- .. I PSTAT="D" Q
- .. I PSTAT="I" D  Q
- ... ; If the patient was not tagged and is inactive on register, quit
- ... I $O(^BQIPAT(DFN,20,TAG,0))="" Q
- ... ; If the patient was tagged and is inactive on register
- ... D EN^BQITDPRC(.DATA,DFN,TAG,"P",DATE,"NIGHTLY JOB",8,"Register status is "_PSTAT) Q
- .. D EN^BQITDPRC(.DATA,DFN,TAG,"A",DATE,"NIGHTLY JOB",8,"Register status is "_PSTAT)
- .. ; Remove any temporary BQIPAT data
- .. NEW DA,DIK
- .. S DA(1)=DFN,DA=TAG,DIK="^BQIPAT("_DA(1)_",20,"
- .. D ^DIK
- Q
- ;
-JBC ;EP - Check on MU jobs
- NEW ZTSK,NJOB,YJOB,NXDT
- S NJOB=$P($G(^BQI(90508,1,12)),U,5)
- ;S YJOB=$P($G(^BQI(90508,1,12)),U,6)
- ;
- ; check on ninety day job
- I NJOB'="" D  Q
- . S ZTSK=NJOB D STAT^%ZTLOAD
- . I $G(ZTSK(2))'="Active: Pending" D
- .. I $G(ZTSK(2))="Active: Running" Q
- .. I $G(ZTSK(2))="Inactive: Finished" S $P(^BQI(90508,1,12),U,5)="" D  Q
- ... D JBD
- ... D NJB
- .. I $G(ZTSK(2))="Inactive: Interrupted"!($G(ZTSK(2))="Undefined") D
- ... I $P($G(^BQI(90508,1,12)),U,3)=0 D JBD,NJB Q
- ... S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
- ... S ZTDESC="MU CQ Continue Compile",ZTRTN="NIN^BQITASK6",ZTIO=""
- ... D ^%ZTLOAD
- ... S BQIUPD(90508,"1,",12.05)=ZTSK
- ... D FILE^DIE("","BQIUPD","ERROR")
- ;
- ; If job does not have a task number, quit
- I NJOB="" D NJB Q
- Q
- ;
-JBD ;EP - Job date
- NEW BMDT
- S BMDT=$P(^BQI(90508,1,12),U,9),BMDT=$$FMADD^XLFDT(BMDT,1)
- I $D(^XTMP("BQIMMON",BMDT)) K ^XTMP("BQIMMON",BMDT)
- I $O(^XTMP("BQIMMON",""),-1)="" K ^XTMP("BQIMMON") Q
- Q
- ;
-NJB ;EP - Next job
- I $P($G(^BQI(90508,1,12)),U,3)=0 D
- . ; Get next date to process
- . S NXDT=$O(^XTMP("BQIMMON",""),-1) I 'NXDT Q
- . D EN^BQIMUMON(NXDT)
- Q
- ;
-IPC(IPDATE) ;EP - Job off IPC
- NEW ZTSK,IJOB,ZTDTH,ZTDESC,BQIUPD
- S ZTDTH=$$FMADD^XLFDT($$NOW^XLFDT(),,,3)
- S ZTDESC="IPC Monthly Compile",ZTRTN="EN^BQIIPMON",ZTIO="",ZTSAVE("BQDATE")=$G(IPDATE)
- D ^%ZTLOAD
- S BQIUPD(90508,"1,",.1)=ZTSK
- D FILE^DIE("","BQIUPD","ERROR")
  Q

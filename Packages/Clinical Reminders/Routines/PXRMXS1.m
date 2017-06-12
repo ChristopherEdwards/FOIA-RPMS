@@ -1,5 +1,5 @@
 PXRMXS1 ; SLC/PJH - Reminder Reports DIC Prompts;10/11/2001
- ;;1.5;CLINICAL REMINDERS;**6**;Jun 19, 2000
+ ;;2.0;CLINICAL REMINDERS;;Feb 04, 2005
  ;
  ;
  ;Check for category reminders
@@ -18,6 +18,7 @@ FOUND(CIEN) ;
  ;-------------------------------------------------
 MERGE N RCIEN,RCNT,RCSUB,RIEN,RPNAM,RSUB,SUB
  K ^TMP("PXRMXS1",$J)
+ K REMINDER
  ;Extract each category in turn
  S RCSUB=""
  F  S RCSUB=$O(PXRMRCAT(RCSUB)) Q:'RCSUB  D

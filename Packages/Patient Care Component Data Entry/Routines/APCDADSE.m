@@ -1,5 +1,5 @@
 APCDADSE ; IHS/CMI/LAB - EDIT ADMISSION AND DISCHARGE SERVICE ON IP ;
- ;;2.0;IHS PCC SUITE;;MAY 14, 2009
+ ;;2.0;IHS PCC SUITE;**11,13**;MAY 14, 2009;Build 9
  ;
  ;called from the APCD IP (ADD) and APCD IP (MOD) input
  ;templates.
@@ -29,7 +29,6 @@ LOS ;
  S APCDTACC=1
  K Y
  Q
- ;
 ICD(V,T) ;EP is any dx a member of taxonomy T
  I '$G(V) Q ""
  I '$G(T) Q ""
