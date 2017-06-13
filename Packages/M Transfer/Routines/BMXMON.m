@@ -1,5 +1,10 @@
 BMXMON ; IHS/OIT/HMW - BMXNet MONITOR ; 04 Jun 2010  3:10 PM
- ;;4.0;BMX;**2**;OCT 27, 2011;Build 2
+ ;;4.0;BMX;**2,1000**;OCT 27, 2011;Build 2
+ ;
+ ; Changes for *1000 by WV/SMH (Feb 2 2011) to support GT.M
+ ; - XINETD entry point for GT.M
+ ; - Replacement of all W *-3 to W !
+ ;
  ;
  ;IHS/OIT/HMW Patch 1 added validity check for passed-in namespace
  ;
@@ -162,7 +167,34 @@ RELOAD C BMXDEV ;IHS/OIT/HMW SAC Exemption Applied For ; IHS/OIT/GIS 10/4/2011
  I BMXQUIT=2 S BMXQUIT=0 G RELOAD ; PRIMARY MSG IS INVALID.  CLEAR TCP BUFFER AND START ITERATING AGAIN. ; IHS/OIT/GIS 10/4/2011
  S %=$$SEMAPHOR(BMXPORT,"UNLOCK") ; destroy 'running flag'
  Q
- ; 
+ ;
+XINETD    ;PEP Directly from xinetd or inetd for GT.M
+  N BMXDEV
+  S U="^",$ETRAP="D ^%ZTER H" ;Set up the error trap
+  S $ZT="" ;Clear old trap
+  ; GT.M specific error and device code; get remove ip address
+  S @("$ZINTERRUPT=""I $$JOBEXAM^ZU($ZPOSITION)""")
+  S BMXDEV=$P X "U BMXDEV:(nowrap:nodelimiter:ioerror=""TRAP"")"
+  S %="",@("%=$ZTRNLNM(""REMOTE_HOST"")") S:$L(%) IO("GTM-IP")=%
+  ; Read message type
+  N BMXACT,BMXDTIME
+  S BMXDTIME=10  ; change in 2.2 instead of 9999999 - initial conn timout
+  R BMXACT#5:BMXDTIME
+  Q:BMXACT'="{BMX}"  ; Not a BMX message - quit.
+  ; Fall through to below...
+GTMLNX    ;EP from XWBTCPM for GT.M
+  ; not implementing NS and integrated authentication
+  ; Vars: Read timeout, msg len, msg, windows auth, Namespace
+  N BMXDTIME,BMXLEN,BMXACT,BMXWIN,BMXNS
+  S BMXNSJ="",BMXWIN=0  ; No NS on GT.M, no Windows Authentication
+  S BMXDTIME(1)=.5,BMXDTIME=180  ; sign on timeout
+  R BMXACT#5:BMXDTIME ;Read next 5 chars - message length
+  S BMXLEN=+BMXACT
+  R BMXACT#BMXLEN:BMXDTIME
+  I $P(BMXACT,"^")="TCPconnect" G SESSRES
+  I $P(BMXACT,"^")="TCPshutdown" W "ack",! Q
+  Q  ; Should't hit this quit, but just in case
+  ;
 SESSION(BMXWIN) ;EP
  ;Start session monitor
  ;BMXWIN = 1: Enable integrated security
@@ -206,7 +238,7 @@ SESSMAIN ;
  . U $P
  . D SNDERR ;Clears SNDERR parameters
  . D SND
- . D WRITE($C(4)) W *-3 ;send eot and flush buffer
+ . D WRITE($C(4)) W ! ;send eot and flush buffer
  D UNREGALL^BMXMEVN ;Unregister all events for this session
  Q  ;End Of Main
  ;
@@ -215,18 +247,18 @@ SNDERR ;send error information
  ;BMXSEC is the security packet, BMXERROR is application packet
  N X
  S X=$E($G(BMXSEC),1,255)
- W $C($L(X))_X W *-3
+ W $C($L(X))_X W !
  S X=$E($G(BMXERROR),1,255)
- W $C($L(X))_X W *-3
+ W $C($L(X))_X W !
  S BMXERROR="",BMXSEC="" ;clears parameters
  Q
  ;
 WRITE(BMXSTR) ;Write a data string
  ;
- I $L(BMXSTR)<511 W *-3 W BMXSTR Q
+ I $L(BMXSTR)<511 W ! W BMXSTR Q
  ;Handle a long string
- W *-3 ;Flush the buffer
- F  Q:'$L(BMXSTR)  W $E(BMXSTR,1,510),*-3 S BMXSTR=$E(BMXSTR,511,99999)
+ W ! ;Flush the buffer
+ F  Q:'$L(BMXSTR)  W $E(BMXSTR,1,510),! S BMXSTR=$E(BMXSTR,511,99999)
  Q
 SND ; -- send data for all, Let WRITE sort it out
  N I,T
@@ -244,7 +276,7 @@ SND ; -- send data for all, Let WRITE sort it out
  ; -- global array
  IF BMXPTYPE=4 D  Q
  . S I=$G(BMXR) Q:I=""  S T=$E(I,1,$L(I)-1) D:$D(@I)>10 WRITE(@I)
- . F  S I=$Q(@I) Q:I=""!(I'[T)  W *-3 W @I W:BMXWRAP&(@I'=$C(13,10)) $C(13,10)
+ . F  S I=$Q(@I) Q:I=""!(I'[T)  W ! W @I W:BMXWRAP&(@I'=$C(13,10)) $C(13,10)
  . IF $D(@BMXR) K @BMXR
  ; -- global instance
  IF BMXPTYPE=5 S BMXR=$G(@BMXR) D WRITE(BMXR) Q
@@ -306,7 +338,7 @@ ETRAP ; -- on trapped error, send error info to client
  D ^%ZTER ;%ZTER clears $ZE and $ECODE
  I (BMXERC["READ")!(BMXERC["WRITE")!(BMXERC["SYSTEM-F") D:$G(DUZ) LOGOUT^XUSRB G ^XUSCLEAN
  U $P
- D SNDERR,WRITE(BMXERR) W *-3
+ D SNDERR,WRITE(BMXERR) W !
  S $ETRAP="Q:($ESTACK&'$QUIT)  Q:$ESTACK -9 S $ECODE="""" G SESSRES^BMXMON",$ECODE=",U99," ;IHS/OIT/HMW SAC Exemption Applied For
  Q
  ;

@@ -1,5 +1,10 @@
-BMXSQL6 ; IHS/OIT/HMW - BMX REMOTE PROCEDURE CALLS ;
- ;;4.0;BMX;;JUN 28, 2010
+BMXSQL6 ; IHS/OIT/HMW - BMX REMOTE PROCEDURE CALLS ; 2/5/11 10:03pm
+ ;;4.0;BMX;**1000**;JUN 28, 2010
+ ;
+ ; *1000: WV/SMH Feb 2 2010 - Changes to support GT.M
+ ; Line EOR+3 used a 2 argument form of $Q which is not
+ ; in the M 95 standard. Replaced this with a call to $$LAST,
+ ; a new Extrinsic in this routine.
  ;
  ;
 WRITE ;EP
@@ -197,7 +202,8 @@ RECINI ;
 EOR ;
  ;B  ;EOR
  N J,K,L,M,I,N
- S M=$Q(BMXREC(9999999),-1)
+ ;S M=$Q(BMXREC(9999999),-1)
+ S M=$$LAST("BMXREC")
  S @M=$TR(@M,"^",$C(30))
  Q:BMXCQN=""
  I BMXCQN'="" D RECINI
@@ -331,3 +337,10 @@ REVERSE(BMXIEN) ;
  . S $P(T,",",C)=$P(BMXIEN,",",J)
  . S C=C+1
  Q T
+LAST(VAR) ; Get last entry in an array //SMH new code
+  N SUB1 S SUB1=$O(@VAR@(""),-1)
+  N SUB2 S SUB2=$O(@VAR@(SUB1,""),-1)
+  N SUB3 S SUB3=$O(@VAR@(SUB1,SUB2,""),-1)
+  I SUB3="" Q $NA(@VAR@(SUB1,SUB2))
+  E  Q $NA(@VAR@(SUB1,SUB2,SUB3))
+

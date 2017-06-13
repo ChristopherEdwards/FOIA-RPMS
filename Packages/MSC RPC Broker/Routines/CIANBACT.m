@@ -1,7 +1,12 @@
 CIANBACT ;MSC/IND/DKM/PLS - MSC RPC Broker Actions;16-Apr-2013 18:42;PLS
- ;;1.1;CIA NETWORK COMPONENTS;**001007,001010**;Sep 18, 2007
+ ;;1.1;CIA NETWORK COMPONENTS;**001007,001010,1000**;Sep 18, 2007
  ;;Copyright 2000-2008, Medsphere Systems Corporation
  ;=================================================================
+ ;
+ ; *1000 changes by Sam Habiel to support GT.M (Feb 2011)
+ ; Change Log:
+ ; - Added entry point $$JOB4 to support GT.M as GT.M is CIAOS 4.
+ ;
  ; Connect action
  ; CIADATA is returned to client as:
  ;   callback flag^authentication method^server version^case sensitive^context cached
@@ -163,7 +168,8 @@ JOB3() I $G(CIA("DBG"))!($G(CIA("VER"))<1.5) J EN^CIANBLIS(PORT,IP,1)[$P(UCI,","
  K CIADATA
  J EN^CIANBLIS(CIAPORT,CIAIP,2)[$P(UCI,",")]:(:4:CIATDEV:CIATDEV):15
  Q $T
- ; Mode 2 support for MSM and DSM
+JOB4() I CIAMODE=2 D MODE2 Q 1 ; SAM NEW LINE
+ ; Mode 2 support for MSM, DSM & GT.M
 MODE2 D:UCI'=UCI(0) SETUCI(UCI)
  S UCI(0)=UCI
  I '$G(CIA("DBG")),$G(CIA("VER"))'<1.5 S $P(CIADATA,U)=1,CIAMODE=1
