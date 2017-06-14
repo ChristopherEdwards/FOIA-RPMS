@@ -3,9 +3,12 @@ CIANBLIS ;MSC/IND/DKM - MSC RPC Broker ;23-Mar-2011 18:36;PLS
  ;;Copyright 2000-2011, Medsphere Systems Corporation
  ;=================================================================
  ;
+ ; IMPORTANT: XWB LOGGING IS ON BY DEFAULT. TURN IT OF BY SETTING XWBDEBUG TO 0.
+ ;
  ; Changes for patch 1000 to support GT.M made by Sam Habiel (Feb 2011)
  ; Changes are marked.
  ; Change Log:
+ ; - Calls to XWBDLOG in numerous places to do logging.
  ; - Kill CIAUCI if OS is GT.M since GT.M does not have real UCI's and 
  ; --> we don't want to confuse it by extended global references of mumps.dat files
  ; - CIAOS of 4 now represents GT.M
@@ -25,6 +28,12 @@ CIANBLIS ;MSC/IND/DKM - MSC RPC Broker ;23-Mar-2011 18:36;PLS
  ;
 EN(CIAPORT,CIAIP,CIAMODE) ;PEP - See above
  N CIAVER,CIAOS,CIATDEV,CIAQUIT,CIALN,CIAXUT,CIAUCI,CIARETRY,XWBOS,X,Y,$ET,$ES
+ ;
+ ;;;debug
+ S XWBDEBUG=1
+ D LOGSTART^XWBDLOG("EN^CIANBLIS("_CIAPORT_","_CIAIP_","_CIAMODE_")")
+ ;;;DEBUG
+ ;
  D UCI^%ZOSV
  S U="^",CIAUCI=$P(Y,","),CIAMODE=+$G(CIAMODE),CIAIP=$G(CIAIP),(CIAQUIT,CIARETRY)=0
  ;
@@ -46,7 +55,7 @@ EN(CIAPORT,CIAIP,CIAMODE) ;PEP - See above
  D CLEANUP,STSAVE(0),NULLOPEN,STSAVE(1)
  D:CIAMODE=1 LOGRSRC^%ZOSV("$BROKER HANDLER$",2,1)                     ; Start RUM for Broker Handler
  D CHPRN("CIA"_$S($L(CIAIP):$P(CIAIP,".",3,4)_":"_CIAPORT,1:CIAPORT))  ; Change process name
- D LISTEN
+ D LISTEN                                                              ; Main loop
  D:CIAMODE=1 LOGRSRC^%ZOSV("$BROKER HANDLER$",2,2)                     ; Stop RUM for handler
  D:CIAQUIT>0!'CIAMODE STATE(0),STREST(1),^%ZISC,STREST(0),CLEANUP,LOGOUT^XUSRB:$G(DUZ)
  I 'CIAMODE,'CIAQUIT J EN^CIANBLIS(CIAPORT)                            ; Restart primary listener after fatal error
@@ -145,18 +154,31 @@ LISTEN N $ET,$ES
 DOACTION(VAC) ;
  N NM,SB,RT,VL,PR,CIA,ACT,SEQ,ARG,CIAERR,CIADATA,X
  S CIAERR(0)=0
- D TCPUSE
- S X=$$TCPREAD(8,10)
- Q:$E(X,1,5)'="{CIA}" 0
- S ARG=0,CIA("EOD")=$A(X,6),SEQ=$E(X,7),ACT=$E(X,8)
+ D TCPUSE                       ; Use TCP device
+ S X=$$TCPREAD(8,10)            ; Read 8 characters; timeout 10 sec
+ Q:$E(X,1,5)'="{CIA}" 0         ; Char 1-5 must be {CIA}
+ S ARG=0,CIA("EOD")=$A(X,6),SEQ=$E(X,7),ACT=$E(X,8)     ; Char 6-8: End of Data (C4/C255); Sequence Number (int); Action (C,D,P,Q,R,S,U)
+ ; Read Data for RPC:
+ ; - NM is the argument read from TCP stream; it can be a alphanum or numeric
+ ; - If not numeric, set RT to be CIA("""NM"""), where NM is the name of the parameter. 
+ ; ---> Known params are UID (DUZ), CTX (context), VER (version), RPC (you know this), and ASY (Async)
+ ; - If numeric, in RT set the value to be P plus the number, representing the parameter list for typically an RPC.
+ ; If we are sending a parameter and it hasn't been sent before (ARG array), new the variable containing it.
  F  S NM=$$TCPREADL Q:'$L(NM)  S PR=NM=+NM,RT=$S(PR:"P"_NM,1:"CIA("""_NM_"""") N:PR&'$D(ARG(NM)) @RT D
+ .; if it's a parameter, store it in the ARG array. Just for keeping track of parameters.
  .S:PR ARG=$S(NM>ARG:NM,1:ARG),ARG(NM)=""
+ .; Read subscript and Value
  .S SB=$$TCPREADL,VL=$$TCPREADL
+ .; If we have a valid subscript, do the crazy concatenation. For Parameters, open a paren; for CIA commands, put a comma;; then append subscript
  .I $L(SB) S RT=RT_$S(PR:"(",1:",")_SB_")"
+ .; if not, and not a param, just close the CIA("""NM""" array
  .E  S:'PR RT=RT_")"
+ .; finally, set the the variable name in RT to the value.
  .S @RT=VL
+ .D LOG^XWBDLOG("Parameter "_RT_" is "_VL)
  W SEQ
- I '$$ERRCHK^CIANBACT(VAC'[ACT,9,ACT) D
+ D LOG^XWBDLOG("Write: "_SEQ)
+ I '$$ERRCHK^CIANBACT(VAC'[ACT,9,ACT) D  ; make sure we have a valid action
  .N $ET,$ES
  .S $ET="D ETRAP2^CIANBLIS"
  .D @("ACT"_ACT_"^CIANBACT")
@@ -224,7 +246,8 @@ TCPOPEN() ;
  ..S POP='$T
  Q 'POP
  ; Use TCP listener port
-TCPUSE I CIAOS=1 U CIATDEV Q
+TCPUSE
+ I CIAOS=1 U CIATDEV Q
  I CIAOS=2 D  Q
  .I CIAMODE U CIATDEV S:$ZC CIAQUIT=1 Q
  .O CIATDEV
@@ -242,7 +265,8 @@ TCPUSE I CIAOS=1 U CIATDEV Q
 TCPCLOSE C:$D(CIATDEV) CIATDEV
  Q
  ; Release TCP port
-TCPREL I CIAOS=1 U CIATDEV:DISCONNECT Q
+TCPREL 
+ I CIAOS=1 U CIATDEV:DISCONNECT Q
  I CIAOS=2 C CIATDEV Q
  I CIAOS=3 W *-3,*-2 Q
  ; //Sam new code **1000** for GT.M
@@ -255,6 +279,7 @@ TCPREAD(CNT,TMO) ;
  S Y="",TMO=$G(TMO,60)
  F  Q:CNT'>0  D
  .R X#CNT:TMO
+ .D LOG^XWBDLOG("Read: "_X)
  .I '$L(X) S Y="",CNT=0 S:CIAMODE=2 CIARETRY=CIARETRY+.5
  .E  S Y=Y_X,CNT=CNT-$L(X)
  Q Y
@@ -293,7 +318,7 @@ ETRAP2 N ECSAV
  ; Send a reply
 REPLY(DATA,ACK) ;
  D TCPUSE
- W $C(+$G(ACK)),$G(DATA)
+ W $C(+$G(ACK)),$G(DATA) D LOG^XWBDLOG("Write: "_$C(+$G(ACK))_$G(DATA))
  D SNDEOD
  Q
  ; Send error information
@@ -301,6 +326,7 @@ SNDERR ;
  N X
  D TCPUSE
  W $C(1)
+ D LOG^XWBDLOG("Write: "_$C(1))
  D OUT^CIANBACT("CIAERR",1),SNDEOD
  S CIAERR(0)=0
  Q
@@ -308,6 +334,7 @@ SNDERR ;
 SNDEOD I $D(CIA("EOD")) D
  .D TCPUSE
  .W $C(CIA("EOD")),!
+ .D LOG^XWBDLOG("Write: "_$C(CIA("EOD"))_" (flush)")
  .K CIA("EOD")
  Q
  ; Lock/Unlock listener

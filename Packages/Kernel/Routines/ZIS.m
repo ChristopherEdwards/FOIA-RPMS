@@ -1,5 +1,5 @@
 %ZIS ;SFISC/AC,RWF -- DEVICE HANDLER ;05/22/12  12:31
- ;;8.0;KERNEL;**18,23,69,112,199,191,275,363,440,499,524,546,599,1018**;JUL 10, 1995;Build 8
+ ;;8.0;KERNEL;**18,23,69,112,199,191,275,363,440,499,524,546,599**;JUL 10, 1995;Build 8
  ;Per VHA Directive 2004-038, this routine should not be modified
  ; ZEXCEPT: %IS,%ZIS,%ZISVT,DTIME,ION,IOP,IOT,POP,ZTIO,ZTQUEUED
  N %ZISOS,%ZISV
@@ -38,9 +38,6 @@ GETHOME I $D(IO("HOME")),$P(IO("HOME"),"^",2)=IO(0) S (%E,%H)=+IO("HOME") Q
  Q
 VIRTUAL ;See if a Virtual Terminal (LAT, TELNET)
  ; ZEXCEPT: %ZISI,%ZISVT
- ;-----BEGIN IHS MOD
- Q:$G(%ZISVT)=""  ;XU*8.0*1018 - IHS/FJE/04-22-03
- ;-----END IHS MOD
  F %ZISI=$L(%ZISVT):-1:1 D:$D(^%ZIS(1,"C",%ZISVT))  Q:$S('%E:0,$G(^%ZIS(1,%E,"TYPE"))="VTRM":1,1:0)  S %ZISVT=$E(%ZISVT,1,%ZISI)
  .D VTLKUP Q  ;Q:$S('%E:0,'$D(^%ZIS(1,%E,"TYPE")):0,^("TYPE")="VTRM":1,1:0)
  Q
@@ -105,3 +102,4 @@ REWERR ;Error encountered
  S IO("ERROR")=$EC
  S $EC="",$ET="Q:$ES>1  S $EC="""" Q 0" S $EC=",U1,"
  Q 0
+
